@@ -7,7 +7,7 @@ URL: https://github.com/tifossen?tab=repositories
 
 Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to Matlab. Then type:
 
-help MMS
+- help MSS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GNC Toolbox
