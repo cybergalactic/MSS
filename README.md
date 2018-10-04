@@ -1,13 +1,13 @@
 # MSS (Marine Systems Simulator)
 
-The Marine Systems Simulator (MSS) is a Matlab/Simulink library and simulator for marine systems. It includes models for ships, underwater vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. Please include the following reference when you use the GNC and HYDRO toolboxes:
+The Marine Systems Simulator (MSS) is a Matlab/Simulink library for marine systems. It includes models for ships, underwater vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. Please include the following reference when you use the GNC and HYDRO toolboxes:
 
 T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS).
 URL: https://github.com/tifossen?tab=repositories
 
 Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to Matlab. Then type:
 
-$ help MMS
+help MMS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GNC Toolbox
@@ -32,6 +32,6 @@ The processed data can be used in real-time simulation of marine vessels in 6 DO
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 FDI Toolbox
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This is a stand-alone toolbox for identification of radiation-force models and fluid memory effects of marine structures (marine craft and wave energy converters). Please include the following reference when you use the MSS FDI toolbox:
+This is a stand-alone toolbox for identification of radiation-force models and fluid memory effects of marine structures such as marine craft and wave energy converters. Please include the following reference when you use the MSS FDI toolbox:
 
 T. Perez and T. I. Fossen (2009). A Matlab Tool for Parametric Identification of Radiation-Force Models of Ships and Offshore Structures. Modelling, Identification and Control, MIC-30(1):1-15.
