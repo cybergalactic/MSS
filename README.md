@@ -1,5 +1,4 @@
-	# MSS
-Marine Systems Simulator
+# MSS (Marine Systems Simulator)
 
 The Marine Systems Simulator (MSS) is a Matlab/Simulink library and simulator for marine systems. It includes models for ships, underwater vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. Please include the following reference when you use the GNC and HYDRO toolboxes:
 
@@ -8,7 +7,7 @@ URL: https://github.com/tifossen?tab=repositories
 
 Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to Matlab. Then type:
 
-> help MMS
+ help MMS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GNC Toolbox
