@@ -12,11 +12,6 @@ echo off
 %   Guidance, Navigation and Control Toolbox Demonstrations.
 %
 %   Thor I. Fossen 2001-08-14
-%
-%   MSS GNC Copyright (C) 2008  Thor I. Fossen and Tristan Perez
-%   This program comes with ABSOLUTELY NO WARRANTY. This is free software,
-%   and you are welcome to redistribute it under certain conditions; 
-%   >>type license.txt, for details.
 
 
 while 1
