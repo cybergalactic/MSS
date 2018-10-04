@@ -10,7 +10,7 @@ Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to
     help MSS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# GNC Toolbox
+GNC Toolbox
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Basic libraries and system examples for guidance, navigation and control (GNC). The library contains:
 
