@@ -1,5 +1,4 @@
-% Marine Systems Simulator (MSS).
-% Guidance, Navigation and Control (GNC) Toolbox
+% Marine Systems Simulator (MSS): 
 %
 % Ref.: T. I. Fossen (2011). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. John Wiley & Sons Ltd.
