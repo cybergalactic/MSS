@@ -1,7 +1,7 @@
 % Marine Systems Simulator (MSS): 
 %
 % Ref.: T. I. Fossen (2011). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. John Wiley & Sons Ltd.
+%       Motion Control. John Wiley & Sons Ltd., 1st edition.
 %
 %       Book examples:  >> help mss_examples 
 %
