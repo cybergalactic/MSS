@@ -18,8 +18,9 @@
 %    ssa(angle,'deg') maps an angle in deg to the interval (-180, 180]
 %    ssa(angle,'rad') maps an angle in rad to the interval (-pi pi] 
 %    
-% Thrust allocation:
+% Control allocation and propeller models:
 %    ucalloc    - Unconstrained control allocation for tau = T*K*u (T=K=constant)
+%    wageningen - Thrust and torque models for Wageningen B-series propellers
 %
 % Control:
 %    lqtracker  - Computes the LQ tracker gain matrices for LTI systems 

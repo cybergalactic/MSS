@@ -24,5 +24,6 @@
 %    ExRRD2       - Rudder-Roll Damping (RRD) system for the Son and Nomoto container ship
 %    ExRRD3       - Inverse response in roll due to right-half-plane zero (non-minimum phase)
 %    ExTurnCircle - Generates the turning circle for the mariner class vessel and a container ship
+%    ExWageningen - Computes thrust and torque for the Wageningen B-series propellers
 %    ExWindForce  - Plotting the wind forces and moment using Isherwoods (1972) formulas
 %    ExZigZag     - Produces a zigzag maneuver for the mariner class vessel and a container ship

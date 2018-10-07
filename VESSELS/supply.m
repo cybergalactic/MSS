@@ -19,8 +19,8 @@ function xdot = supply(x,tau)
 %
 % Author:     Thor I. Fossen
 % Date:       12 July 2002
-% Revisions:  24 February 2004, included missing mass scaling in the Bis transformation
-%             12 October 2011,  Corrected T and Tinv which were switched. 
+% Revisions:  24 February 2004 Included missing mass scaling in the Bis transformation
+%             12 October 2011  Corrected T and Tinv, which were switched 
 
 % Normalization variables
 L    =  76.2;           % length of ship (m)
