@@ -12,6 +12,7 @@
 %    ExLinspec    - Linear approx. to PM, JONSWAP and Torsethaugen spectra using NLS
 %    ExMSI        - Plots the ISO 2631-1 and O'Hanlon and McCauley Motion Sickness Incidence curves
 %    ExNomoto     - Generates the Nomoto Bode plots for a cargo ship and tanker
+%    Ex_EKF       - Example implementation of an EKF using different measurement/sample frequencies
 %    ExObsCtr     - Observability and Controllability of Ships
 %    ExPassiveObs - Plots the loop transfer function of the passive observer
 %    ExPathGen    - Path generation using cubic polynominals
