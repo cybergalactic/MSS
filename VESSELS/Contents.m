@@ -4,7 +4,8 @@
 %
 %    Ships:
 %    mariner     - Mariner class vessel, L=160 m (nonlinear maneuvering model).
-%    tanker      - Esso Osaka tanker, L=304 m (nonlinear course unstable maneuvering model).
+%    tanker      - Tanker, L=304 m (nonlinear course unstable maneuvering model).
+%    EssoOsaka   - The Esso Osaka tanker, L=325 m (nonlinear course unstable maneuvering model).
 %    container   - Container ship, L=175 m (nonlinear maneuvering model including the roll mode)
 %    Lcontainer  - Container ship, L=175 m (LINEAR maneuvering model including the roll mode)
 %    navalvessel - Multipurpose naval vessel, L = 51.5 m (nonlinear manneuvering model)
