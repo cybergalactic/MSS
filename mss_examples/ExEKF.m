@@ -31,7 +31,7 @@ N  = 1000;		  % no. of iterations (sampling time: h  = 1/f_samp)
 h  = 1/f_samp; 	  % sampling time (s) 
 h_pos = 1/f_pos;
 
-% Nonlinear model 
+% nonlinear model 
 %   dx1/dt = x2
 %   dx2/dt = a * x2 * abs(x2) + b * u + white noise
 %        y = x1 + white noise
@@ -109,7 +109,6 @@ for i=1:N+1
 end
 
 %% PLOTS
-
 t     = simdata(:,1); 
 x     = simdata(:,2:3); 
 x_hat = simdata(:,4:5); 
