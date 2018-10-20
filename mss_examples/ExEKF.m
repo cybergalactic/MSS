@@ -68,7 +68,8 @@ for i=1:N+1
    E = [0 e]';
    x_dot = f + E * w;                      % dx/dt = f + E * w
    
-   % Discrete-time matrices: PHI = I + h * A and GAMMA = h * B
+   % Discrete-time linearized matrices: PHI = I + h * A and GAMMA = h * B 
+   % where A = df/dx is linearized about x = x_prd
    PHI   = [ 1   h
              0  1 + h*2*a*abs(x_prd(2)) ];   
    GAMMA = h * E;    
