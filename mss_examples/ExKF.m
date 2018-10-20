@@ -1,14 +1,18 @@
-% ExEKF Discrete-time extended Kalman filter (EKF) implementation demonstrating
+% ExKF Discrete-time Kalman filter (KF) implementation demonstrating
 % how the "predictor-corrector representation" can be applied to the
-% following nonlinear model:
+% following linear model:
 % 
-%   dx1/dt = x2
-%   dx2/dt = a * x2 * abs(x2) + b * u + white noise
-%        y = x1 + white noise
+%   dx/dt = A * x + B * u + E * w 
+%       y = H * x + v
 %
-% The position measurement frequency f_pos [Hz] can be chosen smaller or
-% equal to the  sampling frequency f_samp [Hz]. The ratio between the 
-% frequencies must be an integer:
+%   x_k+1 = Ad * x_k + Bd * u_k + Ed * w_k 
+%     y_k = H * x_k + v_k
+%
+% Let h be the sampling time and Ad = I + h * A, Bd = h * B and Ed = h * E. 
+%
+% The case study is a mass-damper system with position measured at frequency
+% f_pos [Hz], which can be chosen smaller or equal to the sampling frequency 
+% f_samp [Hz]. The ratio between the frequencies must be an integer:
 %
 %      N_integer = f_samp/f_pos >= 1 
 %
@@ -31,13 +35,20 @@ N  = 1000;		  % no. of iterations
 h  = 1/f_samp; 	  % sampling time: h  = 1/f_samp (s) 
 h_pos = 1/f_pos;
 
-% model parameters 
-%   dx1/dt = x2
-%   dx2/dt = a * x2 * abs(x2) + b * u + white noise
-a  = -1;              
-b  = 1;
-e  = 1;
+% model paramters for mass-damper system (x1 = position, x2 = velcoity)
+A = [0 1
+     0 -0.1 ];
+B = [0
+     1];
+E = [0
+     1];
+H = [1 0]; 
 
+% discrete-time matrices
+Ad = eye(2) + h * A;
+Bd = h * B;
+Ed = h * E;
+ 
 % initial values for x and u
 x = [0 0]';	        
 u = 0;
@@ -63,16 +74,8 @@ for i=1:N+1
    % Plant
    u = 0.1 * sin(0.1*t);                   % input
    w = 0.1 * randn(1);                     % process noise
-   f = [ x(2)
-         a*x(2)*abs(x(2)) + b*u];
-   E = [0 e]';
-   x_dot = f + E * w;                      % dx/dt = f + E * w
-   
-   % Discrete-time matrices: PHI = I + h * A and GAMMA = h * B
-   PHI   = [ 1   h
-             0  1 + h*2*a*abs(x_prd(2)) ];   
-   GAMMA = h * E;    
-   
+   x_dot = A * x + B * u + E * w;          
+     
    % measurements are slower than the sampling time
    if mod( t, h_pos ) == 0
        z = x(1) + 0.1 * randn(1);  
@@ -93,15 +96,10 @@ for i=1:N+1
    
    % store simulation data in a table   
    simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
-
-   % discrete-time extended KF-model
-   f_hat = [ x_hat(2)
-             a * x_hat(2) * abs(x_hat(2)) + b * u ];
-   f_k   = x_hat + h * f_hat;
       
    % Predictor (k+1)  
-   x_prd = f_k;
-   P_prd = PHI * P_hat * PHI' + GAMMA * Q * GAMMA';
+   x_prd = Ad * x_hat + Bd * u;
+   P_prd = Ad * P_hat * Ad' + Ed * Q * Ed';
    
    % Euler integration (k+1)
    x = x + h * x_dot;
