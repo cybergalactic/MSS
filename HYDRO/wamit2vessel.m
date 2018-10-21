@@ -91,24 +91,6 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
 % The toolbox is part of the Marine Systems Simulator (MSS).
-%
-% Copyright (C) 2008 Thor I. Fossen and Tristan Perez
-% 
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% s
-% This program is distributed in the hope that it will be useful, but
-% WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-% GNU General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <http://www.gnu.org/licenses/>.
-% 
-% E-mail: contact@marinecontrol.org
-% URL:    <http://www.marinecontrol.org>
 %%
 
 if ~exist('plot_flag')
@@ -116,7 +98,7 @@ if ~exist('plot_flag')
 end
 
 disp(' ');
-disp('************************* MSS Hydro R1.1 **************************')
+disp('************************* MSS Hydro ********************************')
 disp('vessel = wamit2vessel(*) computes the MSS vessel structure from')
 disp('WAMIT (version 6.X) output files *.N (N=1,2,3,4,,9), *.out, and *.frc')
 disp('generated using wamit_inputs.m. The results are stored as *.mat.')

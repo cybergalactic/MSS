@@ -22,7 +22,7 @@ function [h,ww] = freqs(b,a,w)
 % 	Author(s): J.N. Little, 6-26-86
 %   	   T. Krauss, 3-19-93, default plots and frequency vector
 %   Copyright 1988-2004 The MathWorks, Inc.
-%   $Revision: 1.12.4.2 $  $Date: 2004/12/26 22:15:54 $
+%   Revision: 1.12.4.2 $  $Date: 2004/12/26 22:15:54 $
 
 
 error(nargchk(2,3,nargin));

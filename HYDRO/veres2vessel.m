@@ -82,31 +82,13 @@ function vessel = veres2vessel(filename, plot_flag)
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
 % The toolbox is part of the Marine Systems Simulator (MSS).
-%
-% Copyright (C) 2008 Thor I. Fossen and Tristan Perez
-% 
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% 
-% This program is distributed in the hope that it will be useful, but
-% WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-% GNU General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <http://www.gnu.org/licenses/>.
-% 
-% E-mail: contact@marinecontrol.org
-% URL:    <http://www.marinecontrol.org>
-
+%%
 if ~exist('plot_flag')
 	plot_flag = '1000';
 end
 
 disp(' ');
-disp('************************* MSS Hydro R2.0 **************************')
+disp('************************* MSS Hydro *******************************')
 disp('vessel = veres2vessel(*) computes the MSS vessel structure from the')
 disp('ShipX (VERES) output files *.reN (N=1,2,7,8). The results are stored')
 disp('on the file *.mat.')
@@ -142,19 +124,19 @@ vessel.driftfrc  = data3.driftfrc;
 fid1 = fopen(strcat(filename,'.hyd'));
 
 abort = 0;
-while feof(fid1) == 0,
+while feof(fid1) == 0
     txt = char(fgetl(fid1));
 
-    if  strfind(txt,'KB'),
+    if  strfind(txt,'KB')
         KB   = str2num(txt(50:length(txt)-1));
     end
-    if  strfind(txt,'LCB'),
+    if  strfind(txt,'LCB')
         LCB  = str2num(txt(50:length(txt)-1));
         txt  = char(fgetl(fid1));
         txt  = char(fgetl(fid1));
         C_B  = str2num(txt(50:length(txt)));
     end
-    if  strfind(txt,'GMl'),
+    if  strfind(txt,'GMl')
         GM_L   = str2num(txt(50:length(txt)-1));
         txt  = char(fgetl(fid1));
         GM_T   = str2num(txt(50:length(txt)-1));
