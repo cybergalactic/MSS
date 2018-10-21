@@ -4,8 +4,9 @@
 %       Motion Control. John Wiley & Sons Ltd.
 %
 % Examples 
-% ExKF         - Discrete-time KF using different measurement/sampling-time frequencies
 % ExEKF        - Discrte-time EKF using different measurement/sampling-time frequencies
+% ExKF         - Discrete-time KF using different measurement/sampling-time frequencies
+% ExFeedback   - Numerical integration of 1st-order system with feedback and feedforward control laws
 % ExKT         - Computation of Nomoto gain and time const. using nonlinear least-squares (NLS)
 % ExLinspec    - Linear approx. to PM, JONSWAP and Torsethaugen spectra using NLS
 % ExLQFinHor   - LQ finite time-horizon tracking of mass-damper-spring system
