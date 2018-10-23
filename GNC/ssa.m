@@ -2,12 +2,12 @@ function angle = ssa(angle,unit)
 % SSA is the "smallest signed angle" or the smallest difference between two
 % angles. Examples:
 %  
-% angle = ssa(angle,'rad') maps an angle in rad to the interval (-pi pi] 
-% angle = ssa(angle,'deg') maps an angle in deg to the interval (-180, 180]
+% angle = ssa(angle,'rad') maps an angle in rad to the interval [-pi pi) 
+% angle = ssa(angle,'deg') maps an angle in deg to the interval [-180, 180)
 %
 % For feedback control systems and state estimators used to control the 
 % attitude of vehicles, the difference of two angles should always be
-% mapped to (-pi pi] or (-180, 180] to avoid step inputs/discontinuties.           
+% mapped to [-pi pi) or [-180, 180] to avoid step inputs/discontinuties.           
 %
 % Notice that in many languages, the modulus operator mod(x,y) returns a
 % value with the same sign as x:
