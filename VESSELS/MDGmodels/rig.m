@@ -12,7 +12,7 @@ function [M,D,G,MRB,MA,rCG,rCB,T_z,T_phi,T_theta] = rig
 %          as well as MRB and MA. Center of gravivty (rCG) and center of 
 %          buoynacy (rCB) are given with respect to CO.        
 % 
-% Author:  12.03.00 Thor I. Fossen
+% Author:  2000-03-12 Thor I. Fossen
 
 data_rig
 
@@ -56,19 +56,19 @@ Cr_tab   = [1.0 1.20  1.20 1.20  1.20 1.20  1.26 1.47  1.86 ];
 
 % sway: Cm(Bp/Hp) 
 BpdivHp = B_p/H_p;
-if BpdivHp>5.0, BpdivHp=5.0;, disp('WARNING: Cm22max is used for Cm22'); end
+if BpdivHp>5.0, BpdivHp=5.0; disp('WARNING: Cm22max is used for Cm22'); end
 Cm22   = interp1( ratio1, Cm_tab, BpdivHp );
 A22_2D = Cm22*rho*pi*(H_p/2)^2;
 
 % heave: Cm(Hp/Bp)
 HpdivBp = H_p/B_p;
-if HpdivBp>5.0, HpdivBp=5.0;, disp('WARNING: Cm33max is used for Cm33'); end
+if HpdivBp>5.0, HpdivBp=5.0; disp('WARNING: Cm33max is used for Cm33'); end
 Cm33   = interp1( ratio1, Cm_tab, HpdivBp );
 A33_2D = Cm33*rho*pi*(B_p/2)^2;
 
 % roll: Cr(Hp/Bp) 
 HpdivBp = H_p/B_p;
-if HpdivBp>1.0, HpdivBp=1.0;, disp('WARNING: Crmax is used for Cr'); end
+if HpdivBp>1.0, HpdivBp=1.0; disp('WARNING: Crmax is used for Cr'); end
 Cr =  interp1(ratio2,Cr_tab,HpdivBp);
 
 % show interpolations graphically
@@ -113,7 +113,7 @@ A_p = A_p1 + A_p2;
 
 % volume centers
 
-for i=1:N_l,
+for i=1:N_l
    R_l(i,:) = [DATCONF.R_l(i,1) DATCONF.R_l(i,2) -T_draft/2 ];   
 end
 
@@ -122,11 +122,11 @@ end
 H_l = T_draft-H_p;                   % heigh of submerged part of legs
 CB_l = DATCONF.CB_l;                 % leg block coefficient
 
-for i=1:N_l,
+for i=1:N_l
    B_l(i) = DATCONF.B_l(i);          % width  of leg 
    L_l(i) = DATCONF.L_l(i);          % length of leg 
    
-   if DATCONF.legs == 'box',
+   if DATCONF.legs == 'box'
       nabla_li(i) = CB_l*B_l(i)*H_l*L_l(i);  % box deplasements
    else % cylinder
       diameter(i) = B_l(i);
@@ -135,15 +135,15 @@ for i=1:N_l,
 end
 
 % volume centers in COO
-for i=1:N_l,
+for i=1:N_l
    R_l(i,:) = [DATCONF.R_l(i,1) DATCONF.R_l(i,2) -(H_p+H_l/2) ];
 end
 
 % added mass for N_l legs
 A_l = zeros(6,6);
 
-for i=1:N_l,
-   if DATCONF.legs == 'box',
+for i=1:N_l
+   if DATCONF.legs == 'box'
       % sway: Cm(Bp/Lp) 
       Cm22   = interp1( ratio1, Cm_tab, B_l(i)/L_l(i) );
       A22_2D = Cm22*rho*pi*(L_l(i)/2)^2;
@@ -240,7 +240,7 @@ Iz    = m*DATCONF.r_z^2;
 
 % water plane area
 
-if DATCONF.legs == 'box',
+if DATCONF.legs == 'box'
    Ao = CB_l*(B_l.*L_l);       % areas of box shaped legs
 else
    Ao = pi*(0.5*B_l).^2;       % areas of cylinder shaped legs
@@ -249,8 +249,8 @@ end
 Awp   = sum(Ao)               % water plane area
 
 % Moment of areas
-for i=1:N_l,
-   if DATCONF.legs == 'box',
+for i=1:N_l
+   if DATCONF.legs == 'box'
       I_Li(i) = Ao(i)*( R_l(i,1)^2 + (1/12)*L_l(i)*B_l(i)^3 );    
       I_Ti(i) = Ao(i)*( R_l(i,2)^2 + (1/12)*B_l(i)*L_l(i)^3 );    
    else % cylinders
@@ -265,7 +265,7 @@ I_T = sum(I_Ti);
 % Center of buoynacy and WP area center in COO
 sum_l = zeros(1,3);
 sum_wp = zeros(1,3);
-for i=1:N_l,
+for i=1:N_l
    sum_l  = sum_l + R_l(i,:)*(Ao(i)*H_l);
    sum_wp = sum_wp + [R_l(i,1:2) -T_draft]*Ao(i);
 end
