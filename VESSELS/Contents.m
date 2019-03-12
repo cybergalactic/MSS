@@ -16,9 +16,10 @@
 %    npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
 %
 %    Semi-submersibles:
-%    rig         - Semi-sub MDG (mass-damper-spring) model, L = 84.6 m
+%    rig         - Semisub MDG (mass-damper-spring) model, L = 84.6 m
 %
 %    Time-series simulations:
 %    SIMmariner.m   - Simulate mariner.m under PD control
-%    SIMcontainer.m - SImulate container.m and Lcontainer.m under PD control
+%    SIMcontainer.m - Simulate container.m and Lcontainer.m under PD control
+%    SIMrig.m       - Simulate the 6-DOF semisub model under PID control
 
