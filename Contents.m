@@ -75,13 +75,14 @@
 %    llh2flat   - Longitude-lattitude-height to flat Earth (NED)
 %    quatern    - Quaternion transformation matrices J, J1 and J2
 %    euler2q    - Computes the Euler angles from the unit quaternions.
-%    rad2pipi   - Converts an angle in rad to the interval <-pi pi>
+%    rad2pipi   - Converts an angle in rad to the interval [-pi pi)
+%    rbody      - Computes MRB and CRB(nu) for a rigid body
 %    Rll        - Euler angle rotation matrix (longitude-lattitude)
-%    Rzyx       - Euler angle rotation matrix (roll-pitch-yaw)
 %    Rquat      - Quaternion rotation matrix
-%    Tzyx       - Euler angle transformation matrix for attitude
+%    Rzyx       - Euler angle rotation matrix (roll-pitch-yaw)
 %    Smtrx      - skew-symmetric matrix for vector cross products: a x b = S(a)b
 %    Tquat      - Quaternion transformation matrix for attitude
+%    Tzyx       - Euler angle transformation matrix for attitude (roll-pitch-yaw)
 %    q2euler    - Quaternions to Euler angles (roll-pitch-yaw)
 %    R2euler    - Rotation matrix to Euler angles (roll-pitch-yaw)
 %    vex        - Inverse vex(S(a))=a for the skew-symmetric matrix S(a)
