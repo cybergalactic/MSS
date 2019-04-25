@@ -19,6 +19,7 @@ function [T,zeta] = DPperiods(vessel,display)
 % Revisions: 2008-05-09  First version
 %            2009-09-11  Using constant viscous damping Bv
 %            2013-07-06  Using new initial values w_0
+%            2019-04-25  Fixed bug for test on imag and real eigenvalues
 % ________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
@@ -38,7 +39,8 @@ for k = 1:Nw
     A(:,:,k) = reshape(vessel.A(:,:,k,1),6,6,1);
        
     if isfield(vessel,'Bv')  % viscous damping
-        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1) + vessel.Bv;
+        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1) 
+                 + reshape(vessel.B(:,:,k,1),6,6,1);
         flagBV = 1;
     else % no viscous damping
         B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1);
@@ -134,7 +136,7 @@ for i = 1:12
 
     wn  = abs(lam(i));
             
-    if isreal(lam(i))     % no spring (time constant)
+    if abs(imag(lam(i)) < eps)     % no spring (time constant)
 
         if real(lam(i)) < -eps  
             T  = 1/wn;         
