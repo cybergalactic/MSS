@@ -1,0 +1,116 @@
+ -----------------------------------------------------------------------
+
+                        WAMIT  Version 6.41       
+
+     Copyright (c) 1999-2006 WAMIT Incorporated                        
+     Copyright (c) 1998 Massachusetts Institute of Technology          
+
+ -----------------------------------------------------------------------
+
+     The WAMIT software performs computations of wave interactions with
+     floating or submerged vessels.  WAMIT is a registered trademark of
+     WAMIT Incorporated.  This copy of the WAMIT software is licensed to 
+
+            CESOS                                           
+            Norwegian University of Science and Technology  
+            Trondheim, Norway                               
+             
+     for end use at the above location.    Release date: 02 Dec 2008
+
+ -----------------------------------------------------------------------
+
+
+ High-order panel method (ILOWHI=1)                                     
+                                                                        
+ Input from Geometric Data File:         init.gdf                       
+ Cylinder R=5 T=100 -- analytic geometry, nonuniform mapping            
+                                                                        
+ Input from Spline Control File:         init.spl                       
+ cylinder.spl - Cylinder R=5 T=100  -- analytic geometry (npatch=2)     
+                                                                        
+ Input from Potential Control File:      init.pot                       
+ Init file                                                              
+                                                                        
+                                                                        
+ POTEN run date and starting time:        24-Jan-2009  --  18:55:15     
+    Period       Time           RAD      DIFF  (max iterations)         
+   -1.0000    18:55:15          -1                                      
+   41.0000    18:55:15          -1      -1                              
+
+ Gravity:     9.80665                Length scale:        1.00000
+ Water depth:        infinite       Water density:     1025.00000
+ Panel quadrature indices:       IQUAD = 0   ILOG = 0   IDIAG = 0
+ Source formulation index:                   ISOR =     0
+ Diffraction/scattering formulation index: ISCATT =     0
+ Number of blocks used in linear system:   ISOLVE =     1
+ Number of unknowns in linear system:        NEQN =    48
+
+ BODY PARAMETERS:
+
+ NPATCH:     2               IGDEF:   -1          Symmetries:  X=0,Y=0    
+ Irregular frequency index: IRR =   0
+            Patch   NU  NV    KU  KV   IQUI IQVI
+               1     4   2     3   3     4    4
+               2     4   2     3   3     4    4
+
+ XBODY =    0.0000 YBODY =    0.0000 ZBODY =    0.0000 PHIBODY =   0.0
+ Volumes (VOLX,VOLY,VOLZ):           7853.98      7853.98      7853.98    
+ Center of Buoyancy (Xb,Yb,Zb):     0.000000     0.000000   -49.999989
+ Hydrostatic and gravitational restoring coefficients: 
+ C(3,3),C(3,4),C(3,5):   78.540       0.0000       0.0000    
+ C(4,4),C(4,5),C(4,6):               0.23611E+06   0.0000       0.0000    
+        C(5,5),C(5,6):                            0.23611E+06   0.0000    
+ Center of Gravity  (Xg,Yg,Zg):     0.000000     0.000000   -80.000000
+
+
+ ------------------------------------------------------------------------
+                            Output from  WAMIT
+ ------------------------------------------------------------------------
+ FORCE run date and starting time:                24-Jan-2009 -- 18:55:15
+ ------------------------------------------------------------------------
+ I/O Filenames:  init.frc            init.p2f            init.out            
+ Init file                                                               
+
+ 
+ ************************************************************************
+
+ Wave period = infinite                                 Wavenumber = zero 
+ ------------------------------------------------------------------------
+
+
+    ADDED-MASS COEFFICIENTS
+     I     J         A(I,J)
+
+     1     1   7.595875E+03
+     1     5  -3.697901E+05
+     2     2   7.595879E+03
+     2     4   3.697904E+05
+     3     3   2.633431E+02
+     4     2   3.694421E+05
+     4     4   2.374651E+07
+     5     1  -3.694421E+05
+     5     5   2.374648E+07
+     6     6   3.106581E-12
+
+
+ ************************************************************************
+
+ Wave period (sec) =  4.100000E+01        Wavenumber (kL) =  2.394812E-03
+ ------------------------------------------------------------------------
+
+
+    ADDED-MASS AND DAMPING COEFFICIENTS
+     I     J         A(I,J)         B(I,J)
+
+     1     1   7.611262E+03   6.515840E-01
+     1     5  -3.701509E+05  -3.087824E+01
+     2     2   7.611263E+03   6.515751E-01
+     2     4   3.701512E+05   3.087833E+01
+     3     3   2.627073E+02   4.500097E+00
+     4     2   3.697985E+05   3.086518E+01
+     4     4   2.375775E+07   1.462700E+03
+     5     1  -3.697984E+05  -3.086536E+01
+     5     5   2.375773E+07   1.462692E+03
+     6     6   3.106708E-12   6.013319E-20
+
+

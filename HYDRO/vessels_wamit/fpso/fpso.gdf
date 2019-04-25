@@ -1,0 +1,8 @@
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+1.0 9.81           ULEN GRAV
+0  1               ISX  ISY
+6  -11             NPATCH  IGDEF
+3                  NLINES
+30.0  150.0  20.0  XBOW, XMID, XAFT
+22.0  12.0         HBEAM, HTRANSOM
+12.0  6.0          DRAFT, DTRANSOM 

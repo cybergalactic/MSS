@@ -1,0 +1,7 @@
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+1.  9.81     ULEN GRAV
+1   1        ISX  ISY
+6 -10        NPATCH IGDEF
+2            NLINES
+115.0 22.0 40.0 -21.0 -11.0 XL, Y1, Y2, Z1, Z2
+62.0 8.8 2  DCOL, RCOL, NCOL

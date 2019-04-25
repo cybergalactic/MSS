@@ -1,0 +1,7 @@
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+9  3        NU NV                 (patch  - pontoon bottom)
+32 2        NU NV                 (patch  - pontoon sides and end)
+5  3        NU NV                 (patch  - deck to first column)
+3  3        NU NV                 (patch  - surface of 1st column)
+5  2        NU NV                 (patch  - annulus around 1st column)
+4  3        NU NV                 (patch  - deck forward)

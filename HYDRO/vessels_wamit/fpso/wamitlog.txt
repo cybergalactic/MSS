@@ -1,0 +1,80 @@
+
+WAMITLOG.TXT file from WAMIT run:  17-Jun-2008 13:01:24
+
+ Input file fpso.cfg            
+IPLTDAT=5
+ILOWGDF=5
+KSPLIN=3
+IQUADI=4
+IQUADO=3
+IALTFRC=1
+IALTPOT=1
+ISOLVE=1
+MAXSCR=2048
+ILOWHI=1
+MAXITT=100
+IPERIO=1
+USERID_PATH=C:\WAMITv63
+
+POTEN run started:  17-Jun-2008 13:01:24
+
+ Input file fpso.pot            
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+0
+0
+-1 0.00 0.00 0.00 0.00
+0 1 0
+1 1
+1 1 1 1 1 1
+60
+-1 0 1.05 1.10 1.17 1.24 1.32 1.40 1.50 1.60 1.72 1.85 1.99 2.14 2.32 2.51 2.72
+19
+0   10   20   30   40   50   60   70   80   90  100  110  120  130  140  150  16
+
+ Input file fpso.gdf            
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+1.0 9.81           ULEN GRAV
+0  1               ISX  ISY
+6  -11             NPATCH  IGDEF
+3                  NLINES
+30.0  150.0  20.0  XBOW, XMID, XAFT
+22.0  12.0         HBEAM, HTRANSOM
+12.0  6.0          DRAFT, DTRANSOM
+
+ Input file fpso.spl            
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+4   3  NU NV (1 patch for the bottom of bow)
+4   2  NU NV (2 patch for side of bow)
+8   3  NU NV (3 patch for the bottom of midbody)
+8   2  NU NV (4 patch for side of midbody)
+2   1  NU NV (5 patch on transom)
+3   3  NU NV (6 sloping bottom on prismatic stern)
+
+  POTEN module run completed
+
+POTEN run completed:  17-Jun-2008 13:02:22
+
+FORCE run started:  17-Jun-2008 13:02:22
+
+ Input file fpso.frc            
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+1 0 1 1 0 0 0 0 1
+-1.00
+16.3 0.00 0.00
+0.00 54.0 0.00
+0.00 0.00 54.0
+0
+0
+
+ Nondimensional inertia matrix for body N =   1
+
+  97960.9      0.00000      0.00000      0.00000     -97960.9      0.00000    
+  0.00000      97960.9      0.00000      97960.9      0.00000      77255.0    
+  0.00000      0.00000      97960.9      0.00000     -77255.0      0.00000    
+  0.00000      97960.9      0.00000     0.260272E+08  0.00000      0.00000    
+ -97960.9      0.00000     -77255.0      0.00000     0.285654E+09  0.00000    
+  0.00000      77255.0      0.00000      0.00000      0.00000     0.285654E+09
+
+FORCE run completed:  17-Jun-2008 13:02:49
+
+  WAMIT run completed

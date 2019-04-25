@@ -1,0 +1,73 @@
+
+WAMITLOG.TXT file from WAMIT run:  24-Jan-2009 18:55:15
+
+ Input file init.cfg            
+IPLTDAT=5
+ILOWGDF=5
+KSPLIN=3
+IQUADI=4
+IQUADO=3
+MAXITT=100
+IALTFRC=2
+IALTPOT=1
+ISOLVE=1
+MAXSCR=1024
+ILOWHI=1
+IPERIO=1
+USERID_PATH=c:\WAMITv64
+
+POTEN run started:  24-Jan-2009 18:55:15
+
+ Input file init.pot            
+Init file
+0
+0
+-1 0.00 0.00 0.00 0.00
+0 0 0
+1 0
+1 1 1 1 1 1
+2
+-1.0 41.0
+1
+0
+
+ Input file init.gdf            
+Cylinder R=5 T=100 -- analytic geometry, nonuniform mapping
+1. 9.80665 ULEN GRAV
+1 1 ISX ISY
+2 -1 NPATCH IGDEF
+2 NLINES
+5.0 100.0 RADIUS, DRAFT
+1 INONUMAP (nonuniform mapping)
+
+ Input file init.spl            
+cylinder.spl - Cylinder R=5 T=100  -- analytic geometry (npatch=2)
+4 2 NU NV (Patch 1, side u azimuthal v vertical)
+4 2 NU NV (Parch 2, bottom u azimuthal v radial)
+
+  POTEN module run completed
+
+POTEN run completed:  24-Jan-2009 18:55:15
+
+FORCE run started:  24-Jan-2009 18:55:15
+
+ Input file init.frc            
+Init file
+1 0 0 0 0 0 0 0 0
+1025.00
+0.00 0.00 -80.00
+1
+8050331.17 0.00 0.00 0.00 -644026493.99 -0.00
+0.00 8050331.17 0.00 644026493.99 0.00 0.00
+0.00 0.00 8050331.17 0.00 -0.00 0.00
+0.00 644026493.99 0.00 78406871338.13 0.00 0.00
+-644026493.99 0.00 -0.00 0.00 78406871338.13 0.00
+-0.00 0.00 0.00 0.00 0.00 100629139.69
+0
+0
+0
+0
+
+FORCE run completed:  24-Jan-2009 18:55:15
+
+  WAMIT run completed

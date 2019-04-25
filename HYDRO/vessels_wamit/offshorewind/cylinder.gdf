@@ -1,0 +1,7 @@
+Cylinder R=5 T=100 -- analytic geometry, nonuniform mapping
+1. 9.80665 ULEN GRAV
+1 1 ISX ISY
+2 -1 NPATCH IGDEF
+2 NLINES
+5.0 100.0 RADIUS, DRAFT
+1 INONUMAP (nonuniform mapping)

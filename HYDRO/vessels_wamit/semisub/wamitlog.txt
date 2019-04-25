@@ -1,0 +1,90 @@
+
+WAMITLOG.TXT file from WAMIT run:  15-May-2008 12:18:04
+
+ Input file semisub.cfg         
+IPLTDAT=5
+ILOWGDF=5
+KSPLIN=3
+IQUADI=4
+IQUADO=3
+IALTFRC=2
+IALTPOT=1
+ISOLVE=1
+MAXSCR=2048
+ILOWHI=1
+MAXITT=100
+IPERIO=1
+USERID_PATH=C:\WAMITv63
+
+POTEN run started:  15-May-2008 12:18:04
+
+ Input file semisub.pot         
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+0
+0
+-1 0.00 0.00 0.00 0.00
+0 0 0
+1 1
+1 1 1 1 1 1
+31
+-1 0 4.5   4.8     5   5.2   5.5   5.8    6  6.2   6.5   6.8   7  7.5    8  8.5
+19
+0   10   20   30   40   50   60   70   80   90  100  110  120  130  140  150  16
+
+ Input file semisub.gdf         
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+1.  9.81     ULEN GRAV
+1   1        ISX  ISY
+6 -10        NPATCH IGDEF
+2            NLINES
+115.0 22.0 40.0 -21.0 -11.0 XL, Y1, Y2, Z1, Z2
+62.0 8.8 2  DCOL, RCOL, NCOL
+
+ Input file semisub.spl         
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+9  3        NU NV                 (patch  - pontoon bottom)
+32 2        NU NV                 (patch  - pontoon sides and end)
+5  3        NU NV                 (patch  - deck to first column)
+3  3        NU NV                 (patch  - surface of 1st column)
+5  2        NU NV                 (patch  - annulus around 1st column)
+4  3        NU NV                 (patch  - deck forward)
+
+  POTEN module run completed
+
+POTEN run completed:  15-May-2008 12:21:11
+
+FORCE run started:  15-May-2008 12:21:11
+
+ Input file semisub.frc         
+Semisub Lpp = 115.0, B = 80.0, T = 21.0, NCOL=2, IGDEF=-10
+1 0 1 1 0 0 0 0 1
+1025.00
+0.00 0.00 -0.5
+1
+51979800.00 0.00 0.00 0.00 -25989900.00   0.00
+0.00 51979800.00 0.00 25989900.00 0.00   0.00
+0.00 0.00 51979800.00 0.00 -0.00   0.00
+0.00 25989900.00 0.00 56606002200.00 0.00   0.00
+-25989900.00 0.00 -0.00 0.00 60088648800.00   0.00
+0.00 0.00 0.00 0.00 0.00 73096593750.00
+1
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 2e9 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+1
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0.00 0.00 0.00 0.00 0.00 0.00
+0
+0
+
+
+FORCE run completed:  15-May-2008 12:22:05
+
+  WAMIT run completed

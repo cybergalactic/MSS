@@ -1,0 +1,7 @@
+FPSO Lpp = 200.0, B = 44.0, T = 12.0, IGDEF=-11
+4   3  NU NV (1 patch for the bottom of bow)
+4   2  NU NV (2 patch for side of bow)
+8   3  NU NV (3 patch for the bottom of midbody)
+8   2  NU NV (4 patch for side of midbody)
+2   1  NU NV (5 patch on transom)
+3   3  NU NV (6 sloping bottom on prismatic stern)
