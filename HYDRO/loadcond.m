@@ -1,13 +1,14 @@
 function loadcond(vessel)
-% loadcond    Plots the vessel load condition data
+% loadcond    Plots T_roll as a functio of GM_T
 %
-%     >> loadcond(vessel)
+%  >> loadcond(vessel)
 %
 %  Inputs:
 %     vessel    : MSS vessel structure
 %
 % Author:    Thor I. Fossen
 % Date:      2005-09-26
+%            2019-04-25 Minor updates 
 % ________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
