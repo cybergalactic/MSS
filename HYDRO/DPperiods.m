@@ -39,7 +39,7 @@ for k = 1:Nw
     A(:,:,k) = reshape(vessel.A(:,:,k,1),6,6,1);
        
     if isfield(vessel,'Bv')  % viscous damping
-        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1) 
+        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1)... 
                  + reshape(vessel.B(:,:,k,1),6,6,1);
         flagBV = 1;
     else % no viscous damping
