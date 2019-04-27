@@ -6,7 +6,7 @@ function [T,zeta] = DPperiods(vessel,display)
 %
 %  Inputs:
 %     vessel    : MSS vessel structure
-%     display   : (optionally) 0 no display, 1 display results to scrren
+%     display   : (optionally) 0 no display, 1 display results to screen
 %
 %  Outputs:
 %     T(1:6)    : Time constants in surge, sway, and yaw
