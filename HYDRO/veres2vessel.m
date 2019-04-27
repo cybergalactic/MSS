@@ -75,9 +75,9 @@ function vessel = veres2vessel(filename, plot_flag)
 %
 % Author:    T. I. Fossen
 % Date:      2005-05-10 
-% Revisions: 2008-02-15 R1.0
-%            2009-09-11 R1.1 using new viscous damping viscous.m
-%            2013-07-09 R2.0 Fixed: MARINTEK coordinate origin not in CO
+% Revisions: 2008-02-15 Minor bug fixes
+%            2009-09-11 Using new viscous damping viscous.m
+%            2013-07-09 Fixed: MARINTEK coordinate origin not in CO
 % ________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
