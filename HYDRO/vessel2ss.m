@@ -36,9 +36,9 @@ function vesselABC = vessel2ss(vessel)
 %
 % Author:     Thor I. Fossen
 % Date:       2004-08-25  
-% Revisions:  2008-02-15  R1.0
-%             2009-09-10  R1.1  Frequency-domain implementation of fluid
-%                               memory effects using the Matlab FDI tools  
+% Revisions:  2008-02-15  Minor bug fixes
+%             2009-09-10  Frequency-domain implementation of fluid
+%                         memory effects using the Matlab FDI tools  
 % _________________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
