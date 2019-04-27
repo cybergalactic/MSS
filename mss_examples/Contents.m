@@ -22,6 +22,7 @@
 % ExQuadProg   - Quadratic programming for way-point trajectory generation
 % ExQuest      - 6 DOF position/attitude vector from camera measurements using the QUEST algorithm
 % ExRefMod     - 2nd-order reference model with nonlinear damping and velocity saturation
+% ExResonance  - Plots the amplitude as a function of resonant frequencies for ships
 % ExSpline     - Cubic Hermite and spline interpolation of waypoints 
 % EXRRD1       - Roll and sway-yaw transfer functions for the Son and Nomoto container ship
 % ExRRD2       - Rudder-Roll Damping (RRD) system for the Son and Nomoto container ship
