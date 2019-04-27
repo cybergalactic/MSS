@@ -85,8 +85,8 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 % -------------------------------------------------------------------------
 % Author:    Thor I. Fossen
 % Date:      2005-09-17 first version 
-% Revisions: 2008-02-15 R1.0
-%            2009-09-11 R1.1 using new viscous damping viscous.m
+% Revisions: 2008-02-15 Minor bug fixes
+%            2009-09-11 Using new viscous damping viscous.m
 % ________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
