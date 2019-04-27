@@ -1,10 +1,9 @@
 function loadcond(vessel)
-% loadcond    loadcond(vessel) plots T_roll and T_pitch as a function of 
-%             GM_T and GM_L. The heave period T_heave is plotted as a 
-%             function of draft T.
-%
+% loadcond   loadcond(vessel) plots T_roll and T_pitch as a function of 
+%            GM_T and GM_L. The heave period T_heave is plotted as a 
+%            function of draft T.
 %  Inputs:
-%     vessel    : MSS vessel structure
+%     vessel: MSS vessel structure
 %
 % Author:    Thor I. Fossen
 % Date:      2005-09-26
@@ -17,7 +16,6 @@ function loadcond(vessel)
 % Vessel data
 m   = vessel.main.m;
 T = vessel.main.T;
-rho = vessel.main.rho;
 R44 = vessel.main.k44;
 R55 = vessel.main.k55;
 g = 9.81;
@@ -29,14 +27,11 @@ per = DPperiods(vessel);
 T3 = per(3);  T4 = per(4);  T5 = per(5);
 w3 = 2*pi/T3; w4 = 2*pi/T4; w5 = 2*pi/T5;
 
-A33 = interp1(vessel.freqs,reshape(vessel.A(3,3,:),1,length(vessel.freqs)),w3);
 A44 = interp1(vessel.freqs,reshape(vessel.A(4,4,:),1,length(vessel.freqs)),w4);
 A55 = interp1(vessel.freqs,reshape(vessel.A(5,5,:),1,length(vessel.freqs)),w5);
-M33 = m  + A33;
 M44 = Ix + A44;
 M55 = Iy + A55;
 
-kappa_heave = A33/m;
 kappa_roll  = A44/(m*R44^2);
 kappa_pitch = A55/(m*R55^2);
 
