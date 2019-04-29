@@ -12,19 +12,19 @@ function w_n = natfrequency(vessel,dof,w_0,speed,LCF)
 %
 % For a linear system, the harmonic motions in 6 DOF satisfy
 %
-%    -[M_RB + A(w) ]*w^2 + C = 0
+%    -[M_RB + A(w)] * w^2 + C = 0
 %
 % which reduces to
 %
 %    w_i = sqrt(C_ii/(M_RB_ii + A_ii(w_i))
 %
-% for the 1 DOF case. These are implicit equations f(x)= 0 that are solved
-% using fsolve.m
+% for the 1 DOF case. These are implicit equations f(x) = 0 that are solved
+% using fsolve.m or fzero.m
 %
-% 6 DOF Example: 
+% 6-DOF example: 
 % >> w_n = natfrequency(vessel,-1,0.5,1)    
 %
-% 1 DOF Examples:
+% 1-DOF examples:
 % >> w_n = natfrequency(vessel,3,0.5,1,LCF)
 % >> w_n = natfrequency(vessel,4,0.5,1)
 %
@@ -35,14 +35,13 @@ function w_n = natfrequency(vessel,dof,w_0,speed,LCF)
 %    speed     speed index 1,2,3...
 %    LCF       optionally - longitudinal distance to CF from CO
 %              (x-coordinate of the water plane centroid)
-%
 % Outputs:
 %    w_n       natural frequency
 %
 % Author:    Thor I. Fossen
 % Date:      2006-03-26
 % Revisions: 2008-01-23  only for 1 DOF
-%            2008-10-28  Updated to solve 6 DOF coupled motions
+%            2008-10-28  Updated to solve 6-DOF coupled motions
 % _________________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
@@ -62,7 +61,7 @@ if dof ~= -1  % 1 DOF
     % vector from GLOBAL COORD to CF:
     r = [LCF 0 0];
     
-    if dof == 3 | dof == 4 | dof == 5
+    if dof == 3 || dof == 4 || dof == 5
         
         % mass and spring data in CF
         Hinv   = inv(Hmtrx(r));
@@ -100,7 +99,7 @@ if dof ~= -1  % 1 DOF
         end
         
         
-        if flag ~= 1,
+        if flag ~= 1
             disp(['Warning: natural frequency did not converge for dof = ', num2str(dof),...
                 ', using w_n = 1 rad/s instead']);
             w_n = 1.0;
