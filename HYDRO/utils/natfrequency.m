@@ -7,8 +7,8 @@ function w_n = natfrequency(vessel,dof,w_0,speed,LCF)
 % symmetrical vessel the decoupled pitching and rolling motions will be
 % about the point [LFC, 0, 0] in CO where CO is the b-frame coordinate
 % origin midtships on the centre line (Lpp/2, B/2, WL) and LCF denotes the
-% longitudinal centre of floatation. IF LCF is omitted it is assumed that
-% CF = CO. 
+% longitudinal centre of floatation (usually negative). IF LCF is omitted it
+% is assumed that CF = CO.  
 %
 % For a linear system, the harmonic motions in 6 DOF satisfy
 %
@@ -16,32 +16,33 @@ function w_n = natfrequency(vessel,dof,w_0,speed,LCF)
 %
 % which reduces to
 %
-%    w_i = sqrt(C_ii/(M_RB_ii + A_ii(w_i))
+%    w_i = sqrt( C_ii / (M_RB_ii + A_ii(w_i) )
 %
 % for the 1 DOF case. These are implicit equations f(x) = 0 that are solved
-% using fsolve.m or fzero.m
+% using fsolve.m (requires optimization toolbox) alternatively fzero.m.
 %
 % 6-DOF example: 
 % >> w_n = natfrequency(vessel,-1,0.5,1)    
 %
 % 1-DOF examples:
-% >> w_n = natfrequency(vessel,3,0.5,1,LCF)
+% >> w_n = natfrequency(vessel,4,0.5,1,LCF)
 % >> w_n = natfrequency(vessel,4,0.5,1)
 %
 % Inputs:
 %    vessel    MSS vessel data (computed in CO)
-%    dof       degree of freedom (3,4, or 5). Use -1 for 6 DOF coupled data
+%    dof       degree of freedom (3,4 or 5). Use -1 for 6 DOF coupled data
 %    w_0       initial natural frequency (typical 0.5)
 %    speed     speed index 1,2,3...
-%    LCF       optionally - longitudinal distance to CF from CO
+%    LCF       optionally, longitudinal distance to CF from CO
 %              (x-coordinate of the water plane centroid)
 % Outputs:
 %    w_n       natural frequency
 %
 % Author:    Thor I. Fossen
 % Date:      2006-03-26
-% Revisions: 2008-01-23  only for 1 DOF
-%            2008-10-28  Updated to solve 6-DOF coupled motions
+% Revisions: 2008-01-23 only for 1 DOF
+%            2008-10-28 updated to solve 6-DOF coupled motions
+%            2019-05-03 updated documentation
 % _________________________________________________________________________
 %
 % MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
@@ -88,7 +89,7 @@ if dof ~= -1  % 1 DOF
                 [w_n,F_n,flag] =  fzero(@(x) natfreq(x,m,k,w),w_0,optimset('Display','off','TolFun',1e-10));
             end
             
-            if flag ~= 1,
+            if flag ~= 1
                 w_0 = w_0 + 0.1;
                 disp(['Warning: natural frequency did not converge for dof = ', num2str(dof),...
                     ', increasing w_0 to ' num2str(w_0)]);
@@ -162,11 +163,7 @@ else  %  6 DOF (no spring in DOF 1,2,6)
     
 end
 
-
-
-%--------------------------------------------------------------------------
-%% Function for fsolve
-%--------------------------------------------------------------------------
+%% Functions for fsolve
 function F = natfreq(x,m,k,w)
 F = x - sqrt(k/interp1(w,m,x));
 
