@@ -21,7 +21,7 @@ function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 % user to specify the ship parameters. 
 %
 % xdot = waveresponse345(a, beta, T_0, U, L, B, T) uses the default 
-% values  = [0.2, 6, 1, 0.65, 1.0].
+% values  = [0.2, 6, 1, 0.65].
 %
 % waveresponse345(a, beta, T0, U, L, B, T,ship) plots the steady-state
 % heave, roll and pitch response for 20 seconds. 
@@ -36,7 +36,7 @@ function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 % Date:      2018-07-21  Based on the method of Jensen et al. (2005)
 % Revisions: 2019-05-03  Bug fixes
 
-% Default ship parameters
+% Default roll parameters
 if nargin == 7
     ship = [0.2, 6, 1, 0.65];
 end
