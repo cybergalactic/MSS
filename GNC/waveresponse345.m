@@ -1,4 +1,4 @@
-function xdot = waveresponse345(a, beta,T_0, U, L, B, T, ship)
+function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 % WAVERESPONSE345 computes the steady-state heave, roll and pitch responses
 % for a ship in regular waves using closed-form formulae. 
 %
