@@ -51,9 +51,7 @@ g = 9.81;                 % acceleration of gravity (m/s^2)
 rho = 1025;               % density of water (kg/m^3)
 
 % Ship parameters
-Aw = L * B;                    % water plane area (m^2)
 nabla = Cb * L * B * T;        % volume displacement (m^3) 
-m = rho * nabla;               % mass
 w_0 = 2 * pi / T_0;            % wave peak frequency (rad/s)
 k = w_0^2/g;                   % wave number
 w_e = w_0 - k * U * cos(beta); % frequency of encounter
