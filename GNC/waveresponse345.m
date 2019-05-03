@@ -1,6 +1,7 @@
 function waveresponse345(a, beta,T_0, U, L, B, T, ship)
-% WAVERESPONSE345 computes the steady-state heave, roll and pitch responses
-% for a ship in regular waves using closed-form formulae. 
+% waveresponse345(a, beta,T_0, U, L, B, T, ship) computes the steady-state 
+% heave, roll and pitch responses for a ship in regular waves using 
+% closed-form formulae. 
 %
 % Inputs:
 %
@@ -9,7 +10,7 @@ function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 % T_0 = wave periode (s) corresponding to the wave frequency w_0 = 2 pi/T_0
 % U = ship speed (m/s)
 %
-% Optionally ship data: ship = [zeta4, T4, GM_T, Cwp, Cb, delta]
+% Optionally ship data: ship = [zeta4, T4, GM_T, Cb]
 % 
 % zeta4      Relative damping factor in roll
 % T4         Natural roll periode (s)
@@ -37,7 +38,7 @@ function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 
 % Default ship parameters
 if nargin == 7
-    ship = [0.2, 6, 1, 0.65, 1.0];
+    ship = [0.2, 6, 1, 0.65];
 end
 
 % Hydrodynamic parameters
