@@ -1,32 +1,24 @@
-function waveresponse345(a, beta,T_0, U, L, B, T, ship)
-% waveresponse345(a, beta,T_0, U, L, B, T, ship) computes the steady-state 
-% heave, roll and pitch responses for a ship in regular waves using 
-% closed-form formulae. 
+function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
+% waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T) computes and 
+% ålots the steady-state heave, roll and pitch responses for a ship in regular 
+% waves using closed-form formulae. 
+%
+% Ex: waveresponse345(2, 75*pi/180, 10, 0.2, 6, 1, 0.65, 5, 82.8, 19.2, 6)
 %
 % Inputs:
 %
-% a = wave amplitude (m)
-% beta = wave direction (rad) where beta = pi (i.e. 180 deg) is head seas
-% T_0 = wave periode (s) corresponding to the wave frequency w_0 = 2 pi/T_0
-% U = ship speed (m/s)
-%
-% Optionally ship data: ship = [zeta4, T4, GM_T, Cb]
+% a      Wave amplitude (m)
+% beta   Wave direction (rad) where beta = pi (i.e. 180 deg) is head seas
+% T_0    Wave periode (s) corresponding to the wave frequency w_0 = 2 pi/T_0
+% zeta4  Relative damping factor in roll
+% T4     Natural roll periode (s)
+% GMT    Transver metacentric height (m)
+% Cb     Block coefficeint 
+% U      Ship speed (m/s)
+% L      Length (m)
+% B      Breadth (m)
+% T      Draught (m)
 % 
-% zeta4      Relative damping factor in roll
-% T4         Natural roll periode (s)
-% GM_T       Transver metacentric height (m)
-% Cb         Block coefficeint 
-%
-% xdot = waveresponse345(a, beta, T_0, U, L, B, T, ship) allows the 
-% user to specify the ship parameters. 
-%
-% xdot = waveresponse345(a, beta, T_0, U, L, B, T) uses the default 
-% values  = [0.2, 6, 1, 0.65].
-%
-% waveresponse345(a, beta, T0, U, L, B, T,ship) plots the steady-state
-% heave, roll and pitch response for 20 seconds. 
-% 
-% Ex: waveresponse345(2, 45*pi/180, 10, 5, 82.8, 19.2, 6);
 %
 % Reference: 
 % J. Juncher Jensen, A. E. Mansour and A. S. Olsen. Estimation of 
@@ -34,18 +26,7 @@ function waveresponse345(a, beta,T_0, U, L, B, T, ship)
 % 
 % Author:    Thor I. Fossen
 % Date:      2018-07-21  Based on the method of Jensen et al. (2005)
-% Revisions: 2019-05-03  Bug fixes
-
-% Default roll parameters
-if nargin == 7
-    ship = [0.2, 6, 1, 0.65];
-end
-
-% Hydrodynamic parameters
-zeta4   = ship(1);    % Relative damping factor in roll
-T4      = ship(2);    % Natural roll periode (s)
-GM_T    = ship(3);    % Transver metacentric height (m)
-Cb      = ship(4);    % Block coefficeint 
+% Revisions: 2019-05-04  Bug fixes
 
 % Constants
 g = 9.81;                 % acceleration of gravity (m/s^2)
@@ -75,7 +56,7 @@ zeta = (A^2/(B*alpha^3)) * sqrt(1/(8*k^3*T));
 
 % Roll model (simplifed version of Jensen et al., 2004)
 w4 = 2*pi/T4;                    % natural frequency
-C44 = rho * g * nabla * GM_T;    % spring coeffient
+C44 = rho * g * nabla * GMT;     % spring coeffient
 M44 = C44/w4^2;                  % moment of inertia including added mass
 B44 = 2 * zeta4 * w4 * M44;      % damping coefficient
 M = sin(beta) * sqrt( B44 * rho*g^2/w_e );   % roll moment amplitude
@@ -101,16 +82,17 @@ eps4 = atan( 2*w_e*w4*zeta4/(w4^2-w_e^2) );
 phi = (180/pi) * ((M/C44)*w4^2/(Z4*w_e)) * cos(w_e*t+eps4);
     
 % Plots 
+clf
 figure(gcf)
-subplot(311)
-plot(t,z,'-k','linewidth',2),xlabel('time (s)'), grid
-title(sprintf('Steady-state heave response (m) for a = %2.1f m and beta %2.1f deg',a,(180/pi)*beta))
-subplot(312)
-plot(t,phi,'-k','linewidth',2),xlabel('time (s)'), grid
-title(sprintf('Steady-state roll response (deg) for a = %2.1f m and beta %2.1f deg',a,(180/pi)*beta))
-subplot(313)
-plot(t,theta,'-k','linewidth',2),xlabel('time (s)'),grid
-title(sprintf('Steady-state pitch response (deg) for a = %2.1f m and beta %2.1f deg',a,(180/pi)*beta))
+hold on
+plot(t,z,'-k','linewidth',2)
+plot(t,phi,':r','linewidth',2)
+plot(t,theta,'-.b','linewidth',2)
+hold off
+title(sprintf('Steady-state responses for a = %2.1f m and beta = %2.1f deg',a,(180/pi)*beta))
+legend('Heave (m)','Roll (deg)','Pitch (deg)')
+xlabel('time (s)')
+grid
 
 
 
