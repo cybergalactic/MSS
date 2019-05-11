@@ -27,6 +27,7 @@ function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
 % Author:    Thor I. Fossen
 % Date:      2018-07-21  Based on the method of Jensen et al. (2005)
 % Revisions: 2019-05-04  Bug fixes
+%            2019-05-11  Updated formula for wn, removed bugs
 
 % Constants
 g = 9.81;                 % acceleration of gravity (m/s^2)
@@ -51,7 +52,7 @@ G = kappa * f * (6/L) * (1/sigma) * ( sin(sigma)/sigma - cos(sigma) );
 % Natural frequency in Jensen et al. (2004) uses: w3 = w5 = sqrt(g/(2*T))
 % Solution below uses spring stiffness and mass/added mass while relative
 % damping ratio is based on Jensen et al. (2004)
-wn  = sqrt(g/2*T);
+wn  = sqrt(g/(2*T));
 zeta = (A^2/(B*alpha^3)) * sqrt(1/(8*k^3*T));
 
 % Roll model (simplifed version of Jensen et al., 2004)
