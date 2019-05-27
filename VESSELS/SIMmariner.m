@@ -24,7 +24,7 @@ x = zeros(7,1);
 N = round(t_f/h);               % number of samples
 xout = zeros(N+1,length(x)+2);  % memory allocation
 
-for i=1:N+1,
+for i=1:N+1
     time = (i-1)*h;                   % simulation time in seconds
 
     r   = x(3);
@@ -35,7 +35,7 @@ for i=1:N+1,
     delta = -Kp*((psi-psi_ref)+Td*r);  % PD-controller
 
     % ship model
-    [xdot,U] = mariner(x,delta);       % ship model, see .../gnc/VesselModels/
+    [xdot,U] = mariner(x,delta);       % ship model
     
     % store data for presentation
     xout(i,:) = [time,x',U]; 
