@@ -1,12 +1,12 @@
-function [out] = navalvessel(in)
+function [xdot,U] = navalvessel(x, tau)
 % Noninear Model for describing  surge, sway, roll and yaw Interactions   
 % of a multipurpose naval vessel. The surge is only coupled through a
 % centripetal terms.
 %
-% Use:[out]=nv_lin_model(in)
+% Use: [xdot,U] = nv_lin_model(x, tau)
 %
 % Output:
-% out= M^-1 [X,Y,K,N,p,r]'   
+% xdot = M^-1 [X,Y,K,N,p,r]'   
 %
 % where
 % M is the total mass matrix
@@ -18,7 +18,8 @@ function [out] = navalvessel(in)
 % r is the yaw rate
 % 
 % Inputs:
-% in=[u,v p r phi psi,Xe,Ye,Ke,Ne]' 
+% x = [u,v p r phi psi]'
+% tau = [Xe,Ye,Ke,Ne]' 
 %
 % where
 % u     = surge velocity           (m/s)
@@ -28,7 +29,6 @@ function [out] = navalvessel(in)
 % phi   = roll angle              (rad)
 % psi   = yaw angle               (rad)
 %
-% U     = surge speed of the vessel [m/sec].
 % Xe is the surge external force (eg rudder and fin force)
 % Ye is the sway external force  
 % Ke is the sway external force  
@@ -41,17 +41,19 @@ function [out] = navalvessel(in)
 % Notes: 1 - The model does not include rudder Machinery.
 %        2 - The parameters of the model should be defined 
 %            in the structures h and const before using the function.  
+%
+% Author:     Tristan Perez
+% Revisions:
 %   Original models from A. G. Jensen and M.S.Chislett (Danish Maritime
 %   Institute) 1983-89.
 %	Adapted for Matlab by Mogens Blanke and Antonio Tiano 1996
 %   Modified for Matlab 5.3 implementation by Mogens Blanke 1997
 %   Modified for Simulink by Mogens Blanke# and Tristan Perez*, 2001 
-%
 %   THIS VERSION is modified by: Tristan Perez 
 %   Comment: Adapted from the files reference (*) to match the data of the vessel
 %   design of ADI-Limited Australia.
 
-%Vessel Data
+% Vessel Data
 % struct const.
 const.rho_water     =	1014.0;	        %	water density	[kg/m^3]	
 const.rho_air		=	1.225	;	    %	air density		[kg/m^3]	
@@ -63,25 +65,25 @@ const.kt2ms 		=	1852/3600;	    %	kt to m/s
 const.RPM2rads		=	2*pi/60;	    %	RPM to rad/s		
 const.rads2RPM		=   60/[2*pi];	    %	rad/s to RPM		
 const.HP2W			=	745.700;	    %	HP to Watt			
-%
-%Struct rudder  (Modified by T.Perez)
-rudder.sp    =1.5;                   %span
-rudder.A     =1.5;                   %Area
-rudder.ar    =3;                     %aspect ratio
-rudder.dCL   =0.054; % 1/deg         %dCL/d a_e
-rudder.stall =23;                    %a_stall 
+
+% Struct rudder  (Modified by T.Perez)
+rudder.sp    =1.5;                   % span
+rudder.A     =1.5;                   % Area
+rudder.ar    =3;                     % aspect ratio
+rudder.dCL   =0.054; % 1/deg         % dCL/d a_e
+rudder.stall =23;                    % a_stall 
 
 % Main Particulars (Modified by T.Perez)
-h.Lpp    =  51.5 ;                  %Length between perpendiculars [m]
-h.B      =  8.6  ;                  %Beam over all  [m]
-h.D	     =  2.3  ;                  %Draught [m]     
+h.Lpp    =  51.5 ;                  % Length between perpendiculars [m]
+h.B      =  8.6  ;                  % Beam over all  [m]
+h.D	     =  2.3  ;                  % Draught [m]     
 
 %Load condition (Modified by T.Perez)
-h.disp   =  357.0;                   %Displacement  [m^3]
-h.m      =  h.disp*const.rho_water;  %Mass [Kg]
-h.Izz    =  47.934*10^6 ;            %Yaw Inertia
-h.Ixx    =  2.3763*10^6 ;            %Roll Inertia
-h.U_nom  =  8.0   ;	                 %Speed nominal [m/sec] (app 15kts) 
+h.disp   =  357.0;                   % Displacement  [m^3]
+h.m      =  h.disp*const.rho_water;  % Mass [Kg]
+h.Izz    =  47.934*10^6 ;            % Yaw Inertia
+h.Ixx    =  2.3763*10^6 ;            % Roll Inertia
+h.U_nom  =  8.0   ;	                 % Speed nominal [m/sec] (app 15kts) 
 h.KM		=  4.47;	             %  [m] Transverse metacentre above keel
 h.KB		=  1.53;	             %  [m] Transverse centre of bouancy
 h.gm 		=  1.1;	                 %  [m]	Transverse Metacenter
@@ -116,8 +118,7 @@ h.Yrav  = -182000 ;
 h.Ybauv =  10800 ; % Y_{\phi |v u|}
 h.Ybaur =  251000 ; 
 h.Ybuu  = -74 ; 
-%alpha rudder in degrees in the linear model (Modified by T.Perez)
-h.Yduu  =  180*2*(.5*const.rho_water*rudder.A*rudder.dCL)/pi; 
+
 
 % Hydrodynamic coefficients in roll equation
 h.Kvdot =  296000 ;
@@ -138,7 +139,7 @@ h.Kp    =  -500000 ;
 h.Kb    =  0.776*h.m*const.g;
 h.Kbbb  =  -0.325*h.m*const.g ;
 
-% Hydrodynamic coefficients in yaw equation*)
+% Hydrodynamic coefficients in yaw equation
 h.Nvdot =  538000 ;
 h.Npdot =  0 ;
 h.Nrdot = -38.7e6;
@@ -153,19 +154,22 @@ h.Nbuar = -4980000 ;
 h.Nbuau = -8000 ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Rename inputs of the function
-u   = in(1);
-v   = in(2);	 
-p  	= in(3);   	
-r  	= in(4); 
-b  	= in(5);% b -denoted phi roll 		
-psi = in(6);
+% Rename inputs of the function
+u   = x(1);
+v   = x(2);	 
+p  	= x(3);   	
+r  	= x(4); 
+b  	= x(5); % b -denoted phi roll 		
+psi = x(6);
+U = sqrt(u^2+v^2);
 
-Xe   = in(7);
-Ye  = in(8); %External forces
-Ke  = in(9);
-Ne  = in(10);
-%Auxiliary variables
+% External forces
+Xe  = tau(1);
+Ye  = tau(2);
+Ke  = tau(3);
+Ne  = tau(4);
+
+% Auxiliary variables
 au = abs(u);
 av = abs(v); 
 ar = abs(r); 
@@ -173,14 +177,14 @@ ap = abs(p);
 ab = abs(b);
 L2 = h.Lpp^2; 
 
-%Total Mass Matrix 
-M=[ (h.m-h.Xudot)  0   0   0   0   0;
+% Total Mass Matrix 
+M =[ (h.m-h.Xudot)  0   0   0   0   0;
    0 (h.m-h.Yvdot) -(h.m*h.zG+h.Ypdot) (h.m*h.xG-h.Yrdot) 0 0;
    0 -(h.m*h.zG+h.Kvdot) (h.Ixx-h.Kpdot) -h.Krdot 0 0;
    0 (h.m*h.xG-h.Nvdot) -h.Npdot (h.Izz-h.Nrdot) 0 0;
    0 0 0 0 1 0; 
    0 0 0 0 0 1] ;
-%Hydrodynamic forces without added mass terms (considered in the M matrix)
+% Hydrodynamic forces without added mass terms (considered in the M matrix)
 Xh  = h.Xuau*u*au+h.Xvr*v*r;
 
 Yh = h.Yauv*au*v + h.Yur*u*r + h.Yvav*v*av + h.Yvar*v*ar + h.Yrav*r*av ...
@@ -193,20 +197,19 @@ Kh = h.Kauv*au*v +h.Kur*u*r + h.Kvav*v*av + h.Kvar*v*ar + h.Krav*r*av ...
 Nh = h.Nauv*au*v + h.Naur*au*r + h.Nrar*r*ar + h.Nrav*r*av...
    +h.Nbauv*b*abs(u*b) + h.Nbuar*b*u*ar + h.Nbuau*b*u*au;
  
-
-%Rigid-body centripetal accelerations
+% Rigid-body centripetal accelerations
 Xc =   h.m*(r*v+h.xG*r^2-h.zG*p*r);  
 Yc = - h.m*u*r;
 Kc =   h.m*h.zG*u*r;
 Nc = - h.m*h.xG*u*r;
 
-%Total forces
-F1=Xh+Xc+Xe;
-F2=Yh+Yc+Ye;
-F4=Kh+Kc+Ke;
-F6=Nh+Nc+Ne;
+% Total forces
+F1 = Xh+Xc+Xe;
+F2 = Yh+Yc+Ye;
+F4 = Kh+Kc+Ke;
+F6 = Nh+Nc+Ne;
  
-out=M\[F1; F2; F4; F6; p; r];
+xdot = M\[F1; F2; F4; F6; p; r];
 
 
 
