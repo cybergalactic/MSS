@@ -1,8 +1,9 @@
-function xdot = supply(x,tau)
-% xdot = supply(x,tau) returns the speed the time derivative xdot = A*x + B*tau
+function [xdot, U] = supply(x,tau)
+% [xdot, U] = supply(x,tau) returns the speed the time derivative xdot = A*x + B*tau
 % of the state vector: x = [ x y psi u v r]'  for a supply vessel length L = 76 m.
 %
-% The model is only valid around zero speed (dynamic positioning).
+% The model is only valid around zero speed (dynamic positioning) and 
+% small speeds U = sqrt(u^2+v^2).
 %
 % u     = surge velocity                    (m/s)     
 % v     = sway velocity                     (m/s)
@@ -19,8 +20,9 @@ function xdot = supply(x,tau)
 %
 % Author:     Thor I. Fossen
 % Date:       12 July 2002
-% Revisions:  24 February 2004 Included missing mass scaling in the Bis transformation
-%             12 October 2011  Corrected T and Tinv, which were switched 
+% Revisions:  24 February 2004 - Included missing mass scaling in the Bis transformation
+%             12 October 2011 - Corrected T and Tinv, which were switched 
+%             27 May 2019 - Added U as ouput
 
 % Normalization variables
 L    =  76.2;           % length of ship (m)
@@ -54,4 +56,7 @@ Dbis = [0.0358        0        0
  
  % Dimensional state derivative
  xdot = A*x + B*tau;
+ 
+ % speed
+  U = sqrt(x(1)^2+x(2)^2);
  
