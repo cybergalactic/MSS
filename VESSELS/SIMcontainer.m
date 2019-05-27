@@ -26,7 +26,7 @@ N = round(t_f/h);               % number of samples
 xout = zeros(N+1,length(x)+2);  % memory allocation
 xout2 = zeros(N+1,length(x2)+2);  % memory allocation
 
-for i=1:N+1,
+for i=1:N+1
     time = (i-1)*h;                   % simulation time in seconds
 
     r   = x(3);
@@ -59,8 +59,8 @@ x     = xout(:,5);
 y     = xout(:,6);
 psi   = xout(:,7)*180/pi;
 p     = xout(:,8)*180/pi;
-phi   = xout(:,9)*180/pi;;
-delta = xout(:,10)*180/pi;;
+phi   = xout(:,9)*180/pi;
+delta = xout(:,10)*180/pi;
 n     = xout(:,11);
 U     = xout(:,12);
 
@@ -72,8 +72,8 @@ x2     = xout2(:,5);
 y2     = xout2(:,6);
 psi2   = xout2(:,7)*180/pi;
 p2     = xout2(:,8)*180/pi;
-phi2   = xout2(:,9)*180/pi;;
-delta2 = xout2(:,10)*180/pi;;
+phi2   = xout2(:,9)*180/pi;
+delta2 = xout2(:,10)*180/pi;
 U2     = xout2(:,11);
 
 % plots
