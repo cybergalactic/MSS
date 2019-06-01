@@ -1,39 +1,26 @@
 function [xdot,U] = navalvessel(x, tau)
-% Noninear Model for describing  surge, sway, roll and yaw Interactions   
-% of a multipurpose naval vessel. The surge is only coupled through a
-% centripetal terms.
+% Noninear maneuvering model in surge, sway, roll and yaw for a multipurpose
+% naval vessel. The surge equation is decoupled except a centripetal term.
 %
-% Use: [xdot,U] = nv_lin_model(x, tau)
-%
-% Output:
-% xdot = M^-1 [X,Y,K,N,p,r]'   
-%
-% where
-% M is the total mass matrix
-% X is the surge force (hydrodynamic+centriperal+external)
-% Y is the sway force (hydrodynamic+centriperal+external)
-% K is the sway force (hydrodynamic+centriperal+external)
-% N is the sway force (hydrodynamic+centriperal+external)
-% p is the roll rate
-% r is the yaw rate
+% [xdot,U] = navalvessel(x, tau)
 % 
 % Inputs:
-% x = [u,v p r phi psi]'
-% tau = [Xe,Ye,Ke,Ne]' 
+% x = [u v p r phi psi]'
+% tau = [Xe Ye Ke Ne]' 
 %
 % where
-% u     = surge velocity           (m/s)
+% u     = surge velocity          (m/s)
 % v     = sway velocity           (m/s)
 % p     = roll velocity           (rad/s)
 % r     = yaw velocity            (rad/s)
 % phi   = roll angle              (rad)
 % psi   = yaw angle               (rad)
 %
-% Xe is the surge external force (eg rudder and fin force)
+% Xe is the surge external force (e.g. rudder and fin forces)
 % Ye is the sway external force  
 % Ke is the sway external force  
 % Ne is the sway external force   
-
+%
 % Reference: Blanke M. and Christensen A. (1993) "Rudder-roll 
 % damping autopilot robustness to sway-yaw-roll couplings." 
 % 10th Ship Control Systems Symposium, Ottawa, Canada.
@@ -44,17 +31,15 @@ function [xdot,U] = navalvessel(x, tau)
 %
 % Author:     Tristan Perez
 % Revisions:
-%   Original models from A. G. Jensen and M.S.Chislett (Danish Maritime
-%   Institute) 1983-89.
-%	Adapted for Matlab by Mogens Blanke and Antonio Tiano 1996
-%   Modified for Matlab 5.3 implementation by Mogens Blanke 1997
-%   Modified for Simulink by Mogens Blanke# and Tristan Perez*, 2001 
-%   THIS VERSION is modified by: Tristan Perez 
-%   Comment: Adapted from the files reference (*) to match the data of the vessel
-%   design of ADI-Limited Australia.
+%   - Original model from A. G. Jensen and M.S.Chislett (Danish Maritime
+%     Institute) 1983-1989. 
+%	- Adapted for Matlab by Mogens Blanke and Antonio Tiano 1996
+%   - Modified for Matlab 5.3 implementation by Mogens Blanke 1997
+%   - Modified for Simulink by Mogens Blanke and Tristan Perez, 2001 
+%   - This version is further modified by Tristan Perez to match the data 
+%     of the vessel design of ADI-Limited Australia.
 
 % Vessel Data
-% struct const.
 const.rho_water     =	1014.0;	        %	water density	[kg/m^3]	
 const.rho_air		=	1.225	;	    %	air density		[kg/m^3]	
 const.g				=	9.81;	        %	gravity constant	[m/s^2]	
