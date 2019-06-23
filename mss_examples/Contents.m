@@ -18,6 +18,7 @@
 % ExObsCtr     - Observability and Controllability of Ships
 % ExPassiveObs - Plots the loop transfer function of the passive observer
 % ExPathGen    - Path generation using cubic polynominals
+% ExPlotRAOs   - Script for plotting motion and force RAOs
 % ExPullout    - Produces a pullout maneuver for the mariner class vessel and a container ship
 % ExQuadProg   - Quadratic programming for way-point trajectory generation
 % ExQuest      - 6 DOF position/attitude vector from camera measurements using the QUEST algorithm
