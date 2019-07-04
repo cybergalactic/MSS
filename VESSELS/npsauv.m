@@ -1,6 +1,6 @@
 function [xdot,U] = npsauv(x,ui)
 % [xdot,U] = NPSAUV(x,ui) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = = [ u v w p q r x y z phi theta psi ]' for
+% time derivative of the state vector: x = [ u v w p q r x y z phi theta psi ]' for
 % an Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate School, Monterrey.
 % The length of the AUV is L = 5.3 m, while the state vector is defined as:
 %
