@@ -1,7 +1,7 @@
 function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
 % waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T) computes and 
-% ålots the steady-state heave, roll and pitch responses for a ship in regular 
-% waves using closed-form formulae. 
+% plots the steady-state heave, roll and pitch responses for a ship in 
+% regular waves using closed-form formulae. 
 %
 % Ex: waveresponse345(2, 75*pi/180, 10, 0.2, 6, 1, 0.65, 5, 82.8, 19.2, 6)
 %
@@ -22,7 +22,7 @@ function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
 %
 % Reference: 
 % J. Juncher Jensen, A. E. Mansour and A. S. Olsen. Estimation of 
-% Ship Motions using Closed-form Expressions. Ocean Eng. 31, 2004, pp. 61-85
+% Ship Motions using Closed-form Expressions. Ocean Eng. 31, 2004, pp.61-85
 % 
 % Author:    Thor I. Fossen
 % Date:      2018-07-21  Based on the method of Jensen et al. (2005)
