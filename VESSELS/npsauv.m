@@ -40,6 +40,7 @@ function [xdot,U] = npsauv(x,ui)
 %            24-Mar-2003, Gianluca Antonelli/Thor I. Fossen: corrected an error in the restoring 
 %                         force Z, that is (W-B)*cos(theta)*cos(phi).
 %            13-Nov-2014, Anand Sundaresan, Mwn*w*n was corrected to Mwn*w*u
+%            01-Aug-2019, David Hansch, corrected bugs in the cross-flow drag formulae
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12 !');end
@@ -158,28 +159,28 @@ dxL = L/10;
 xL  = 0; 
 Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
 
-if ~(Ucf == 0),
-    for xL = 0:dxL:L
+if ~(Ucf == 0)
+    for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf; 
+        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf; 
         Cy = Cy + dxL*temp;
     end
     
-    for xL = 0:dxL:L
+    for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w-xL*q)/Ucf;
+        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w-xL*q)/Ucf;
         Cz = Cz + dxL*temp;
     end
     
-    for xL = 0:dxL:L
+    for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w+xL*q)/Ucf*xL;
+        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w+xL*q)/Ucf*xL;
         Cm = Cm + dxL*temp;
     end
     
-    for xL = 0:dxL:L
+    for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf*xL;
+        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf*xL;
         Cn = Cn + dxL*temp;
     end
 end
