@@ -119,7 +119,7 @@ Nwp   = -1.7e-2; Nwr    =  7.4e-3; Nv    = -7.4e-3; Nvw   = -2.7e-2;
 Ndr   = -1.3e-2; Nprop  =  0;
 
 % Rudder and shaft saturations
-for i=1:1:6,
+for i=1:1:6
    if abs(ui(i))>max_ui(i),ui(i)=sign(ui(i))*max_ui(i);end
 end
  
@@ -162,25 +162,25 @@ Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
 if ~(Ucf == 0)
     for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf; 
+        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf; 
         Cy = Cy + dxL*temp;
     end
     
     for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w-xL*q)/Ucf;
+        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w-xL*q)/Ucf;
         Cz = Cz + dxL*temp;
     end
     
     for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w+xL*q)/Ucf*xL;
+        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(w+xL*q)/Ucf*xL;
         Cm = Cm + dxL*temp;
     end
     
     for xL = -L/2:dxL:L/2
         Ucf = sqrt((v+xL*r)^2+(w-xL*q)^2);
-        temp = 0.5 * (0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf*xL;
+        temp = (0.5*0.6*(v+xL*r)^2+0.6*(w-xL*q)^2)*(v+xL*r)/Ucf*xL;
         Cn = Cn + dxL*temp;
     end
 end
