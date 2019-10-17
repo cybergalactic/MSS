@@ -22,7 +22,7 @@
 
 %% USER INPUTS
 f_samp = 10;    % sampling frequency [Hz]
-f_pos = 0.5;    % GNSS position measurement frequency [Hz]
+f_pos = 0.01;    % GNSS position measurement frequency [Hz]
 
 N_integer = f_samp/f_pos;
 if ( mod(N_integer,1) ~= 0 || N_integer < 1 )
@@ -58,11 +58,6 @@ x_prd = [0 0]';
 P_prd = diag([1 1]);
 Q = 1;
 R = 10;
-
-N_integer = f_samp/f_pos;
-if ( mod(N_integer,1) ~= 0 || N_integer < 1 )
-    error("f_samp = N_integer * f_pos is not specified such that N_integer >= 1"); 
-end
 
 %% MAIN LOOP
 simdata = zeros(N+1,7);                    % table for simulation data
