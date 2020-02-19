@@ -7,17 +7,18 @@ function [l,mu,h] = ecef2llh(x,y,z)
 % Revisions: 1st September 2002, atan2(y/x) replaced by atan2(y,x) 
 %            2nd September 2002, new output argument for height h was added
 %            27th January, 2003, angle outputs are defined in rad
+%            19 February 2020, added decimals to WGS parameters
 
-r_e = 6378137;          % WGS-84 data
-r_p = 6356752;
-e = 0.08181979099211;
+r_e = 6378137.0;          % WGS-84 data
+r_p = 6356752.314245;
+e = sqrt(1-(r_p/r_e)^2);
 l = atan2(y,x);
 eps = 1;
 tol = 1e-10;
 p = sqrt(x^2+y^2);
 mu = atan(z/(p*(1-e^2)));
 
-while (eps > tol),
+while (eps > tol)
    N = r_e^2/sqrt(r_e^2*cos(mu)^2+r_p^2*sin(mu)^2);
    h = p/cos(mu)-N;
    mu0 = mu;
