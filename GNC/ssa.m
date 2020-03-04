@@ -3,7 +3,6 @@ function angle = ssa(angle,unit)
 % angles. Examples:
 %
 % angle = ssa(angle) maps an angle in rad to the interval [-pi pi) 
-% angle = ssa(angle,'rad') maps an angle in rad to the interval [-pi pi) 
 % angle = ssa(angle,'deg') maps an angle in deg to the interval [-180, 180)
 %
 % For feedback control systems and state estimators used to control the 
@@ -19,18 +18,12 @@ function angle = ssa(angle,unit)
 %
 % Author:     Thor I. Fossen
 % Date:       2018-09-21
-% Revisions:  
+% Revisions:  2020-03-04  Deafult rad, otional argument for deg
 %__________________________________________________________________________
 
 if (nargin == 1)
     angle = mod( angle + pi, 2 * pi ) - pi; 
-else
-    if strcmp(unit,'rad')
-        angle = mod( angle + pi, 2 * pi ) - pi; 
-    elseif strcmp(unit,'deg')
-        angle = mod( angle + 180, 360 ) - 180; 
-    else
-        error('- Wrong unit in ssa(angle,unit). Use ''rad'' or ''deg''.');
-    end
+elseif strcmp(unit,'deg')
+    angle = mod( angle + 180, 360 ) - 180; 
 end
     
