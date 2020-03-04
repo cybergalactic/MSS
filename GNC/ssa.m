@@ -1,7 +1,8 @@
 function angle = ssa(angle,unit)
 % SSA is the "smallest signed angle" or the smallest difference between two
 % angles. Examples:
-%  
+%
+% angle = ssa(angle) maps an angle in rad to the interval [-pi pi) 
 % angle = ssa(angle,'rad') maps an angle in rad to the interval [-pi pi) 
 % angle = ssa(angle,'deg') maps an angle in deg to the interval [-180, 180)
 %
@@ -21,11 +22,15 @@ function angle = ssa(angle,unit)
 % Revisions:  
 %__________________________________________________________________________
 
-if strcmp(unit,'rad')
+if (nargin == 1)
     angle = mod( angle + pi, 2 * pi ) - pi; 
-elseif strcmp(unit,'deg')
-    angle = mod( angle + 180, 360 ) - 180; 
 else
-    error('- Wrong unit in ssa(angle,unit). Use ''rad'' or ''deg''.');
+    if strcmp(unit,'rad')
+        angle = mod( angle + pi, 2 * pi ) - pi; 
+    elseif strcmp(unit,'deg')
+        angle = mod( angle + 180, 360 ) - 180; 
+    else
+        error('- Wrong unit in ssa(angle,unit). Use ''rad'' or ''deg''.');
+    end
 end
     
