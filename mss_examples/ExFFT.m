@@ -9,25 +9,25 @@
 
 we = 0.8;                     % peak frequency [rad/s]
 
-fs = 500;                     % Sampling frequency
-h = 1/fs;                     % Sampling time
+fs = 500;                     % sampling frequency
+h = 1/fs;                     % sampling time
 N = 30*60*fs;                 % 30 minutes data
-t = (0:N-1)*h;                % Time vector
+t = (0:N-1)*h;                % time vector
 
 % Wave spectrum data and sinusoidal (regular) wave data
 Kw = 10; lambda = 0.1;                          % wave spectrum data
 sys = tf([Kw 0],[1 2*lambda*we we*we]);          
-[mag,phase,wout] = bode(sys,logspace(-1,0.3,1000));
+[mag,phase,wout] = bode(sys,logspace(-1,0.2,1000));
 mag = reshape(mag(1,:),1,1000);
 x1 = lsim(sys,randn(1,length(t)),t,0,'zoh')';   % time responses
 x2 = cos(we * t);  
 X = [x1; x2];
 
 % Fast Fourier transform (FFT)
-n = 2^nextpow2(N);      % Pad the input with trailing zeros
-Y = fft(X,n,2);         % Compute the FFT
-P2 = abs(Y/N);          % Double-sided spectrum of each signal
-P1 = P2(:,1:n/2+1);     % Sigle-sided spectrum of each signal
+n = 2^nextpow2(N);      % pad the input with trailing zeros
+Y = fft(X,n,2);         % compute the FFT
+P2 = abs(Y/N);          % double-sided spectrum of each signal
+P1 = P2(:,1:n/2+1);     % single-sided spectrum of each signal
 P1(:,2:end-1) = 2*P1(:,2:end-1);
 
 % Plots
