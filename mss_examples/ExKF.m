@@ -17,8 +17,9 @@
 %     Integer:  Z = f_s/f_m >= 1  
 %
 % Author:    Thor I. Fossen
-% Date:      17 Oct. 2018
-% Revisions: 28 Feb. 2020, minor updates of notation 
+% Date:      17 Oct 2018
+% Revisions: 28 Feb 2020, minor updates of notation
+%            29 Mar 2020, added ssa(), new logic for no measurements 
 
 %% USER INPUTS
 f_s = 10;    % sampling frequency [Hz]
@@ -35,7 +36,7 @@ N  = 1000;		  % no. of iterations
 h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
 h_m = 1/f_m;
 
-% model paramters for mass-damper system (x1 = position, x2 = velcoity)
+% model paramters for mass-damper system (x1 = yaw angle, x2 = yaw rate)
 A = [0 1
      0 -0.1 ];
 B = [0
@@ -70,25 +71,24 @@ for i=1:N+1
    % Plant
    u = 0.1 * sin(0.1*t);                   % input
    w = 0.1 * randn(1);                     % process noise
-   x_dot = A * x + B * u + E * w;          
-     
+   x_dot = A * x + B * u + E * w;
+   
    % measurements are Z times slower than the sampling time
    if mod( t, h_m ) == 0
        y = x(1) + 0.1 * randn(1);
-       ydata = [ydata; t, y]; 
-           
-       Cd     = [1 0];               
+       ydata = [ydata; t, y];
+       
+       % KF gain
+       K = P_prd * Cd' * inv( Cd * P_prd * Cd' + Rd );
+       IKC = eye(2) - K * Cd;
+       
+       % corrector
+       P_hat = IKC * P_prd * IKC' + K * Rd * K';   
+       x_hat = x_prd + K * ssa(y - Cd * x_prd);   % smallest signed angle
    else
-       Cd     = [0 0];               % no measurement
+       P_hat =P_prd;                % no measurement
+       x_hat = x_prd;
    end
-    
-   % KF gain      
-   K = P_prd * Cd' * inv( Cd * P_prd * Cd' + Rd );
-        
-   % corrector   
-   IKC = eye(2) - K * Cd;
-   P_hat = IKC * P_prd * IKC' + K * Rd * K';
-   x_hat = x_prd + K * (y - Cd * x_prd);   
    
    % store simulation data in a table   
    simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
