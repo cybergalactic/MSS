@@ -48,7 +48,7 @@ x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';
 
 % initialization of Kalman filter
 P_prd = eye(15);
-Qd = diag([1 1 1  100*0.01 100*0.01 0.01  0.1 0.1 0.1  0.01 0.01 0.01]);
+Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]);
 Rd = diag([1 1 1  0.1 0.1 0.1]);                  % only position measurements
 % Rd = diag([1 1 1  0.01 0.01 0.01 0.1 0.1 0.1]); % velocity measurements
 
@@ -99,11 +99,11 @@ for i=1:N+1
     
     % AHRS measurements
     y_theta = x(10:12) + 0.01 * randn(3,1); % true roll, pitch, yaw  
-    y_ahrs = y_theta;
     
     % Uncomment to test specific force and compass instead of an AHRS
-    % [phi, theta] = acc2rollpitch( f_imu );
-    % y_ahrs = [phi, theta, x(12)]';
+    y_ahrs = y_theta;
+    %[phi, theta] = acc2rollpitch( f_imu );
+    %y_ahrs = [phi, theta, x(12)]';
         
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0

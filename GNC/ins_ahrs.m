@@ -78,10 +78,10 @@ else
 end
        
 Ed = h *[  O3 O3    O3 O3
-          -I3 O3    O3 O3
-           O3 R     O3 O3
-           O3 O3   -I3 O3
-           O3 O3    O3 R  ];
+          -R  O3    O3 O3
+           O3 I3    O3 O3
+           O3 O3   -T  O3
+           O3 O3    O3 I3  ];
 
 %% Kalman filter algorithm       
 if (nargin == 9)             % no aiding
@@ -110,13 +110,11 @@ else                         % INS aiding
     P_hat = IKC * P_prd * IKC' + K * Rd * K';
     
     % INS reset: x_ins[k]
-    x_ins = x_ins + delta_x_hat;
-    
-    p_ins = x_ins(1:3);
-    v_ins = x_ins(4:6);
-    b_acc_ins = x_ins(7:9);
-    theta_ins = x_ins(10:12);
-    b_ars_ins = x_ins(13:15);    
+	p_ins = p_ins + delta_x_hat(1:3);           % reset INS position
+	v_ins = v_ins + delta_x_hat(4:6);           % reset INS velocity
+	b_acc_ins = b_acc_ins + delta_x_hat(7:9);   % reset INS acc bias
+	theta_ins = theta_ins + delta_x_hat(10:12); % reset INS attitude
+	b_ars_ins = b_ars_ins + delta_x_hat(13:15); % reset INS ars bias   
     
 end
 
