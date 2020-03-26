@@ -70,11 +70,11 @@ Ad = eye(15) + h * A + 0.5 * (h * A)^2;
 
 if (nargin == 10)
     Cd = [ I3 O3 O3 O3 O3        % NED positions (x, y, z)
-           O3 O3 O3 I3 O3] ;     % Euler angles (phi, theta, psi)
+           O3 O3 O3 I3 O3];      % Euler angles (phi, theta, psi)
 else
     Cd = [ I3 O3 O3 O3 O3        % NED positions (x, y, z)
            O3 I3 O3 O3 O3        % NED velocities       
-           O3 O3 O3 I3 O3] ;     % Euler angles (phi, theta, psi)
+           O3 O3 O3 I3 O3];      % Euler angles (phi, theta, psi)
 end
        
 Ed = h *[  O3 O3    O3 O3

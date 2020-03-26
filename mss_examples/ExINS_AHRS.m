@@ -25,13 +25,17 @@
 %
 % Author:    Thor I. Fossen
 % Date:      21 March 2020
-% Revisions: 
+% Revisions: 26 March 2020, added flags as user input
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 f_s    = 100;   % sampling frequency [Hz]
 f_gnss = 1;     % GNSS measurement frequency [Hz]
+
+% Flag
+vel = 0;          % (0/1) use velocity measurement
+compass = 0;      % (0/1) use compass instead of AHRS
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
@@ -48,9 +52,14 @@ x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';
 
 % initialization of Kalman filter
 P_prd = eye(15);
-Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]);
-Rd = diag([1 1 1  0.1 0.1 0.1]);                  % only position measurements
-% Rd = diag([1 1 1  0.01 0.01 0.01 0.1 0.1 0.1]); % velocity measurements
+
+if (vel == 0)
+   Rd = diag([1 1 1  1 1 1]);       % only position measurements
+   Qd = diag([1 1 1  1 1 1  10 10 10  0.01 0.01 0.01]);
+else
+   Rd = diag([10 10 10 1 1 1 0.1 0.1 0.1]);  % velocity measurements
+   Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]);
+end
 
 % initialization of INS
 p_ins = [0 0 0]'; 
@@ -99,12 +108,14 @@ for i=1:N+1
     
     % AHRS measurements
     y_theta = x(10:12) + 0.01 * randn(3,1); % true roll, pitch, yaw  
-    
-    % Uncomment to test specific force and compass instead of an AHRS
     y_ahrs = y_theta;
-    %[phi, theta] = acc2rollpitch( f_imu );
-    %y_ahrs = [phi, theta, x(12)]';
-        
+    
+    % Use specific force and compass instead of an AHRS
+    if (compass == 1)
+       [phi, theta] = acc2rollpitch( f_imu );
+        y_ahrs = [phi, theta, x(12)]';
+    end
+    
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0
         
@@ -112,9 +123,14 @@ for i=1:N+1
         y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
         ydata = [ydata; t, y_pos'];             % store position measurements                  
         
-        [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
-        %[x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
-         
+        if (vel == 0)
+            [x_ins,P_prd] = ins_ahrs(...
+                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
+        else
+            [x_ins,P_prd] = ins_ahrs(...
+                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
+        end
+        
     else  % no aiding
         
         [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs);
