@@ -33,7 +33,7 @@ f_s    = 100;   % sampling frequency [Hz]
 f_gnss = 1;     % GNSS measurement frequency [Hz]
 
 % Flags
-mag = 0;          % 0 = compass, 1 = magnetometer 
+mag = 1;          % 0 = compass, 1 = magnetometer 
 vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
 
 % Parameters
@@ -55,7 +55,7 @@ P_prd = eye(15);
 if (vel == 0 && mag == 1)  % position aiding + magnetometer
      
    Qd = diag([0.1 0.1 0.1 0.001 0.001 0.001 0.1 0.1 0.1 0.001 0.001 0.001]);
-   Rd = diag([1 1 1  0.1 0.1 0.1  0.001 0.01 0.01]);  % p, acc, mag  
+   Rd = diag([1 1 1  1 1 10  0.01 0.01 0.01]);  % p, acc, mag  
    
 elseif  (vel == 1 && mag == 1)  % position/velocity aiding + magnetometer 
      
