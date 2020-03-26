@@ -15,8 +15,8 @@
 %
 % The main loop calls:
 %
-% [x_ins, P_prd] = ...
-%     ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel);
+% [x_ins, P_prd] = ins_ahrs( ...
+%      x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
 %
 % each time a GNSS position y_pos is received at the slow frequency f_gnss.
 % For samples without new measurements, the arguments y_pos and y_vel are
@@ -34,8 +34,8 @@ f_s    = 100;   % sampling frequency [Hz]
 f_gnss = 1;     % GNSS measurement frequency [Hz]
 
 % Flag
-vel = 0;          % (0/1) use velocity measurement
-compass = 0;      % (0/1) use compass instead of AHRS
+vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
+compass = 0;      % 0 = AHRS, 1 = compass and [phi, theta] = acc2roll(f_imu)
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
@@ -123,12 +123,16 @@ for i=1:N+1
         y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
         ydata = [ydata; t, y_pos'];             % store position measurements                  
         
-        if (vel == 0)
+        if (vel == 0)  % position aiding
+            
             [x_ins,P_prd] = ins_ahrs(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
-        else
+            
+        else            % position and velocity aiding
+            
             [x_ins,P_prd] = ins_ahrs(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
+            
         end
         
     else  % no aiding
