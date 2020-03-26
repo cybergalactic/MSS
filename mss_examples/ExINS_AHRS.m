@@ -73,6 +73,24 @@ x_ins = [p_ins; v_ins; b_acc_ins; th_ins; b_ars_ins];
 mu = 63.4305 * pi / 180;    % lattitude  
 g = gravity(mu);  
 
+
+%% Display
+disp('----------------------------------------------------------');
+disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
+disp('Attitude parametrization: Euler angles');
+if (vel == 0)
+   disp(['INS aided by position at ',num2str(f_gnss), ' Hz']);
+else
+    disp(['INS aided by position and velocity at ',num2str(f_gnss), ' Hz']);  
+end
+   disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
+if (compass == 0)
+   disp(['AHRS measurements (phi, theta, psi) at ',num2str(f_s), ' Hz']);
+else
+   disp(['COMPASS measurements (psi) at ',num2str(f_s), ' Hz']);
+end
+disp('----------------------------------------------------------');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,16 +141,12 @@ for i=1:N+1
         y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
         ydata = [ydata; t, y_pos'];             % store position measurements                  
         
-        if (vel == 0)  % position aiding
-            
+        if (vel == 0)
             [x_ins,P_prd] = ins_ahrs(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
-            
-        else            % position and velocity aiding
-            
+        else
             [x_ins,P_prd] = ins_ahrs(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
-            
         end
         
     else  % no aiding
@@ -163,12 +177,12 @@ y_m = ydata(:,2:4);
 figure(1); figure(gcf)
 
 subplot(311),plot(t_m,y_m,'xb',t,x_hat(:,1:3),'r')
-xlabel('time (s)'),title('Position'),grid
+xlabel('time (s)'),title('Position [m]'),grid
 legend(['Measurement at ', num2str(f_gnss), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 subplot(312),plot(t,x(:,4:6),'b',t,x_hat(:,4:6),'r')
-xlabel('time (s)'),title('Velocity'),grid
+xlabel('time (s)'),title('Velocity [m/s]'),grid
 legend(['True velocity at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
@@ -179,8 +193,8 @@ legend(['True acc bias at ', num2str(f_s), ' Hz'],...
 
 figure(2); figure(gcf)
 
-subplot(211),plot(t,theta_m,'b',t,x_hat(:,10:12),'r')
-xlabel('time (s)'),title('Angle'),grid
+subplot(211),plot(t,(180/pi)*theta_m,'b',t,(180/pi)*x_hat(:,10:12),'r')
+xlabel('time (s)'),title('Angle [deg]'),grid
 legend(['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
