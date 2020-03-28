@@ -24,7 +24,7 @@
 %
 % Author:    Thor I. Fossen
 % Date:      26 March 2020
-% Revisions: 
+% Revisions: 28 March 2020, modified to use an INS signal generator
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
@@ -46,7 +46,7 @@ N  = 20000;		  % no. of iterations
 b_acc = [0.1 0.3 -0.1]';
 b_ars = [0.05 0.1 -0.05]';
    
-% initial values for x (for testing)
+% initial values for x for signal generator
 x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	        
 
 % initialization of Kalman filter
@@ -110,41 +110,11 @@ simdata = zeros(N+1,32);                  % table of simulation data
 ydata = [0 x(1:3)'];                      % table of position measurements
 
 for i=1:N+1
-    t = (i-1) * h;                        % time (s)   
     
-    % Signal generator (for testing)
-    g_n = [0 0 g]';                       % NED gravity vector
-    g_b = Rzyx(x(10),x(11),x(12))' * g_n; % BODY gravity vector
-    
-    f_true = [0.1  * sin(0.1*t)           % true specific force: f = a - g 
-              0.1  * cos(0.1*t)
-              0.05 * sin(0.05*t)] - g_b;
-
-    w_true = [ 0.01 * cos(0.2*t)           % true angular rate
-              -0.02 * sin(0.1*t)
-               0.01 * sin(0.1*t) ];
-       
-    x_dot = [ x(4:6)                                   % true states
-              Rzyx(x(10),x(11),x(12)) * f_true + g_n 
-              zeros(3,1)    
-              Tzyx(x(10),x(11)) * w_true 
-              zeros(3,1)  ];
-   
-    % Compass measurement
+    % INS signal generator
+    t = (i-1) * h;                      % time (s)   
+    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t);
     y_psi = x(12);
-    
-    % IMU measurements          
-    w1 = 0.01 * randn(3,1);                 % white noise     
-    w2 = 0.01 * randn(3,1);    
-    f_imu = f_true + b_acc + w1;   
-    w_imu = w_true + b_ars + w2; 
-    
-    % NOA magentic field calculator (used for testing)
-    % https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#igrfwmm
-    % Replace value with local IMU measurement for phi = theta = psi = 0
-    w3 = 0.01 * randn(3,1);       % white noise     
-    m_ref = [13559 921 50209]';   % [nT] - Location: Trondheim, Norway
-    m_imu = Rzyx(x(10),x(11),x(12))' * m_ref + w3;
     
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0
@@ -194,8 +164,7 @@ for i=1:N+1
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x' x_ins']; 
     
-    % Signal generator (for testing)
-    x = x + h * x_dot;
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -215,30 +184,39 @@ y_m = ydata(:,2:4);
 
 figure(1); figure(gcf)
 
-subplot(311),plot(t_m,y_m,'xb',t,x_hat(:,1:3),'r')
+subplot(311)
+h1 = plot(t_m,y_m,'xb'); hold on;
+h2 = plot(t,x_hat(:,1:3),'r'); hold off;
 xlabel('time (s)'),title('Position [m]'),grid
-legend(['Measurement at ', num2str(f_gnss), ' Hz'],...
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_gnss), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
-subplot(312),plot(t,x(:,4:6),'b',t,x_hat(:,4:6),'r')
+subplot(312)
+h1 = plot(t,x(:,4:6),'b'); hold on;
+h2 = plot(t,x_hat(:,4:6),'r'); hold off;
 xlabel('time (s)'),title('Velocity [m/s]'),grid
-legend(['True velocity at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True velocity at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
-subplot(313),plot(t,x(:,7:9),'b',t,x_hat(:,7:9),'r')
+subplot(313)
+h1 = plot(t,x(:,7:9),'b'); hold on;
+h2 = plot(t,x_hat(:,7:9),'r'); hold off;
 xlabel('time (s)'),title('Acc bias'),grid
-legend(['True acc bias at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 figure(2); figure(gcf)
 
-subplot(211),plot(t,(180/pi)*x(:,10:12),'b',t,(180/pi)*Theta,'r')
+subplot(211)
+h1 = plot(t,(180/pi)*x(:,10:12),'b'); hold on;
+h2 = plot(t,(180/pi)*Theta,'r'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
-legend(['Measurement at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
-subplot(212),plot(t,x(:,13:15),'b',t,x_hat(:,14:16),'r')
+subplot(212)
+h1 = plot(t,x(:,13:15),'b'); hold on;
+h2 = plot(t,x_hat(:,14:16),'r'); hold off;
 xlabel('time (s)'),title('ARS bias'),grid
-legend(['True ARS bias at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
-

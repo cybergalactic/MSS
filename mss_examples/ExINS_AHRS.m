@@ -5,7 +5,8 @@
 %
 %    [phi, theta] = acc2rollpitch(f)
 %
-% while the yaw angle, psi, is measured by a compass.
+% while the yaw angle, psi, is measured by a compass. A more accurate and
+% recommended solution is to use the the MEKF, see ExINS_MEKF. 
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
 % equal to the  sampling frequency f_s, which is equal to the IMU
@@ -26,6 +27,7 @@
 % Author:    Thor I. Fossen
 % Date:      21 March 2020
 % Revisions: 26 March 2020, added flags as user input
+%            28 March 2020, modified to use an INS signal generator
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
@@ -35,7 +37,7 @@ f_gnss = 1;     % GNSS measurement frequency [Hz]
 
 % Flag
 vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
-compass = 0;      % 0 = AHRS, 1 = compass and [phi, theta] = acc2roll(f_imu)
+compass = 1;      % 0 = AHRS, 1 = compass and [phi, theta] = acc2roll(f_imu)
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
@@ -98,40 +100,20 @@ simdata = zeros(N+1,34);                  % table of simulation data
 ydata = [0 x(1:3)'];                      % table of position measurements
 
 for i=1:N+1
-    t = (i-1) * h;                        % time (s)   
     
-    % Signal generator (for testing)
-    g_n = [0 0 g]';                       % NED gravity vector
-    g_b = Rzyx(x(10),x(11),x(12))' * g_n; % BODY gravity vector
+    % INS signal generator
+    t = (i-1) * h;                      % time (s)   
+    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t);
     
-    f_true = [0.1  * sin(0.1*t)           % true specific force: f = a - g 
-              0.1  * cos(0.1*t)
-              0.05 * sin(0.05*t)] - g_b;
-
-    w_true = [ 0.01 * cos(0.2*t)           % true angular rate
-              -0.05 * sin(0.1*t)
-               0.05 * sin(0.1*t) ];
+    if (compass == 0)   % AHRS measurements
        
-    x_dot = [ x(4:6)                                   % true states
-              Rzyx(x(10),x(11),x(12)) * f_true + g_n 
-              zeros(3,1)    
-              Tzyx(x(10),x(11)) * w_true 
-              zeros(3,1)  ];
-   
-    % IMU measurements          
-    w1 = 0.01 * randn(3,1);                 % white noise     
-    w2 = 0.01 * randn(3,1);    
-    f_imu = f_true + b_acc + w1;   
-    w_imu = w_true + b_ars + w2;
-    
-    % AHRS measurements
-    y_theta = x(10:12) + 0.01 * randn(3,1); % true roll, pitch, yaw  
-    y_ahrs = y_theta;
-    
-    % Use specific force and compass instead of an AHRS
-    if (compass == 1)
+       y_ahrs = x(10:12);               % true roll, pitch, yaw                  %
+       
+    else                % use specific force and compass instead of an AHRS
+        
        [phi, theta] = acc2rollpitch( f_imu );
-        y_ahrs = [phi, theta, x(12)]';
+        y_ahrs = [ phi, theta, x(12) ]';
+        
     end
     
     % GNSS measurements are Z times slower than the sampling time
@@ -156,10 +138,8 @@ for i=1:N+1
     end
     
     % store simulation data in a table (for testing)
-    simdata(i,:) = [t x' x_ins', y_theta']; 
+    simdata(i,:) = [t x' x_ins', y_ahrs']; 
     
-    % Signal generator (for testing)
-    x = x + h * x_dot;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,30 +156,40 @@ y_m = ydata(:,2:4);
 
 figure(1); figure(gcf)
 
-subplot(311),plot(t_m,y_m,'xb',t,x_hat(:,1:3),'r')
+subplot(311)
+h1 = plot(t_m,y_m,'xb'); hold on;
+h2 = plot(t,x_hat(:,1:3),'r'); hold off;
 xlabel('time (s)'),title('Position [m]'),grid
-legend(['Measurement at ', num2str(f_gnss), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_gnss), ' Hz'],...
+    ['Estimate at ', num2str(f_s), ' Hz']);
 
-subplot(312),plot(t,x(:,4:6),'b',t,x_hat(:,4:6),'r')
+subplot(312)
+h1 = plot(t,x(:,4:6),'b'); hold on;
+h2 = plot(t,x_hat(:,4:6),'r'); hold off;
 xlabel('time (s)'),title('Velocity [m/s]'),grid
-legend(['True velocity at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True velocity at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
-subplot(313),plot(t,x(:,7:9),'b',t,x_hat(:,7:9),'r')
+subplot(313)
+h1 = plot(t,x(:,7:9),'b'); hold on;
+h2 = plot(t,x_hat(:,7:9),'r'); hold off;
 xlabel('time (s)'),title('Acc bias'),grid
-legend(['True acc bias at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 figure(2); figure(gcf)
 
-subplot(211),plot(t,(180/pi)*theta_m,'b',t,(180/pi)*x_hat(:,10:12),'r')
+subplot(211)
+h1 = plot(t,(180/pi)*theta_m,'b'); hold on;
+h2 = plot(t,(180/pi)*x_hat(:,10:12),'r'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
-legend(['Measurement at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
-subplot(212),plot(t,x(:,13:15),'b',t,x_hat(:,13:15),'r')
+subplot(212)
+h1 = plot(t,x(:,13:15),'b'); hold on;
+h2 = plot(t,x_hat(:,13:15),'r'); hold off;
 xlabel('time (s)'),title('ARS bias'),grid
-legend(['True ARS bias at ', num2str(f_s), ' Hz'],...
+legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
