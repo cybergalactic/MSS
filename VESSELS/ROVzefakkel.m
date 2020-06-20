@@ -61,5 +61,3 @@ end
 psi_dot = r;
 r_dot = (1/T) * (K * delta + d_r - n3 * r^3 - n1 * r ); 
 
-
- 
