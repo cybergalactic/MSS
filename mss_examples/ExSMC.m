@@ -23,7 +23,7 @@ N  =   6000;    % no. of samples
 
 psi_ref = 10 * pi/180;  % desired yaw angle
 
-flag = 3;      % 1 = conventional SMC using sgn(sigma)
+flag = 1;      % 1 = conventional SMC using sgn(sigma)
                % 2 = conventional SMC using tanh(sigma/phi)
                % 3 = conventional SMC using sat(sigma)
                
@@ -70,7 +70,7 @@ for i=1:N+1
     
     % conventional sliding mode controller 
     % the rudder rudder dynamics is unknown and |d_r | < d_r^max
-    e_psi   = psi - xd(1);
+    e_psi   = ssa( psi - xd(1) );
     e_r     = r - xd(2);
     sigma = e_r + 2 * lambda * e_psi + lambda^2 * z_psi; 
     r_r = r - sigma;  % sigma = r - r_r
