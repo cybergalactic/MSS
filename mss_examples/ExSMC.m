@@ -8,7 +8,8 @@
 %
 %   [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r)
 %
-% is the Norrbin model for the ROV Zefakkel (Length 45 m).
+% is the Norrbin model for the ROV Zefakkel (Length 45 m) inclduing
+% actuator dynamics and saturation
 %
 % Author:    Thor I. Fossen
 % Date:      19 June 20200
@@ -18,7 +19,7 @@
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h    = 0.05;     % sampling time [s]
-N  =   5000;    % no. of samples
+N  =   6000;    % no. of samples
 
 psi_ref = 10 * pi/180;  % desired yaw angle
 
@@ -32,20 +33,20 @@ K = 0.3;                % ship gain constant
 n3 = 0.4;               % 3rd-order maneuvering coefficient
 n1 = 1;                 % 1st-order maneuvering coeffiecient, stable ship
 K_sigma = 0.1;          % SMC gain
-phi = 0.001;            % boundary layer parameter
+phi = 0.001;            % boundary layer parameter tanh(sigma/phi)
 lambda = 0.1;           % sliding variable parameter lambda > 0
 z_psi = 0;              % intial integral state
 
 % ship model parameters
-psi = 0;        % initial yaw angle (rad)
-r = 0;          % initial yaw rate (rad/s)
-delta = 0;      % initial rudder angle (rad)
-U = 4;          % ship cruise speed (m/s)
-d_r = (1 * pi/180)/K;     % 1 degree unknown bias in rudder angle
+psi = 0;                % initial yaw angle (rad)
+r = 0;                  % initial yaw rate (rad/s)
+delta = 0;              % initial rudder angle (rad)
+U = 4;                  % ship cruise speed (m/s)
+d_r = (1 * pi/180)/K;   % 1 degree unknown bias in rudder angle
 
 % reference model
-wn = 0.1;                % reference model nataural frequnecy
-xd = [ 0 0 0]';          % inital reference model states (3rd order)
+wn = 0.1;               % reference model nataural frequnecy
+xd = [ 0 0 0]';         % inital reference model states (3rd order)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
@@ -57,6 +58,7 @@ for i=1:N+1
     t = (i-1) * h;                      % time (s)   
     
     if (i > 2000), psi_ref = -10 * pi/180;  end 
+    if (i > 2000 && i>4000), psi_ref = 20 * pi/180;  end 
     
     % 3rd-order reference model for yaw
     Ad = [ 0 1 0
@@ -114,11 +116,11 @@ r_d     = (180/pi) * simdata(:,7);
 
 figure(gcf)
 subplot(311)
-plot(t,psi,t,psi_d);
-title('Yaw angle (deg)'); xlabel('time (s)');
+plot(t,psi,t,psi_d,'linewidth',2);
+title('Actual and desired yaw angles (deg)'); xlabel('time (s)');
 subplot(312)
-plot(t,r,t,r_d);
-title('Yaw rate (deg/s)'); xlabel('time (s)');
+plot(t,r,t,r_d,'linewidth',2);
+title('Actual and desired yaw rates (deg/s)'); xlabel('time (s)');
 subplot(313)
-plot(t,delta,t,delta_c);
-title('Actual rudder and commanded rudder angles (deg)'); xlabel('time (s)');
+plot(t,delta,t,delta_c,'linewidth',2);
+title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
