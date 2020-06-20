@@ -26,13 +26,6 @@ flag = 3;      % 1 = conventional SMC using sgn(sigma)
                % 2 = conventional SMC using tanh(sigma/phi)
                % 3 = conventional SMC using sat(sigma)
                
-% ship model parameters
-psi = 0;        % initial yaw angle (rad)
-r = 0;          % initial yaw rate (rad/s)
-delta = 0;      % initial rudder angle (rad)
-U = 4;          % ship cruise speed (m/s)
-d_r = (1 * pi/180)/K;     % 1 degree unknown bias in rudder angle
-
 % SMC parameters
 T = 30;                 % ship time constant
 K = 0.3;                % ship gain constant
@@ -43,11 +36,17 @@ phi = 0.001;            % boundary layer parameter
 lambda = 0.1;           % sliding variable parameter lambda > 0
 z_psi = 0;              % intial integral state
 
+% ship model parameters
+psi = 0;        % initial yaw angle (rad)
+r = 0;          % initial yaw rate (rad/s)
+delta = 0;      % initial rudder angle (rad)
+U = 4;          % ship cruise speed (m/s)
+d_r = (1 * pi/180)/K;     % 1 degree unknown bias in rudder angle
+
 % reference model
 wn = 0.1;                % reference model nataural frequnecy
 xd = [ 0 0 0]';          % inital reference model states (3rd order)
 
-    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,10 +56,7 @@ for i=1:N+1
 
     t = (i-1) * h;                      % time (s)   
     
-    if (i > 2000), psi_ref = -10 * pi/180;  end
-    
-    % Norrbin model for the ROV Zefakkel
-    [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r);  
+    if (i > 2000), psi_ref = -10 * pi/180;  end 
     
     % 3rd-order reference model for yaw
     Ad = [ 0 1 0
@@ -91,6 +87,8 @@ for i=1:N+1
             end
     end
     
+    % Norrbin model for the ROV Zefakkel
+    [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r); 
     % store simulation data in a table (for testing)
     simdata(i,:) = [t psi r delta delta_c xd'];       
      
