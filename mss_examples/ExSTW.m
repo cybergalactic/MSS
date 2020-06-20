@@ -67,7 +67,7 @@ for i=1:N+1
     xd_dot = Ad * xd + Bd * psi_ref;    
     
     % sliding variable with integral action 
-    e_psi   = psi - xd(1);
+    e_psi   = ssa( psi - xd(1) );
     e_r     = r - xd(2);
     sigma = e_r + 2 * lambda * e_psi + lambda^2 * z_psi; 
     
