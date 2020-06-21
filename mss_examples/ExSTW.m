@@ -1,6 +1,5 @@
-% ExSTW adaptive super twisting sliding mode control (STW) design for 
-% heading autopilot. An STW is designed for the Norrbin (1963) nonlinear 
-% yaw model
+% ExSTA adaptive-gain super twisting algorithm (STA) for heading control. 
+% The yaw dynamics is based on the Norrbin (1963) nonlinear model
 % 
 %                       psi_dot = r
 %       T r_dot + n3 r^3 + n1 r = K delta + d_r
