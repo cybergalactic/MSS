@@ -177,7 +177,7 @@ x_hat = simdata(:,17:32);
 for i = 1:length(t)
  [phi(i), theta(i), psi(i)] = q2euler(x_hat(i,10:13));
 end
-Theta = [phi', theta', psi'];
+Theta = [phi' theta' psi'];
 
 t_m = ydata(:,1);              % slow GNSS measurements
 y_m = ydata(:,2:4);
