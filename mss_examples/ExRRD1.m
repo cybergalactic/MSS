@@ -75,10 +75,10 @@ semilogx(w,phase3(:)-180,'k','linewidth',2)
 semilogx(w,phase4(:),'k')
 hold off
 
-% transfer functions
+% display transfer functions
 zpk(series(yaw,yaw_integrator))
 zpk(roll)
 
-% decoupled transfer functions
+% display reduced-order transfer functions
 zpk(series(red_yaw,yaw_integrator))
 zpk(red_roll)
