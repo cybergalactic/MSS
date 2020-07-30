@@ -12,34 +12,32 @@
 % actuator dynamics and saturation
 %
 % Author:    Thor I. Fossen
-% Date:      20 June 20200
+% Date:      20 June 2020
 % Revisions: 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h  = 0.05;    % sampling time [s]
-N  = 6000;    % no. of samples
+N  = 8000;    % no. of samples
 
 psi_ref = 10 * pi/180;  % desired yaw angle
                
 % STW parameters
 T = 30;                 % ship time constant
 K = 0.3;                % ship gain constant
-phi = 0.001;            % boundary layer parameter tanh(sigma/phi)
 lambda = 0.1;           % sliding variable parameter lambda > 0
-alpha_0 = 0.01;         % adaptation gain
-beta_0 = 0.0001;        % adaptation gain
+alpha_0 = 0.03;        % adaptation gain
+beta_0 = 0.0001;       % adaptation gain
 v = 0;                  % initial state
 alpha = 0;              % initial state
-z_psi = 0;              % intial integral state
 
 % ship model parameters
 psi = 0;                % initial yaw angle (rad)
 r = 0;                  % initial yaw rate (rad/s)
 delta = 0;              % initial rudder angle (rad)
 U = 4;                  % ship cruise speed (m/s)
-d_r = (1 * pi/180)/K;   % 1 degree unknown bias in rudder angle
+d_r = 0.37*(1*pi/180);  % d_r = K delta_0 (1 degree unknown rudder bias)
 
 % reference model
 wn = 0.1;               % reference model nataural frequnecy
@@ -55,7 +53,8 @@ for i=1:N+1
     t = (i-1) * h;                      % time (s)   
     
     if (i > 2000), psi_ref = -10 * pi/180;  end 
-    if (i > 2000 && i>4000), psi_ref = 20 * pi/180;  end 
+    if (i > 4000), psi_ref =  10 * pi/180;  end 
+    if (i > 6000), psi_ref = -10 * pi/180;  end    
     
     % 3rd-order reference model for yaw
     Ad = [ 0 1 0
@@ -68,7 +67,7 @@ for i=1:N+1
     % sliding variable with integral action 
     e_psi   = ssa( psi - xd(1) );
     e_r     = r - xd(2);
-    sigma = e_r + 2 * lambda * e_psi + lambda^2 * z_psi; 
+    sigma = e_r + lambda * e_psi; 
     
     % STW sliding mode controller    
     if (abs(sigma) < 0.01)
@@ -78,12 +77,13 @@ for i=1:N+1
     end
     
     beta = beta_0;
+    phi = 0.01;
     v_dot = -beta * tanh(sigma/phi);  
     w = -alpha * sqrt(abs(sigma)) * sign(sigma) + v;
     delta_c = (T/K) * w;
     
     % Norrbin model for the ROV Zefakkel
-    [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r); 
+    [psi_dot,r_dot,delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r); 
     
     % store simulation data in a table (for testing)
     simdata(i,:) = [t psi r delta delta_c xd' alpha beta v];       
@@ -93,7 +93,6 @@ for i=1:N+1
     psi = psi + h * psi_dot;
     r = r + h * r_dot; 
     delta = delta + h * delta_dot; 
-    z_psi = z_psi + h * e_psi;
     v = v + h * v_dot;
     alpha = alpha + h * alpha_dot;
     
