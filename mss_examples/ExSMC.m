@@ -23,13 +23,13 @@ N  =   6000;    % no. of samples
 
 psi_ref = 10 * pi/180;  % desired yaw angle
 
-flag = 1;      % 1 = conventional SMC using sgn(sigma)
+flag = 2;      % 1 = conventional SMC using sgn(sigma)
                % 2 = conventional SMC using tanh(sigma/phi)
                % 3 = conventional SMC using sat(sigma)
                
 % SMC parameters
-T = 30;                 % ship time constant
-K = 0.3;                % ship gain constant
+T_hat = 30;             % ship time constant
+K_hat = 0.3;            % ship gain constant 
 n3 = 0.4;               % 3rd-order maneuvering coefficient
 n1 = 1;                 % 1st-order maneuvering coeffiecient, stable ship
 K_sigma = 0.1;          % SMC gain
@@ -42,7 +42,7 @@ psi = 0;                % initial yaw angle (rad)
 r = 0;                  % initial yaw rate (rad/s)
 delta = 0;              % initial rudder angle (rad)
 U = 4;                  % ship cruise speed (m/s)
-d_r = (1 * pi/180)/K;   % 1 degree unknown bias in rudder angle
+d_r = 0.37*(1*pi/180);  % d_r = K delta_0 (1 degree unknown rudder bias)
 
 % reference model
 wn = 0.1;               % reference model nataural frequnecy
@@ -78,14 +78,18 @@ for i=1:N+1
     
     switch flag
         case flag==1        % sgm(sigma)
-            delta_c = (1/K) * ( T * r_r_dot + (n3 * r^2 + n1) * r_r - K_sigma * sign(sigma) );
+            delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
+            - K_sigma * sign(sigma) );
         case flag == 2      % tanh(sigma)
-            delta_c = (1/K) * ( T * r_r_dot + (n3 * r^2 + n1) * r_r - K_sigma * tanh(sigma/phi) );
+            delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
+            - K_sigma * tanh(sigma/phi) );
         otherwise           % sat(sigma)
             if (abs(sigma/phi) > 1)
-                delta_c = (1/K) * ( T * r_r_dot + (n3 * r^2 + n1) * r_r - K_sigma * sign(sigma/phi) );
+              delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
+              - K_sigma * sign(sigma/phi) );
             else
-                delta_c = (1/K) * ( T * r_r_dot + (n3 * r^2 + n1) * r_r - K_sigma * (sigma/phi) );
+              delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
+              - K_sigma * (sigma/phi) );
             end
     end
     
