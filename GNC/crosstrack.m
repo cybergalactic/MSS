@@ -1,22 +1,25 @@
 function [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag)
 %  [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag) computes 
-% the coordinate origin (x_p, y_p) of the path-tangential reference fram from
-% the reference point (x_ref, y_ref) to the target position (x_p, y_p), and 
-% cross-track error y_e for a craft at position (x, y). 
+% the coordinate origin (x_p, y_p) of the path-tangential reference frame
+% from the reference point (x_ref, y_ref) to the target position (x_p, y_p), 
+% and cross-track error y_e for a craft at position (x, y). 
 %
-% Input:    (x_t,y_t) North-East target positions
-%           (x_ref,y_ref) North-East reference positions
-%           (x,y) crfat North-East positions
+% Input:    (x_t,y_t), North-East target positions
+%           (x_ref,y_ref). North-East reference positions
+%           (x,y), craft North-East positions
 %           flag (optionally) = 1 (plot geometry)
 %
 % Outputs:  (x_p,y_p) origin of path-tangential frame expressed in NED
 %           y_e cross-track error
+%
+% See also crosstrackWpt(x2, y2, x1, y1, x, y), which computes the
+% cross-track error between two waypoints (x1,y1) and (x2,y2).
 %  
 % Author:    Thor I. Fossen
 % Date:      10 July 2020
-% Revisions:
+% Revisions: 6 Oct. 2020, Thor I. Fossen, fixed minor typos
 
-% path-tanegntial angle
+% path-tangential angle
 pi_p = atan2(y_t-y_ref, x_t-x_ref);
 
 cp = cos(pi_p);
