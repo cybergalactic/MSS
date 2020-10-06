@@ -23,7 +23,7 @@ N  =   6000;    % no. of samples
 
 psi_ref = 10 * pi/180;  % desired yaw angle
 
-flag = 2;      % 1 = conventional SMC using sgn(sigma)
+flag = 3;      % 1 = conventional SMC using sgn(sigma)
                % 2 = conventional SMC using tanh(sigma/phi)
                % 3 = conventional SMC using sat(sigma)
                
