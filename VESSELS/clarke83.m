@@ -57,6 +57,7 @@ Xudot = -0.1 * m;
 if (nargin == 7)
     T_surge = L; 
 end
+U = U + 0.001; % avoid singularity for U = 0;
 Xu = -((m-Xudot)/T_surge) / (0.5 * rho * L^2 * U);  
 Xudot = Xudot / (0.5 * rho * L^3);
 
