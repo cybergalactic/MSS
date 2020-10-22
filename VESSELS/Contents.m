@@ -3,6 +3,7 @@
 % Standard ship, semisubmersible and underwater vehicle models.
 %
 %    Ships:
+%    clarke83    - Ship maneuvering model parametrized using L, B and T
 %    frigate     - Frigate, L = 100 m (nonlinear autopilot model)
 %    mariner     - Mariner class vessel, L=160 m (nonlinear maneuvering model)
 %    tanker      - Tanker, L=304 m (nonlinear course unstable maneuvering model)
@@ -17,12 +18,13 @@
 %    npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
 %
 %    Semisubmersibles:
-%    rig         - Semisub MDG (mass-damper-spring) model, L = 84.6 m
+%    rig         - Semisub (mass-damper-spring) model, L = 84.6 m
 %
 %    USV models:
 %    otter       - Small autonomous USV, L = 2.0 m
 %
 %    Time-series simulations:
+%    SIMclarke83    - Simulate clarke83.m under PD control
 %    SIMmariner     - Simulate mariner.m under PD control
 %    SIMcontainer   - Simulate container.m and Lcontainer.m under PD control
 %    SIMnavalvessel - Simulate navalvessel.m under PD control
