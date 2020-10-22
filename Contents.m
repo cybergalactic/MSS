@@ -89,6 +89,7 @@
 %  m2c        - System inertia to Coriolis-centripetal transformation matrix
 %
 % Ships models:
+%  clarke83    - Ship maneuvering model parametrized using L, B and T
 %  frigate     - Frigate, L = 100 m (nonlinear autopilot model)
 %  mariner     - Mariner class vessel, L=160 m (nonlinear maneuvering model)
 %  tanker      - Esso Osaka tanker, L=304 m (nonlinear course unstable maneuvering model)
@@ -103,7 +104,7 @@
 %  npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
 %
 % Semisubmersible models:
-%  rig         - Semisub MDG (mass-damper-spring) model, L = 84.6 m
+%  rig         - Semisub (mass-damper-spring) model, L = 84.6 m
 %
 % USV models:
 %  otter       - Small autonomous USV, L = 2.0 m
