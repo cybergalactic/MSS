@@ -53,11 +53,12 @@ MRB = [ m   0       0           % rigid-body inertia matrix
         0   m*xg    Iz      ];
 
 % Nondimenisonal hydrodynamic derivatives in surge
-Xudot = -0.1 * m / (0.5 * rho * L^3);
+Xudot = -0.1 * m;
 if (nargin == 7)
     T_surge = L; 
 end
-Xu = -((m-Xudot) / T_surge) / (0.5 * rho * L^2 * U);  
+Xu = -((m-Xudot)/T_surge) / (0.5 * rho * L^2 * U);  
+Xudot = Xudot / (0.5 * rho * L^3);
 
 % Nondimenisonal hydrodynamic derivatives in sway and yaw
 % from Clarke et al. (1983)
