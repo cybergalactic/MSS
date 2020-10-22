@@ -1,4 +1,4 @@
-% SIMrig    User editable script for simulation of a semi-submersible with
+% SIMrig    User editable script for simulation of a semisubmersible with
 % two pontoons and four legs. The data is generated using rig.m, which
 % calls data_rig.m. 
 %
@@ -6,13 +6,11 @@
 %   H_p = 13.0 (pontoon height)
 %   B_p = 12.0 (pontoon width)
 %   L_p = 84.6 (pontoon length)
-%   r_CG = [-0.5 0 -19.5]' (center of gravity in COO)
-%
-% Calls:       euler2.m, Rzyx.m, eulerang.m
+%   r_CG = [-0.5 0 -19.5]', center of gravity with respect to the CO
 %
 % Author:      Thor I. Fossen
 % Date:        2019-03-12
-% Revisions: 
+% Revisions:   2020-10-22  retuning of PID controller
 
 clear all
 
@@ -22,7 +20,7 @@ N = round(1000*f);   % number of samples
 
 w_n = 0.02;          % Bandwidth
 Kp = w_n^2;          % Proportional gain 
-Kd = 2 *w_n^2;       % Derivative  gain 
+Kd = 0;              % Derivative  gain 
 Ki = 0.1 * Kp * w_n; % Integral  gain 
 
 % Regular wave data
