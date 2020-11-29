@@ -23,8 +23,9 @@
 % measurements.
 %
 % Author:    Thor I. Fossen
-% Date:      26 March 2020
-% Revisions: 28 March 2020, modified to use an INS signal generator
+% Date:      26 Mar 2020
+% Revisions: 28 Mar 2020, modified to use an INS signal generator
+%            29 Nov 2020, new Kalman filter weights
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
@@ -52,25 +53,24 @@ x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';
 % initialization of Kalman filter
 P_prd = eye(15);
 
+% process noise weights: v, acc_bias, w, ars_bias
+Qd = diag([0.01 0.01 0.01 0.01 0.01 0.01 0.1 0.1 0.1 0.001 0.001 0.001]);
+   
 if (vel == 0 && mag == 1)  % position aiding + magnetometer
      
-   Qd = diag([0.1 0.1 0.1 0.001 0.001 0.001 0.1 0.1 0.1 0.001 0.001 0.001]);
-   Rd = diag([1 1 1  1 1 10  0.01 0.01 0.01]);  % p, acc, mag  
+   Rd = diag([1 1 1  1 1 1 0.01 0.01 0.01]);  % p, acc, mag  
    
 elseif  (vel == 1 && mag == 1)  % position/velocity aiding + magnetometer 
      
-   Qd = diag([0.1 0.1 0.1 0.001 0.001 0.001 0.1 0.1 0.1 0.001 0.001 0.001]);   
-   Rd = diag([1 1 1  0.1 0.1 0.1  1 1 10  0.01 0.01 0.01]);  % p, v, acc, mag
+   Rd = diag([1 1 1  0.1 0.1 0.1  1 1 1  0.01 0.01 0.01]);  % p, v, acc, mag
    
 elseif (vel == 0 && mag == 0)  % position aiding + compass 
     
-   Qd = diag([0.1 0.1 0.1 0.001 0.001 0.001 0.1 0.1 0.1 0.001 0.001 0.001]);   
-   Rd = diag([1 1 1  1 1 10  0.01]);  % p, acc, psi
+   Rd = diag([1 1 1  1 1 1  0.01]);  % p, acc, psi
    
 else % position/velocity aiding + compass 
-    
-   Qd = diag([0.1 0.1 0.1 0.001 0.001 0.001 0.1 0.1 0.1 0.001 0.001 0.001]);   
-   Rd = diag([1 1 1  0.1 0.1 0.1  1 1 10  0.01]);  % p, vel, acc, psi
+      
+   Rd = diag([1 1 1  1 1 1  1 1 1  0.01]);  % p, vel, acc, psi
 
 end
 
