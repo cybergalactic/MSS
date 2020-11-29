@@ -24,7 +24,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %     delta_y[k] = h(delta_x[k], u[k]) + varepsilon[k]
 %
 % Inputs: 
-%    x_ins[k], INS state vector [p_ins; v_ins, b_acc_ins, q_ins, b_ars_ins] 
+%    x_ins[k], INS state vector [p_ins, v_ins, b_acc_ins, q_ins, b_ars_ins] 
 %    P_prd[k],  15 x 15 covariance matrix
 %    mu, lattitude [rad]
 %    h sampling time [s]
@@ -40,8 +40,8 @@ function [x_ins, P_prd] = ins_mekf(...
 %    P_prd[k+1] Kalman fiter covariance matrix for error states (15 x 15)
 %
 % Author:    Thor I. Fossen
-% Date:      26 March 2020
-% Revisions: 
+% Date:      26 Mar 2020
+% Revisions: 29 Nov 2020, bugfix - removed magnetometer projections
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -70,19 +70,15 @@ T = Tquat(q_ins);
 f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
-% Magnetometer projections pi_b and pi_n
-pi_b = sqrt(m_imu' * m_imu) * eye(3) - m_imu * m_imu';
-pi_n = sqrt(m_ref' * m_ref) * eye(3) - m_ref * m_ref';
-m_b  = pi_b * m_imu;
-m_n  = pi_n * m_ref;
-
-% Reference vectors v10 and v20
-v10 = [0 0 1]';                 % gravity vector
-v20 = m_n / sqrt( m_n' * m_n);  % magnetic field 
-v1 = -f_ins/g;             
+% Normalized gravity vectors
+v10 = [0 0 1]';             % NED
+v1 = -f_ins/g;              % BODY
 v1 = v1 / sqrt( v1' * v1 );
-v2 = m_b / sqrt( m_n' * m_n);
 
+% Normalized magnetic field vectors
+v20 = m_ref / sqrt( m_ref' * m_ref );    % NED
+v2  = m_imu / sqrt( m_ref' * m_ref );    % BODY
+ 
 % Discrte-time KF matrices
 A = [ O3 I3  O3            O3              O3
       O3 O3 -R            -R*Smtrx(f_ins)  O3
