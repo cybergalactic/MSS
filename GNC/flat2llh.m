@@ -12,7 +12,7 @@ function [l,mu,h] = flat2llh(x,y,z,l0,mu0,h_ref)
 
 % WGS-84 parameters
 a = 6378137;           % Semi-major axis (equitorial radius)
-f = 1/298.257223560;   % Flattening 
+f = 1/298.257223563;   % Flattening 
 e = sqrt(2*f - f^2);   % Earth eccentricity
 
 Rn = a / sqrt( 1-e^2 * sin(mu0)^2 );
@@ -21,6 +21,6 @@ Rm = Rn * ( (1-e^2) / (1-e^2 * sin(mu0)^2) );
 dmu = x * atan2(1,Rm);
 dl  = y * atan2(1,Rn*cos(mu0));
 
-l = rad2pipi(l0 + dl);
-mu = rad2pipi(mu0 + dmu);
+l = ssa(l0 + dl);
+mu = ssa(mu0 + dmu);
 h = h_ref - z;
