@@ -27,7 +27,7 @@ function [Amod,Bmod,Wmod] = EditAB(A,B,W)
 %
 % Author:    Tristan Perez
 % Date:      2009-09-01 
-% Revisions: 2020-12-23, minor bug fixes
+% Revisions: 2020-12-23, minor bug fixes 
 
 %Select Frequency range from plot
 while 1
