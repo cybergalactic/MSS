@@ -54,7 +54,7 @@ Qd = diag([0.01 0.01 0.01 0.01 0.01 0.01 0.1 0.1 0.1 0.001 0.001 0.001]);
    
 if (vel == 0 )  % position and compass aiding 
      
-   Rd = diag([1 1 1  1 1 1  0.1]);  % p, acc, compass
+   Rd = diag([1 1 1  1 1 1  0.1]);  % pos, acc, compass
    
 else % position/velocity aiding + compass 
       
