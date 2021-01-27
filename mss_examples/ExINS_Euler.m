@@ -1,37 +1,35 @@
-% ExINS_Euler error-state (indirect) feedback Kalman filter for INS aided by
-% position and compass measurements. Attitude is parametrized using EUler angles.
+% ExINS_Euler - Error-state (indirect) feedback Kalman filter for INS aided 
+% by GNSS position and compass measurements. Attitude is parametrized using
+% Euler angles.
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
-% equal to the  sampling frequency f_s, which is equal to the IMU
-% measurement frequency. The ratio between the frequencies must be an integer:
+% equal to the  sampling frequency f_s, which is equal to the IMU measurement
+% frequency. The ratio between the frequencies must be an integer:
 %
 %     Integer:  Z = f_s/f_gnss >= 1 
 %
 % The main loop calls
 %
-% [x_ins, P_prd] = ins_eulwe( ...
+% [x_ins, P_prd] = ins_euler( ...
 %    x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, psi, y_pos, y_vel)
-%
-% [x_ins, P_prd] = ins_euler_psi( ...
-%     x_ins, P_prd, mu, h, Qd, Rd, f_imu, y_psi, y_pos, y_vel)
 %
 % each time a GNSS position y_pos is received at the slow frequency f_gnss.
 % For samples without new measurements, the arguments y_pos and y_vel are
-% omitted when calling the function ins_ahrs when there are no new GNSS 
+% omitted when calling the function ins_euler when there are no new GNSS 
 % measurements.
 %
 % Author:    Thor I. Fossen
 % Date:      14 Jan 2021 
-% Revisions: 
+% Revisions: 27 Jan 2021, minor updates of the documentation
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f_s    = 100;   % sampling frequency [Hz]
-f_gnss = 1;     % GNSS measurement frequency [Hz]
+f_s    = 100;     % sampling frequency [Hz]
+f_gnss = 1;       % GNSS measurement frequency [Hz]
 
 % Flags
-vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
+vel = 1;          % 0 = no velocity measurement, 1 = velocity aiding
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
@@ -39,7 +37,7 @@ h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s)
 h_gnss = 1/f_gnss;  
 
 % simulation parameters
-N  = 20000;		  % no. of iterations
+N  = 10000;		  % no. of iterations
 b_acc = [0.1 0.3 -0.1]';
 b_ars = [0.05 0.1 -0.05]';
    
@@ -49,16 +47,16 @@ x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';
 % initialization of Kalman filter
 P_prd = eye(15);
 
-% process noise weights: v, acc_bias, w, ars_bias
-Qd = diag([0.01 0.01 0.01 0.01 0.01 0.01 0.1 0.1 0.1 0.001 0.001 0.001]);
+% process noise weights: vel, acc_bias, w_nb, ars_bias
+Qd = diag([0.1 0.1 0.1  0.001 0.001 0.001  0.1 0.1 0.1  0.001 0.001 0.001]);
    
 if (vel == 0 )  % position and compass aiding 
      
-   Rd = diag([1 1 1  1 1 1  0.1]);  % pos, acc, compass
-   
+   Rd = diag([0.1 0.1 0.1  1 1 1  0.1]);  % pos, acc, compass
+
 else % position/velocity aiding + compass 
       
-   Rd = diag([1 1 1  1 1 1  1 1 1  0.1]);  % p, vel, acc, psi
+   Rd = diag([1 1 1  1 1 1  1 1 1  0.1]);  % pos, vel, acc, psi
 
 end
 
@@ -77,7 +75,7 @@ g = gravity(mu);
 %% Display
 disp('----------------------------------------------------------');
 disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
-disp('Attitude parametrization: 2 x Gibbs vector (MEKF)');
+disp('Attitude parametrization: Euler angles');
 if (vel == 0)
    disp(['INS aided by position at ',num2str(f_gnss), ' Hz']);
 else
@@ -103,9 +101,9 @@ for i=1:N+1
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0
         
-        y_pos = x(1:3) + 0.05 * randn(3,1);     % position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
-        ydata = [ydata; t, y_pos'];             % store position measurements                  
+        y_pos = x(1:3) + 0.05 * randn(3,1);   % position measurements
+        y_vel = x(4:6) + 0.01 * randn(3,1);   % optionally velocity meas.
+        ydata = [ydata; t, y_pos'];           % store position measurements                  
               
         if (vel == 0 )  % position aiding + compas aiding
             
@@ -128,7 +126,6 @@ for i=1:N+1
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x' x_ins']; 
     
-
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
