@@ -8,7 +8,8 @@
 % ExKF         - Discrete-time KF using different measurement/sampling-time frequencies
 % ExFeedback   - Numerical integration of 1st-order system with feedback and feedforward control laws
 % ExINS_AHRS   - INS error-state Kalman filter with AHRS
-% ExINS_MEKF   - INS error-state MEKF using quaternions
+% ExINS_Euler  - INS error-state Kalman filter using Euler angles
+% ExINS_MEKF   - INS error-state MEKF using unit quaternions
 % ExFFT        - FFT used to compute the encounter frequency
 % ExKT         - Computation of Nomoto gain and time const. using nonlinear least-squares (NLS)
 % ExLinspec    - Linear approx. to PM, JONSWAP and Torsethaugen spectra using NLS
@@ -22,7 +23,7 @@
 % ExOtter      - 
 % ExPassiveObs - Plots the loop transfer function of the passive observer
 % ExPathGen    - Path generation using cubic polynominals
-% ExPlotRAOs   - Script for plotting motion and force RAOs
+% ExPlotRAO    - Script for plotting motion and force RAOs
 % ExPullout    - Produces a pullout maneuver for the mariner class vessel and a container ship
 % ExQuadProg   - Quadratic programming for way-point trajectory generation
 % ExQuest      - 6 DOF position/attitude vector from camera measurements using the QUEST algorithm
