@@ -1,17 +1,13 @@
 # MSS (Marine Systems Simulator)
 
-<<<<<<< Updated upstream
-The Marine Systems Simulator (MSS) is a Matlab/GNU Octave library for marine systems. It includes models for ships, underwater vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. The algorithms are described in:
-=======
 The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems. It includes models for ships, underwater vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. The algorithms are described in:
->>>>>>> Stashed changes
 
-**T. I. Fossen (2021).** *Handbook of Marine Craft Hydrodynamics and Motion Control*. 2nd. Edition, Wiley. ISBN-13: 978-1119575054
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control*. 2nd. Edition, Wiley. ISBN-13: 978-1119575054
 
 which serves as documentation for the toolbox. Please include the following reference when you use the MSS libraries: 
 
-**T. I. Fossen and T. Perez (2004).** *Marine Systems Simulator (MSS)*.
-URL: https://github.com/cybergalactic/MSS
+    T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS).
+    URL: https://github.com/cybergalactic/MSS
 
 Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to Matlab. Then type:
 
@@ -21,7 +17,9 @@ The Simulink library is loaded by typing:
 
     mssSimulink  
 
-After loading the Simulink library you can run the Simulink demo files located in the catalog: /MSS/SIMULINK/DEMOS/     
+After loading the Simulink library you can run the Simulink demo files located in the catalog: 
+
+    /MSS/SIMULINK/DEMOS/     
 
  GNC Library
 -
@@ -30,7 +28,7 @@ Basic libraries and system examples for guidance, navigation and control (GNC). 
 
 - M-file functions (kinematics and kinetics) and examples for time-domain GNC applications.
 - M-file library with vessels models, maneuvering trials and dynamic simulation.
-- User editable m-files for simulation and control of marine craft including ships, semi-submersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs) and unmanned surface vehicles (USVs).
+- User editable m-files for simulation and control of marine craft including ships, semisubmersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs) and unmanned surface vehicles (USVs).
 - User editable m-files for model-based and inertial navigation systems.
 
  HYDRO Library
