@@ -3,7 +3,7 @@
 % Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. John Wiley & Sons Ltd., 2n edition
 %
-%       Book examples:  >> help mss_examples 
+%       Book examples:  >> help mssExamples 
 %
 % -------------------------------------------------------------------------
 %
