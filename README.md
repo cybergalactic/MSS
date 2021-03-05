@@ -13,13 +13,16 @@ Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to
 
     help MSS
 
+Examples and demo files are located under the catalogs: 
+
+    /MSS/mssExamples/                   Textbook m-file examples (Fossen 2021)  
+    /MSS/mssDemos/                      GNC m-file demos
+    /MSS/SIMULINK/mssSimulinkDemos/     Simulink demos  
+    
 The Simulink library is loaded by typing:
 
     mssSimulink  
 
-After loading the Simulink library you can run the Simulink demo files located in the catalog: 
-
-    /MSS/SIMULINK/DEMOS/ 
 
  GNC Library
 -
