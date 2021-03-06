@@ -1,5 +1,5 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
-% Wamit2Vessel (MSS Hydro)
+% Wamit2Vessel (MSS Hydrodynamics)
 %
 % vessel = wamit2vessel(filename) reads data from WAMIT output files 
 % and store the data in vessel.mat using the MSS vessel struture. The Wamit
@@ -87,10 +87,8 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 % Date:      2005-09-17 first version 
 % Revisions: 2008-02-15 Minor bug fixes
 %            2009-09-11 Using new viscous damping viscous.m
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
+%            2021-03-0  Minor bug fixes
+
 %%
 
 if ~exist('plot_flag')
@@ -242,7 +240,7 @@ if exist([filename '.out'])
 
     fid1 = fopen(strcat(filename,'.out'));
 
-    while feof(fid1) == 0,
+    while feof(fid1) == 0
         count = count + 1;
         txt = char(fgetl(fid1));
 
@@ -254,7 +252,7 @@ if exist([filename '.out'])
         if  strfind(txt,' Gravity:')
             Nfreqs = count - countstart - 2;
             vessel.main.g = str2num(txt(12:25));
-            if vessel.main.g > 10 | vessel.main.g < 9.7
+            if vessel.main.g > 10 || vessel.main.g < 9.7
                 error('Wrong acceleration of gravity in WAMIT geometry file')
                 return
             end            
@@ -270,7 +268,7 @@ if exist([filename '.out'])
             vessel.main.nabla = (temp(1)+temp(2)+temp(3))/3;
             mass = vessel.main.rho * vessel.main.nabla;
 
-            if  FRC_ALT == 2;
+            if  FRC_ALT == 2
 
                 disp(' ')
                 disp('Processing WAMIT data files....')
@@ -278,7 +276,7 @@ if exist([filename '.out'])
                 disp('--------------- Mass property check (*.frc file)-------------------')
                 disp(['Mass computed from displaced fluid is: ' num2str(round(mass/1000)) ' (tonnes)'])
                 disp(['Mass input to Wamit *.frc file is    : ' num2str(round(vessel.main.m/1000)) ' (tonnes)'])
-                if abs(mass-vessel.main.m)>500e3,
+                if abs(mass-vessel.main.m) > 500e3
                     disp('It is recommended to rerun WAMIT with correct mass parameters')
                 end
                 disp('>>Return to continue, <ctrl C> to Abort')
@@ -366,7 +364,7 @@ if exist([filename '.out'])
         if  strfind(txt,'Center of Gravity')
             temp = str2num(txt(33:length(txt)));
             
-            if  FRC_ALT == 2;
+            if  FRC_ALT == 2
                 C_G = T_gdf.*temp;   % Fossen axes
                 vessel.main.CG = [C_G(1) C_G(2) T_draught-C_G(3)];
             else  % FRC_ALT == 1
@@ -410,7 +408,7 @@ if exist([filename '.1'])
     freqs = [0 10 (2*pi./unique_periods(3:length(unique_periods)))'];
 
     % extract added mass and damping
-    for p = 1:Nperiods,
+    for p = 1:Nperiods
         idx = find(unique_periods == periods(p));
         Aij(i(p),j(p),idx) = A(p);
         Bij(i(p),j(p),idx) = B(p);
@@ -431,7 +429,7 @@ if exist([filename '.1'])
     scaleA  = [ ones(3)*3 ones(3)*4
                 ones(3)*4 ones(3)*5 ];
     
-    for w = 1:Nfreqs,
+    for w = 1:Nfreqs
         % scale Wamit data to SI system (Wamit axes)
         A_dim = Aij_sorted (:,:,w)*vessel.main.rho .* (ULEN .^ scaleA); 
         B_dim = Bij_sorted (:,:,w)*vessel.main.rho .* vessel.freqs(w) ...
@@ -461,12 +459,12 @@ if exist([filename '.4'])
     periods = unique(per);
     ang     = unique(beta);
 
-    for i=1:6,
+    for i=1:6
         Motionamp{i}   = zeros(length(periods),length(ang));
         Motionphase{i} = zeros(length(periods),length(ang));
     end
 
-    for w = 1:N,
+    for w = 1:N
         perindex = find(periods == per(w));
         angindex = find(ang == beta(w));
         Motionamp{DOF(w)}(perindex,angindex)   = mod(w);      % amplitude
@@ -477,7 +475,7 @@ if exist([filename '.4'])
     freqMotion = 2*pi./periods;
     [freqs_sorted, freq_idx] = sort(freqMotion);
 
-    for i=1:6,
+    for i=1:6
         Motionamp_sorted{i}   = Motionamp{i}(freq_idx,:);
         Motionphase_sorted{i} = Motionphase{i}(freq_idx,:);
     end
@@ -505,11 +503,11 @@ end
 %--------------------------------------------------------------------------
 %% check if force RAOs are computed using the diffraction or Haskind option
 %--------------------------------------------------------------------------
-if exist([filename '.2']) & exist([filename '.3'])
+if exist([filename '.2']) && exist([filename '.3'])
 
     forceRAOinput = input('WAMIT force RAOs from  DIFFRACTION (0) or HASKIND (1)? ')
 
-    if forceRAOinput == 0,
+    if forceRAOinput == 0
         forceRAOfile = [filename '.3'];
         disp('WAMIT force RAOs from HASKIND  --> vessel.forceRAO)')
     else
@@ -535,12 +533,12 @@ N = length(per);
 periods = unique(per);
 ang     = unique(beta);
 
-for i=1:6,
+for i=1:6
     FKamp{i}   = zeros(length(periods),length(ang));
     FKphase{i} = zeros(length(periods),length(ang));
 end
 
-for w = 1:N,
+for w = 1:N
     perindex = find(periods == per(w));
     angindex = find(ang == beta(w));
     FKamp{DOF(w)}(perindex,angindex)   = mod(w);      % amplitude
@@ -551,7 +549,7 @@ end
 freqFK = 2*pi./periods;
 [freqs_sorted, freq_idx] = sort(freqFK);
 
-for i=1:6,
+for i=1:6
     FKamp_sorted{i}   = FKamp{i}(freq_idx,:);
     FKphase_sorted{i} = FKphase{i}(freq_idx,:);    
 end
@@ -585,11 +583,11 @@ vessel.forceRAO.phase{6}(:,:,1) = FKphase_sorted{6}(:,:)*pi/180 - min(0,T_rao(6)
 %--------------------------------------------------------------------------
 %% check if wave drift data from the momentum or pressure option
 %--------------------------------------------------------------------------
-if exist([filename '.8']) & exist([filename '.9'])
+if exist([filename '.8']) && exist([filename '.9'])
  
     WDinput = input('WAMIT wave drift from MOMENTUM (0) or PRESSURE (1)? ')
 
-    if WDinput == 0,
+    if WDinput == 0
         WDfile = [filename '.8'];
         disp('WAMIT wave drift data from MOMENTUM --> vessel.driftfrc')
     else
@@ -626,16 +624,16 @@ end
 
 % extract wave drift amplitudes using the REAL part (IMAG part is zero)
 
-for i=1:6,
+for i=1:6
     WDamp{i} = zeros(length(periods),length(ang));
 end
 
-for w = 1:N,
+for w = 1:N
     perindex = find(periods == per(w));
     angindex = find(ang == beta1(w));    
      % b-frame data DOF = {1,2,3,-4,-5,-6}, see Fig. 12.2 in the Wamit manual
      % h-frame data w.r.t. GLOBAL COORDINATES for DOF = {1,2,3,4,5,6}
-    if DOF(w)==1 | DOF(w)==2 | DOF(w)==3 | DOF(w)==4 | DOF(w)==5 | DOF(w)==6,  
+    if DOF(w)==1 || DOF(w)==2 || DOF(w)==3 || DOF(w)==4 || DOF(w)==5 || DOF(w)==6
         WDamp{abs(DOF(w))}(perindex,angindex) = realpart(w);
         % real part is equal to mod corrected for phase/sign
     end
@@ -645,7 +643,7 @@ end
 freqWD = 2*pi./periods;
 [freqs_sorted, freq_idx] = sort(freqWD);
 
-for i=1:6,
+for i=1:6
     WDamp_sorted{i} = WDamp{i}(freq_idx,:);
 end
 
