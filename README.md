@@ -15,9 +15,10 @@ Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to
 
 Examples and demo files are located under the catalogs: 
 
-    /MSS/mssExamples/                   Textbook m-file examples (Fossen 2021)  
-    /MSS/mssDemos/                      GNC m-file demos
-    /MSS/SIMULINK/mssSimulinkDemos/     Simulink demos  
+    /MSS/mssExamples/                       Textbook m-file examples (Fossen 2021)  
+    /MSS/mssDemos/                          GNC m-file demos
+    /MSS/SIMULINK/mssSimulinkDemos/         Simulink demos  
+    /MSS/SIMULINK/mssWamitShipXTemplates/   Simulink templates for simulation of WAMIT and ShipX vessel and RAO data
     
 The Simulink library is loaded by typing:
 
