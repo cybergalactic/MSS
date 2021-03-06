@@ -1,100 +1,101 @@
 function S = wavespec(SpecType,Par,W,PlotFlag)
-%Function to evaluate different type of wave spectra.
+% Function to evaluate different type of wave spectra.
 %
-%Use:  S = wavespec(SpecType,Par,W,PlotFlag)
+% Use:  S = wavespec(SpecType,Par,W,PlotFlag)
 %
-%Input:
-% SpecType	- Spectrum type
-% Par		- Spectrum parameters
-% W			- Column vector of wave frequencies [rad/s]
-% PlotFlag	- 1 to plot the spectrum, 0 for no plot
+% Inputs:
+%  SpecType	- Spectrum type
+%  Par		- Spectrum parameters
+%  W			- Column vector of wave frequencies [rad/s]
+%  PlotFlag	- 1 to plot the spectrum, 0 for no plot
 %
-%Output:
-% S			- Column vector of wave spectrum values [m^2 s]; evaluated at W(k) 
+% Output:
+%  S		- Column vector of wave spectrum values [m^2 s]; evaluated at W(k) 
 %     
-%SpecType and Par =[p1,p2,p3,...pn]:
-% SpecType =1  Bretschneitder (p1=A,p2=B)
-% SpecType =2  Pierson-Moskowitz   (p1=Vwind20) 
-% SpecType =3, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=T0)
-% SpecType =4, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=T1)
-% SpecType =5, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=Tz)
-% SpecType =6, JONSWAP (p1=Vwind10,p2=Fetch)
-% SpecType =7, JONSWAP (p1=Hs,p2=w0,p3=gamma)
-% SpecType =8, Torsethaugen (p1=Hs,p2=w0) 
+% SpecType and Par =[p1,p2,p3,...pn]:
+%  SpecType =1  Bretschneitder (p1=A,p2=B)
+%  SpecType =2  Pierson-Moskowitz   (p1=Vwind20) 
+%  SpecType =3, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=T0)
+%  SpecType =4, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=T1)
+%  SpecType =5, ITTC-Modified Pierson-Moskowitz (p1=Hs,p2=Tz)
+%  SpecType =6, JONSWAP (p1=Vwind10,p2=Fetch)
+%  SpecType =7, JONSWAP (p1=Hs,p2=w0,p3=gamma)
+%  SpecType =8, Torsethaugen (p1=Hs,p2=w0) 
 %
-%Bretschneither:
-% p1 = A
-% p2 = B
-% S(w)=A*w^(-5)*exp(-B/(w^4));
+% Bretschneither:
+%  p1 = A
+%  p2 = B
+%  S(w)=A*w^(-5)*exp(-B/(w^4));
 % Reference [6]
 %
-%Pierson-Moskowitz:
-% p1 = Vwind20 --Average wind speed @20m above sea level [m/s]
-% A=8.1e-3*9.81^2;  
-% B=0.74*(9.81/Vwind20)^4;
-% S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
+% Pierson-Moskowitz:
+%  p1 = Vwind20 --Average wind speed @20m above sea level [m/s]
+%  A=8.1e-3*9.81^2;  
+%  B=0.74*(9.81/Vwind20)^4;
+%  S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
 % Reference [5,6]
 %
 %
-%ITTC-Modified Pierson-Moskowitz (Hs,T0):
-% p1 = Hs  --Significant wave height (Hs = 4 m0^1/2) [m]
-% p2 = T0  --Modal period      (T0 = 2 pi /w0)       [s]
-% A=487*Hs^2/T0^4;
-% B=1949/T0^4;
-% S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
+% ITTC-Modified Pierson-Moskowitz (Hs,T0):
+%  p1 = Hs  --Significant wave height (Hs = 4 m0^1/2) [m]
+%  p2 = T0  --Modal period      (T0 = 2 pi /w0)       [s]
+%  A=487*Hs^2/T0^4;
+%  B=1949/T0^4;
+%  S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
 % Reference [1]
 %
 %
-%ITTC-Modified Pierson-Moskowitz (Hs,T1):
-% p1 = Hs  --Significant wave height (Hs = 4 m0^1/2) [m]
-% p2 = T1   --Average wave period (T1 = 2 pi m0/m1)     [s]
-% A=173*Hs^2/T1^4;
-% B=691/T1^4;
-% S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
+% ITTC-Modified Pierson-Moskowitz (Hs,T1):
+%  p1 = Hs  --Significant wave height (Hs = 4 m0^1/2) [m]
+%  p2 = T1   --Average wave period (T1 = 2 pi m0/m1)     [s]
+%  A=173*Hs^2/T1^4;
+%  B=691/T1^4;
+%  S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
 % Reference [1]
 %
 %
-%ITTC-Modified Pierson-Moskowitz (Hs,Tz):
-% p1 = Hs --Significant wave height (Hs = 4 m0^1/2)             [m]
-% p2 = Tz --Average zero-crossing period (T = 2 pi (m0/m1)^1/2) [s]
-% A=123*Hs^2/Tz^4;
-% B=495/Tz^4;
-% S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
+% ITTC-Modified Pierson-Moskowitz (Hs,Tz):
+%  p1 = Hs --Significant wave height (Hs = 4 m0^1/2)             [m]
+%  p2 = Tz --Average zero-crossing period (T = 2 pi (m0/m1)^1/2) [s]
+%  A=123*Hs^2/Tz^4;
+%  B=495/Tz^4;
+%  S(w)=A*w^(-5)*exp(-B/(w^4)); [m^2 s]
 % Reference [1]
 %
 %
-%JONSWAP (Vwind10,Fetch):
-% p1 = Vwind10 --wind speed @ 10m over sea surface [m/sec]
-% p2 = fetch --distance to georaphical boundary [m]
-% g=9.81;
-% xtilde= g*fetch/(Vwind10^2);
-% f0=3.5*(g/Vwind10)*xtilde^-0.33;
-% w0=2*pi*f0;
-% alpha=0.076*xtilde^-0.22;
-% gamma =3.3;
-% sigma=0.07  if w<w0, sigma=0.09 otherwise;
-% S(w)=S1*S2 -  [m^2 sec]  
-%with,
-% S1=alpha*g^2*(W^-5)*exp(-(5/4)*(w0/w)^4);
-% S2=gamma^(exp(-(w-w0)^2/(2*(sigma*w0)^2)));   
+% JONSWAP (Vwind10,Fetch):
+%  p1 = Vwind10 --wind speed @ 10m over sea surface [m/sec]
+%  p2 = fetch --distance to georaphical boundary [m]
+%  g=9.81;
+%  xtilde= g*fetch/(Vwind10^2);
+%  f0=3.5*(g/Vwind10)*xtilde^-0.33;
+%  w0=2*pi*f0;
+%  alpha=0.076*xtilde^-0.22;
+%  gamma =3.3;
+%  sigma=0.07  if w<w0, sigma=0.09 otherwise;
+%  S(w)=S1*S2 -  [m^2 sec]  
+% with,
+%  S1=alpha*g^2*(W^-5)*exp(-(5/4)*(w0/w)^4);
+%  S2=gamma^(exp(-(w-w0)^2/(2*(sigma*w0)^2)));   
 % Reference [2]
 %
 %
-%JONSWAP (Hs,w0, gamma):
-% p1 = Hs - Significant wave height (Hs = 4 sqrt(m0)) [m]
-% p2 = w0 - Modal Freq. [rad/sec] (Recomended 1.25<w0*sqrt(Hc)<1.75)
-% p3 = gamma - Peakedness factor (Recommended between 1 and 5; usually 3.3, set to zero to use DNV formula)
-% alpha=0.2*Hc^2*w0^4/g^2;
-% g=9.81 [m/s^2]
-% sigma=0.07  if w<w0, sigma=0.09 otherwise;
-% S(w)=S1*S2  [m^2 s]  
-%with,
-% S1=alpha*g^2*(W^-5)*exp(-(5/4)*(w0/w)^4);
-% S2=gamma^(exp(-(w-w0)^2/(2*(sigma*w0)^2))); 
+% JONSWAP (Hs,w0, gamma):
+%  p1 = Hs - Significant wave height (Hs = 4 sqrt(m0)) [m]
+%  p2 = w0 - Modal Freq. [rad/sec] (Recomended 1.25<w0*sqrt(Hc)<1.75)
+%  p3 = gamma - Peakedness factor (Recommended between 1 and 5; usually 3.3,
+%              set to zero to use DNV formula)
+%  alpha=0.2*Hc^2*w0^4/g^2;
+%  g=9.81 [m/s^2]
+%  sigma=0.07  if w<w0, sigma=0.09 otherwise;
+%  S(w)=S1*S2  [m^2 s]  
+% with,
+%  S1=alpha*g^2*(W^-5)*exp(-(5/4)*(w0/w)^4);
+%  S2=gamma^(exp(-(w-w0)^2/(2*(sigma*w0)^2))); 
 % Reference [3]
 %
 %
-%Torsethaugen (Hs,w0):
+% Torsethaugen (Hs,w0):
 % The Torsethaugen spectrum is an empirical two peaked spectrum for swell 
 % and developing sea based on experimental data from the North Sea. For 
 % small peak frequencies, i.e.  0 < wmax <= 0.6 only one peak in the 
@@ -116,22 +117,23 @@ function S = wavespec(SpecType,Par,W,PlotFlag)
 %     Cambridge Ocean Technology Series, Vol 6,
 %     Cambridge University Press.
 %
-% [3] S�rensen, A.J. (2005) "Marine Cybernetics: Modelling and Control"
+% [3] Sørensen, A.J. (2005) "Marine Cybernetics: Modelling and Control"
 %     Lecture Notes for TMR4241 Marine Control Systems, NTNU, 2005.
 %
 % [4] K.Torsethaugen (1996): "Model for a Doubly Peaked Wave Spectra"
 %      Sintef report no.: STF22 A96204 prepared for Norsk Hydro.
 %
-% [5] T.I. Fossen (2002) "Marine Control Systems" Marine Cybernetics. 
+% [5] T.I. Fossen (2021) "Handbook of Marine Craft Hydrodynamics and Motion
+%     Control " Wiley. 
 %
 % [6] Lewis E.V. "Principles of Naval Architecture volume  III
 %     Motions in Waves and Controllability." SNAME, 1989.
 %
 % Created by: Tristan Perez in 2005  
-% Revisions: 2007-03-09 minor fixes �yvind Smogeli
-%             Adapted for MSS V3.0 March 2005. Grouped all spectra in one
-%             function. Added Spec_type=1,4,5,6.
-%            2009-09-11 fixed scaling of JONSWAP sepctrum
+% Revisions: 2007-03-09 minor fixes by Øyvind Smogeli
+%                Grouped all spectra in one function. Added Spec_no=1,4,5,6.
+%             2009-09-11 fixed scaling of JONSWAP gamma factor
+%             2021-03-06 Minor updates by Thor I. Fossen
 
 S=[];
 [m,n] = size(W);
@@ -140,66 +142,66 @@ if n>m
    return
 end
 
-switch SpecType,
+switch SpecType
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-case 1, %Bretschneither
+case 1  %Bretschneither
 	A = Par(1);
     B = Par(2);
-    for k=1:1:length(W),
+    for k=1:1:length(W)
         Sa=A*W(k)^(-5)*exp(-B/(W(k)^4));
         S=[S;Sa];
     end
     TitleStr='Bretschneither Spectrum';
     L1Str = ['A=',num2str(A),' [m^2 s^{-4}], ','B=',num2str(B),' [s^{-4}]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-case 2,%Pierson-Moskowitz 
+case 2 %Pierson-Moskowitz 
 	Vwind20 = Par(1);
     A=8.1e-3*9.81^2;  
     B=0.74*(9.81/Vwind20)^4;
-    for k=1:1:length(W),
+    for k=1:1:length(W)
         Sa=A*W(k)^(-5)*exp(-B/(W(k)^4));
         S=[S;Sa];
     end
     TitleStr='Pierson-Moskowitz Spectrum';
     L1Str = ['Vwind @20m ASL =',num2str(Vwind20),' [m/s]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-case 3,%ITTC-Modified Pierson-Moskowitz (Hs,T0)
+case 3 %ITTC-Modified Pierson-Moskowitz (Hs,T0)
 	Hs = Par(1);
     T0 = Par(2); 
     A=487*Hs^2/T0^4;
     B=1949/T0^4;  
-    for k=1:1:length(W),
+    for k=1:1:length(W)
         Sa=A*W(k)^(-5)*exp(-B/(W(k)^4));
         S=[S;Sa];
     end
     TitleStr='ITTC-Modified Pierson-Moskowitz Spectrum';
     L1Str = ['Hs =',num2str(Hs),' [m],','  T0 =',num2str(T0),' [s]'];        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-case 4,%ITTC-Modified Pierson-Moskowitz (Hs,T1)
+case 4 %ITTC-Modified Pierson-Moskowitz (Hs,T1)
 	Hs = Par(1);
     T1 = Par(2); 
     A=173*Hs^2/T1^4;
     B=691/T1^4;
-    for k=1:1:length(W),
+    for k=1:1:length(W)
         Sa=A*W(k)^(-5)*exp(-B/(W(k)^4));
         S=[S;Sa];
     end
     TitleStr='ITTC-Modified Pierson-Moskowitz Spectrum';
     L1Str = ['Hs =',num2str(Hs),' [m],','  T1 =',num2str(T1),' [s]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-case 5,%ITTC-Modified Pierson-Moskowitz (Hs,Tz)
+case 5 %ITTC-Modified Pierson-Moskowitz (Hs,Tz)
 	Hs = Par(1);
     Tz = Par(2); 
     A=123*Hs^2/Tz^4;
     B=495/Tz^4;
-    for k=1:1:length(W),
+    for k=1:1:length(W)
         Sa=A*W(k)^(-5)*exp(-B/(W(k)^4));
         S=[S;Sa];
     end
     TitleStr='ITTC-Modified Pierson-Moskowitz Spectrum';
     L1Str = ['Hs =',num2str(Hs),' [m],','  Tz =',num2str(Tz),' [s]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-case 6,%JONSWAP (Vwind10,Fetch):
+case 6 %JONSWAP (Vwind10,Fetch):
 	Vw10  = Par(1); 
     fetch = Par(2);
     g=9.81;
@@ -207,8 +209,8 @@ case 6,%JONSWAP (Vwind10,Fetch):
     f0=3.5*(g/Vw10)*xtilde^-0.33;
     w0=2*pi*f0;
     alpha=0.076*xtilde^-0.22;
-    for k=1:1:length(W),
-            if  W(k) < w0,
+    for k=1:1:length(W)
+            if  W(k) < w0
                sigma=0.07;
             else
                sigma=0.09;
@@ -220,13 +222,13 @@ case 6,%JONSWAP (Vwind10,Fetch):
     TitleStr='JONSWAP Spectrum';
     L1Str = ['Vwind @10m ASL =',num2str(Vw10),' [m/s],','  Fetch =',num2str(fetch/1000),' [km]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-case 7,%JONSWAP (gamma,Hs,w0):
+case 7 %JONSWAP (gamma,Hs,w0):
     Hs	  = Par(1);
     w0    = Par(2);
     gamma = Par(3);
     g=9.81;
     alpha=0.2*Hs^2*w0^4/g^2;
-    if gamma<1 | gamma > 7,  %DNV recommeded values when gamma is unknown.
+    if gamma<1 || gamma > 7  %DNV recommeded values when gamma is unknown.
 		if gamma ~= 0
 			% Display warning if gamma is outside validity range and not
 			% set to zero
@@ -241,8 +243,8 @@ case 7,%JONSWAP (gamma,Hs,w0):
 		   gamma = 1;
 	   end
     end
-    for k=1:1:length(W),
-            if  W(k) < w0,
+    for k=1:1:length(W)
+            if  W(k) < w0
                  sigma=0.07;
             else
                  sigma=0.09;
@@ -257,7 +259,7 @@ case 7,%JONSWAP (gamma,Hs,w0):
     TitleStr='JONSWAP Spectrum';
     L1Str = ['gamma =',num2str(gamma),' Hs =',num2str(Hs),' [m],','  w0=',num2str(w0),' [rad/s]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-case 8,%Torsethaugen (Hs,w0):
+case 8 %Torsethaugen (Hs,w0):
     Hs = Par(1);
     w0 = Par(2);
     N=length(W);
@@ -272,7 +274,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot Spectrum
-if PlotFlag==1,
+if PlotFlag==1
 	plot(W, S,'r','linewidth',1)
 	title(TitleStr)
     legend(L1Str)
