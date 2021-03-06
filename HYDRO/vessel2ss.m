@@ -1,5 +1,5 @@
 function vesselABC = vessel2ss(vessel)
-% VESSEL2SS (MSS Hydro)
+% VESSEL2SS (MSS Hydrodynamics)
 %
 % vesselABC = vessel2ss(vessel,order44,Bvflag) computes the
 % hydrodynamic coefficients, retardation function transfer functions using
@@ -7,14 +7,14 @@ function vesselABC = vessel2ss(vessel)
 %
 % Load or generate MSS vessel structure:
 %
-%   >>load('myship')                     - load vessel struture from myship.mat
-%   >>vessel = veres2vessel('s175')      - compute vessel structure    
-%   >>vessel = veres2vessel('supply')    - compute vessel structure 
-%   >>vessel = wamit2vessel('tanker')    - compute vessel structure 
+%   >> load('myship')                     - load vessel struture from myship.mat
+%   >> vessel = veres2vessel('s175')      - compute vessel structure    
+%   >> vessel = veres2vessel('supply')    - compute vessel structure 
+%   >> vessel = wamit2vessel('tanker')    - compute vessel structure 
 %
 % Generate MSS fluid memory state-space model:
 %
-%   >>vesselABC = vessel2ss(vessel)
+%   >> vesselABC = vessel2ss(vessel)
 %
 % The computed data are stored in: *ABC.mat where * is equal to
 % vessel.main.name. The data file *ABC.mat is used by the Simulink templates
@@ -39,10 +39,7 @@ function vesselABC = vessel2ss(vessel)
 % Revisions:  2008-02-15  Minor bug fixes
 %             2009-09-10  Frequency-domain implementation of fluid
 %                         memory effects using the Matlab FDI tools  
-% _________________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
+
 %%
 close all
 
