@@ -3,19 +3,20 @@ function Bv = viscous(vessel)
 % [Bv] = viscous(vessel,surge_estimate) computes the viscous damping
 %     matrix Bv. 
 % 
-%     DOF (i = 1,2,6):  Bv_ii = beta_i * max(B_ii(w))  
+%     DOF  1,2,6 : Bvii = beta_i * max(Bii(w))  
 %
-%     DOF 4          :  Bv_44 = b*B44(w4) where b is the roll 
-%                               amplification factor at w4 satisfying:
+%     DOF 4      : Bv44  = b * B44(w4) where b is the roll 
+%                          amplification factor at w4 satisfying:
 %
-%               Bv_44(w4) = (1+b)*B44(w4) = 2*zeta*sqrt(C44*(Ix+A44(w4)))') 
-% where:
+%                  B44_total(w4) = B44(w4) + B44v(w4) 
+%                                = 2 * zeta4 * w4 * (Ix + A44(w4))
+% where
 %
-%     beta_i: percentage of max potential damping         (typically 0.1-0.2)
-%     zeta:   relative damping ratio at natural frequency (typically 0.05-0.10)
+%     beta_i: percentage of max potential damping (typically 0.1-0.2)
+%     zeta4:  relative damping ratio at the roll natural frequency 
 %
 % Inputs:
-%    vessel.MRB(1:6,1:6):    MSS vessel 
+%    vessel:       MSS vessel structure
 %
 % Outputs:
 %    Bv(1:6,1:6):  Viscous damping matrix
@@ -29,9 +30,9 @@ w      = vessel.freqs;
 nfreqs = length(w);                            % number of freqs for Bv
 
 disp(' ')
-disp('-----------------------------------------')
+disp('-------------------------------------------------------------------')
 disp('VISCOUS DAMPING')
-disp('-----------------------------------------')
+disp('-------------------------------------------------------------------')
 disp('Viscous damping formula in surge, sway and yaw: Bv(w) = k * max(B(w))')   
 visc_input1 = input('Damping factors at w = 0 for DOFs 1,2,6 (default: k = [0.2 0.2 0.2]) : ');
 
@@ -61,8 +62,11 @@ w4 = natfrequency(vessel,4,w_0,1);
 A44 = interp1(vessel.freqs,reshape(vessel.A(4,4,:,1),1,length(vessel.freqs)),w4);
 B44 = interp1(vessel.freqs,reshape(vessel.B(4,4,:,1),1,length(vessel.freqs)),w4);
 
-% Total damping zeta_new includes viscous dampng B44v
+% Total damping zeta_new includes viscous damping B44v
 M44 = vessel.MRB(4,4) + A44;
+
+% Guideline to increase roll damping
+zeta(4) = 0.5 * B44/M44 * (1/w4);
 
 if zeta(4) < 0.05
    zeta_new = 0.05;
