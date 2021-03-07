@@ -2,18 +2,20 @@
 % Author:    Thor I. Fossen
 % Date:       1 November 2002
 % Revisions: 13 February 2012   Replaced Ylabel with ylabel
+%            7 March 2021       Moved function pva.m to the end of the file
 
 % Cubic spline between two points
 % x(th)     =   a3*th^3 + a2*th^2 + a1*th + a0
 % dx/dt(th) = 3*a3*th^2 + 2*a2*th + a1
 
 clear all
+
 % way-point database
 wpt.pos.x   = [0 200 400 700 1000];
 wpt.pos.y   = [0 200 500 400 1200];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% COMPUTATION OF THE PATH ( x(th) ) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMPUTATION OF THE PATH ( x(th) )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % select five active waypoints for curve fitting
@@ -36,10 +38,10 @@ final = 190;
 
 y = [start x1  x2 x2 0 0  x3 x3 0 0  x4 x4 0 0  x5 final ]';
 
-if boundary == 'vel',
+if boundary == 'vel'
     c1 = pva(th(1),'v');
     c2 = pva(th(5),'v');
-elseif boundary == 'acs',
+elseif boundary == 'acs'
     c1 = pva(th(1),'a');
     c2 = pva(th(5),'a') 
 end
@@ -93,10 +95,10 @@ final = 0;
 
 y = [start y1  y2 y2 0 0  y3 y3 0 0  y4 y4 0 0  y5 final ]';
 
-if boundary == 'vel',
+if boundary == 'vel'
     c1 = pva(th(1),'v');
     c2 = pva(th(5),'v');
-elseif boundary == 'acs',
+elseif boundary == 'acs'
     c1 = pva(th(1),'a');
     c2 = pva(th(5),'a') 
 end
@@ -138,7 +140,7 @@ figure(1)
 subplot(321)
 plot(0:4,wpt.pos.x(1:5),'ro')
 hold on
-for i= 1:4,
+for i= 1:4
     th = linspace(i-1,i,101);  
     plot(th,polyval(Acoeff(i,:),th),'linewidth',2);
 end
@@ -149,7 +151,7 @@ hold off
 subplot(325)
 plot(0,0)
 hold on
-for i= 1:4,    
+for i= 1:4
     th = linspace(i-1,i,101); 
     DDxth = polyval([0 0 6*Acoeff(i,1) 2*Acoeff(i,2) ],th);
     plot(th,DDxth,'linewidth',2);
@@ -162,7 +164,7 @@ subplot(323)
 
 plot(0,0)
 hold on
-for i= 1:4,    
+for i= 1:4
     th = linspace(i-1,i,101); 
     Dxth = polyval([0 3*Acoeff(i,1) 2*Acoeff(i,2) Acoeff(i,3)],th);
     plot(th,Dxth,'linewidth',2);
@@ -199,7 +201,7 @@ subplot(324)
 
 plot(0,0)
 hold on
-for i= 1:4,    
+for i= 1:4
     th = linspace(i-1,i,101); 
     Dyth = polyval([0 3*Bcoeff(i,1) 2*Bcoeff(i,2) Bcoeff(i,3)],th);
     plot(th,Dyth,'linewidth',2);
@@ -212,7 +214,7 @@ figure(2)
 subplot(111)
 plot(wpt.pos.y(1:5),wpt.pos.x(1:5),'ro')
 hold on
-for i= 1:4,    
+for i= 1:4   
     th = linspace(i-1,i,101); 
     xth = polyval(Acoeff(i,:),th);
     yth = polyval(Bcoeff(i,:),th);
@@ -239,7 +241,7 @@ th = 0;    % initial th-value waypoint 0
 h = 0.1;   % sampling time
 i = 0;     % counter
 
-while th<1,
+while th<1
     
     i = i+1;
     
@@ -255,8 +257,9 @@ while th<1,
     
 end
 
-% graphics
 
+
+%% Plotiing
 t = simdata(:,1);
 U = simdata(:,2);
 th = simdata(:,3);
@@ -278,3 +281,17 @@ plot(t,th,'linewidth',2),
 hold off
 grid
 title('Path variable \theta(t) as a function of time t')
+
+%% Function pva
+function y = pva(th,pva)
+
+if pva=='p'
+    y = [ th^3 th^2 th 1 ];
+elseif pva=='v'
+    y = [ 3*th^2 2*th 1 0 ];
+elseif pva=='a'
+    y = [ 6*th 2 0  0 ];
+end 
+
+end
+
