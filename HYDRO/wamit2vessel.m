@@ -1,5 +1,5 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
-% Wamit2Vessel (MSS Hydrodynamics)
+% wamit2vessel (MSS Hydro)
 %
 % vessel = wamit2vessel(filename) reads data from WAMIT output files 
 % and store the data in vessel.mat using the MSS vessel struture. The Wamit
@@ -87,10 +87,9 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 % Date:      2005-09-17 first version 
 % Revisions: 2008-02-15 Minor bug fixes
 %            2009-09-11 Using new viscous damping viscous.m
-%            2021-03-0  Minor bug fixes
+%            2021-03-07 Minor bug fixes
 
 %%
-
 if ~exist('plot_flag')
 	plot_flag = '1000';
 end
