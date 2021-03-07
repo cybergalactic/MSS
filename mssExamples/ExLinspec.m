@@ -4,6 +4,7 @@
 % Author:    Thor I. Fossen
 % Date:      15.08.2001
 % Revisions: 10.12.2008  use updated function wavespec.m
+%            07.03.2021  function Slin.m added at the end of the file 
 
 global sigma wo
 
@@ -40,5 +41,26 @@ hold on; plot(w,Slin(lambda,w),'linewidth',2); hold off;
 legend('Torsethaugen spectrum','Linear approximation')
 
 set(gca,'FontSize',11)
+
+%% FUnction Slin
+function Pyy = Slin(lambda,w)
+% Pyy = Slin(lambda,w) 2nd-order linear power spectracl density (PSD) function
+%
+% w       = wave spectrum frequency (rad/s)
+% lambda  = relative damping factor
+%
+% Author:   Thor I. Fossen
+% Date:     15th August 2001
+% Revisions: 
+
+global sigma wo  
+
+Pyy = 4*(lambda*wo*sigma)^2*w.^2 ./ ( (wo^2-w.^2).^2 + 4*(lambda*wo.*w).^2 );
+
+end
+
+
+
+
 
 
