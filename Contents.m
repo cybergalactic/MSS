@@ -66,6 +66,7 @@
 %  rk4        - 4th-order Runge Kutta method, fixed step
 %
 % Path generation:
+%  hybridPath  - Generate a smooth hybrid path between thw waypoints
 %  order3      - Path generation using cubic (3rd-order) polynominals 
 %  order5      - Path generation using 5th order polynominals
 % 
