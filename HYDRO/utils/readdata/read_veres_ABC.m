@@ -27,29 +27,8 @@ function vessel = read_veres_ABC(filename, disp_flag)
 % Author:    T. I. Fossen
 % Date:      2004-06-24 
 % Revisions: 2008-02-15 R1.0
-%            2013-07-09 Fixed bug, wrong MARINTEK coordinate origin
-% _________________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
-%
-% Copyright (C) 2008 Thor I. Fossen and Tristan Perez
-% 
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% 
-% This program is distributed in the hope that it will be useful, but
-% WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-% GNU General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <http://www.gnu.org/licenses/>.
-% 
-% E-mail: contact@marinecontrol.org
-% URL:    <http://www.marinecontrol.org>
+%            2013-07-09 Fixed bug, wrong coordinate origin fixed
+%            2021-03-07 Bug fixes
 
 if ~exist('disp_flag')
 	disp_flag = 0;
@@ -81,7 +60,7 @@ end
 % check if this is version 1.0 or 2.0
 temp = str2num(header{11});
 [dimx,dimy] = size(temp);
-if dimy == 6,
+if dimy == 6
     version = 1;
     disp('Veres data file *.re7 is version 1.0, processing data...')    
 else
@@ -113,7 +92,7 @@ VCG =  temp(2);
 
 vessel.main.CG = [-LCG 0 VCG];  % x postive forwards
 
-if version == 2,
+if version == 2
     % Line 10: new in version 2
     temp = str2num(header{10});
 
@@ -247,8 +226,8 @@ Bmtrx2 = reshape(Bmtrx(:,:,:,headno,:),6,6,nfreq,velno);
 Cmtrx2 = reshape(Cmtrx(:,:,:,headno,:),6,6,nfreq,velno);
 
 % transform to Fossen axes
-for k = 1:nvel,
-    for i = 1:nfreq,
+for k = 1:nvel
+    for i = 1:nfreq
         vessel.A(:,:,i,k) = H'*Tmtrx*Amtrx2(:,:,i,k)*Tmtrx*H;  
         vessel.B(:,:,i,k) = H'*Tmtrx*Bmtrx2(:,:,i,k)*Tmtrx*H;  
         vessel.C(:,:,i,k) = H'*Tmtrx*Cmtrx2(:,:,i,k)*Tmtrx*H; 
@@ -257,10 +236,10 @@ for k = 1:nvel,
         Bv1  = Rollvect(1,1,i,k); % linear damping
         Bv2L = Rollvect(1,3,i,k); % nonlinear damping (linearized)
         
-        if Bv1 < 0,     % remove negative damping for V-shaped hulls
-            Bv1 = 0;    % limitation of IKEDA theory
+        if Bv1 < 0     % remove negative damping for V-shaped hulls
+            Bv1 = 0;   % limitation of IKEDA theory
         end
-        if Bv2L < 0,    % remove negative damping
+        if Bv2L < 0    % remove negative damping
             Bv2L = 0;
         end
             
@@ -300,13 +279,13 @@ if disp_flag>0
     disp('-------------------------------------------------------------------')
     disp(' Run info:')
     disp(' Main particulars:')
-    disp(sprintf(' Lpp    : %0.2f m',LPP))
-    disp(sprintf(' Breadth: %0.2f m',B))
-    disp(sprintf(' Draught: %0.2f m',T_WL))
+    fprintf(' Lpp    : %0.2f m\n',LPP)
+    fprintf(' Breadth: %0.2f m\n',B)
+    fprintf(' Draught: %0.2f m\n',T_WL)
     disp(' ')
-    disp(sprintf(' Number of velocities : %d',nvel))
-    disp(sprintf(' Number of headings   : %d',nhead))
-    disp(sprintf(' Number of frequencies: %d',nfreq))
+    fprintf(' Number of velocities : %d\n',nvel)
+    fprintf(' Number of headings   : %d\n',nhead)
+    fprintf(' Number of frequencies: %d\n',nfreq)
     disp('-------------------------------------------------------------------')
     disp([' Headings (deg)     : ' sprintf('%1.0f ',headings)])
     disp([' Frequencies (rad/s): ' sprintf('%1.1f ',freqs)])
