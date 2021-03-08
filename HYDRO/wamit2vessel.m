@@ -1,17 +1,18 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
-% wamit2vessel (MSS Hydro)
+% wamit2vessel reads data from Wamit output files and store the data in vesselname.mat
+%   using the MSS vessel struture.
 %
-% vessel = wamit2vessel(filename) reads data from WAMIT output files 
-% and store the data in vessel.mat using the MSS vessel struture. The Wamit
-% GDF-file must be defined in GLOBAL COORDINATES, i.e. origin [Lpp/2 B/2 WL],
-% see the Wamit manual. The axes are transformed from Wamit axes to Fossen
-% (2002) axes. 
+%   vessel = wamit2vessel(filename) 
+% 
+% The Wamit GDF-file must be defined in GLOBAL COORDINATES, i.e. origin 
+% [Lpp/2 B/2 WL], see the Wamit manual. The axes are transformed from Wamit
+% axes to Fossen axes. 
 %
-% Example:
+% Examples:
 %
-% >> vessel = wamit2vessel('tanker')
-% >> vessel = wamit2vessel('tanker',10,246,46)
-% >> vessel = wamit2vessel('tanker',10,246,46,'1111')
+%   vessel = wamit2vessel('tanker')
+%   vessel = wamit2vessel('tanker',10,246,46)
+%   vessel = wamit2vessel('tanker',10,246,46,'1111')
 %
 % Inputs:
 %    filename (without extension) reads and processes the following
