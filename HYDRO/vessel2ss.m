@@ -1,24 +1,26 @@
 function vesselABC = vessel2ss(vessel)
-% VESSEL2SS (MSS Hydrodynamics)
+% vessel2ss computes the fluid memory transfer functions using SI.
 %
-% vesselABC = vessel2ss(vessel) computes the hydrodynamic coefficients, 
-% retardation function transfer functions using SI. The vessel data 
-% structure must be generated using ShipX (VERES) or WAMIT. 
+%    vesselABC = vessel2ss(vessel) 
+% 
+% The vessel data structure must be generated using ShipX (Veres) or WAMIT. 
+% The vessel data structure 'vessel' need to be loaded to the workspace by: 
 %
-% Load or generate MSS vessel structure:
+%   load('myship')                   
 %
-% >> load('myship')                   - load vessel struture from myship.mat
-% >> vessel = veres2vessel('s175')    - compute vessel structure    
-% >> vessel = veres2vessel('supply')  - compute vessel structure 
-% >> vessel = wamit2vessel('tanker')  - compute vessel structure 
+% You can also generate the MSS vessel structure from hydrodynamic data. 
+% Examples are:
 %
-% Generate MSS fluid memory state-space model:
+%   vessel = veres2vessel('s175')       
+%   vessel = veres2vessel('supply')  
+%   vessel = wamit2vessel('tanker')  
 %
-%   >> vesselABC = vessel2ss(vessel)
+% Next, compute the fluid memory state-space models:
+%
+%   vesselABC = vessel2ss(vessel)
 %
 % The computed data are stored in: *ABC.mat where * is equal to
-% vessel.main.name. The data file *ABC.mat is used by the Simulink
-% templates.
+% vessel.main.name. The data file *ABC.mat is used by the Simulink templates.
 %
 % Inputs:
 %   vessel      MSS vessel structure
