@@ -1,4 +1,4 @@
-% ExOtter 
+% ExOtter   Simulates the Otter USV equipped with two propeller inputs.
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-18
