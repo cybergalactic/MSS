@@ -20,7 +20,7 @@
 % ExMSI        - Plots the ISO 2631-1 and O'Hanlon and McCauley Motion Sickness Incidence curves
 % ExNomoto     - Generates the Nomoto Bode plots for a cargo ship and tanker
 % ExObsCtr     - Observability and Controllability of Ships
-% ExOtter      - 
+% ExOtter      - Simulates the Otter USV equipped with two propeller inputs.
 % ExPassiveObs - Plots the loop transfer function of the passive observer
 % ExPathGen    - Path generation using cubic polynominals
 % ExPlotRAO    - Script for plotting motion and force RAOs
