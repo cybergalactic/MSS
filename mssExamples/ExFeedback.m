@@ -1,5 +1,4 @@
-%% ExFeedback
-% M-script for numerical integration of a 1st-order system with feedback
+% ExFeedback  Numerical integration of a 1st-order system with feedback
 % and feedforward control laws. Euler's method is implemented using a
 % for-end loop and the results are stored in a table and plotted.
 %
