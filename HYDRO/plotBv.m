@@ -1,10 +1,8 @@
 function plotBv(vessel)
-% PplotBv (MSS Hydro)
+% plotBv plots the zero-speed potential, viscous and total damping 
+%    B_total(w) = B(w) + Bv(w) as a function of the frequency: 
 %
-% >> plotBv(vessel) plots the zero-speed potential damping, viscous damping 
-%    and total damping as a function of the frequency.
-%
-%    B_total(w) = B(w) + Bv(w)
+%    plotBv(vessel)
 %
 % Input: 
 %    vessel:  MSS vessel structure 
