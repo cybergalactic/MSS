@@ -1,33 +1,23 @@
 function plotABC(vessel,mtrx,i,j,velno)
-% PLOTABC (MSS Hydro)
+% plotABC plots plots all elements Aij,Bij,Cij versus frequency and speed
 %
-% >> plotABC(vessel,mtrx,i,j,velno) plots added mass, damping, restoring 
-%    matrix element i,j versus frequency ans speed
+%    plotABC(vessel,mtrx,i,j,velno) plots added mass, damping, restoring 
+%       matrix element i,j versus frequency ans speed
 %
-% >> plotABC(vessel,mtrx) plots all elements Aij,Bij,Cij versus
-%    frequency and speed
+%    plotABC(vessel,mtrx) plots all elements Aij,Bij,Cij versus
+%       frequency and speed
 %
 % Inputs: 
-%   vessel:  MSS vessel structure generated from a data file: *
-%   (file name without extension) by using the following calls: 
-%
-%   ShipX (VERES), MARINTEK :  vessel = veres2vessel(*)
-%   WAMIT                   :  vessel = wamit2vessel(*)
-%
-%   mtrx = 'A'    added mass
-%          'B'    potential + viscous damping
-%          'C'    restoring forces
-%
+%   vessel:  MSS vessel structure 
+%   mtrx  : 'A'    added mass
+%           'B'    potential + viscous damping
+%           'C'    restoring forces
 %  i, j (optionally):    matrix element
 %  velno (optionally):   speed number
 %
 % Author:    Thor I. Fossen
 % Date:      2005-05-16 First version
 % Revisions: 2005-09-23 Removed viscous terms when plotting
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
 
 if strcmp(mtrx,'A')
     H = vessel.A;
