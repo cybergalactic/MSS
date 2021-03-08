@@ -1,13 +1,13 @@
 function plotTF(vessel,type,x_axis,velno)
-% plotTF (MSS Hydro)
+% plotTF plots the motion or force RAO transfer functions  
 %
-% >> plotTF(vessel,type,x_axis, velno) plots the motion or force RAO
-%                                      transfer functions  versus frequency
-% >> plotTF(vessel,'motion','rads',1)  rad/s
-% >> plotTF(vessel,'force','s',1)      period in seconds
-% >> plotTF(vessel,'force','hz',1)     1/s
+%   plotTF(vessel,type,x_axis, velno)   
 %
-% Input: 
+%   plotTF(vessel,'motion','rads',1)    - rad/s
+%   plotTF(vessel,'force','s',1)        - period in seconds
+%   plotTF(vessel,'force','hz',1)       - 1/s
+%
+% Inputs: 
 %    vessel: MSS vessel structure
 %    type   {'motion','force'}  motion or force RAO
 %    x_axis {'rads','s','hz'}
@@ -16,10 +16,6 @@ function plotTF(vessel,type,x_axis,velno)
 % Author:    Thor I. Fossen
 % Date:      2005-11-26
 % Revisions: 
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
 
 velocities = vessel.velocities;
 
