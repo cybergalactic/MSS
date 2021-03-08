@@ -3,59 +3,56 @@ function Bv = viscous(vessel)
 % [Bv] = viscous(vessel,surge_estimate) computes the viscous damping
 %     matrix Bv. 
 % 
-%     DOF  1,2,6 : Bvii = beta_i * max(Bii(w))  
+%     DOF  1,2,6 : Bvii = beta_i * exp(- alpha * w)
+%                         where alpha is the exponential rate       
 %
 %     DOF 4      : Bv44  = b * B44(w4) where b is the roll 
 %                          amplification factor at w4 satisfying:
 %
 %                  B44_total(w4) = B44(w4) + B44v(w4) 
 %                                = 2 * zeta4 * w4 * (Ix + A44(w4))
-% where
-%
-%     beta_i: percentage of max potential damping (typically 0.1-0.2)
-%     zeta4:  relative damping ratio at the roll natural frequency 
-%
 % Inputs:
 %    vessel:       MSS vessel structure
 %
 % Outputs:
-%    Bv(1:6,1:6):  Viscous damping matrix
+%    Bv(:,:,w):    Viscous damping matrix
 %         
 % Author:    Thor I. Fossen
 % Date:      2005-05-26
-% Revisions: 2021-03-07 Major improvements, new formulas for viscous damping
+% Revisions: 2021-03-08 Major improvements, new formulas for viscous damping
 
-[dof1,dof2,nfreqsB,nspeeds] = size(vessel.B);  % potential damping dimensions
 w      = vessel.freqs;
-nfreqs = length(w);                            % number of freqs for Bv
+Nfreqs = length(w);           % number of freqs for Bv
+
+MRB = vessel.MRB;
+for k = 1:Nfreqs
+    A(:,:,k) = reshape(vessel.A(:,:,k,1),6,6,1);   
+end
+G   = reshape(vessel.C(:,:,Nfreqs,1),6,6);      
 
 disp(' ')
 disp('-------------------------------------------------------------------')
 disp('VISCOUS DAMPING')
 disp('-------------------------------------------------------------------')
-disp('Viscous damping formula in surge, sway and yaw: Bv(w) = k * max(B(w))')   
-visc_input1 = input('Damping factors at w = 0 for DOFs 1,2,6 (default: k = [0.2 0.2 0.2]) : ');
+disp('Viscous damping in surge, sway and yaw: Bvii(w) = beta_i * exp(- alpha * w)')   
+T_input = input('Specify the time constants: Ti = (MRBii+Aii(0))/Bvii(0) for DOFs 1,2,6 (default: [50 100 20]) : ');
 
-% test for default values
-if isempty(visc_input1)
-    beta_visc = [0.2 0.2 0.2];
-else
-    beta_visc = visc_input1;    
+alpha = 1;
+
+if isempty(T_input)             % test for default values
+    T_input = [50 100 20]; 
 end
+
+beta_i = [ ( MRB(1,1) + A(1,1,1) ) / T_input(1) 
+           ( MRB(2,2) + A(2,2,1) ) / T_input(2)
+           ( MRB(6,6) + A(6,6,1) ) / T_input(3)] ;
 
 disp(' ');
 disp('Roll damping: B44_total(w4) = B44(w4) + B44v(w4) at w4.')
 disp('The relative damping ratio zeta4 is specified such that:')
 disp('B44_total(w4) = 2 * zeta4 * w4 * (Ix + A44(w4)).') 
 
-winf = length(w);  % inf frequency
-
-% period DOF 4
-MRB = vessel.MRB;
-for k = 1:nfreqs
-    A(:,:,k) = reshape(vessel.A(:,:,k,1),6,6,1);
-end
-G   = reshape(vessel.C(:,:,nfreqs,1),6,6);
+% Natural period for DOF = 4
 w_0 = sqrt(G(4,4)/(MRB(4,4)+A(4,4))); 
 w4 = natfrequency(vessel,4,w_0,1);
  
@@ -88,34 +85,36 @@ else
    B44v_def = 0;  
 end
 
-% increase roll damping
+% Increase roll damping
 disp(' ')
 fprintf('Relative damping ratio in roll at w4 = %3.2f rads/s is zeta4 = %5.4f\n',w4,zeta(4));   
 fprintf('This can be increased to %3.2f by adding viscous damping B44v = %0.3g\n',zeta_new,B44v_def);
 disp(' ')
 fprintf('Potential damping: B44(w4) = %0.3g\n',B44);
-visc_input2 = input(sprintf('Additional viscous ROLL damping (default: B44v(w4) = %0.3g)       : ',B44v_def));
+visc_input = input(sprintf('Additional viscous ROLL damping (default: B44v(w4) = %0.3g)       : ',B44v_def));
 
-% test for default values
-if isempty(visc_input2)
-    B44v = B44v_def;  % default
+% Test for default values
+if isempty(visc_input)
+    Bv44 = B44v_def;  % default
 else
-    B44v = visc_input2;
+    Bv44 = visc_input;
 end
 
-% viscous damping factors in surge, sway and yaw
-B11_max = beta_visc(1)*max(reshape(vessel.B(1,1,:,1),1,nfreqsB));
-B22_max = beta_visc(2)*max(reshape(vessel.B(2,2,:,1),1,nfreqsB));
-B66_max = beta_visc(3)*max(reshape(vessel.B(6,6,:,1),1,nfreqsB));
+% Build diagonal viscous damping matrix 
+for k = 1:Nfreqs
+    Bv(:,:,k) = zeros(6,6);
+    Bv(1,1,k) = beta_i(1) * exp( -alpha * w(k) );   
+    Bv(2,2,k) = beta_i(2) * exp( -alpha * w(k) );  
+    Bv(4,4,k) = Bv44;
+    Bv(6,6,k) = beta_i(3) * exp( -alpha * w(k) );       
+end
 
-% build diagonal viscous damping matrix for all speeds
-Bv =  diag([B11_max B22_max 0 B44v 0 B66_max]);
-
-% compute time constants/periods with and without viscous damping Bv
+% Compute time constants/periods with and without viscous damping Bv
 vessel_new = vessel; 
 vessel_new.Bv = Bv;
 disp(' ');
 disp('VISCOUS DAMPING:')
+plotBv(vessel_new);
 DPperiods(vessel_new,1);
 
 vessel_new.Bv = 0*Bv;
