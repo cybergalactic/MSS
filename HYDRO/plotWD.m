@@ -1,13 +1,13 @@
 function plotWD(vessel,x_axis,velno)
-% plotWD (MSS Hydro)
+% plotWD plots the wave drift amplitudes 
 %
-% >> plotWD(vessel,x_axis,velno)      plots the wave drift amplitudes
-%                                     versus seconds,frequency and rad/s
-% >> plotWD(vessel,'s',1)      period in seconds
-% >> plotWD(vessel,'hz',1)     1/s
-% >> plotWD(vessel,'rads',1)   rad/s
+%    plotWD(vessel,x_axis,velno)      
 %
-% Input: 
+%    plotWD(vessel,'s',1)      - period in seconds
+%    plotWD(vessel,'hz',1)     - 1/s
+%   plotWD(vessel,'rads',1)    - rad/s
+%
+% Inputs: 
 %    vessel: MSS vessel structure
 %    x_axis {'rads','s','hz'}
 %    velno  (optionally):  speed number
@@ -15,10 +15,6 @@ function plotWD(vessel,x_axis,velno)
 % Author:    Thor I. Fossen
 % Date:      2007-06-27
 % Revisions: 
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
 
 velocities = vessel.velocities;
 
