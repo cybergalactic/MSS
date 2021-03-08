@@ -1,17 +1,15 @@
 function loadcond(vessel)
-% loadcond   loadcond(vessel) plots T_roll and T_pitch as a function of 
-%            GM_T and GM_L. The heave period T_heave is plotted as a 
-%            function of draft T.
-%  Inputs:
+% loadcond plots T_roll and T_pitch as a function of GM_T and GM_L. 
+% The heave period T_heave is plotted as a function of draft T.
+%
+%     loadcond(vessel)
+%
+%  Input:
 %     vessel: MSS vessel structure
 %
 % Author:    Thor I. Fossen
 % Date:      2005-09-26
 %            2019-04-25 Extended to inlcude heave, roll and pitch 
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
 
 % Vessel data
 m   = vessel.main.m;
