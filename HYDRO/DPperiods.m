@@ -1,6 +1,5 @@
 function [T,zeta] = DPperiods(vessel,display)
-%% DPperiods    
-% Computes the following DP characteristics:
+% DPperiods computes the DP periods and relative damping factors
 %
 %  [T,zeta] = DPperiods(vessel,display)
 %
@@ -47,7 +46,7 @@ for k = 1:Nw
 end
 
 % *************************************************************************
-% Compute periods/time constants for diagonal matrices 
+%% Compute periods/time constants for diagonal matrices 
 % *************************************************************************
 
 % estimate the natural frequencies in DOFs 3,4,5
