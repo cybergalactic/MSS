@@ -1,16 +1,16 @@
 function CY_2D = Hoerner(B,T)
-% Hoerner computes the 2D Hoerner cross-flow form coefficient as a
-% function of B and T. The data is digizied and interpolation is used to
-% compute other data points than those in the table
+% Hoerner computes the 2D Hoerner cross-flow form coeff. as a function of B and T.
+% he data is digizied and interpolation is used to compute other data points 
+% than those in the table
 %
-%  >> CY_2D = Hoerner(B,T)
+%  CY_2D = Hoerner(B,T)
 %
-% Outputs: 
+% Output: 
 %    CY_2D:    2D Hoerner cross-flow form coefficient
 %
 % Inputs:
 %    T:      draft (m)
-%    B:      beam (m)
+%    B:      beam  (m)
 %
 % Author: Thor I. Fossen
 % Date:   2007-12-01
@@ -20,10 +20,6 @@ function CY_2D = Hoerner(B,T)
 % Current force in tankers and bifurcation of equilibrium of turret
 % systems: hydrodynamic model and experiments. 
 % Applied Ocean Research 20, pp. 145-256.
-% ________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
 
 % CD_DATA = [B/2T  C_D]
 CD_DATA = [...    
