@@ -1,4 +1,5 @@
-% ExQuest    6 DOF position/attitude vector from camera measurements using the QUEST algorithm
+% ExQuest    6-DOF position/attitude vector from camera measurements 
+%            using the QUEST algorithm
 %            See quest6DOF.m and quest.m     
 % Author:    Thor I. Fossen and K. P. Lindegaard
 % Date:      5 August 2001
