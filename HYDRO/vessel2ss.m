@@ -3,8 +3,12 @@ function vesselABC = vessel2ss(vessel)
 %
 %    vesselABC = vessel2ss(vessel) 
 % 
-% The vessel data structure must be generated using ShipX (Veres) or WAMIT. 
-% The vessel data structure 'vessel' need to be loaded to the workspace by: 
+% Only the potential coefficients A(w) and B(w) are used so viscous damping
+% Bv(w) = beta * exp(-alpha * w) should be added as a constant damping
+% matrix in the time domain, that is: Bv(0) = beta.
+%
+% The vessel data structure 'vessel' must be generated using ShipX or WAMIT, 
+% and it need to be loaded to the workspace by: 
 %
 %   load('myship')                   
 %
