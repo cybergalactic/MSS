@@ -9,7 +9,7 @@ which serves as documentation for the toolbox. Please include the following refe
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
     URL: https://github.com/cybergalactic/MSS
 
-Copy the folder /MSS to your Matlab folder and "add the path with subfolders" to Matlab. Then type:
+Copy the contents of the directory MSS/ to your computer and "add the path with subfolders" to Matlab. Then type:
 
     help MSS
 
