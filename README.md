@@ -3,7 +3,8 @@
 The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems. It includes models for ships, underwater vehicles, unmanned surface vehicles and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. The algorithms are described in:
 
     T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. ISBN-13: 978-1119575054
-
+    Lecture notes: https://www.fossen.biz/wiley
+    
 which serves as documentation for the toolbox. Please include the following reference when using the MSS libraries: 
 
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
@@ -33,7 +34,7 @@ Basic libraries and system examples for GNC. The library contains:
 - M-file functions (kinematics and kinetics) and examples for time-domain GNC applications.
 - M-file library with vessels models, maneuvering trials and dynamic simulation.
 - User editable m-files for simulation and control of marine craft including ships, semisubmersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs) and unmanned surface vehicles (USVs).
-- User editable m-files for model-based and inertial navigation systems.
+- User editable m-files for error-state Kalman filters for interial navigation systems.
 
  Hydro Library
 -
