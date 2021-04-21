@@ -1,20 +1,20 @@
 function [xdot,U] = mariner(x,ui,U0)
 % [xdot,U] = mariner(x,ui) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = [ u v r x y psi delta n ]'  for
+% time derivative of the state vector: x = [ u v r x y psi delta ]'  for
 % the Mariner class vessel L = 160.93 m, where
 %
-% u     = pertubed surge velocity about Uo (m/s)
-% v     = pertubed sway velocity about zero (m/s)
-% r     = pertubed yaw velocity about zero (rad/s)
-% x     = position in x-direction (m)
-% y     = position in y-direction (m)
-% psi   = pertubed yaw angle about zero (rad)
-% delta = actual rudder angle (rad)
+%  u     = pertubed surge velocity about Uo (m/s)
+%  v     = pertubed sway velocity about zero (m/s)
+%  r     = pertubed yaw velocity about zero (rad/s)
+%  x     = position in x-direction (m)
+%  y     = position in y-direction (m)
+%  psi   = pertubed yaw angle about zero (rad)
+%  delta = actual rudder angle (rad)
 %
-% The inputs are :
+% The inputs are:
 % 
-% ui    = commanded rudder angle (rad)
-% U0    = nominal speed (optionally). Default value is U0 = 7.7175 m/s = 15 knots.
+%  ui    = commanded rudder angle (rad)
+%  U0    = nominal speed (optionally). Default value is U0 = 7.7175 m/s = 15 knots.
 %
 % Reference: M.S. Chislett and J. Stroem-Tejsen (1965). Planar Motion Mechanism Tests 
 %            and Full-Scale Steering and Maneuvering Predictions for a Mariner Class Vessel,
@@ -22,10 +22,11 @@ function [xdot,U] = mariner(x,ui,U0)
 % 
 % Author:    Trygve Lauvdal
 % Date:      12th May 1994
-% Revisions: 19th July 2001 (Thor I. Fossen): added input/ouput U0 and U, changed order of x-vector
-%            20th July 2001 (Thor I. Fossen): replaced inertia matrix with correct values
-%            11th July 2003 (Thor I. Fossen): max rudder is changed from 30 deg to 40
+% Revisions: 19th July 2001: added input/ouput U0 and U, changed order of x-vector
+%            20th July 2001: replaced inertia matrix with correct values
+%            11th July 2003: max rudder is changed from 30 deg to 40
 %                            deg to satisfy IMO regulations for 35 deg rudder execute
+%            21 Apr 2021:    corrected several typos in the function description
 
 % Check of input and state dimensions
 if (length(x)  ~= 7),error('x-vector must have dimension 7 !'); end
@@ -79,11 +80,11 @@ m32 = m*xG-Nvdot;
 m33 = Iz-Nrdot;
 
 % Rudder saturation and dynamics
-if abs(delta_c) >= delta_max*pi/180,
+if abs(delta_c) >= delta_max*pi/180
    delta_c = sign(delta_c)*delta_max*pi/180;
 end
 delta_dot = delta_c - delta;
-if abs(delta_dot) >= Ddelta_max*pi/180,
+if abs(delta_dot) >= Ddelta_max*pi/180
    delta_dot = sign(delta_dot)*Ddelta_max*pi/180;
 end
 
@@ -109,5 +110,3 @@ xdot = [           X*(U^2/L)/m11
            (sin(psi)*(U0/U+u)+cos(psi)*v)*U   
                     r*(U/L)
                     delta_dot                  ];
-
-  
