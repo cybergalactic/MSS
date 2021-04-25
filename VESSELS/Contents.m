@@ -26,6 +26,7 @@
 %    Time-series simulations:
 %    SIMclarke83    - Simulate clarke83.m under PD control
 %    SIMmariner     - Simulate mariner.m under PD control
+%    SIMotter       - Smulate otter.m under feedback control
 %    SIMcontainer   - Simulate container.m and Lcontainer.m under PD control
 %    SIMnavalvessel - Simulate navalvessel.m under PD control
 %    SIMrig         - Simulate the 6-DOF semisub model under PID control
