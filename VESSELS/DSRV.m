@@ -1,4 +1,4 @@
-function [xdot,U] = DSRV(in)
+function [xdot,U] = DSRV(x,ui)
 % [xdot, U] = DSRV(in), with in=[x,ui] returns returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector x = [ w q x z theta ]' for a 
 % deep submergence rescue vehicle (DSRV) L = 5.0 m, where
@@ -20,12 +20,9 @@ function [xdot,U] = DSRV(in)
 % Date:      12-May-2001
 % Revisions: 01-Mar-2002: changed sign of Zdelta to positive
 %            24-Mar-2003: changed typo 13.5 knots to 8 knots
+%            25-Apr-2021: coverted to standard input arguments [x, ui]
 
 % Check of input and state dimensions
-x  = in(1:5);
-ui = in(6);
-
-
 if (length(x)  ~= 5),error('x-vector must have dimension 5 !'); end
 if (length(ui) ~= 1),error('u-vector must have dimension 1 !'); end
 
@@ -57,7 +54,7 @@ Mw     =  0.011175; Zw     = -0.043938;
 Mtheta = -0.156276/U^2; 
 Mdelta = -0.012797; Zdelta = 0.027695;
 
-% Masses and moments of inertia
+% Mass matrix elements
 m11 = m-Zwdot;
 m12 = -Zqdot;
 m22 = Iy-Mqdot;
@@ -66,7 +63,7 @@ m21 = -Mwdot;
 detM = (m11*m22-m12*m21);
 
 % Rudder saturation
-if abs(delta) >= delta_max*pi/180, 
+if abs(delta) >= delta_max*pi/180
    delta = sign(delta)*delta_max*pi/180;
 end
 
@@ -80,3 +77,4 @@ xdot = [ (m22*Z - m12*M)/detM
           cos(theta)*U0 + sin(theta)*w
          -sin(theta)*U0 + cos(theta)*w
               q                        ];
+  
