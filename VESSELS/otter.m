@@ -5,18 +5,18 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % for the Maritime Robotics Otter USV, see www.maritimerobotics.com.
 % The length of the USV is L = 2.0 m, while the state vector is defined as:
 %
-% u     = surge velocity          (m/s)
-% v     = sway velocity           (m/s)
-% w     = heave velocity          (m/s)
-% p     = roll velocity           (rad/s)
-% q     = pitch velocity          (rad/s)
-% r     = yaw velocity            (rad/s)
-% x     = position in x direction (m)
-% y     = position in y direction (m)
-% z     = position in z direction (m)
-% phi   = roll angle              (rad)
-% theta = pitch angle             (rad)
-% psi   = yaw angle               (rad)
+%  u     = surge velocity          (m/s)
+%  v     = sway velocity           (m/s)
+%  w     = heave velocity          (m/s)
+%  p     = roll velocity           (rad/s)
+%  q     = pitch velocity          (rad/s)
+%  r     = yaw velocity            (rad/s)
+%  x     = position in x direction (m)
+%  y     = position in y direction (m)
+%  z     = position in z direction (m)
+%  phi   = roll angle              (rad)
+%  theta = pitch angle             (rad)
+%  psi   = yaw angle               (rad)
 %
 % The other inputs are:
 %
@@ -31,7 +31,7 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
-% Revisions: 
+% Revisions: 2021-04-25 added call to new fucntion crossFlowDrag.m
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12 !'); end
@@ -173,15 +173,9 @@ Mh = Mq * nu_r(5);
 Nh = Nr * nu_r(6);
 
 % Strip theory: cross-flow drag integrals for Yh and Nh
-dx = L/10;                  % 10 strips
-Cd_2D = Hoerner(B_pont,T);  % 2D drag coefficeint for one pontoon
-for xL = -L/2:dx:L/2     
-    v_r = nu_r(2);          % relative sway velocity
-    r = nu(6);              % yaw rate
-    Ucf = abs(v_r + xL * r) * (v_r + xL * r);
-    Yh = Yh - 0.5 * rho * T * Cd_2D * Ucf * dx;         % sway force
-    Nh = Nh - 0.5 * rho * T * Cd_2D * xL * Ucf * dx;    % yaw moment 
-end
+tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
+Yh = Yh + tau_crossflow(2);
+Nh = Nh + tau_crossflow(6);
 
 % kinematics
 [Rzyx, Tzyx] = body2ned(eta);
