@@ -40,7 +40,6 @@
 %  llh2flat   - Longitude-lattitude-height to flat Earth (NED)
 %  euler2q    - Computes the Euler angles from the unit quaternions.
 %  rad2pipi   - Converts an angle in rad to the interval [-pi pi)
-%  rbody      - Computes MRB and CRB(nu) for a rigid body
 %  Rll        - Euler angle rotation matrix (longitude-lattitude)
 %  Rquat      - Quaternion rotation matrix
 %  Rzyx       - Euler angle rotation matrix (roll-pitch-yaw)
@@ -84,10 +83,17 @@
 %
 % Model transformations and conversion factors:
 %  conversion - loads a set of useful conversion factors to workspace, D2R, R2D, MS2KNOTS etc.
+%  coeffLiftDrag - lift/drag coefficients as a function of angle of attack of a submerged "wing profile"
+%  forceLiftDrag - lift and drag forces as a function of angle of attack of a submerged "wing profile" 
+%  crossFlowDrag - crossflow drag computed from strip theory integrals
+%  Dmtrx      - Lnear damping matrix for marine craft (submerged and floating)
 %  Hmtrx      - system transformation matrix
 %  Gmtrx      - Gravitational-buoyancy matrix (floating vessels)
 %  gvect      - Gravitational-buoyancy vector (submerged vehicles)
+%  imlay61    - Hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
 %  m2c        - System inertia to Coriolis-centripetal transformation matrix
+%  rbody      - Computes MRB and CRB(nu) for a genetal rigid body
+%  spheriod   - Computes MRB and CRB(nu) for a spheroid-shaped body
 %
 % Ships models:
 %  clarke83    - Ship maneuvering model parametrized using L, B and T
