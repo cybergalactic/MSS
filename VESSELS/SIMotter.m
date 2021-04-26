@@ -16,7 +16,7 @@ N  = 1000;		  % number of samples
 % initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1);	   
 
-% propeller revolutions (rad/s(
+% propeller revolutions (rps)
 n = [80 60]';          % n = [ n_left n_right ]' 
 
 % Load condition
