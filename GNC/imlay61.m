@@ -36,6 +36,11 @@ Iy = (1/5) * m * (a^2 + b^2);
 % Imlay (1961) gives a zero added moment in roll for a spheroid. This is
 % compensated by manually specifying a nonzero r44 for other hull effects.  
 % MA(4,4) will in practise be nonzero due to control surfaces, propellers etc. 
+
+if (a < 0), error('a must be larger than 0'); end
+if (b < 0), error('b must be larger than 0'); end
+if (a <= b), error('a must be larger than b'); end
+    
 if (nargin == 3)
    r44 = 0;
 end
