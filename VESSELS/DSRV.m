@@ -1,30 +1,29 @@
-function [xdot,U] = DSRV(x,ui)
-% [xdot, U] = DSRV(in), with in=[x,ui] returns returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector x = [ w q x z theta ]' for a 
-% deep submergence rescue vehicle (DSRV) L = 5.0 m, where
+function [xdot,U] = DSRV(x,u)
+% [xdot, U] = DSRV(in), with in=[x,u] returns returns the speed U in m/s
+% (optionally) and the time derivative of the state vector 
+% x = [ w q x z theta ]' for a deep submergence rescue vehicle (DSRV) 
+% L = 5.0 m, where
+%  w:       heave velocity                 (m/s)
+%  q:       pitch velocity                 (rad/s)
+%  x:       x-position                     (m)
+%  z:       z-position, positive downwards (m)
+%  theta:   pitch angle                    (rad)
 %
-% w     = heave velocity                 (m/s)
-% q     = pitch velocity                 (rad/s)
-% x     = x-position                     (m)
-% z     = z-position, positive downwards (m)
-% theta = pitch angle                    (rad)
-%
-% The inputs are:
-% ui     = delta (rad), where delta is the stern plane
-% U0     = nominal speed (optionally). Default value is U0 = 4.11 m/s = 8 knots.
+% Input:
+%  u:       delta (rad), where delta is the stern plane
 %
 % Reference : A.J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
 %             Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
 % 
 % Author:    Thor I. Fossen
 % Date:      12-May-2001
-% Revisions: 01-Mar-2002: changed sign of Zdelta to positive
+% Revisions: 1-Mar-2002:  changed sign of Zdelta to positive
 %            24-Mar-2003: changed typo 13.5 knots to 8 knots
-%            25-Apr-2021: coverted to standard input arguments [x, ui]
+%            4-May-2021:  converted to input arguments [x, u]
 
 % Check of input and state dimensions
-if (length(x)  ~= 5),error('x-vector must have dimension 5 !'); end
-if (length(ui) ~= 1),error('u-vector must have dimension 1 !'); end
+if (length(x)  ~= 5),error('x-vector must have dimension 5!'); end
+if (length(u) ~= 1),error('u-vector must have dimension 1!'); end
 
 % Cruise speed (m/s)       
 U0 = 4.11;                   % U0 = 4.11 m/s = 8 knots = 13.5 ft/s
@@ -35,7 +34,7 @@ L = 5.0;
 U = sqrt( U0^2 + (W0+x(1))^2 );
 
 % states and inputs (with dimension)
-delta = ui; 
+delta = u; 
 
 w     = x(1);  
 q     = x(2);  
@@ -60,7 +59,7 @@ m12 = -Zqdot;
 m22 = Iy-Mqdot;
 m21 = -Mwdot;
 
-detM = (m11*m22-m12*m21);
+detM = m11 * m22 - m12 * m21;
 
 % Rudder saturation
 if abs(delta) >= delta_max*pi/180
@@ -77,4 +76,5 @@ xdot = [ (m22*Z - m12*M)/detM
           cos(theta)*U0 + sin(theta)*w
          -sin(theta)*U0 + cos(theta)*w
               q                        ];
+end
   
