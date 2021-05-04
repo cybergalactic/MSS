@@ -1,5 +1,5 @@
 function [xdot,U] = npsauv(x,ui)
-% [xdot,U] = NPSAUV(x,ui) returns the speed U in m/s (optionally) and the 
+% [xdot,U] = npsauv(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v w p q r x y z phi theta psi ]' for
 % an Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate School, Monterrey.
 % The length of the AUV is L = 5.3 m, while the state vector is defined as:
@@ -21,12 +21,12 @@ function [xdot,U] = npsauv(x,ui)
 %
 % ui       = [ delta_r delta_s delta_b delta_bp delta_bs n ]'  where
 %
-% delta_r  = rudder angle                   (rad)
-% delta_s  = port and starboard stern plane (rad)
-% delta_b  = top and bottom bow plane       (rad)
-% delta_bp = port bow plane                 (rad)
-% delta_bs = starboard bow plane            (rad)
-% n        = propeller shaft speed          (rpm)  
+% delta_r  = rudder angle                    (rad)
+% delta_s  = port and starboard stern planes (rad)
+% delta_b  = top and bottom bow planes       (rad)
+% delta_bp = port bow plane                  (rad)
+% delta_bs = starboard bow plane             (rad)
+% n        = propeller shaft speed           (rpm)  
 %
 % Reference : Healey, A.J. and Lienard, D. (1993). Multivariable Sliding Mode Control 
 %             for Autonomous Diving and Steering of Unmanned Underwater Vehicles,
@@ -43,8 +43,8 @@ function [xdot,U] = npsauv(x,ui)
 %            01-Aug-2019, David Hansch, corrected bugs in the cross-flow drag formulae
 
 % Check of input and state dimensions
-if (length(x) ~= 12),error('x-vector must have dimension 12 !');end
-if (length(ui) ~= 6),error('u-vector must have dimension 6 !');end
+if (length(x) ~= 12),error('x-vector must have dimension 12!');end
+if (length(ui) ~= 6),error('u-vector must have dimension 6!');end
 
 % Dimensional states
 u   = x(1);  v     = x(2);  w   = x(3);
@@ -54,6 +54,7 @@ phi = x(10); theta = x(11); psi = x(12);
 U = sqrt(u^2+v^2+w^2); % speed
 
 % Rudder and propeller
+max_ui = zeros(6,1);
 max_ui(1)  = 20*pi/180;        % max value delta_r   (rad)
 max_ui(2)  = 20*pi/180;        % max value delta_s   (rad)
 max_ui(3)  = 20*pi/180;        % max value delta_b   (rad)
@@ -120,7 +121,9 @@ Ndr   = -1.3e-2; Nprop  =  0;
 
 % Rudder and shaft saturations
 for i=1:1:6
-   if abs(ui(i))>max_ui(i),ui(i)=sign(ui(i))*max_ui(i);end
+   if abs(ui(i)) > max_ui(i)
+       ui(i)=sign(ui(i)) * max_ui(i);
+   end
 end
  
 % Control input (rudder and propeller)
@@ -223,7 +226,7 @@ N = r3*(Nv*u*v + Nvw*v*w)+...
     (Ix-Iy)*p*q + (p^2-q^2)*Ixy + Iyz*p*r - Ixz*q*r -...
     m*(rho/2*L^3)*(xG*(u*r-w*p) - yG*(w*q-v*r)) + tau6 - rho/2*Cn ;
 
-% Dimensional state derivatives ( xdot = in(M)*f(x) is expanded to avoid inv(M) on-line )
+% Dimensional state derivatives (xdot = in(M)*f(x) is expanded to avoid inv(M))
 xdot = [1.662e-4*X+1.846e-10*Y+1.303e-7*Z+3.726e-9*K-1.132e-6*M+7.320e-10*N
         1.846e-10*X+1.052e-4*Y+3.843e-10*Z+9.638e-6*K-3.340e-9*M+2.368e-6*N
          1.303e-7*X+3.843e-10*Y+4.315e-5*Z+7.757e-9*K-2.357e-6*M+1.524e-9*N
@@ -236,3 +239,4 @@ xdot = [1.662e-4*X+1.846e-10*Y+1.303e-7*Z+3.726e-9*K-1.132e-6*M+7.320e-10*N
                         p + s1*t2*q + c1*t2*r 
                             (c1*q - s1*r) 
                            s1/c2*q + c1/c2*r                               ];
+end
