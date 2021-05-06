@@ -1,24 +1,18 @@
 function [J,J1,J2] = eulerang(phi,theta,psi)
-% [J,J1,J2] = EULERANG(phi,theta,psi) computes the Euler angle
-% transformation matrices
+% [J,Rzyx,Tzyx] = eulerang(phi,theta,psi) computes the Euler angle
+% transformation matrix
 %
-% Author:   Thor I. Fossen
-% Date:     14th June 2001
-% Revisions: 
-
-cphi = cos(phi);
-sphi = sin(phi);
-cth  = cos(theta);
-sth  = sin(theta);
+%  J = [ Rzyx     0
+%           0  Tzyx ]
+%
+% where J1 = Rzyx and J2 = Tzyx, see Rzyx.m and Tzyx.m.
+%
+% Author:    Thor I. Fossen
+% Date:      14th June 2001
+% Revisions: 8 May 2021, added calls to Rzyx and Tzyx 
  
 J1 = Rzyx(phi,theta,psi);
+J2 = Tzyx(phi,theta);
  
-if cth==0, error('J2 is singular for theta = +-90 degrees'); end
- 
-J2 = [...
-      1  sphi*sth/cth  cphi*sth/cth;
-      0  cphi          -sphi;
-      0  sphi/cth      cphi/cth ];
- 
-J = [ J1  zeros(3,3);
+J = [ J1  zeros(3,3)
       zeros(3,3) J2 ];
