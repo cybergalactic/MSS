@@ -16,7 +16,8 @@
 %    Underwater vehicles:
 %    DSRV        - Deep submergence rescue vehicle (DSRV), L = 5.0 m
 %    npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
-%
+%	 remus100    - Remus 100 autnomous underwater vehicle (AUV), L = 1.9 m
+
 %    Semisubmersibles:
 %    rig         - Semisub (mass-damper-spring) model, L = 84.6 m
 %
