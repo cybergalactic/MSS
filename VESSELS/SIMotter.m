@@ -47,29 +47,29 @@ eta  = simdata(:,8:13);
 
 clf
 figure(1)
-subplot(611),plot(t,nu(:,1))
-xlabel('time (s)'),title('Surge velocity'),grid
-subplot(612),plot(t,nu(:,2))
-xlabel('time (s)'),title('Sway velocity'),grid
-subplot(613),plot(t,nu(:,3))
-xlabel('time (s)'),title('Heave velocity'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4))
-xlabel('time (s)'),title('Roll rate'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5))
-xlabel('time (s)'),title('Pitch rate'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6))
-xlabel('time (s)'),title('Yaw rate'),grid
+subplot(611),plot(t,nu(:,1),'linewidt',2)
+xlabel('time (s)'),title('Surge velocity (m/s)'),grid
+subplot(612),plot(t,nu(:,2),'linewidt',2)
+xlabel('time (s)'),title('Sway velocity (m/s)'),grid
+subplot(613),plot(t,nu(:,3),'linewidt',2)
+xlabel('time (s)'),title('Heave velocity (m/s)'),grid
+subplot(614),plot(t,(180/pi)*nu(:,4),'linewidt',2)
+xlabel('time (s)'),title('Roll rate (deg/s)'),grid
+subplot(615),plot(t,(180/pi)*nu(:,5),'linewidt',2)
+xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
+subplot(616),plot(t,(180/pi)*nu(:,6),'linewidt',2)
+xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
 
 figure(2)
-subplot(611),plot(eta(:,2),eta(:,1)); 
-title('xy plot'),grid
-subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
-xlabel('time (s)'),title('speed'),grid
-subplot(613),plot(t,eta(:,3))
-xlabel('time (s)'),title('heave z position'),grid
-subplot(614),plot(t,(180/pi)*eta(:,4))
-xlabel('time (s)'),title('roll angle'),grid
-subplot(615),plot(t,(180/pi)*eta(:,5))
-xlabel('time (s)'),title('pitch angle'),grid
-subplot(616),plot(t,(180/pi)*eta(:,6))
-xlabel('time (s)'),title('yaw angle'),grid
+subplot(611),plot(eta(:,2),eta(:,1),'linewidt',2); 
+title('xy plot (m)'),grid
+subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2),'linewidt',2);
+xlabel('time (s)'),title('speed (m/s)'),grid
+subplot(613),plot(t,eta(:,3),'linewidt',2)
+xlabel('time (s)'),title('heave position (m)'),grid
+subplot(614),plot(t,(180/pi)*eta(:,4),'linewidt',2)
+xlabel('time (s)'),title('roll angle (deg)'),grid
+subplot(615),plot(t,(180/pi)*eta(:,5),'linewidt',2)
+xlabel('time (s)'),title('pitch angle (deg)'),grid
+subplot(616),plot(t,(180/pi)*eta(:,6),'linewidt',2)
+xlabel('time (s)'),title('yaw angle (deg)'),grid
