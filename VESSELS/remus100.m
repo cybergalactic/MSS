@@ -30,7 +30,7 @@ function [xdot,U] = remus100(x,ui,v_current)
 %
 % Author:    Thor I. Fossen
 % Date:      6 May 2021
-% Revisions: 
+% Revisions: THIS IS A TEMPORARY MODEL - USE WITH CARE
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -46,7 +46,7 @@ nu = x(1:6);
 eta = x(7:12);
 delta_r = ui(1);        % tail rudder (rad)
 delta_s = ui(2);        % stern plane (rad)
-n = ui(3)/60;           % propeller revolution (rps=
+n = ui(3)/60;           % propeller revolution (rps)
 
 % Amplitude saturation of control signals
 max_ui = [20*pi/180 20*pi/180  1500/60]';  % deg, deg, rps
@@ -65,7 +65,7 @@ CD_0 = 0.01;                        % parasitic drag
 S = 0.7 * L_auv * D_auv;            % S = 70% of rectangle L_auv * D_auv
 a = L_auv/2;                        % semi-axes
 b = D_auv/2;                  
-r_bg = [ 0 0 0.02 ]';               % CG w.r.t. to the CO
+r_bg = [ 0 0 0.025 ]';               % CG w.r.t. to the CO
 r_bb = [ 0 0 0 ]';                  % CB w.r.t. to the CO
 
 % Added moment of inertia in roll
@@ -90,19 +90,30 @@ x_s = -a;                % stern-plane z-position (m)
 T1 = 20;                 % time constant in surge (s)
 T2 = 20;                 % time constant in sway (s)
 zeta4 = 0.3;             % relative damping ratio in roll
-zeta5 = 0.4;             % relative damping ratio in pitch
-T6 = 20;                 % time constant in yaw (s)
+zeta5 = 0.8;             % relative damping ratio in pitch
+T6 = 5;                  % time constant in yaw (s)
 
 % mass and added mass
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
 [MA,CA] = imlay61(a, b, nu, r44);
+
+% nonlinear quadratic velocity terms in pitch and yaw (Munk moments) 
+% are cancelled since only linear damping is used
+CA(5,1) = 0;   
+CA(5,4) = 0;
+CA(6,1) = 0;
+CA(6,2) = 0;
+
 M = MRB + MA;
 C = CRB + CA;
-
 m = MRB(1,1); W = m*g_mu; B = W;
 
 % dissipative forces and moments
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
+D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where crossflow
+D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift/drag dominates
+D(6,6) = D(6,6) * exp(-3*U_r);
+
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
 
@@ -129,7 +140,7 @@ X_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s^2;  % stern-plane drag
 Z_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s;    % stern-plane heave force
 M_s = -x_s * Z_s;                                         % stern-plane pitch moment
 
-tau = zeros(6,1);                                % genearlized force vector
+tau = zeros(6,1);                                % generalized force vector
 tau(1) = X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
@@ -139,6 +150,6 @@ tau(6) = N_r;
 
 % state-space model
 xdot = [...
-    M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * exp(-3*U_r) * nu_r  - g)
+    M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
     J * nu ];
 
