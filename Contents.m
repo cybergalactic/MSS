@@ -70,9 +70,12 @@
 %  order5      - Path generation using 5th order polynominals
 % 
 % Time-series simulations:
-%  SIMmariner     - Simulate mariner.m under PD control
+%  SIMclarke83    - Simulate clarke.m under PD control
 %  SIMcontainer   - Simulate container.m and Lcontainer.m under PD control
+%  SIMmariner     - Simulate mariner.m under PD control
 %  SIMnavalvessel - Smulate navnalvessel.m  under PD control
+%  SIMotter       - Simulate otter.m under PD control
+%  SIMremus100    - Simulate remus100.m under PD control
 %  SIMrig         - Simulate rig.m under PD control
 %
 % Maneuvering trials/Bode plots:
