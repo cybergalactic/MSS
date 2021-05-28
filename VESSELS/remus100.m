@@ -29,8 +29,8 @@ function [xdot,U] = remus100(x,ui,v_current)
 % velocities v_current = [u_c v_c w_c]' expressed in the BODY frame.
 %
 % Author:    Thor I. Fossen
-% Date:      6 May 2021
-% Revisions: THIS IS A TEMPORARY MODEL - USE WITH CARE
+% Date:      27 May 2021
+% Revisions: 
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
