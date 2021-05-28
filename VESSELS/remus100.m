@@ -49,7 +49,7 @@ delta_s = ui(2);        % stern plane (rad)
 n = ui(3)/60;           % propeller revolution (rps)
 
 % Amplitude saturation of control signals
-max_ui = [20*pi/180 20*pi/180  1500/60]';  % deg, deg, rps
+max_ui = [30*pi/180 50*pi/180  1500/60]';  % deg, deg, rps
 
 % Relative velocities, speed and angle of attack
 if (nargin == 2), v_current = [0 0 0]'; end
@@ -83,7 +83,7 @@ x_r = -a;                % rudder x-position (m)
 
 % Stern plane
 CL_delta_s = 0.7;        % stern-plane lift coefficient
-A_s = 0.10 * 0.05;       % stern-plane area (m2)
+A_s = 2 * 0.10 * 0.05;   % stern-plane area (m2)
 x_s = -a;                % stern-plane z-position (m)
 
 % Low-speed linear damping matrix parameters: D * exp(-3 * U_r)
