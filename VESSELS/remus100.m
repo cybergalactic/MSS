@@ -138,7 +138,7 @@ N_r = x_r * Y_r;                                          % rudder yaw moment
 
 X_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s^2;  % stern-plane drag
 Z_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s;    % stern-plane heave force
-M_s = -x_s * Z_s;                                         % stern-plane pitch moment
+M_s =  x_s * Z_s;                                         % stern-plane pitch moment
 
 tau = zeros(6,1);                                % generalized force vector
 tau(1) = X_prop + X_r + X_s;
