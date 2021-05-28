@@ -65,7 +65,7 @@ CD_0 = 0.01;                        % parasitic drag
 S = 0.7 * L_auv * D_auv;            % S = 70% of rectangle L_auv * D_auv
 a = L_auv/2;                        % semi-axes
 b = D_auv/2;                  
-r_bg = [ 0 0 0.025 ]';               % CG w.r.t. to the CO
+r_bg = [ 0 0 0.02 ]';               % CG w.r.t. to the CO
 r_bb = [ 0 0 0 ]';                  % CB w.r.t. to the CO
 
 % Added moment of inertia in roll
