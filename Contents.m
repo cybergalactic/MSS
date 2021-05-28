@@ -1,7 +1,7 @@
 % Marine Systems Simulator (MSS)
 %
 % Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. John Wiley & Sons Ltd., 2n edition
+%       Motion Control. John Wiley & Sons Ltd., 2nd edition
 %
 %       Book examples:  >> help mssExamples 
 %
@@ -19,8 +19,8 @@
 %  ssa(angle,'rad') - maps an angle in rad to the interval (-pi pi] 
 %    
 % Control allocation and propeller models:
-%   ucalloc     - Unconstrained control allocation for tau = T*K*u (T=K=constant)
-%   wageningen  - Thrust and torque models for Wageningen B-series propellers
+%  ucalloc     - Unconstrained control allocation for tau = T*K*u (T=K=constant)
+%  wageningen  - Thrust and torque models for Wageningen B-series propellers
 %
 % Control systems:
 %  lqtracker   - Computes the LQ tracker gain matrices for LTI systems 
@@ -109,6 +109,7 @@
 % Underwater vehicle models:
 %  DSRV        - Deep submergence rescue vehicle (DSRV), L = 5.0 m
 %  npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
+%  remus100    - Remus 100 AUV, L = 1.9 m
 %
 % Semisubmersible models:
 %  rig         - Semisub (mass-damper-spring) model, L = 84.6 m
