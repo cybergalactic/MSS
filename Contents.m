@@ -26,8 +26,10 @@
 %  lqtracker   - Computes the LQ tracker gain matrices for LTI systems 
 %
 % Guidance systems:
-%  crosstrack - computes the crosstrack error and origin of the path-tangential frame
+%  crosstrack    - computes the crosstrack error and origin of the path-tangential frame
 %  crosstrackWpt - computes the crosstrack error between two waypoints
+%  LOSchi		 - LOS guidance law for course autopilot control 
+%  ILOSchi		 - ILOS guidance law for course autopilot control 
 %
 % Kinematics:
 %  eulerang   - Euler angle transformation matrices J, J1 and J2
