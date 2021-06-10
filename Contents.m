@@ -30,6 +30,7 @@
 %  crosstrackWpt - computes the crosstrack error between two waypoints
 %  LOSchi		 - LOS guidance law for course autopilot control 
 %  ILOSchi		 - ILOS guidance law for course autopilot control 
+%  ILOSpsi		 - ILOS guidance law for heading autopilot control 
 %
 % Kinematics:
 %  eulerang   - Euler angle transformation matrices J, J1 and J2
