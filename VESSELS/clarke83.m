@@ -1,5 +1,5 @@
-function [M,C,D] = clarke83(nu,L,B,T,Cb,R66,xg,T_surge)
-% [M,C,D] = clarke83(nu,L,B,T,Cb,R66,xg,T_surge) computes the system matrices 
+function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
+% [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge) computes the system matrices 
 % of a linear maneuvering model based on Clarke et al. (1983). The  
 % hydrodynamic derivatives are based on multiple  linear regression from two 
 % sets of model tests. The first data set (Yv, Yr, Nv, Nr) is obtained from 
@@ -9,38 +9,37 @@ function [M,C,D] = clarke83(nu,L,B,T,Cb,R66,xg,T_surge)
 % in surge is optionally with default value T_surge = L such that 
 % Xu = -(m-Xudot) / T_surge.
 %
-% Outputs: 3x3 model matrices M, C, and D in surge, sway and yaw
+% Outputs: 3x3 model matrices M and N in surge, sway and yaw
 %      .
-%    M nu + C(nu) nu + D nu = tau  
+%    M nu + N(U) nu = tau,     where N(U) = C(U) + D
+% 
+% corresponding to the linear maneuvering model
+% 
+%  (m - Xudot) udot - Xu u                            = (1-t) T
+%  (m - Yvdot) vdot + (m - Yrdot)  rdot - Yv v - Yr r = Yd delta
+%  (m - Yvdot) vdot + (Iz - Nrdot) rdot - Nv v - Nr r = Nd delta
 %
-% The Coriolis and centripetal matrix is computed by (Fossen 2021, Chapter 3)
-%
-%   C = m2c(M, nu)
-%
-% The product C * nu in the model includes the Munk moment: (M22 - M11) u v 
-% in yaw, which has a destabilizing effect on the model for nonzero values 
-% of the product u v.
+% Note that the coefficients Yv, Yr, Nv and Nr in the N(U) matrix includes 
+% linear damping D and the linearized Coriolis and centripetal matrix C(U).
 %
 % Inputs:
 %
-% nu  = [u v r]', 3-DOF velocity vector using m/s and rad/s
-% L  = length (m)
-% B  = beam (m)
-% T  = draft (m)
-% Cb = block coefficient (-), Cb = V / (L*B*T) where V is the displaced volume
-% R66 = radius of gyration in yaw (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
-% xg = x-coordinate of the CG
-% T_surge = (optionally) time constant in surge (default: T_surge = L)
+%  U:   speed (m/s)
+%  L:   length (m)
+%  B:   beam (m)
+%  T:   draft (m)
+%  Cb:  block coefficient (-), Cb = V / (L*B*T) where V is the displaced volume
+%  R66: radius of gyration in yaw (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
+%  xg:  x-coordinate of the CG
+%  T_surge: (optionally) time constant in surge (default: T_surge = L)
 %
 % Reference:  CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
 % manoeuvring criteria in hull design using linear thory. Trans.  R. lnsm nav. 
 % Archit.  125, 45-68. 
 % 
 % Author:    Thor I. Fossen
-% Date:      22. Oct 2020
-% Revisions:   
-
-U = sqrt( nu(1)^2 + nu(2)^2 );  % speed (m/s)
+% Date:      22 Oct 2020
+% Revisions: 14 Jun 2021 - Removed the C matrix and introduced N(U)
 
 % Rigid body parameters
 rho = 1025;                     % density of water
@@ -79,7 +78,7 @@ MA_prime = [ -Xudot   0        0
               0      -Yvdot   -Yrdot
               0      -Nvdot   -Nrdot ];
 
-D_prime = [ -Xu   0  0
+N_prime = [ -Xu   0  0
              0  -Yv -Yr
              0  -Nv -Nr ];
  
@@ -88,9 +87,9 @@ T    = diag([1 1 1/L]);
 Tinv = diag([1 1 L]);
 
 MA = (0.5 * rho * L^3) * Tinv^2 * (T * MA_prime * Tinv);
-D =  (0.5 * rho * L^2 * U) * Tinv^2 * (T * D_prime * Tinv);
+N =  (0.5 * rho * L^2 * U) * Tinv^2 * (T * N_prime * Tinv);
  
 M = MRB + MA;       % system inertia matrix
-C = m2c(M,nu);      % Coriolis and centripetal matrix
+
  
  
