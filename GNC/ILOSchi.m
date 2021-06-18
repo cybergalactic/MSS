@@ -1,15 +1,23 @@
-function chi_d = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt)
-% chi_d = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt) computes the desired 
-% course angle when the path is straight lines going through the waypoints
-% (wpt.pos.x, wpt.pos.y). The desired course angle chi_d is computed using 
-% the ILOS guidance law by Lekkas and Fossen (2014),
+function [chi_d, omega_chi_d] = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt,chi)
+% [chi_d, omega_chi_d]  = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt,chi) 
+% computes the desired course angle and course rate when the path is
+% straight lines going through the waypoints(wpt.pos.x, wpt.pos.y). The 
+% desired course angle chi_d and rate d/dt \chi_d = omega_chi_d (optionally) 
+% used by course autopilot systems are omputed using the roportional LOS 
+% guidance law:
 %
-%  chi_d = pi_p - atan( Kp * y_e + Ki y_int),  Kp = 1/Delta,  Ki = kappa * Kp  
+%  chi_d = pi_p - atan( Kp * y_e + Ki * y_int),  Kp = 1/Delta, Ki = kappa * Kp 
+%  omega_chi_d = -(Kp * Dy_e + Ki * Dy_int) / ( (Kp * y_e + Ki y_int)^2 + 1 )
 %
-%  d(y_int)/dt = U * y_e / sqrt( Delta^2 + (y_e + kappa * y_int)^2 )
+%  Dy_e   = U * sin( chi - pi_p )
+%  Dy_int = U * y_e / sqrt( Delta^2 + (y_e + kappa * y_int)^2 )
 %
 % where pi_p is the path-tangential angle with respect to the North axis
-% and y_e is the cross-track error expressed in NED.
+% and y_e is the cross-track error expressed in NED. The function can be
+% called according to:
+%
+%  chi_d = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt)
+%  [chi_d, omega_chi_d] = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt,chi)
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -17,15 +25,16 @@ function chi_d = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt)
 %   >> clear ILOSchi
 %
 % Inputs:   
-%   (x,y), craft North-East positions (m)
-%   Delta, positive look-ahead distance (m)
-%   kappa, positive integral gain constant, Ki = kappa * Kp
-%   U, speed of the craft (m/s)
-%   h, sampling time (s)
-%   R_switch, go to next waypoint when the along-track distance x_e 
+%   (x,y): craft North-East positions (m)
+%   Delta: positive look-ahead distance (m)
+%   kappa: positive integral gain constant, Ki = kappa * Kp
+%   U: speed of the craft (m/s)
+%   h: sampling time (s)
+%   R_switch: go to next waypoint when the along-track distance x_e 
 %             is less than R_switch (m)
-%   wpt.pos.x = [x1, x2,..,xn]' array of waypoints expressed in NED (m)
-%   wpt.pos.y = [y1, y2,..,yn]' array of waypoints expressed in NED (m)
+%   wpt.pos.x = [x1, x2,..,xn]': array of waypoints expressed in NED (m)
+%   wpt.pos.y = [y1, y2,..,yn]': array of waypoints expressed in NED (m)
+%   chi: course angle (rad), only needed for computation of omega_chi_d
 %
 % Feasibility citerion: 
 %   The switching parameter R_switch > 0 must satisfy, R_switch < dist, 
@@ -34,7 +43,8 @@ function chi_d = ILOSchi(x,y,Delta,kappa,h,U,R_switch,wpt)
 %                  + (wpt.pos.y(k+1)- wpt.pos.y(k))^2 );
 %
 % Outputs:  
-%    chi_d, desired course angle (rad)
+%    chi_d: desired course angle (rad)
+%    omegs_chi_d: desired course rate (rad/s)
 %
 % For heading control use the functions LOSpsi.m and ILOSpsi.m.
 %
@@ -111,8 +121,17 @@ Kp = 1/Delta;
 Ki = kappa * Kp;
 chi_d = pi_p - atan( Kp * y_e + Ki * y_int );
 
+% kinematic differential equations
+Dy_e   = U * sin(chi-pi_p);
+Dy_int = U * y_e / sqrt( Delta^2 + (y_e + kappa * y_int)^2 );
+
+% Course rate (optionally)
+if (nargin == 9)
+    omega_chi_d = -(Kp * Dy_e + Ki * Dy_int) / ((Kp * y_e + Ki * y_int)^2 + 1);
+end
+
 % Euler integration
-y_int = y_int + h * U * y_e / sqrt( Delta^2 + (y_e + kappa * y_int)^2 );
+y_int = y_int + h * Dy_int;
 
 end
 
