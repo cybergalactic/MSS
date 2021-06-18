@@ -7,7 +7,7 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %
 %  chi_d = pi_p - atan( Kp * y_e ),    Kp = 1/Delta  
 %
-%  omega_chi_d = -Kp * U * sin(chi-pi_p) / ( (Kp * y_e)^2 + 1);
+%  omega_chi_d = -Kp * U * sin( chi - pi_p ) / ( (Kp * y_e)^2 + 1);
 %
 % where pi_p is the path-tangential angle with respect to the North axis
 % and y_e is the cross-track error expressed in NED. The function can be
@@ -109,9 +109,12 @@ end
 Kp = 1/Delta;
 chi_d = pi_p - atan( Kp * y_e );
 
+% kinematic differential equations
+Dy_e = U * sin( chi - pi_p );
+
 % Course rate (optionally)
 if (nargin == 7)
-    omega_chi_d = -Kp * U * sin(chi-pi_p) / ( (Kp * y_e)^2 + 1);
+    omega_chi_d = -Kp * Dy_e / ( (Kp * y_e)^2 + 1);
 end
 
 end
