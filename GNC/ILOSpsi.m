@@ -1,15 +1,15 @@
 function psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
-% psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt) computes the desired 
-% course angle when the path is straight lines going through the waypoints
+% psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi) computes the desired 
+% heading angle when the path is straight lines going through the waypoints
 % (wpt.pos.x, wpt.pos.y). The desired heading angle psi_d is computed using 
 % the ILOS guidance law by Børhaug et al. (2008),
 %
-%  psi_d = pi_p - atan( Kp * y_e + Ki y_int),  Kp = 1/Delta,  Ki = kappa * Kp  
+%  psi_d = pi_p - atan( Kp * y_e + Ki * y_int), Kp = 1/Delta, Ki = kappa * Kp  
 %
-%  d(y_int)/dt = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
+%  Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
 %
 % where pi_p is the path-tangential angle with respect to the North axis
-% and y_e is the cross-track error expressed in NED.
+% and y_e is the cross-track error expressed in NED. 
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -33,8 +33,8 @@ function psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %      dist = sqrt(  (wpt.pos.x(k+1)-wpt.pos.x(k))^2 
 %                  + (wpt.pos.y(k+1)- wpt.pos.y(k))^2 );
 %
-% Outputs:  
-%    psi_d, desired heading angle (rad)
+% Output:  
+%    psi_d: desired heading angle (rad)
 %
 % For course control use the functions LOSchi.m and ILOSchi.m.
 %
@@ -109,8 +109,11 @@ Kp = 1/Delta;
 Ki = kappa * Kp;
 psi_d = pi_p - atan( Kp * y_e + Ki * y_int );
 
+% kinematic differential equation
+Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
+
 % Euler integration
-y_int = y_int + h * Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
+y_int = y_int + h * Dy_int;
 
 end
 
