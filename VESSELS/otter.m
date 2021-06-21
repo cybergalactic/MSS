@@ -34,6 +34,7 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
 % Revisions: 2021-04-25 added call to new fucntion crossFlowDrag.m
+%            2021-06-21 assume that the Munk moment in yaw is small
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -105,6 +106,8 @@ Nrdot = -1.7 * Ig(3,3);
 
 MA = -diag([Xudot, Yvdot, Zwdot, Kpdot, Mqdot, Nrdot]);   
 CA  = m2c(MA, nu);
+CA(6,1) = 0; % Assume that the Munk momeny in yaw can be neglected
+CA(6,2) = 0; % These terms, if nonzero, must be balanced by adding nonlinear damping
 
 % System mass and Coriolis-centripetal matrices
 M = MRB + MA;
@@ -187,7 +190,7 @@ g_0 = [ 0 0 0 0 320 0]';
 
 % Time derivative of the state vector - numerical integration; see ExOtter.m  
 xdot = [ M \ ( tau + [Xh Yh Zh Kh Mh Nh]' - C * nu_r - G * eta - g_0)
-         J * nu ];
+         J * nu ];   
 
 end
 
