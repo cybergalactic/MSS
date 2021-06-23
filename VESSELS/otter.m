@@ -33,8 +33,8 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
-% Revisions: 2021-04-25 added call to new fucntion crossFlowDrag.m
-%            2021-06-21 assume that the Munk moment in yaw is small
+% Revisions: 2021-04-25 added call to new function crossFlowDrag.m
+%            2021-06-21 Munk moment in yaw is neglected
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -64,9 +64,10 @@ Cb_pont = 0.4;      % block coefficient, computed from m = 55 kg
 % State and current variables
 nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % velocities
 eta = x(7:12);                              % positions
-U = sqrt(nu(1)^2 + nu(2)^2);                % speed
+U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % speed
 u_c = V_c * cos(beta_c - eta(6));           % current surge velocity
-v_c = V_c * sin(beta_c - eta(6));           % current sway velocitu
+v_c = V_c * sin(beta_c - eta(6));           % current sway velocity
+nu_r = nu - [u_c v_c 0 0 0 0]';             % relative velocity vector
 
 % Inertia dyadic, volume displacement and draft
 nabla = (m+mp)/rho;                         % volume
@@ -105,8 +106,8 @@ Mqdot = -0.8 * Ig(2,2);
 Nrdot = -1.7 * Ig(3,3);
 
 MA = -diag([Xudot, Yvdot, Zwdot, Kpdot, Mqdot, Nrdot]);   
-CA  = m2c(MA, nu);
-CA(6,1) = 0; % Assume that the Munk momeny in yaw can be neglected
+CA  = m2c(MA, nu_r);
+CA(6,1) = 0; % Assume that the Munk moment in yaw can be neglected
 CA(6,2) = 0; % These terms, if nonzero, must be balanced by adding nonlinear damping
 
 % System mass and Coriolis-centripetal matrices
@@ -141,13 +142,13 @@ w3 = sqrt( G33/M(3,3) );
 w4 = sqrt( G44/M(4,4) );
 w5 = sqrt( G55/M(5,5) );
 
-% Linear damping terms (hydrodynamic derivaties)
-Xu = -24.4 * g / Umax;           % speciifed using the maximum speed        
+% Linear damping terms (hydrodynamic derivatives)
+Xu = -24.4 * g / Umax;           % specified using the maximum speed        
 Yv = 0;
 Zw = -2 * 0.3 *w3 * M(3,3);      % specified using relative damping factors
 Kp = -2 * 0.2 *w4 * M(4,4);
 Mq = -2 * 0.4 *w5 * M(5,5);
-Nr = -M(6,6)/T_yaw;              % specified using the time const T_yaw
+Nr = -M(6,6) / T_yaw;            % specified using the time constant in T_yaw
 
 % Control forces and moments - with propeller revolution saturation 
 Thrust = zeros(2,1);
@@ -168,14 +169,13 @@ end
 % Control forces and moments
 tau = [Thrust(1) + Thrust(2) 0 0 0 0  -l1 * Thrust(1) - l2 * Thrust(2) ]';
 
-% Linear damping using relative velcoities
-nu_r = nu - [u_c v_c 0 0 0 0]';
+% Linear damping using relative velocities + nonlinear yaw damping
 Xh = Xu * nu_r(1);
 Yh = Yv * nu_r(2); 
 Zh = Zw * nu_r(3);
 Kh = Kp * nu_r(4);
 Mh = Mq * nu_r(5);
-Nh = Nr * nu_r(6);
+Nh = Nr * (1 + 10 * abs(nu_r(6))) * nu_r(6);
 
 % Strip theory: cross-flow drag integrals for Yh and Nh
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
@@ -185,7 +185,7 @@ Nh = Nh + tau_crossflow(6);
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
-% trim: theta = -7.5 deg correponds to 13.5 cm less height aft maximum load
+% trim: theta = -7.5 deg corresponds to 13.5 cm less height aft maximum load
 g_0 = [ 0 0 0 0 320 0]';
 
 % Time derivative of the state vector - numerical integration; see ExOtter.m  
@@ -193,4 +193,3 @@ xdot = [ M \ ( tau + [Xh Yh Zh Kh Mh Nh]' - C * nu_r - G * eta - g_0)
          J * nu ];   
 
 end
-
