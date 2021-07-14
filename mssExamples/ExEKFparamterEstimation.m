@@ -1,9 +1,17 @@
-% Discrete-time extended Kalman filter (EKF) with one unknown parameter a
+% Discrete-time extended Kalman filter (EKF) implementation demonstrating
+% how the "predictor-corrector representation" can be be used to estimate 
+% unknown states and parameters in the nonlinear model:
 % 
 %   dx1/dt = x2
 %   dx2/dt = a * x2 * abs(x2) + b * u + white noise
 %   da/dt = white noise
 %        y = x1 + white noise
+%
+% where x3 = a is an unknown parameter.
+%
+% Author:    Thor I. Fossen
+% Date:      14 July 2021
+% Revisions: 
 
 %% USER INPUTS
 h  = 0.05;                      % sampling time [s]
