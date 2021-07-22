@@ -35,10 +35,21 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Date:      2019-07-17
 % Revisions: 2021-04-25 added call to new function crossFlowDrag.m
 %            2021-06-21 Munk moment in yaw is neglected
+%            2021-07-22 Added a new state for the trim moment
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
 if (length(n) ~= 2),error('n vector must have dimension 2!'); end
+
+% trim: theta = -7.5 deg corresponds to 13.5 cm less height aft maximum load
+trim_setpoint = 280;
+
+% trim_setpoint is a step input, which is filtered using the state trim_moment
+persistent trim_moment;
+
+if isempty(trim_moment)
+   trim_moment = 0;
+end
 
 % Main data
 g   = 9.81;         % acceleration of gravity (m/s^2)
@@ -50,7 +61,7 @@ rg = [0.2 0 -0.2]'; % CG for hull only (m)
 R44 = 0.4 * B;      % radii of gyrations (m)
 R55 = 0.25 * L;
 R66 = 0.25 * L;
-T_yaw = 0.5;        % time constant in yaw (s)
+T_yaw = 1;          % time constant in yaw (s)
 Umax = 6 * 0.5144;  % max forward speed (m/s)
 
 % Data for one pontoon
@@ -167,7 +178,7 @@ for i = 1:1:2
 end
 
 % Control forces and moments
-tau = [Thrust(1) + Thrust(2) 0 0 0 0  -l1 * Thrust(1) - l2 * Thrust(2) ]';
+tau = [Thrust(1) + Thrust(2) 0 0 0 0 -l1 * Thrust(1) - l2 * Thrust(2) ]';
 
 % Linear damping using relative velocities + nonlinear yaw damping
 Xh = Xu * nu_r(1);
@@ -177,19 +188,21 @@ Kh = Kp * nu_r(4);
 Mh = Mq * nu_r(5);
 Nh = Nr * (1 + 10 * abs(nu_r(6))) * nu_r(6);
 
+tau_damp = [Xh Yh Zh Kh Mh Nh]';
+
 % Strip theory: cross-flow drag integrals for Yh and Nh
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
-Yh = Yh + tau_crossflow(2);
-Nh = Nh + tau_crossflow(6);
+
+% Ballast
+g_0 = [0 0 0 0 trim_moment 0]';
 
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
-% trim: theta = -7.5 deg corresponds to 13.5 cm less height aft maximum load
-g_0 = [ 0 0 0 0 320 0]';
-
 % Time derivative of the state vector - numerical integration; see ExOtter.m  
-xdot = [ M \ ( tau + [Xh Yh Zh Kh Mh Nh]' - C * nu_r - G * eta - g_0)
-         J * nu ];   
+xdot = [ M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta - g_0)
+         J * nu ];  
+     
+trim_moment = trim_moment + 0.05 * (trim_setpoint - trim_moment);
 
 end
