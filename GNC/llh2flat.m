@@ -1,10 +1,10 @@
 function [x,y,z] = llh2flat(l,mu,h,l0,mu0,h_ref)
 % [x,y,z] = LLH2FLAT(l,mu,h,l0,mu0,h_ref) computes (x,y,z) for a flat Earth
 % coordinate system from longitude l (rad), latitude mu (rad) and height h (m) 
-% using the WGS-84 ellipsoid.  The flat Earth coordinate origin is located 
-% at (l0, mu0) with reference height h_ref in meters above the surface of 
-% the Earth. Both h and h_ref are positive upwards, while z is postive
-% downwards (NED).
+% above the surface of the WGS-84 elipsoid. The flat Earth coordinate 
+% origin is located  at (l0, mu0) with reference height h_ref in meters 
+% above the surface of the WGS-84 elipsoid. Both h and h_ref are positive 
+% upwards, while z is postive downwards (NED).
 %
 % Author:    Thor I. Fossen
 % Date:      20 July 2018
