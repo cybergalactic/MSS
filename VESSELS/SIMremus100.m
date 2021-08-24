@@ -21,8 +21,9 @@ n = 0;                  % propeller revolution (rpm)
 z_d = 0;                % depth (m)
 psi_d = 0;              % heading angle (rad)
 
-% ocean current velcoities expressed in BODY
-v_current = [0.5 -0.1 0]';
+% ocean current velcoities expressed in NED
+Vc = 0.5;                     % speed (m/s)
+betaVc = -10 * pi/180;        % direction (rad)
 
 % controller gains
 Kp_z = 0.1;                   % depth controller
@@ -71,7 +72,7 @@ for i = 1:N+1
    simdata(i,:) = [t x' ui'];   
    
    % Euler integration (k+1)
-   x = x + h * remus100(x,ui,v_current);                	   
+   x = x + h * remus100(x,ui,Vc,betaVc);                	   
    
 end
 
