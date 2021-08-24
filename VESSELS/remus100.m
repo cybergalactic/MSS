@@ -1,5 +1,5 @@
-function [xdot,U] = remus100(x,ui,v_current)
-% [xdot,U] = remus100(x,ui,v_current) returns the time derivative of the 
+function [xdot,U] = remus100(x,ui,Vc,betaVc)
+% [xdot,U] = remus100(x,ui,Vc,betaVc) returns the time derivative of the 
 % state vector: x = [ u v w p q r x y z phi theta psi ]' and speed U in m/s  
 % (optionally) for the Remus 100 autonomous underwater vehicle (AUV). The 
 % length of the AUV is L = 1.7 m, while the state vector is defined as:
@@ -25,12 +25,12 @@ function [xdot,U] = remus100(x,ui,v_current)
 %    delta_s:   aft stern plane (rad) 
 %    n:         propeller revolution (rpm)
 %
-% The last argument v_current is an optional argument for ocean current 
-% velocities v_current = [u_c v_c w_c]' expressed in the BODY frame.
+% The last arguments Vc and betaVc are optional arguments for ocean current 
+% speed and direction expressed in NED.
 %
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
-% Revisions: 
+% Revisions: 24 Aug 2021 - the ocean current is now expressed in NED 
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -48,12 +48,19 @@ delta_r = ui(1);        % tail rudder (rad)
 delta_s = ui(2);        % stern plane (rad)
 n = ui(3)/60;           % propeller revolution (rps)
 
+% Ocean currents expressed in BODY
+if (nargin == 2)
+    Vc = 0;
+    betaVc = 0;
+end
+u_c = Vc * cos( betaVc - eta(6) );                               
+v_c = Vc * sin( betaVc - eta(6) );   
+
 % Amplitude saturation of control signals
 max_ui = [30*pi/180 50*pi/180  1500/60]';  % deg, deg, rps
 
 % Relative velocities, speed and angle of attack
-if (nargin == 2), v_current = [0 0 0]'; end
-nu_r = nu - [v_current' 0 0 0]';                  % relative velocity vevctor
+nu_r = nu - [u_c v_c 0 0 0 0]';                   % relative velocity
 alpha = atan2( nu_r(3), nu_r(1) );                % angle of attack (rad)
 U_r = sqrt( nu_r(1)^2 + nu_r(2)^2 + nu_r(3)^2 );  % relative speed (m/s)
 U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % speed (m/s)
