@@ -37,11 +37,11 @@ function [CL,CD] = coeffLiftDrag(b,S,CD_0,alpha,sigma,display)
 %
 % Examples:
 %
-% Cylinder-shaped AUV with length L = 1.8, diameter D = 0.2 and CD_0 = 0.1:
+% Cylinder-shaped AUV with length L = 1.8, diameter D = 0.2 and CD_0 = 0.3:
 %    alpha = 0.1 * pi/180;
-%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.1, alpha, 0.2)
+%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.3, alpha, 0.2)
 %    alpha = (-5:1:80)*pi/180;
-%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.1, alpha, 0.2, 1)
+%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.3, alpha, 0.2, 1)
 % 
 % Author:    Thor I. Fossen
 % Date:      25 April 2021 
