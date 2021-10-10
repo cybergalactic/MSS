@@ -31,6 +31,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
 % Revisions: 24 Aug 2021 - the ocean current is now expressed in NED 
+%            10 Oct 2021 - Increased the parasetic drag (alpha = 0) to 0.2
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -68,7 +69,7 @@ U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % speed (m/s)
 % AUV model parameters (Section 8.4.2)
 L_auv = 1.7;                        % AUV length (m)
 D_auv = 0.19;                       % AUV diamater (m)
-CD_0 = 0.01;                        % parasitic drag
+CD_0 = 0.2;                         % parasitic drag
 S = 0.7 * L_auv * D_auv;            % S = 70% of rectangle L_auv * D_auv
 a = L_auv/2;                        % semi-axes
 b = D_auv/2;                  
