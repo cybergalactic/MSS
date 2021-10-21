@@ -32,7 +32,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % Date:      27 May 2021
 % Revisions: 24 Aug 2021 - the ocean current is now expressed in NED 
 %            10 Oct 2021 - Increased the parasetic drag (alpha = 0) to 0.2
-#            21 Oct 2021 - implay61.m is called using the relative velocity
+%            21 Oct 2021 - implay61.m is called using the relative velocity
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
