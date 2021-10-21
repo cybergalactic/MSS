@@ -32,6 +32,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % Date:      27 May 2021
 % Revisions: 24 Aug 2021 - the ocean current is now expressed in NED 
 %            10 Oct 2021 - Increased the parasetic drag (alpha = 0) to 0.2
+#            21 Oct 2021 - implay61.m is called using the relative velocity
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -103,7 +104,7 @@ T6 = 5;                  % time constant in yaw (s)
 
 % mass and added mass
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
-[MA,CA] = imlay61(a, b, nu, r44);
+[MA,CA] = imlay61(a, b, nu_r, r44);
 
 % nonlinear quadratic velocity terms in pitch and yaw (Munk moments) 
 % are cancelled since only linear damping is used
