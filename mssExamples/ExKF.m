@@ -84,7 +84,7 @@ for i=1:N+1
        
        % corrector
        P_hat = IKC * P_prd * IKC' + K * Rd * K';   
-       x_hat = x_prd + K * ssa(y - Cd * x_prd);   % smallest signed angle
+       x_hat = x_prd + K * ssa(y - Cd * x_prd, 'deg');   % smallest signed angle
    else
        P_hat =P_prd;                % no measurement
        x_hat = x_prd;
