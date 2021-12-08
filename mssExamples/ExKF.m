@@ -19,7 +19,8 @@
 % Author:    Thor I. Fossen
 % Date:      17 Oct 2018
 % Revisions: 28 Feb 2020, minor updates of notation
-%            29 Mar 2020, added ssa(), new logic for no measurements 
+%            29 Mar 2020, added ssa() and new logic for no measurements 
+%            8 Dec 2021,  map inital yaw angle to [-pi, pi)
 
 %% USER INPUTS
 f_s = 10;    % sampling frequency [Hz]
@@ -56,7 +57,7 @@ x = [0 0]';
 u = 0;
 
 % initialization of Kalman filter
-x_prd = [0 0]';        
+x_prd = [ssa(10) 0]';                  % map inital yaw angle to [-pi, pi)
 P_prd = diag([1 1]);
 Qd = 1;
 Rd = 10;
