@@ -35,7 +35,7 @@ function [x_ins, P_prd] = ...
 %
 % Author:    Thor I. Fossen
 % Date:      26 March 2020
-% Revisions: 
+% Revisions: 12 Dec 2021 - replaced Euler's method with exact discretization
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -152,12 +152,11 @@ end
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % INS propagation: x_ins[k+1]
-p_ins = p_ins + h * v_ins;
-v_ins = v_ins + h * (R * f_ins + g_n);
-q_ins = q_ins + h * T * w_ins;
-q_ins = q_ins / sqrt(q_ins' * q_ins); % normalization
-
-%psi_ins = psi_ins + h * T(3,:) * w_ins;
+a_ins = R * f_ins + g_n;                            % linear acceleration
+p_ins = p_ins + h * v_ins + h^2/2 * a_ins;          % exact discretization
+v_ins = v_ins + h * a_ins;                          % exact discretization
+q_ins = q_ins + h * T * w_ins;                      % Euler's method
+q_ins = q_ins / sqrt(q_ins' * q_ins);               % normalization
 
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 
