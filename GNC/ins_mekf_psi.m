@@ -35,7 +35,7 @@ function [x_ins, P_prd] = ...
 %
 % Author:    Thor I. Fossen
 % Date:      26 March 2020
-% Revisions: 12 Dec 2021 - replaced Euler's method with exact discretization
+% Revisions: 13 Dec 2021 - replaced Euler's method with exact discretization
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -59,9 +59,8 @@ I3 = eye(3);
 % Reference vectors
 v01 = [0 0 1]';             % gravity
 
-% Attitude matrices
+% Rotation matrix
 R = Rquat(q_ins);
-T = Tquat(q_ins);
 
 % Bias compensated IMU measurements
 f_ins = f_imu - b_acc_ins;
@@ -152,11 +151,12 @@ end
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % INS propagation: x_ins[k+1]
-a_ins = R * f_ins + g_n;                            % linear acceleration
-p_ins = p_ins + h * v_ins + h^2/2 * a_ins;          % exact discretization
-v_ins = v_ins + h * a_ins;                          % exact discretization
-q_ins = q_ins + h * T * w_ins;                      % Euler's method
-q_ins = q_ins / sqrt(q_ins' * q_ins);               % normalization
+a_ins = R * f_ins + g_n;                     % linear acceleration
+p_ins = p_ins + h * v_ins + h^2/2 * a_ins;   % exact discretization
+v_ins = v_ins + h * a_ins;                   % exact discretization
+q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % exact discretization
+% q_ins = q_ins + h * Tquat(q_ins) * w_ins;  % Euler's method (alternative)
+q_ins = q_ins / sqrt(q_ins' * q_ins);        % normalization
 
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 
