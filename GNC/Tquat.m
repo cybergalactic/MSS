@@ -1,6 +1,6 @@
 function T = Tquat(u)
 % Tq = Tquat(q) computes the quaternion transformation matrix Tq of 
-%   dimension for 4 x 3 for attitude such that q_dot = Tq * w 
+%   dimension 4 x 3 for attitude such that q_dot = Tq * w 
 % Tw = Tquat(w) computes the quaternion transformation matrix Tw of
 %   dimension 4 x 4 for attitude such that q_dot = Tw * q
 %
