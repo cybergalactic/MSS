@@ -4,11 +4,17 @@ function [phi,theta,psi] = q2euler(q)
 %
 % Author:    Thor I. Fossen
 % Date:      2001-06-14  
-% Revisions: 2021-12-15 Added test to avoid abs(asin) > 1, i.e. norm(q) > 1
+% Revisions: 2021-12-15 Added tests to avoid R(3,1) > 1 and norm(q) > 1
 
-q = q / norm(q);      % normalize q, handle round-off errors 
+q = q / norm(q);            % normalize q, handle round-off errors 
 R = Rquat(q);
 
 phi   = atan2(R(3,2),R(3,3));
-theta = -asin(R(3,1));
+
+if (abs( R(3,1 )) > 1)      % handle NaN due to round-off errors
+    R(3,1) = sign(R(3,1));
+else
+    theta = -asin(R(3,1));
+end
+
 psi   = atan2(R(2,1),R(1,1));
