@@ -15,8 +15,8 @@
 %
 % Conversions:
 %  conversion       - defines the conversion factors R2D, D2R, MS2KNOTS, KNOTS2MS
-%  ssa(angle,'deg') - maps an angle in deg to the interval (-180, 180]
-%  ssa(angle,'rad') - maps an angle in rad to the interval (-pi pi] 
+%  ssa(angle,'deg') - maps an angle in deg to the interval [-180, 180)
+%  ssa(angle,'rad') - maps an angle in rad to the interval [-pi pi)
 %    
 % Control allocation and propeller models:
 %  ucalloc     - Unconstrained control allocation for tau = T*K*u (T=K=constant)
@@ -95,10 +95,11 @@
 %  Dmtrx      - Lnear damping matrix for marine craft (submerged and floating)
 %  Hmtrx      - system transformation matrix
 %  Gmtrx      - Gravitational-buoyancy matrix (floating vessels)
-%  gvect      - Gravitational-buoyancy vector (submerged vehicles)
+%  gvect      - Gravitational-buoyancy vector, Euler angle inputs (submerged vehicles)
+%  gRvect     - Gravitational-buoyancy vector, rotation matrix inputs (submerged vehicles)
 %  imlay61    - Hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
 %  m2c        - System inertia to Coriolis-centripetal transformation matrix
-%  rbody      - Computes MRB and CRB(nu) for a genetal rigid body
+%  rbody      - Computes MRB and CRB(nu) for a general rigid body
 %  spheriod   - Computes MRB and CRB(nu) for a spheroid-shaped body
 %
 % Ships models:
