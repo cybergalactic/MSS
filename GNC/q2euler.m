@@ -4,7 +4,7 @@ function [phi,theta,psi] = q2euler(q)
 %
 % Author:    Thor I. Fossen
 % Date:      2001-06-14  
-% Revisions: 2021-12-15 Added tests to avoid R(3,1) > 1 and norm(q) > 1
+% Revisions: 2021-12-15 Added tests to avoid abs(R(3,1)) > 1 and norm(q) > 1
 
 q = q / norm(q);            % normalize q, handle round-off errors 
 R = Rquat(q);
