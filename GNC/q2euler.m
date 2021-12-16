@@ -9,7 +9,7 @@ function [phi,theta,psi] = q2euler(q)
 q = q / norm(q);            % normalize q, handle round-off errors 
 R = Rquat(q);
 
-phi   = atan2(R(3,2),R(3,3));
+phi = atan2(R(3,2),R(3,3));
 
 if (abs( R(3,1 )) > 1)      % handle NaN due to round-off errors
     R(3,1) = sign(R(3,1));
@@ -17,4 +17,4 @@ else
     theta = -asin(R(3,1));
 end
 
-psi   = atan2(R(2,1),R(1,1));
+psi = atan2(R(2,1),R(1,1));
