@@ -3,18 +3,19 @@
 %
 % Calls:      remus100.m
 %
-% Author:    Thor I. Fossen
-% Date:      2021-06-28
-% Revisions: 
+% Author:     Thor I. Fossen
+% Date:       2021-06-28
+% Revisions:  2021-12-16 retuning of the autpilots, added integral action
 
 clearvars;
 
 %% USER INPUTS
 h  = 0.05;               % sample time (s)
-N  = 10000;              % number of samples
+N  = 20000;              % number of samples
 
 % initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1);
+z_int = 0;
 
 % initial setpoints
 n = 0;                  % propeller revolution (rpm)
@@ -27,8 +28,9 @@ betaVc = -10 * pi/180;        % direction (rad)
 
 % controller gains
 Kp_z = 0.1;                   % depth controller
-Kp_theta = 0.2;             
-Td_theta = 1.0;
+T_z = 1000;
+Kp_theta = 0.6;             
+Kd_theta = 1.0;
 
 Kp_psi = 0.8;                 % heading autopilot
 Kd_psi = 1; 
@@ -39,26 +41,26 @@ for i = 1:N+1
     
    t = (i-1)*h;             % time
    
-   % Depth controller (succesive loop closure)    
+   % depth controller (succesive-loop closure)    
    if t > 100
-       z_ref = 50;
+       z_ref = 20;
    else
        z_ref = 0;
    end
    z_d = exp(-h/10) * z_d + (1 - exp(-h/10)) * z_ref;  % LP filter
    
-   theta_d = Kp_z * (x(9) - z_d);   
-   delta_s = -Kp_theta * ( ssa( x(11) - theta_d ) - Td_theta * x(5) );
+   theta_d = Kp_z * ( (x(9) - z_d) + (1/T_z) * z_int );                % PI 
+   delta_s = -Kp_theta * ( ssa( x(11) - theta_d ) - Kd_theta * x(5) ); % PD
    
-   % Heading controller
+   % heading controller
    if t > 150
       psi_ref = -40 * pi/180;
    else
        psi_ref = 0;
    end   
-   psi_d = exp(-h/5) * psi_d + (1 - exp(-h/5)) * psi_d;  % LP filter
+   psi_d = exp(-h/5) * psi_d + (1 - exp(-h/5)) * psi_ref;  % LP filter
    
-   delta_r = -Kp_psi * ssa( x(12) - psi_ref ) - Kd_psi * x(6);
+   delta_r = -Kp_psi * ssa( x(12) - psi_d ) - Kd_psi * x(6);           % PD
 
    % propeller revolution (rpm)
    if (n < 1500)
@@ -72,7 +74,8 @@ for i = 1:N+1
    simdata(i,:) = [t x' ui'];   
    
    % Euler integration (k+1)
-   x = x + h * remus100(x,ui,Vc,betaVc);                	   
+   z_int = z_int + h * (x(9) - z_d);
+   x = x + h * remus100(x,ui,Vc,betaVc);    
    
 end
 
