@@ -19,11 +19,11 @@ function [A11,ratio] = addedMassSurge(m,L,rho)
 %   A11 = addedMassSurge(m,L,rho)
 %   [A11,ratio] = addedMassSurge(m,L,rho)
 %
-% Ref. H. Söding (1982). Prediction of Ship Steering Capabilities. 
-%      Schiffstechnik, 3-29.
+% Reference: H. Söding (1982). Prediction of Ship Steering Capabilities. 
+%   Schiffstechnik, 3-29.
 %  
 % Author:    Thor I. Fossen
-% Date:      16 Dec 2021
+% Date:      17 Dec 2021
 % Revisions: 
 
 if (nargin == 2)
