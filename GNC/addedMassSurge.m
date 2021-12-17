@@ -2,7 +2,7 @@ function [A11,ratio] = addedMassSurge(m,L,rho)
 % A11 = addedMassSurge(m,L,rho) approximates the added mass in surge by
 % the formula of Söding (1982):
 %
-%   A11 = -X_udot = 2.7 * rho * nabla^(5/3) / L^2
+%   A11 = -Xudot = 2.7 * rho * nabla^(5/3) / L^2
 %
 % Output:  
 %   A11: added mass in surge due to a linear acceleration in surge (kg)
