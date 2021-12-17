@@ -10,7 +10,7 @@ function [A11,ratio] = addedMassSurge(m,L,rho)
 %          typical values are ratios < 0.20.
 %
 % Inputs:   
-%   m: mass (kg)
+%   m: ship/vehicle mass (kg)
 %   L: ship/vehicle length (m)
 %   rho: density of water, default value 1025 (kg/m3)
 %
