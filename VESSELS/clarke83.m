@@ -39,7 +39,8 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 % 
 % Author:    Thor I. Fossen
 % Date:      22 Oct 2020
-% Revisions: 14 Jun 2021 - Removed the C matrix and introduced N(U)
+% Revisions: 14 Jun 2021 Removed the C matrix and introduced N(U)
+%            17 Dec 2021 Xudot is computed by Xudot = -addedMassSurge(m,L)
 
 % Rigid body parameters
 rho = 1025;                     % density of water
@@ -52,7 +53,7 @@ MRB = [ m   0       0           % rigid-body inertia matrix
         0   m*xg    Iz      ];
 
 % Nondimenisonal hydrodynamic derivatives in surge
-Xudot = -0.1 * m;
+Xudot = -addedMassSurge(m,L);
 if (nargin == 7)
     T_surge = L; 
 end
