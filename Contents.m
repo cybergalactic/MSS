@@ -91,6 +91,7 @@
 %  conversion - loads a set of useful conversion factors to workspace, D2R, R2D, MS2KNOTS etc.
 %  coeffLiftDrag - lift/drag coefficients as a function of angle of attack of a submerged "wing profile"
 %  forceLiftDrag - lift and drag forces as a function of angle of attack of a submerged "wing profile" 
+%  forceSurgeDamping - linear and quadratic damping forces in surge
 %  crossFlowDrag - crossflow drag computed from strip theory integrals
 %  Dmtrx      - Lnear damping matrix for marine craft (submerged and floating)
 %  Hmtrx      - system transformation matrix
