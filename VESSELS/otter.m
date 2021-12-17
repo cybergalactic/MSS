@@ -36,6 +36,7 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Revisions: 2021-04-25 added call to new function crossFlowDrag.m
 %            2021-06-21 Munk moment in yaw is neglected
 %            2021-07-22 Added a new state for the trim moment
+%            2021-12-17 New method Xudot = -addedMassSurge(m,L,rho) 
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -109,7 +110,7 @@ MRB = H' * MRB_CG * H;
 CRB = H' * CRB_CG * H;
 
 % Hydrodynamic added mass (best practise)
-Xudot = -0.1 * m;   
+Xudot = -addedMassSurge(m,L,rho);   
 Yvdot = -1.5 * m;
 Zwdot = -1.0 * m;
 Kpdot = -0.2 * Ig(1,1);
@@ -154,7 +155,7 @@ w4 = sqrt( G44/M(4,4) );
 w5 = sqrt( G55/M(5,5) );
 
 % Linear damping terms (hydrodynamic derivatives)
-Xu = -24.4 * g / Umax;           % specified using the maximum speed        
+Xu = -24.4 * g / Umax;           % specified using the maximum speed  
 Yv = 0;
 Zw = -2 * 0.3 *w3 * M(3,3);      % specified using relative damping factors
 Kp = -2 * 0.2 *w4 * M(4,4);
