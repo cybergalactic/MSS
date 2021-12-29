@@ -89,20 +89,20 @@ for i=1:N+1
    
    % store simulation data in a table   
    simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
-
-   % discrete-time extended KF-model
-   f_hat = [ x_hat(2)
-             a * x_hat(2) * abs(x_hat(2)) + b * u ];
-   f_d   = x_hat + h * f_hat;
       
    % Predictor (k+1)  
    % Ad = I + h * A and Ed = h * E
    % where A = df/dx is linearized about x = x_hat
    Ad   = [ 1   h
-             0  1 + h*2*a*abs(x_hat(2)) ];   
+            0   1 + h*a*abs(x_hat(2)) ];   
    Ed = h * E; 
    
-   x_prd = f_d;
+   Bd = [0;
+         b*h];
+   
+   x_prd = Ad*x_hat + Bd*u;
+   
+   
    P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
    
    % Euler integration (k+1)
