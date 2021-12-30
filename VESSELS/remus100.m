@@ -30,9 +30,10 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
-% Revisions: 24 Aug 2021 - the ocean current is now expressed in NED 
-%            10 Oct 2021 - Increased the parasetic drag (alpha = 0) to 0.2
-%            21 Oct 2021 - implay61.m is called using the relative velocity
+% Revisions: 24 Aug 2021, The ocean current is now expressed in NED 
+%            10 Oct 2021, Increased the parasetic drag (alpha = 0) to 0.2
+%            21 Oct 2021, implay61.m is called using the relative velocity
+%            30 Dec 2021, Added the time derivative of the current velocity
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -58,11 +59,14 @@ end
 u_c = Vc * cos( betaVc - eta(6) );                               
 v_c = Vc * sin( betaVc - eta(6) );   
 
+nu_c = [u_c v_c 0 0 0 0]';                  % ocean current velocities
+Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]';    % time derivative of nu_c
+
 % Amplitude saturation of control signals
-max_ui = [30*pi/180 50*pi/180  1500/60]';  % deg, deg, rps
+max_ui = [30*pi/180 50*pi/180  1500/60]';   % deg, deg, rps
 
 % Relative velocities, speed and angle of attack
-nu_r = nu - [u_c v_c 0 0 0 0]';                   % relative velocity
+nu_r = nu - nu_c;                                 % relative velocity
 alpha = atan2( nu_r(3), nu_r(1) );                % angle of attack (rad)
 U_r = sqrt( nu_r(1)^2 + nu_r(2)^2 + nu_r(3)^2 );  % relative speed (m/s)
 U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % speed (m/s)
@@ -159,6 +163,6 @@ tau(6) = N_r;
 
 % state-space model
 xdot = [...
-    M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
-    J * nu ];
+  Dnu_c + M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
+  J * nu ];
 
