@@ -29,10 +29,10 @@ betaVc = -10 * pi/180;        % direction (rad)
 % controller gains
 Kp_z = 0.1;                   % depth controller
 T_z = 1000;
-Kp_theta = 0.6;             
+Kp_theta = 1.0;             
 Kd_theta = 1.0;
 
-Kp_psi = 0.8;                 % heading autopilot
+Kp_psi = 0.5;                 % heading autopilot
 Kd_psi = 1; 
    
 %% MAIN LOOP
