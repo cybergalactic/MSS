@@ -17,12 +17,13 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %  theta:   pitch angle             (rad)
 %  psi:     yaw angle               (rad)
 %
-% The control inputs are:
+% The control inputs are one single rudder, two stern planes and one single 
+% propeller:
 %
 %  ui = [ delta_r delta_s n ]'  where
 %
 %    delta_r:   rudder angle (rad)
-%    delta_s:   aft stern plane (rad) 
+%    delta_s:   stern plane angle (rad) 
 %    n:         propeller revolution (rpm)
 %
 % The last arguments Vc and betaVc are optional arguments for ocean current 
@@ -34,6 +35,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %            10 Oct 2021, Increased the parasetic drag (alpha = 0) to 0.2
 %            21 Oct 2021, implay61.m is called using the relative velocity
 %            30 Dec 2021, Added the time derivative of the current velocity
+%            30 Jan 2022, Updated lift and drag forces
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
@@ -145,21 +147,24 @@ if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
 X_prop = rho * D_prop^4 * KT * abs(n) * n;  % propeller thrust 
 K_prop = rho * D_prop^5 * KQ * abs(n) * n;  % propeller-induced roll moment
 
-X_r = -0.5 * rho * U_r^2 * A_r * CL_delta_r * delta_r^2;  % rudder drag
-Y_r = -0.5 * rho * U_r^2 * A_r * CL_delta_r * delta_r;    % rudder sway force
-N_r = x_r * Y_r;                                          % rudder yaw moment
+% rudder and stern-plane drag
+X_r = -0.5 * rho * U_r^2 * A_r * CL_delta_r * delta_r^2; 
+X_s = -0.5 * rho * U_r^2  * A_s * CL_delta_s * delta_s^2;
 
-X_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s^2;  % stern-plane drag
-Z_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s;    % stern-plane heave force
-M_s =  x_s * Z_s;                                         % stern-plane pitch moment
+% rudder sway force 
+Y_r = -0.5 * rho * U_r^2 * A_r * CL_delta_r * delta_r;
 
-tau = zeros(6,1);                                % generalized force vector
+% stern-plane heave force
+Z_s = -0.5 * rho * U_r^2 * A_s * CL_delta_s * delta_s;
+ 
+% generalized force vector
+tau = zeros(6,1);                                
 tau(1) = X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
 tau(4) = K_prop;
-tau(5) = M_s;
-tau(6) = N_r;
+tau(5) = x_s * Z_s;
+tau(6) = x_r * Y_r;
 
 % state-space model
 xdot = [...
