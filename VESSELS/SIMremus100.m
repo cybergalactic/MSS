@@ -11,7 +11,7 @@ clearvars;
 
 %% USER INPUTS
 h  = 0.05;               % sample time (s)
-N  = 20000;              % number of samples
+N  = 40000;              % number of samples
 
 % initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1);
@@ -33,7 +33,7 @@ betaVc = -10 * pi/180;        % direction (rad)
 
 % depth controller
 wn_d_z = 1/500;             % desired natural frequency, reference model
-Kp_z = 0.01;                 
+Kp_z = 0.05;                 
 T_z = 1000;
 
 wn_b_theta = 5;             % bandwidth, pole placement algorithm 
