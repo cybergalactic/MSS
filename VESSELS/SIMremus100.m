@@ -40,7 +40,7 @@ wn_b_theta = 5;             % bandwidth, pole placement algorithm
 m55 = 8.6;                  % moment of inertia, pitch
 d55 = 11.9;                 % linear damping, pitch
 Kp_theta = m55 * wn_b_theta^2;             
-Kd_theta = m55 * wn_b_theta - d55; 
+Kd_theta = m55 * wn_b_theta - d55;
 Ki_theta = Kp_theta * (wn_b_theta/10);
 
 % heading autopilot 
