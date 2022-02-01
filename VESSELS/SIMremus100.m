@@ -5,7 +5,7 @@
 %
 % Author:     Thor I. Fossen
 % Date:       2021-06-28
-% Revisions:  2022-02-01 redesign of the autpilots
+% Revisions:  2022-02-01 redesign of the autopilots
 
 clearvars;
 
