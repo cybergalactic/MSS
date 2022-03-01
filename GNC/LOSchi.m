@@ -3,7 +3,7 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 % desired course angle when the path is straight lines going through the 
 % waypoints  (wpt.pos.x, wpt.pos.y). The desired course angle chi_d and 
 % course rate d/dt \chi_d = omega_chi_d (optionally) used by course 
-% autopilot systems are omputed using the roportional LOS guidance law:
+% autopilot systems are computed using the roportional LOS guidance law:
 %
 %  chi_d = pi_p - atan( Kp * y_e ),    Kp = 1/Delta  
 %
