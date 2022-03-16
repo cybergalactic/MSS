@@ -31,31 +31,10 @@ function vessel = read_veres_TF(filename, disp_flag)
 %
 % 'Amp' and 'Phase' are 3D matrices with dimensions (freq, phase, vel)
 %
-% Author:    ?. N. Smogeli and Thor I. Fossen
-% Date:      2004-04-12 Beta version
-% Revisions: 2007-12-10 T. I. Fossen - R1.0
-% _________________________________________________________________________
-%
-% MSS HYDRO is a Matlab toolbox for guidance, navigation and control.
-% The toolbox is part of the Marine Systems Simulator (MSS).
-%
-% Copyright (C) 2008 Thor I. Fossen and Tristan Perez
-% 
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% 
-% This program is distributed in the hope that it will be useful, but
-% WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-% GNU General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <http://www.gnu.org/licenses/>.
-% 
-% E-mail: contact@marinecontrol.org
-% URL:    <http://www.marinecontrol.org>
+% Author:    O. N. Smogeli and T. I. Fossen
+% Date:      2004-04-12 
+% Revisions: 2007-12-10 Minor updates
+%            2022-03-16 Minor updates
 
 if ~exist('disp_flag')
 	disp_flag = 3;
@@ -133,8 +112,8 @@ for velno = 1:nvel
 				
 				% Read [DOF Real Imag], store as amplitude and phase
 				temp = str2num(fgets(fid));
-				resp{velno}.amp(k,temp(1)) = abs(temp(2) + temp(3)*i); 
-				resp{velno}.phase(k,temp(1)) = angle(temp(2) + temp(3)*i); 
+				resp{velno}.amp(k,temp(1)) = abs(temp(2) + temp(3)*1i); 
+				resp{velno}.phase(k,temp(1)) = angle(temp(2) + temp(3)*1i); 
 				
 			end % Loop over DOF
 			
@@ -155,7 +134,7 @@ end
 
 % check to see if raw data for 10:10:180 deg is available
 for ii=1:19
-    if headings(ii) ~= 10*(ii-1);
+    if headings(ii) ~= 10*(ii-1)
         disp('Error: MSS Hydro requires RAO data for headings 0:10:180 deg');
         return
     end
@@ -171,12 +150,12 @@ nhead_tot = (nhead - 2)*2 + 2;
 
 % preallocate memory for maximum 10 velocties
 ext = filename(length(filename)-2:length(filename));
-if ext == 're8',
+if ext == 're8'
     for dofno = 1:6
         vessel.forceRAO.amp{dofno}   = zeros(nfreq,nhead_tot,10);
         vessel.forceRAO.phase{dofno} = zeros(nfreq,nhead_tot,10);
     end
-elseif ext == 're1',
+elseif ext == 're1'
     for dofno = 1:6
         vessel.motionRAO.amp{dofno}   = zeros(nfreq,nhead_tot,10);
         vessel.motionRAO.phase{dofno} = zeros(nfreq,nhead_tot,10);
@@ -205,7 +184,7 @@ for dofno = 1:ndof
         % Correct phases in surge, heave, roll and yaw (1, 3, 4, 6)
         % corresponding to the matrix: T = diag([-1 1 -1 -1 1 -1])
         % Amplitudes are kept positive
-        if dofno == 1 | dofno == 3 | dofno == 4 | dofno == 6
+        if dofno == 1 || dofno == 3 || dofno == 4 || dofno == 6
             phs = phs + pi;           % rad
         end
         
@@ -224,11 +203,11 @@ for dofno = 1:ndof
         end
                   
         % fill in RAO data                   
-        if ext == 're8',
+        if ext == 're8'
             vessel.forceRAO.amp{dofno}(:,:,velno)   = amp;
     		vessel.forceRAO.phase{dofno}(:,:,velno) = phs;
      		vessel.forceRAO.w                       = freqs;
-        elseif ext == 're1',          
+        elseif ext == 're1'          
             vessel.motionRAO.amp{dofno}(:,:,velno)   = amp;
     		vessel.motionRAO.phase{dofno}(:,:,velno) = phs;
      		vessel.motionRAO.w                       = freqs;            
@@ -259,16 +238,16 @@ if disp_flag > 0
 	disp('-------------------------------------------')
 	disp('Run info:')
 	disp(' Main particulars:')
-	disp(sprintf(' LPP     : %0.2f m',LPP))
-	disp(sprintf(' Breadth : %0.2f m',B))
-	disp(sprintf(' Draft   : %0.2f m',T))
-	disp(sprintf(' LCG     : %0.2f m (relative to LPP/2)',LCG))
-	disp(sprintf(' VCG     : %0.2f m (relative to baseline)',VCG))
+	fprintf(' LPP     : %0.2f m\n',LPP)
+	fprintf(' Breadth : %0.2f m\n',B)
+	fprintf(' Draft   : %0.2f m\n',T)
+	fprintf(' LCG     : %0.2f m (relative to LPP/2)\n',LCG)
+	fprintf(' VCG     : %0.2f m (relative to baseline)\n',VCG)
 	disp(' ')
-	disp(sprintf(' Number of velocities  : %d',nvel))
-	disp(sprintf(' Number of headings    : %d',nhead_tot))
-	disp(sprintf(' Number of frequencies : %d',nfreq))
-	disp(sprintf(' Number of DOF         : %d',ndof))
+	fprintf(' Number of velocities  : %d\n',nvel)
+	fprintf(' Number of headings    : %d\n',nhead_tot)
+	fprintf(' Number of frequencies : %d\n',nfreq)
+	fprintf(' Number of DOF         : %d\n',ndof)
 	disp('-------------------------------------------')
 	disp('Details:')
     txt = sprintf('%d ',headings);
@@ -277,13 +256,13 @@ if disp_flag > 0
     disp(['Frequencies (rad/s): ',txt]);
     disp(' ')
 	for m = 1:nvel
-		disp(sprintf(' Velocity %d  : %0.2f m/s',m,vel(m)))
-		disp(sprintf('    Sinkage  : %0.2f m',sink(m)))
-		disp(sprintf('    Trim     : %0.2f deg',trim(m)))
-		disp(sprintf('    Motion defined in:'))
-		disp(sprintf('    X-Coord  : %0.2f m (rel. LPP/2)',xmtn(m)))
-		disp(sprintf('    Y-Coord  : 0.00 m (rel. centerline)'))
-		disp(sprintf('    Z-Coord  : %0.2f m (rel. baseline)',zmtn(m)))
+		fprintf(' Velocity %d  : %0.2f m/s\n',m,vel(m))
+		fprintf('    Sinkage  : %0.2f m\n',sink(m))
+		fprintf('    Trim     : %0.2f deg\n',trim(m))
+		fprintf('    Motion defined in:\n')
+		fprintf('    X-Coord  : %0.2f m (rel. LPP/2)\n',xmtn(m))
+		fprintf('    Y-Coord  : 0.00 m (rel. centerline)\n')
+		fprintf('    Z-Coord  : %0.2f m (rel. baseline)\n',zmtn(m))
 		disp(' ')
 	end
 	disp('-------------------------------------------')
@@ -295,9 +274,9 @@ end
 %--------------------------------------------------------------------------
 if disp_flag > 1
 
-    if ext == 're8',
+    if ext == 're8'
         RAO = vessel.forceRAO;
-    elseif ext == 're1',
+    elseif ext == 're1'
         RAO = vessel.motionRAO;
     end
     
