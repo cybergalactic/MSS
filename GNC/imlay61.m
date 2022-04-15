@@ -47,7 +47,7 @@ end
 MA_44 = r44 * Ix; 
 
 % Lamb's k-factors
-e = 1-(b/a)^2;
+e = sqrt(1-(b/a)^2);
 alpha_0 = ( 2 * (1-e^2)/e^3 ) * ( 0.5 * log((1+e)/(1-e)) - e );  
 beta_0  = 1/e^2 - (1-e^2)/(2*e^3) * log((1+e)/(1-e)); 
 
