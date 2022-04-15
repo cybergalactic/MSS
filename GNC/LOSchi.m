@@ -39,7 +39,7 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %
 % Outputs:  
 %    chi_d:       desired course angle (rad)
-%    omegs_chi_d: desired course rate (rad/s)
+%    omega_chi_d: desired course rate (rad/s)
 %
 % For integral LOS (course control) use ILOSchi.m. 
 % For heading control use the functions LOSpsi.m and ILOSpsi.m.
