@@ -102,33 +102,40 @@ r_bb = [ 0 0 0 ]';       % CB w.r.t. to the CO
 Cd = 0.42;                              % from Allen et al. (2000)
 CD_0 = Cd * pi * b^2 / S;
 
-% Propeller coeffs. KT and KQ are computed as a function of advance number
-% Ja = Va/(n*D_prop) where Va = (1-w)*U = 0.944 * U; see Allen et al. (2000)
-D_prop = 0.14;      % propeller diameter corresponding to 5.5 inches
-t_prop = 0.1;       % thrust deduction number
+% Propeller coeffs. KT and KQ are computed as a function of advance no.
+% Ja = Va/(n*D_prop) where Va = (1-w)*U = 0.944 * U; Allen et al. (2000)
+D_prop = 0.14;   % propeller diameter corresponding to 5.5 inches
+t_prop = 0.1;    % thrust deduction number
+Va = 0.944 * U;  % advance speed (m/s)
 
-% Single-screw propeller with 3 blades and blade-area ratio = 0.718
-% >> Ja_max = 0.944 * 2.5 / (0.14 * 1525/60) = 0.6632
+% Ja_max = 0.944 * 2.5 / (0.14 * 1525/60) = 0.6632
+Ja_max = 0.6632;
+        
+% Single-screw propeller with 3 blades and blade-area ratio = 0.718.    
 % >> [KT_0, KQ_0] = wageningen(0,1,0.718,3)
-%    KT_0 = 0.4566; KQ_0 = 0.0700;
+KT_0 = 0.4566;
+KQ_0 = 0.0700;
 % >> [KT_max, KQ_max] = wageningen(0.6632,1,0.718,3) 
-%    KT_max = 0.1798, KQ_max = 0.0312
-
+KT_max = 0.1798;
+KQ_max = 0.0312;
+        
+% Propeller thrust and propeller-induced roll moment
 % Linear approximations for positive Ja values
-% KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja
-% KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja
-Ja = 0.944 * U / (n * D_prop);
-if Ja > 0
-    KT = 0.4566 - 0.4175 * Ja; 
-    KQ = 0.0700 - 0.0586 * Ja;
-else
-    KT = 0.4566;
-    KQ = 0.0700;
-end
-
-% Propeller force and moment
-X_prop = rho * D_prop^4 * KT * abs(n) * n;  % propeller thrust 
-K_prop = rho * D_prop^5 * KQ * abs(n) * n;  % propeller-induced roll moment
+% KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja   
+% KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja  
+      
+if n > 0   % forward thrust
+    X_prop = rho * D_prop^4 * (... 
+        KT_0 * abs(n) * n + (KT_max-KT_0)/Ja_max * (Va/D_prop) * abs(n) );        
+    K_prop = rho * D_prop^5 * (...
+        KQ_0 * abs(n) * n + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n) );           
+            
+else    % reverse thrust (braking)
+        
+    X_prop = rho * D_prop^4 * KT_0 * abs(n) * n; 
+    K_prop = rho * D_prop^5 * KQ_0 * abs(n) * n;
+            
+end            
 
 % Tail rudder (single)
 CL_delta_r = 0.5;        % rudder lift coefficient (-)
@@ -209,7 +216,4 @@ tau(6) = x_r * Y_r;
 xdot = [...
   Dnu_c + M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
   J * nu ];
-
-
-
 
