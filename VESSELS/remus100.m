@@ -2,7 +2,10 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % [xdot,U] = remus100(x,ui,Vc,betaVc) returns the time derivative of the 
 % state vector: x = [ u v w p q r x y z phi theta psi ]' and speed U in m/s  
 % (optionally) for the Remus 100 autonomous underwater vehicle (AUV). The 
-% length of the AUV is L = 1.7 m, while the state vector is defined as:
+% length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
+% mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
+% when the propeller runs at 1525 rpm in zero currents. The state vector is
+% defined as:
 %
 %  u:       surge velocity          (m/s)
 %  v:       sway velocity           (m/s)
@@ -31,18 +34,27 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
-% Revisions: 24 Aug 2021, The ocean current is now expressed in NED 
-%            10 Oct 2021, Increased the parasetic drag (alpha = 0) to 0.2
-%            21 Oct 2021, implay61.m is called using the relative velocity
-%            30 Dec 2021, Added the time derivative of the current velocity
-%            01 Feb 2022, Updated lift and drag forces
+% Revisions: 24 Aug 2021  Ocean currents are now expressed in NED 
+%            21 Oct 2021  imlay61.m is called using the relative velocity
+%            30 Dec 2021  Added the time derivative of the current velocity
+%            01 Feb 2022  Updated lift and drag forces
+%            06 May 2022  Calibration of drag and propulsion forces using
+%                         data from Allen et al. (2000)
+%
+% Refs: 
+%      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
+%           performance enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE 
+%           Conference and Exhibition. Conference Proceedings, 2000, 
+%           pp. 1869-1873 vol.3, doi: 10.1109/OCEANS.2000.882209.
+%      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+%           Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 
 % Constants
-mu = 63.446827;         % Lattitude for Trondheim (deg)
+mu = 63.446827;         % Lattitude for Trondheim, Norway (deg)
 g_mu = gravity(mu);     % gravity vector (m/s2)
 rho = 1026;             % density of water (m/s2)
 
@@ -64,44 +76,71 @@ v_c = Vc * sin( betaVc - eta(6) );
 nu_c = [u_c v_c 0 0 0 0]';                  % ocean current velocities
 Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]';    % time derivative of nu_c
 
-% Amplitude saturation of control signals
-max_ui = [30*pi/180 70*pi/180  1500/60]';   % deg, deg, rps
+% Amplitude saturation of rudder angle, stern plane and propeller revolution
+n_max = 1525;                                % maximum propeller rpm
+max_ui = [30*pi/180 30*pi/180  n_max/60]';   % deg, deg, rps
 
-% Relative velocities, speed and angle of attack
+% Relative velocities/speed, angle of attack and vehicle speed
 nu_r = nu - nu_c;                                 % relative velocity
 alpha = atan2( nu_r(3), nu_r(1) );                % angle of attack (rad)
 U_r = sqrt( nu_r(1)^2 + nu_r(2)^2 + nu_r(3)^2 );  % relative speed (m/s)
 U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % speed (m/s)
 
-% AUV model parameters (Section 8.4.2)
-L_auv = 1.7;                        % AUV length (m)
-D_auv = 0.19;                       % AUV diamater (m)
-CD_0 = 0.2;                         % parasitic drag
-S = 0.7 * L_auv * D_auv;            % S = 70% of rectangle L_auv * D_auv
-a = L_auv/2;                        % semi-axes
+% AUV model parameters; Fossen (2021, Section 8.4.2) and Allen et al. (2000)
+L_auv = 1.6;             % AUV length (m)
+D_auv = 0.19;            % AUV diamater (m)
+S = 0.7 * L_auv * D_auv; % planform area S = 70% of rectangle L_auv * D_auv
+a = L_auv/2;             % spheroid semi-axes a and b
 b = D_auv/2;                  
-r_bg = [ 0 0 0.02 ]';               % CG w.r.t. to the CO
-r_bb = [ 0 0 0 ]';                  % CB w.r.t. to the CO
+r44 = 0.3;               % added moment of inertia in roll: A44 = r44 * Ix
+r_bg = [ 0 0 0.02 ]';    % CG w.r.t. to the CO
+r_bb = [ 0 0 0 ]';       % CB w.r.t. to the CO
 
-% Added moment of inertia in roll
-r44 = 0.3;               % A44 = r44 * Ix
+% Parasitic drag coefficient CD_0, i.e. zero lift and alpha = 0
+% F_drag = 0.5 * rho * Cd * (pi * b^2)   
+% F_drag = 0.5 * rho * CD_0 * S
+Cd = 0.42;                              % from Allen et al. (2000)
+CD_0 = Cd * pi * b^2 / S;
 
-% Propeller data
-D_prop = 0.055;          % propeller diameter
-KT = 0.4739;             % [KT, KQ] = wageningen(0,1,0.8,3)
-KQ = 0.0730;
+% Propeller coeffs. KT and KQ are computed as a function of advance number
+% Ja = Va/(n*D_prop) where Va = (1-w)*U = 0.944 * U; see Allen et al. (2000)
+D_prop = 0.14;      % propeller diameter corresponding to 5.5 inches
+t_prop = 0.1;       % thrust deduction number
+
+% Single-screw propeller with 3 blades and blade-area ratio = 0.718
+% >> Ja_max = 0.944 * 2.5 / (0.14 * 1525/60) = 0.6632
+% >> [KT_0, KQ_0] = wageningen(0,1,0.718,3)
+%    KT_0 = 0.4566; KQ_0 = 0.0700;
+% >> [KT_max, KQ_max] = wageningen(0.6632,1,0.718,3) 
+%    KT_max = 0.1798, KQ_max = 0.0312
+
+% Linear approximations for positive Ja values
+% KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja
+% KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja
+Ja = 0.944 * U / (n * D_prop);
+if Ja > 0
+    KT = 0.4566 - 0.4175 * Ja; 
+    KQ = 0.0700 - 0.0586 * Ja;
+else
+    KT = 0.4566;
+    KQ = 0.0700;
+end
+
+% Propeller force and moment
+X_prop = rho * D_prop^4 * KT * abs(n) * n;  % propeller thrust 
+K_prop = rho * D_prop^5 * KQ * abs(n) * n;  % propeller-induced roll moment
 
 % Tail rudder (single)
-CL_delta_r = 0.5;        % rudder lift coefficient
+CL_delta_r = 0.5;        % rudder lift coefficient (-)
 A_r = 0.10 * 0.05;       % rudder area (m2)
 x_r = -a;                % rudder x-position (m)
 
 % Stern plane (double)
-CL_delta_s = 0.7;        % stern-plane lift coefficient
+CL_delta_s = 0.7;        % stern-plane lift coefficient (-)
 A_s = 2 * 0.10 * 0.05;   % stern-plane area (m2)
 x_s = -a;                % stern-plane z-position (m)
 
-% Low-speed linear damping matrix parameters: D * exp(-3 * U_r)
+% Low-speed linear damping matrix parameters
 T1 = 20;                 % time constant in surge (s)
 T2 = 20;                 % time constant in sway (s)
 zeta4 = 0.3;             % relative damping ratio in roll
@@ -112,8 +151,8 @@ T6 = 5;                  % time constant in yaw (s)
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
-% Nonlinear quadratic velocity terms in pitch and yaw (Munk moments) 
-% are set to zero since only linear damping is used
+% Nonlinear quadratic velocity terms in pitch and yaw. Munk moments 
+% are set to zero since only linear rotational damping is used in the model
 CA(5,1) = 0;   
 CA(5,4) = 0;
 CA(6,1) = 0;
@@ -125,8 +164,8 @@ m = MRB(1,1); W = m*g_mu; B = W;
 
 % Dissipative forces and moments
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
-D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where crossflow
-D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift/drag dominates
+D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where quadratic
+D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift forces dominates
 D(6,6) = D(6,6) * exp(-3*U_r);
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
@@ -135,17 +174,13 @@ tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
 % Restoring forces and moments
 g = gvect(W,B,eta(5),eta(4),r_bg,r_bb);
 
-% kinematics
+% Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
-% amplitude saturation of the control signals
+% Amplitude saturation of the control signals
 if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
 if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
 if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
-
-% Control forces and moments
-X_prop = rho * D_prop^4 * KT * abs(n) * n;  % propeller thrust 
-K_prop = rho * D_prop^5 * KQ * abs(n) * n;  % propeller-induced roll moment
 
 % Horizontal- and vertical-plane relative speed
 U_rh = sqrt( nu_r(1)^2 + nu_r(2)^2 );  
@@ -158,12 +193,12 @@ X_s = -0.5 * rho * U_rv^2 * A_s * CL_delta_s * delta_s^2;
 % Rudder sway force 
 Y_r = -0.5 * rho * U_rh^2 * A_r * CL_delta_r * delta_r;
 
-% Rtern-plane heave force
+% Stern-plane heave force
 Z_s = -0.5 * rho * U_rv^2 * A_s * CL_delta_s * delta_s;
 
-% Generalized force vector
+% Generalized propulision force vector
 tau = zeros(6,1);                                
-tau(1) = X_prop + X_r + X_s;
+tau(1) = (1-t_prop) * X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
 tau(4) = K_prop;
@@ -174,4 +209,7 @@ tau(6) = x_r * Y_r;
 xdot = [...
   Dnu_c + M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
   J * nu ];
+
+
+
 
