@@ -1,17 +1,21 @@
-% SIMremus100 User editable script for simulation of the Remus 100 AUV under
-%             feedback control
+% SIMremus100 User editable script for simulation of the Remus 100 AUV
+%             (remus100.m) under feedback control (depth and heading control 
+%             when exposed to ocean currents).
 %
 % Calls:      remus100.m
+%
+% Simulink:   demoAUVdepthHeadingControl.slx
 %
 % Author:     Thor I. Fossen
 % Date:       2021-06-28
 % Revisions:  2022-02-01 redesign of the autopilots
+%             2022-05-06 retuning for new version of remus100.m
 
 clearvars;
 
 %% USER INPUTS
 h  = 0.05;               % sample time (s)
-N  = 40000;              % number of samples
+N  = 10000;              % number of samples
 
 % initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1);
@@ -21,22 +25,22 @@ psi_int = 0;
 
 % setpoints
 n = 0;                  % initial propeller revolution (rpm)
-n_d = 1500;             % desired propeller revolution, max 1500 rpm
+n_d = 1525;             % desired propeller revolution, max 1525 rpm
 z_d = 0;                % initial depth (m)
-z_step = 20;            % step change in depth, max 100 m
+z_step = 30;            % step change in depth, max 100 m
 psi_d = 0;              % initial heading angle (rad)
-psi_step = -20*pi/180;  % step change in heading angle (rad)
+psi_step = -60*pi/180;  % step change in heading angle (rad)
 
 % ocean current velcoities expressed in NED
 Vc = 0.5;                     % speed (m/s)
-betaVc = -10 * pi/180;        % direction (rad)
+betaVc = 170 * pi/180;      % direction (rad)
 
 % depth controller
-wn_d_z = 1/500;             % desired natural frequency, reference model
-Kp_z = 0.05;                 
-T_z = 1000;
+wn_d_z = 1/20;             % desired natural frequency, reference model
+Kp_z = 0.1;                 
+T_z = 100;
 
-wn_b_theta = 5;             % bandwidth, pole placement algorithm 
+wn_b_theta = 2;             % bandwidth, pole placement algorithm 
 m55 = 8.6;                  % moment of inertia, pitch
 d55 = 11.9;                 % linear damping, pitch
 Kp_theta = m55 * wn_b_theta^2;             
@@ -44,7 +48,7 @@ Kd_theta = m55 * wn_b_theta - d55;
 Ki_theta = Kp_theta * (wn_b_theta/10);
 
 % heading autopilot 
-wn_d_psi = 1/20;            % desired natural frequency, reference model 
+wn_d_psi = 1/5;             % desired natural frequency, reference model 
 wn_b_psi = 1;               % bandwidth, pole placement algorithm 
 m66 = 8.6;                  % moment of inertia, yaw
 d66 = 0.6;                  % linear damping, yaw
@@ -63,23 +67,19 @@ for i = 1:N+1
        error('desired depth must be between 0-100 m')
    end  
    
-   if t > 100
+   if t > 200
        z_ref = z_step;
    else
        z_ref = 0;
    end
    z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;  % LP filter
    
-   theta_d = Kp_z * ( (x(9) - z_d) + (1/T_z) * z_int );                % PI 
+   theta_d = Kp_z * ( (x(9) - z_d) + (1/T_z) * z_int );               % PI 
    delta_s = -Kp_theta * ssa( x(11) - theta_d ) - Kd_theta * x(5)...
        - Ki_theta * theta_int;                                        % PID
    
-   if abs(delta_s) > 70 * (pi/180)
-       delta_s = sign(delta_s) * 70 * (pi/180);
-   end
-   
    % heading controller
-   if t > 150
+   if t > 100
       psi_ref = psi_step;
    else
        psi_ref = 0;
@@ -96,7 +96,7 @@ for i = 1:N+1
        n = n + 1;
    end
    
-   % control inputs
+   % control inputs 
    ui = [delta_r delta_s n]';
    
    % store simulation data in a table 
@@ -106,7 +106,7 @@ for i = 1:N+1
    z_int = z_int + h * (x(9) - z_d);
    theta_int = theta_int + h * ssa( x(11) - theta_d );
    psi_int = psi_int + h * ssa( x(12) - psi_d );   
-   x = x + h * remus100(x,ui,Vc,betaVc);    
+   x = x + h * remus100(x,ui,Vc,betaVc);
    
 end
 
@@ -158,4 +158,3 @@ subplot(312),plot(t,(180/pi)*u(:,2),'linewidt',2)
 xlabel('time (s)'),title('Stern planes \delta_s (deg)'),grid
 subplot(313),plot(t,u(:,3),'linewidt',2)
 xlabel('time (s)'),title('Propeller revolutions n (rpm)'),grid
-
