@@ -1,6 +1,7 @@
 % SIMremus100 User editable script for simulation of the Remus 100 AUV
 %             (remus100.m) under feedback control (depth and heading control 
-%             when exposed to ocean currents).
+%             when exposed to ocean currents). Both the Euler angle and unit
+%             quaternion representations of the Remus 100 model can be used.
 %
 % Calls:      remus100.m
 %
@@ -10,20 +11,31 @@
 % Date:       2021-06-28
 % Revisions:  2022-02-01 redesign of the autopilots
 %             2022-05-06 retuning for new version of remus100.m
+%             2022-05-08 added compability for unit quaternions
 
 clearvars;
 
 %% USER INPUTS
 h  = 0.05;               % sample time (s)
 N  = 10000;              % number of samples
+param = 1;               % 0 = Euler angles, 1 = unit quaternions
 
-% initial values for x = [ u v w p q r x y z phi theta psi ]'
-x = zeros(12,1);
+% initial state vector
+phi = 0; theta = 0; psi = 0;
+
+if (param == 0)         % x = [ u v w p q r x y z phi theta psi ]'   
+    x = [zeros(9,1); phi; theta; psi];
+else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
+    q = euler2q(phi,theta,psi);
+    x = [zeros(9,1); q];
+end
+
+% integral states (autopilots)
 z_int = 0;
 theta_int = 0;
 psi_int = 0;
 
-% setpoints
+% setpoints (autopilots)
 n = 0;                  % initial propeller revolution (rpm)
 n_d = 1525;             % desired propeller revolution, max 1525 rpm
 z_d = 0;                % initial depth (m)
@@ -32,8 +44,8 @@ psi_d = 0;              % initial heading angle (rad)
 psi_step = -60*pi/180;  % step change in heading angle (rad)
 
 % ocean current velcoities expressed in NED
-Vc = 0.5;                     % speed (m/s)
-betaVc = 170 * pi/180;      % direction (rad)
+Vc = 0.5;                  % speed (m/s)
+betaVc = 170 * pi/180;     % direction (rad)
 
 % depth controller
 wn_d_z = 1/20;             % desired natural frequency, reference model
@@ -57,10 +69,28 @@ Kd_psi = m66 * 2*wn_b_psi - d66;
 Ki_psi = Kp_psi * (wn_b_psi/10);
    
 %% MAIN LOOP
-simdata = zeros(N+1,19);                   % table for simulation data
+if (param == 0)
+    disp('...simulating the Remus 100 AUV using Euler angles (12 states)')
+else
+    disp('...simulating the Remus 100 AUV using unit quaternions (13 states)') 
+end
+
+simdata = zeros(N+1,length(x)+7); % allocate empty table for simulation data
+
 for i = 1:N+1
     
    t = (i-1)*h;             % time
+   
+   % measurements
+   q = x(5);                % pitch rate
+   r = x(6);                % yaw rate
+   z = x(9);                % z-position (depth)
+   
+   if (param==0)
+         phi = x(10); theta = x(11); psi = x(12);   % Euler angles
+   else
+         [phi,theta,psi] = q2euler(x(10:13));  % quaternion to Euler angles
+   end
    
    % depth controller (succesive-loop closure)  
    if (z_step > 100 || z_step < 0)
@@ -74,11 +104,11 @@ for i = 1:N+1
    end
    z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;  % LP filter
    
-   theta_d = Kp_z * ( (x(9) - z_d) + (1/T_z) * z_int );               % PI 
-   delta_s = -Kp_theta * ssa( x(11) - theta_d ) - Kd_theta * x(5)...
-       - Ki_theta * theta_int;                                        % PID
+   theta_d = Kp_z * ( (z - z_d) + (1/T_z) * z_int );               % PI 
+   delta_s = -Kp_theta * ssa( theta - theta_d ) - Kd_theta * q...
+       - Ki_theta * theta_int;                                     % PID
    
-   % heading controller
+   % PID heading controller
    if t > 100
       psi_ref = psi_step;
    else
@@ -88,8 +118,7 @@ for i = 1:N+1
    % LP filter
    psi_d = exp(-h*wn_d_psi) * psi_d + (1 - exp(-h*wn_d_psi)) * psi_ref;     
    
-   delta_r = -Kp_psi * ssa( x(12) - psi_d ) - Kd_psi * x(6)...
-        -Ki_psi * psi_int;                                           % PID 
+   delta_r = -Kp_psi * ssa( psi - psi_d ) - Kd_psi * r - Ki_psi * psi_int;                                           % PID 
 
    % propeller revolution (rpm)
    if (n < n_d)
@@ -100,61 +129,86 @@ for i = 1:N+1
    ui = [delta_r delta_s n]';
    
    % store simulation data in a table 
-   simdata(i,:) = [t x' ui' z_d theta_d psi_d ];   
+   simdata(i,:) = [t z_d theta_d psi_d ui' x'];   
    
-   % Euler integration (k+1)
-   z_int = z_int + h * (x(9) - z_d);
-   theta_int = theta_int + h * ssa( x(11) - theta_d );
-   psi_int = psi_int + h * ssa( x(12) - psi_d );   
-   x = x + h * remus100(x,ui,Vc,betaVc);
+   % Propagate the vehicle dynamics (k+1)
+   xdot = remus100(x,ui,Vc,betaVc);
+   
+   if (param == 0)     
+       x = x + h * xdot;                       % Euler's integration method
+   else
+       x(1:9) = x(1:9) + h * xdot(1:9);        % Euler's integration method
+       
+       q = x(10:13);                           % unit quaternion
+       q = expm(Tquat(x(4:6)) * h) * q;        % exact discretization
+       x(10:13) = q/norm(q);                   % normalization
+   end
+   
+   % Euler's integration method (k+1)
+   z_int = z_int + h * ( z - z_d );
+   theta_int = theta_int + h * ssa( theta - theta_d );
+   psi_int = psi_int + h * ssa( psi - psi_d );   
    
 end
 
 %% PLOTS
-t       = simdata(:,1);  
-nu      = simdata(:,2:7);  
-eta     = simdata(:,8:13);  
-u       = simdata(:,14:16); 
-z_d     = simdata(:,17); 
-theta_d = simdata(:,18); 
-psi_d   = simdata(:,19); 
+t       = simdata(:,1);         % simdata = [t z_d theta_d psi_d ui' x']
+z_d     = simdata(:,2); 
+theta_d = simdata(:,3); 
+psi_d   = simdata(:,4); 
+u       = simdata(:,5:7); 
+nu      = simdata(:,8:13);
 
-clf
-figure(1)
-subplot(611),plot(t,nu(:,1),'linewidt',2)
+if (param==0)                   % Euler angle representation
+    eta = simdata(:,14:19);
+else                            % Transform unit quaternions to Euler angles
+    quaternion = simdata(:,17:20);
+    for i = 1:N+1
+        [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
+    end
+    eta = [simdata(:,14:16) phi theta psi];
+    
+    figure(4)
+    plot(t,quaternion,'linewidth',2);
+    xlabel('time (s)'),title('Unit quaternion'),grid
+    legend('eta','eps1','eps2','eps3')
+end
+
+figure(1); 
+subplot(611),plot(t,nu(:,1),'linewidth',2)
 xlabel('time (s)'),title('Surge velocity (m/s)'),grid
-subplot(612),plot(t,nu(:,2),'linewidt',2)
+subplot(612),plot(t,nu(:,2),'linewidth',2)
 xlabel('time (s)'),title('Sway velocity (m/s)'),grid
-subplot(613),plot(t,nu(:,3),'linewidt',2)
+subplot(613),plot(t,nu(:,3),'linewidth',2)
 xlabel('time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4),'linewidt',2)
+subplot(614),plot(t,(180/pi)*nu(:,4),'linewidth',2)
 xlabel('time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5),'linewidt',2)
+subplot(615),plot(t,(180/pi)*nu(:,5),'linewidth',2)
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6),'linewidt',2)
+subplot(616),plot(t,(180/pi)*nu(:,6),'linewidth',2)
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
 
-figure(2)
-subplot(611),plot(eta(:,2),eta(:,1),'linewidt',2); 
+figure(2); 
+subplot(611),plot(eta(:,2),eta(:,1),'linewidth',2); 
 title('xy plot (m)'),grid
-subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2),'linewidt',2);
+subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2),'linewidth',2);
 xlabel('time (s)'),title('speed (m/s)'),grid
-subplot(613),plot(t,eta(:,3),t,z_d,'linewidt',2)
+subplot(613),plot(t,eta(:,3),t,z_d,'linewidth',2)
 xlabel('time (s)'),title('heave position (m)'),grid
 legend('true','desired')
-subplot(614),plot(t,(180/pi)*eta(:,4),'linewidt',2)
+subplot(614),plot(t,(180/pi)*eta(:,4),'linewidth',2)
 xlabel('time (s)'),title('roll angle (deg)'),grid
-subplot(615),plot(t,(180/pi)*eta(:,5),t,(180/pi)*theta_d,'linewidt',2)
+subplot(615),plot(t,(180/pi)*eta(:,5),t,(180/pi)*theta_d,'linewidth',2)
 xlabel('time (s)'),title('pitch angle (deg)'),grid
 legend('true','desired')
-subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d,'linewidt',2)
+subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d,'linewidth',2)
 xlabel('time (s)'),title('yaw angle (deg)'),grid
 legend('true','desired')
 
-figure(3)
-subplot(311),plot(t,(180/pi)*u(:,1),'linewidt',2)
+figure(3); 
+subplot(311),plot(t,(180/pi)*u(:,1),'linewidth',2)
 xlabel('time (s)'),title('Rudder \delta_r (deg)'),grid
-subplot(312),plot(t,(180/pi)*u(:,2),'linewidt',2)
+subplot(312),plot(t,(180/pi)*u(:,2),'linewidth',2)
 xlabel('time (s)'),title('Stern planes \delta_s (deg)'),grid
-subplot(313),plot(t,u(:,3),'linewidt',2)
+subplot(313),plot(t,u(:,3),'linewidth',2)
 xlabel('time (s)'),title('Propeller revolutions n (rpm)'),grid
