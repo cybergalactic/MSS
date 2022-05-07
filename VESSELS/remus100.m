@@ -1,11 +1,12 @@
 function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % [xdot,U] = remus100(x,ui,Vc,betaVc) returns the time derivative of the 
-% state vector: x = [ u v w p q r x y z phi theta psi ]' and speed U in m/s  
-% (optionally) for the Remus 100 autonomous underwater vehicle (AUV). The 
-% length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
+% state vector: x = [ u v w p q r x y z phi theta psi ]', alternatively 
+% x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' in addition to the speed U 
+% in m/s (optionally) for the Remus 100 autonomous underwater vehicle (AUV). 
+% The length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
 % mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
-% when the propeller runs at 1525 rpm in zero currents. The state vector is
-% defined as:
+% when the propeller runs at 1525 rpm in zero currents. The state vector 
+% can be of dimension 12 (Euler angles) or 13 (unit quaternions):
 %
 %  u:       surge velocity          (m/s)
 %  v:       sway velocity           (m/s)
@@ -16,11 +17,16 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %  x:       North position          (m)
 %  y:       East position           (m)
 %  z:       downwards position      (m)
-%  phi:     roll angle              (rad)
+%  phi:     roll angle              (rad)       
 %  theta:   pitch angle             (rad)
 %  psi:     yaw angle               (rad)
+% 
+% For the unit quaternion representation, the last three arguments of the 
+% x-vector, the Euler angles (phi, theta, psi), are replaced by the unit 
+% quaternion q = [eta, eps1, eps2, eps3]'. This increases the dimension of 
+% the state vector from 12 to 13.
 %
-% The control inputs are one single rudder, two stern planes and one single 
+% The control inputs are one tail rudder, two stern planes and a single-screw 
 % propeller:
 %
 %  ui = [ delta_r delta_s n ]'  where
@@ -29,7 +35,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %    delta_s:   stern plane angle (rad) 
 %    n:         propeller revolution (rpm)
 %
-% The last arguments Vc and betaVc are optional arguments for ocean current 
+% The arguments Vc and betaVc are optional arguments for ocean current 
 % speed and direction expressed in NED.
 %
 % Author:    Thor I. Fossen
@@ -40,18 +46,23 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %            01 Feb 2022  Updated lift and drag forces
 %            06 May 2022  Calibration of drag and propulsion forces using
 %                         data from Allen et al. (2000)
+%            08 May 2022  Added compability for unit quaternions in 
+%                         addition to the Euler angle representation
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
 %           performance enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE 
 %           Conference and Exhibition. Conference Proceedings, 2000, 
 %           pp. 1869-1873 vol.3, doi: 10.1109/OCEANS.2000.882209.
-%      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-%           Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
+%      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
+%           Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
-% Check of input and state dimensions
-if (length(x) ~= 12),error('x-vector must have dimension 12!'); end
+if (nargin == 2), Vc = 0; betaVc = 0; end     % optional ocean currents
+
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
+if (length(x) ~= 12 && length(x) ~= 13)
+    error('x-vector must have dimension 12 or 13'); 
+end
 
 % Constants
 mu = 63.446827;         % Lattitude for Trondheim, Norway (deg)
@@ -66,10 +77,6 @@ delta_s = ui(2);        % stern plane (rad)
 n = ui(3)/60;           % propeller revolution (rps)
 
 % Ocean currents expressed in BODY
-if (nargin == 2)
-    Vc = 0;
-    betaVc = 0;
-end
 u_c = Vc * cos( betaVc - eta(6) );                               
 v_c = Vc * sin( betaVc - eta(6) );   
 
@@ -178,11 +185,15 @@ D(6,6) = D(6,6) * exp(-3*U_r);
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
 
-% Restoring forces and moments
-g = gvect(W,B,eta(5),eta(4),r_bg,r_bb);
-
 % Kinematics
-J = eulerang(eta(4),eta(5),eta(6));
+if (length(x) == 13)
+    [J,R] = quatern(x(10:13));
+else
+    [J,R] = eulerang(x(10),x(11),x(12));
+end
+
+% Restoring forces and moments
+g = gRvect(W,B,R,r_bg,r_bb);
 
 % Amplitude saturation of the control signals
 if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
@@ -213,7 +224,6 @@ tau(5) = x_s * Z_s;
 tau(6) = x_r * Y_r;
 
 % State-space model
-xdot = [...
-  Dnu_c + M  \ (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
-  J * nu ];
-
+xdot = [ Dnu_c + M \ ...
+            (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
+         J * nu ]; 
