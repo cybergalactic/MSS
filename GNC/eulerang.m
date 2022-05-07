@@ -8,8 +8,8 @@ function [J,J1,J2] = eulerang(phi,theta,psi)
 % where J1 = Rzyx and J2 = Tzyx, see Rzyx.m and Tzyx.m.
 %
 % Author:    Thor I. Fossen
-% Date:      14th June 2001
-% Revisions: 8 May 2021, added calls to Rzyx and Tzyx 
+% Date:      14 Jun 2001
+% Revisions: 08 May 2021  - added calls to Rzyx and Tzyx 
  
 J1 = Rzyx(phi,theta,psi);
 J2 = Tzyx(phi,theta);
