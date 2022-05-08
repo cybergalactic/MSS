@@ -53,8 +53,8 @@ Kp_z = 0.1;
 T_z = 100;
 
 wn_b_theta = 2;             % bandwidth, pole placement algorithm 
-m55 = 8.6;                  % moment of inertia, pitch
-d55 = 11.9;                 % linear damping, pitch
+m55 = 7.5;                  % moment of inertia, pitch
+d55 = 10.8;                 % linear damping, pitch
 Kp_theta = m55 * wn_b_theta^2;             
 Kd_theta = m55 * wn_b_theta - d55;
 Ki_theta = Kp_theta * (wn_b_theta/10);
@@ -62,8 +62,8 @@ Ki_theta = Kp_theta * (wn_b_theta/10);
 % heading autopilot 
 wn_d_psi = 1/5;             % desired natural frequency, reference model 
 wn_b_psi = 1;               % bandwidth, pole placement algorithm 
-m66 = 8.6;                  % moment of inertia, yaw
-d66 = 0.6;                  % linear damping, yaw
+m66 = 7.5;                  % moment of inertia, yaw
+d66 = 1.5;                  % linear damping, yaw
 Kp_psi = m66 * wn_b_psi^2;                 
 Kd_psi = m66 * 2*wn_b_psi - d66; 
 Ki_psi = Kp_psi * (wn_b_psi/10);
