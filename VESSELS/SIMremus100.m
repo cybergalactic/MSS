@@ -44,19 +44,19 @@ psi_d = 0;              % initial heading angle (rad)
 psi_step = -60*pi/180;  % step change in heading angle (rad)
 
 % ocean current velcoities expressed in NED
-Vc = 0.5;                  % speed (m/s)
-betaVc = 170 * pi/180;     % direction (rad)
+Vc = 0.5;                   % speed (m/s)
+betaVc = 170 * pi/180;      % direction (rad)
 
 % depth controller
-wn_d_z = 1/20;             % desired natural frequency, reference model
-Kp_z = 0.1;                 
-T_z = 100;
+wn_d_z = 1/20;              % desired natural frequency, reference model
+Kp_z = 0.1;                 % proportional gain
+T_z = 10;                   % integral gain
 
-wn_b_theta = 2;             % bandwidth, pole placement algorithm 
+wn_b_theta = 1;             % bandwidth, pole placement algorithm 
 m55 = 7.5;                  % moment of inertia, pitch
 d55 = 10.8;                 % linear damping, pitch
 Kp_theta = m55 * wn_b_theta^2;             
-Kd_theta = m55 * wn_b_theta - d55;
+Kd_theta = m55 * 2 * wn_b_theta - d55;
 Ki_theta = Kp_theta * (wn_b_theta/10);
 
 % heading autopilot 
@@ -126,6 +126,11 @@ for i = 1:N+1
    end
    
    % control inputs 
+   max_ui = [30*pi/180 30*pi/180  1525]';   % rad, rad, rpm
+   if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
+   if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
+   if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
+    
    ui = [delta_r delta_s n]';
    
    % store simulation data in a table 
