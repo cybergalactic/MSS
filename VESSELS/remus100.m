@@ -35,8 +35,8 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %    delta_s:   stern plane angle (rad) 
 %    n:         propeller revolution (rpm)
 %
-% The arguments Vc and betaVc are optional arguments for ocean current 
-% speed and direction expressed in NED.
+% The arguments Vc (m/s) and betaVc (rad) are optional arguments for ocean 
+% current speed and direction expressed in NED.
 %
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
@@ -214,7 +214,7 @@ Y_r = -0.5 * rho * U_rh^2 * A_r * CL_delta_r * delta_r;
 % Stern-plane heave force
 Z_s = -0.5 * rho * U_rv^2 * A_s * CL_delta_s * delta_s;
 
-% Generalized propulision force vector
+% Generalized propulsion force vector
 tau = zeros(6,1);                                
 tau(1) = (1-t_prop) * X_prop + X_r + X_s;
 tau(2) = Y_r;
