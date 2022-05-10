@@ -50,22 +50,17 @@ betaVc = 170 * pi/180;      % direction (rad)
 % depth controller
 wn_d_z = 1/20;              % desired natural frequency, reference model
 Kp_z = 0.1;                 % proportional gain
-T_z = 10;                   % integral gain
-
-wn_b_theta = 1;             % bandwidth, pole placement algorithm 
-m55 = 7.5;                  % moment of inertia, pitch
-d55 = 10.8;                 % linear damping, pitch
-Kp_theta = m55 * wn_b_theta^2;             
-Kd_theta = m55 * 2 * wn_b_theta - d55;
-Ki_theta = Kp_theta * (wn_b_theta/10);
+T_z = 100;                  % integral gain
+Kp_theta = 2;            
+Kd_theta = 3;
+Ki_theta = 0.1;
 
 % heading autopilot 
 wn_d_psi = 1/5;             % desired natural frequency, reference model 
 wn_b_psi = 1;               % bandwidth, pole placement algorithm 
 m66 = 7.5;                  % moment of inertia, yaw
-d66 = 1.5;                  % linear damping, yaw
 Kp_psi = m66 * wn_b_psi^2;                 
-Kd_psi = m66 * 2*wn_b_psi - d66; 
+Kd_psi = m66 * 2*wn_b_psi; 
 Ki_psi = Kp_psi * (wn_b_psi/10);
    
 %% MAIN LOOP
