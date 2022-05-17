@@ -21,7 +21,7 @@ Examples and demo files are located under the catalogs:
     /MSS/SIMULINK/mssSimulinkDemos/         Simulink demos  
     /MSS/SIMULINK/mssWamitShipXTemplates/   Simulink templates for simulation of WAMIT and ShipX vessel and RAO data
     
-The Simulink library (R2021a) is loaded by typing:
+The Simulink library (R2022a) is loaded by typing:
 
     mssSimulink  
 
