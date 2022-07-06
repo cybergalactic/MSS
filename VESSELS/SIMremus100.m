@@ -26,8 +26,8 @@ phi = 0; theta = 0; psi = 0;
 if (param == 0)         % x = [ u v w p q r x y z phi theta psi ]'   
     x = [zeros(9,1); phi; theta; psi];
 else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
-    q = euler2q(phi,theta,psi);
-    x = [zeros(9,1); q];
+    quat = euler2q(phi,theta,psi);
+    x = [zeros(9,1); quat];
 end
 
 % integral states (autopilots)
@@ -139,9 +139,9 @@ for i = 1:N+1
    else
        x(1:9) = x(1:9) + h * xdot(1:9);        % Euler's integration method
        
-       q = x(10:13);                           % unit quaternion
-       q = expm(Tquat(x(4:6)) * h) * q;        % exact discretization
-       x(10:13) = q/norm(q);                   % normalization
+       quat = x(10:13);                        % unit quaternion
+       quat = expm(Tquat(x(4:6)) * h) * quat;  % exact discretization
+       x(10:13) = quat/norm(quat);             % normalization
    end
    
    % Euler's integration method (k+1)
@@ -171,44 +171,56 @@ else                            % Transform unit quaternions to Euler angles
     figure(4)
     plot(t,quaternion,'linewidth',2);
     xlabel('time (s)'),title('Unit quaternion'),grid
-    legend('eta','eps1','eps2','eps3')
+    legend('\eta','\epsilon_1','\epsilon_2','\epsilon_3')
 end
 
 figure(1); 
-subplot(611),plot(t,nu(:,1),'linewidth',2)
+subplot(611),plot(t,nu(:,1))
 xlabel('time (s)'),title('Surge velocity (m/s)'),grid
-subplot(612),plot(t,nu(:,2),'linewidth',2)
+subplot(612),plot(t,nu(:,2))
 xlabel('time (s)'),title('Sway velocity (m/s)'),grid
-subplot(613),plot(t,nu(:,3),'linewidth',2)
+subplot(613),plot(t,nu(:,3))
 xlabel('time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4),'linewidth',2)
+subplot(614),plot(t,(180/pi)*nu(:,4))
 xlabel('time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5),'linewidth',2)
+subplot(615),plot(t,(180/pi)*nu(:,5))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6),'linewidth',2)
+subplot(616),plot(t,(180/pi)*nu(:,6))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
 
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',16)
+
 figure(2); 
-subplot(611),plot(eta(:,2),eta(:,1),'linewidth',2); 
+subplot(611),plot(eta(:,2),eta(:,1)); 
 title('xy plot (m)'),grid
-subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2),'linewidth',2);
+subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2));
 xlabel('time (s)'),title('speed (m/s)'),grid
-subplot(613),plot(t,eta(:,3),t,z_d,'linewidth',2)
+subplot(613),plot(t,eta(:,3),t,z_d)
 xlabel('time (s)'),title('heave position (m)'),grid
 legend('true','desired')
-subplot(614),plot(t,(180/pi)*eta(:,4),'linewidth',2)
+subplot(614),plot(t,(180/pi)*eta(:,4))
 xlabel('time (s)'),title('roll angle (deg)'),grid
-subplot(615),plot(t,(180/pi)*eta(:,5),t,(180/pi)*theta_d,'linewidth',2)
+subplot(615),plot(t,(180/pi)*eta(:,5),t,(180/pi)*theta_d)
 xlabel('time (s)'),title('pitch angle (deg)'),grid
 legend('true','desired')
-subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d,'linewidth',2)
+subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d)
 xlabel('time (s)'),title('yaw angle (deg)'),grid
 legend('true','desired')
 
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',16)
+
 figure(3); 
-subplot(311),plot(t,(180/pi)*u(:,1),'linewidth',2)
+subplot(311),plot(t,(180/pi)*u(:,1))
 xlabel('time (s)'),title('Rudder \delta_r (deg)'),grid
-subplot(312),plot(t,(180/pi)*u(:,2),'linewidth',2)
+subplot(312),plot(t,(180/pi)*u(:,2))
 xlabel('time (s)'),title('Stern planes \delta_s (deg)'),grid
-subplot(313),plot(t,u(:,3),'linewidth',2)
+subplot(313),plot(t,u(:,3))
 xlabel('time (s)'),title('Propeller revolutions n (rpm)'),grid
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',16)
