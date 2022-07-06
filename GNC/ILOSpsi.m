@@ -1,15 +1,16 @@
-function psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
-% psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi) computes the desired 
-% heading angle when the path is straight lines going through the waypoints
-% (wpt.pos.x, wpt.pos.y). The desired heading angle psi_d is computed using 
-% the ILOS guidance law by Børhaug et al. (2008),
+function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
+% [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi) computes the 
+% desired heading angle psi_d and cross-track error y_e when the path is 
+% straight lines going through the waypoints (wpt.pos.x, wpt.pos.y). The 
+% desired heading angle computed using the classical ILOS guidance law by 
+% Børhaug et al. (2008),
 %
-%  psi_d = pi_p - atan( Kp * y_e + Ki * y_int), Kp = 1/Delta, Ki = kappa * Kp  
+%  psi_d = pi_p - atan( Kp * (y_e + kappa * y_int) ),  Kp = 1/Delta
 %
 %  Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
 %
 % where pi_p is the path-tangential angle with respect to the North axis
-% and y_e is the cross-track error expressed in NED. 
+% and y_e is the cross-track error. 
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -33,8 +34,9 @@ function psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %      dist = sqrt(  (wpt.pos.x(k+1)-wpt.pos.x(k))^2 
 %                  + (wpt.pos.y(k+1)- wpt.pos.y(k))^2 );
 %
-% Output:  
+% Outputs:  
 %    psi_d: desired heading angle (rad)
+%    y_e: cross-track error (m)
 %
 % For course control use the functions LOSchi.m and ILOSchi.m.
 %
@@ -45,7 +47,8 @@ function psi_d = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %  
 % Author:    Thor I. Fossen
 % Date:      10 June 2021
-% Revisions: 
+% Revisions: 26 June 2022 - use constant bearing when last wpt is reached,  
+%                           bugfixes and improved documentation
 
 persistent k;      % active waypoint index (initialized by: clear ILOSpsi)
 persistent xk;     % active waypoint (xk, yk) corresponding to integer k
@@ -53,26 +56,29 @@ persistent yk;
 persistent y_int;  % integral state
 
 %% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
-if isempty(k)   
-  
+if isempty(k)
+
     % check if R_switch is smaller than the minimum distance between the waypoints
     if R_switch > min( sqrt( diff(wpt.pos.x).^2 + diff(wpt.pos.y).^2 ) )
         error("The distances between the waypoints must be larger than R_switch");
     end
-    
+
     % check input parameters
     if (R_switch < 0)
         error("R_switch must be larger than zero");
     end
+
     if (Delta < 0)
         error("Delta must be larger than zero");
-    end         
-    
+    end
+
     y_int = 0;              % integral state
-        
     k = 1;                  % set first waypoint as the active waypoint
     xk = wpt.pos.x(k);
-    yk = wpt.pos.y(k);     
+    yk = wpt.pos.y(k);
+    fprintf('Active waypoints:\n')
+    fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
+
 end
 
 %% Read next waypoint (xk_next, yk_next) from wpt.pos 
@@ -80,19 +86,17 @@ n = length(wpt.pos.x);
 if k < n                        % if there are more waypoints, read next one 
     xk_next = wpt.pos.x(k+1);  
     yk_next = wpt.pos.y(k+1);    
-else                            % else, use the last one in the array
-    xk_next = wpt.pos.x(end);
-    yk_next = wpt.pos.y(end); 
+else                            % else, continue with last bearing
+    bearing = atan2(wpt.pos.y(n)-wpt.pos.y(n-1), wpt.pos.x(n)-wpt.pos.x(n-1));
+    R = 1e10;
+    xk_next = wpt.pos.x(n) + R * cos(bearing);
+    yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
 
-%% Print active waypoint 
-fprintf('Active waypoint:\n')
-fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
+%% Compute the path-tangnetial angle
+pi_p = atan2(yk_next-yk, xk_next-xk); % path-tangential angle w.r.t. to North
 
-%% Compute the desired course angle
-pi_p = atan2(yk_next-yk, xk_next-xk);  % path-tangential angle w.r.t. to North
-
-% along-track and cross-track errors (x_e, y_e) expressed in NED
+% along-track and cross-track errors (x_e, y_e) 
 x_e =  (x-xk) * cos(pi_p) + (y-yk) * sin(pi_p);
 y_e = -(x-xk) * sin(pi_p) + (y-yk) * cos(pi_p);
 
@@ -102,12 +106,12 @@ if ( (d - x_e < R_switch) && (k < n) )
     k = k + 1;
     xk = xk_next;       % update active waypoint
     yk = yk_next; 
+    fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
 end
 
 % ILOS guidance law
 Kp = 1/Delta;
-Ki = kappa * Kp;
-psi_d = pi_p - atan( Kp * y_e + Ki * y_int );
+psi_d = pi_p - atan( Kp * (y_e + kappa * y_int) );
 
 % kinematic differential equation
 Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
