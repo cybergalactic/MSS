@@ -1,6 +1,6 @@
 function [xdot,U] = Lcontainer(x,ui,U0)
 % [xdot,U] = Lcontainer(x,ui,U0) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = [ u v r x y psi p phi delta ]'  using the
+% time derivative of the state vector: x = [ u v r x y psi p phi delta ]' using the
 % the LINEARIZED model corresponding to the nonlinear model container.m. 
 %
 % u     = surge velocity          (m/s)
@@ -13,17 +13,17 @@ function [xdot,U] = Lcontainer(x,ui,U0)
 % phi   = roll angle              (rad)
 % delta = actual rudder angle     (rad)
 %
-% The inputs are :
+% The inputs are:
 %
-% Uo     = service speed (optinally. Default speed U0 = 7 m/s
-% ui     = commanded rudder angle   (rad)
+% U0    = service speed (optinally. Default speed U0 = 7 m/s)
+% ui    = commanded rudder angle   (rad)
 %
 % Reference:  Son og Nomoto (1982). On the Coupled Motion of Steering and 
-%             Rolling of a High Speed Container Ship, Naval Architect of Ocean Engineering,
-%             20: 73-83. From J.S.N.A. , Japan, Vol. 150, 1981.
+%             Rolling of a High Speed Container Ship, Naval Architect of 
+%             Ocean Engineering 20:73-83. From J.S.N.A., Japan, Vol. 150, 1981.
 % 
 % Author:    Thor I. Fossen
-% Date:      23rd July 2001
+% Date:      23 July 2001
 % Revisions: 
 
 % Check of input and state dimensions
@@ -34,9 +34,8 @@ if nargin==2, U0=7.0; end
 if U0 <=0,error('The ship must have speed greater than zero');end
 
 % Normalization variables
-rho = 1025;                 % water density (kg/m^3)
-L = 175;                    % length of ship (m)
-U = sqrt(U0^2 + x(2)^2);    % ship speed (m/s)
+L = 175;                      % length of ship (m)
+U = sqrt( U0^2 + x(2)^2 );    % ship speed (m/s)
 
 % rudder limitations
 delta_max  = 10;             % max rudder angle (deg)
@@ -52,9 +51,8 @@ nu    = [v r p]';
 eta   = [y psi phi]';
 delta = x(9);    
  
-% Linear model using nondimensional matrices and states with dimension (see Fossen 2002): 
+% Linear model using nondimensional matrices and states with dimension (see Fossen 2021): 
 % TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta = (U^2/L) T b' delta
-
 T    = diag([ 1 1/L 1/L]);
 Tinv = diag([ 1 L L ]);
 
@@ -73,13 +71,13 @@ G = [ 0 0 0.0000704
 b = [-0.002578 0.00126  0.0000855 ]';
 
 % Rudder saturation and dynamics
-if abs(delta_c) >= delta_max*pi/180,
-   delta_c = sign(delta_c)*delta_max*pi/180;
+if abs(delta_c) >= delta_max * pi/180
+   delta_c = sign(delta_c) * delta_max * pi/180;
 end
 
 delta_dot = delta_c - delta;
-if abs(delta_dot) >= Ddelta_max*pi/180,
-   delta_dot = sign(delta_dot)*Ddelta_max*pi/180;
+if abs(delta_dot) >= Ddelta_max * pi/180
+   delta_dot = sign(delta_dot) * Ddelta_max * pi/180;
 end
 
 % TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta = (U^2/L) T b' delta
