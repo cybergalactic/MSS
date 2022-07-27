@@ -1,7 +1,7 @@
 function [xdot,U] = container(x,ui)
 % [xdot,U] = container(x,ui) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = [ u v r x y psi p phi delta n ]'  for
-% a container ship L = 175 m, where
+% time derivative of the state vector: x = [ u v r x y psi p phi delta n ]'
+% for a container ship L = 175 m, where
 %
 % u     = surge velocity          (m/s)
 % v     = sway velocity           (m/s)
@@ -14,21 +14,22 @@ function [xdot,U] = container(x,ui)
 % delta = actual rudder angle     (rad)
 % n     = actual shaft velocity   (rpm)
 %
-% The input vector is :
+% The input vector is:
 %
 % ui      = [ delta_c n_c ]'  where
 %
-% delta_c = commanded rudder angle   (rad)
-% n_c     = commanded shaft velocity (rpm)  
+% delta_c = commanded rudder angle (rad)
+% n_c     = commanded shaft speed (rpm)  
 %
 % Reference:  Son og Nomoto (1982). On the Coupled Motion of Steering and 
-%             Rolling of a High Speed Container Ship, Naval Architect of Ocean Engineering,
-%             20: 73-83. From J.S.N.A. , Japan, Vol. 150, 1981.
+%             Rolling of a High Speed Container Ship, Naval Architect of 
+%             Ocean Engineering 20:73-83. FromJ.S.N.A., Japan, Vol. 150, 1981.
 % 
 % Author:    Trygve Lauvdal
-% Date:      12th May 1994
-% Revisions: 18th July 2001 (Thor I. Fossen): added output U, changed order of x-vector
-%            20th July 2001 (Thor I. Fossen): changed my = 0.000238 to my = 0.007049
+% Date:      12 May 1994
+% Revisions: 18 July 2001 added output U, changed order of x-vector
+%            20 July 2001 changed my = 0.000238 to my = 0.007049
+%            27 July 2022 corrected the equation for up = u * (...
 
 if (length(x) ~= 10),error('x-vector must have dimension 10 !');end
 if (length(ui) ~= 2),error('u-vector must have dimension  2 !');end
@@ -102,28 +103,33 @@ m33 = (Ix+Jx);
 m44 = (Iz+Jz);
 
 % Rudder saturation and dynamics
-if abs(delta_c) >= delta_max*pi/180,
+if abs(delta_c) >= delta_max*pi/180
    delta_c = sign(delta_c)*delta_max*pi/180;
 end
 
 delta_dot = delta_c - delta;
-if abs(delta_dot) >= Ddelta_max*pi/180,
+if abs(delta_dot) >= Ddelta_max*pi/180
    delta_dot = sign(delta_dot)*Ddelta_max*pi/180;
 end
 
 % Shaft velocity saturation and dynamics
 n_c = n_c*U/L;
 n   = n*U/L;
-if abs(n_c) >= n_max/60,
+if abs(n_c) >= n_max/60
    n_c = sign(n_c)*n_max/60;
 end
 
-if n > 0.3,Tm=5.65/n;else,Tm=18.83;end        
+if n > 0.3
+    Tm=5.65/n;
+else
+    Tm=18.83;
+end        
+
 n_dot = 1/Tm*(n_c-n)*60;
 
 % Calculation of state derivatives
   vR     = ga*v + cRr*r + cRrrr*r^3 + cRrrv*r^2*v;
-  uP     = cos(v)*((1 - wp) + tau*((v + xp*r)^2 + cpv*v + cpr*r));
+  uP     = u * ( (1 - wp) + tau*((v + xp*r)^2 + cpv*v + cpr*r) );
    J     = uP*U/(n*D);
   KT     = 0.527 - 0.455*J; 
   uR     = uP*epsilon*sqrt(1 + 8*kk*KT/(pi*J^2));
