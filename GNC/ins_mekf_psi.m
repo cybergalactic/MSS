@@ -36,6 +36,8 @@ function [x_ins, P_prd] = ...
 % Author:    Thor I. Fossen
 % Date:      26 March 2020
 % Revisions: 13 Dec 2021 - replaced Euler's method with exact discretization
+%            30 AUg 2022 - use atan2 instead of atan to avoid jumps in:
+%                          eps_psi = ssa( y_psi - atan2(u_y, u_x) ); 
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -77,7 +79,9 @@ Ad = eye(15) + h * A + 0.5 * (h * A)^2;
 
 % Linearization of compass measurement
 a = (2/q_ins(1)) * [q_ins(2) q_ins(3) q_ins(4)]'; % 2 x Gibbs vector
-u = 2 * ( a(1)*a(2) + 2*a(3) ) / ( 4 + a(1)^2 - a(2)^2 - a(3)^2 );
+u_y = 2 * ( a(1)*a(2) + 2*a(3) );
+u_x = ( 4 + a(1)^2 - a(2)^2 - a(3)^2 );
+u = u_y / u_x;
 du = 1 / (1 + u^2);
 c_psi = du * (1 / ( 4 + a(1)^2 - a(2)^2 - a(3)^2 )^2 ) * ...
         [ -2*((a(1)^2 + a(3)^2 - 4)*a(2) + a(2)^3 + 4*a(1)*a(3)) 
@@ -119,7 +123,7 @@ else                         % INS aiding
     eps_pos = y_pos - p_ins;
     eps_g   = v1 - R' * v01; 
     
-    eps_psi = ssa( y_psi - atan(u) );   
+    eps_psi = ssa( y_psi - atan2(u_y, u_x) );   
     
     if (nargin == 10)
         eps = [eps_pos; eps_g; eps_psi];
