@@ -1,20 +1,17 @@
-function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
-% [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi) computes the
-% desired course angle when the path is straight lines going through the 
-% waypoints  (wpt.pos.x, wpt.pos.y). The desired course angle chi_d and 
-% course rate d/dt \chi_d = omega_chi_d (optionally) used by course 
+function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
+% [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
+% computes thedesired course angle when the path is straight lines going 
+% through the waypoints  (wpt.pos.x, wpt.pos.y). The desired course angle 
+% chi_d and course rate d/dt chi_d = omega_chi_d used by course 
 % autopilot systems are computed using the roportional LOS guidance law:
 %
-%  chi_d = pi_p - atan( Kp * y_e ),    Kp = 1/Delta  
+%  chi_d = pi_h - atan( Kp * y_e ),    Kp = 1/Delta  
 %
-%  omega_chi_d = -Kp * U * sin( chi - pi_p ) / ( (Kp * y_e)^2 + 1);
+%  omega_chi_d = -Kp * U * sin( chi - pi_h ) / ( 1 + (Kp * y_e)^2 )
 %
-% where pi_p is the path-tangential angle with respect to the North axis
-% and y_e is the cross-track error expressed in NED. The function can be
+% where pi_h is the path-tangential (azimuth) angle with respect to the North 
+% axis and y_e is the cross-track error. The function can be
 % called according to:
-%
-%  chi_d = LOSchi(x,y,Delta,R_switch,wpt)
-%  [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -28,8 +25,9 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %             is less than R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]': array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]': array of waypoints expressed in NED (m)
-%   U: speed (m/s), only needed for computation of omega_chi_d
-%   chi: course angle (rad), only needed for computation of omega_chi_d
+%   U: speed (m/s)
+%   chi: course angle (rad)
+%   h: sampling time (s)
 %
 % Feasibility citerion: 
 %   The switching parameter R_switch > 0 must satisfy, R_switch < dist, 
@@ -41,7 +39,6 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %    chi_d:       desired course angle (rad)
 %    omega_chi_d: desired course rate (rad/s)
 %
-% For integral LOS (course control) use ILOSchi.m. 
 % For heading control use the functions LOSpsi.m and ILOSpsi.m.
 %
 % Ref. T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
@@ -49,11 +46,14 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi)
 %
 % Author:    Thor I. Fossen
 % Date:      2 June 2021
-% Revisions: 18 June 2021 - added optional output omega_chi_d
+% Revisions: 18 June 2021 - added output omega_chi_d
+%            17 Oct 2022  - added filter/observer for chi_d tp avoid steps 
 
-persistent k;   % active waypoint index (initialized by: clear LOSchi)
-persistent xk;  % active waypoint (xk, yk) corresponding to integer k
-persistent yk;
+persistent k;      % active waypoint index (initialized by: clear LOSchi)
+persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
+persistent chi_f;
+
+K = 0.1;   % observer gain for chi_d
 
 %% Initialization of (xk, yk) and (xk_next, yk_next)
 if isempty(k)   
@@ -64,16 +64,13 @@ if isempty(k)
     end
     
     % check input parameters
-    if (R_switch < 0)
-        error("R_switch must be larger than zero");
-    end
-    if (Delta < 0)
-        error("Delta must be larger than zero");
-    end    
+    if (R_switch < 0); error("R_switch must be larger than zero"); end
+    if (Delta < 0); error("Delta must be larger than zero"); end    
     
     k = 1;              % set first waypoint as the active waypoint
     xk = wpt.pos.x(k);
-    yk = wpt.pos.y(k);     
+    yk = wpt.pos.y(k);   
+    chi_f = 0;          % filtered chi_d
 end
 
 %% Read next waypoint (xk_next, yk_next) from wpt.pos 
@@ -81,21 +78,24 @@ n = length(wpt.pos.x);
 if k < n                        % if there are more waypoints, read next one 
     xk_next = wpt.pos.x(k+1);  
     yk_next = wpt.pos.y(k+1);    
-else                            % else, use the last one in the array
-    xk_next = wpt.pos.x(end);
-    yk_next = wpt.pos.y(end); 
+else                            % else, continue with last bearing
+    bearing = atan2((wpt.pos.y(n)-wpt.pos.y(n-1)), (wpt.pos.x(n)-wpt.pos.x(n-1)));
+    R = 1e10;
+    xk_next = wpt.pos.x(n) + R * cos(bearing);
+    yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
+
 
 %% Print active waypoint 
 fprintf('Active waypoint:\n')
 fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
 
-%% Compute the desired course angle
-pi_p = atan2(yk_next-yk, xk_next-xk);  % path-tangential angle w.r.t. to North
+%% Compute the desired course angle w.r.t. North
+pi_h = atan2( (yk_next-yk), (xk_next-xk) );  
 
-% along-track and cross-track errors (x_e, y_e) expressed in NED
-x_e =  (x-xk) * cos(pi_p) + (y-yk) * sin(pi_p);
-y_e = -(x-xk) * sin(pi_p) + (y-yk) * cos(pi_p);
+% along-track and cross-track errors (x_e, y_e)
+x_e =  (x-xk) * cos(pi_h) + (y-yk) * sin(pi_h);
+y_e = -(x-xk) * sin(pi_h) + (y-yk) * cos(pi_h);
 
 % if the next waypoint satisfy the switching criterion, k = k + 1
 d = sqrt( (xk_next-xk)^2 + (yk_next-yk)^2 );
@@ -106,16 +106,18 @@ if ( (d - x_e < R_switch) && (k < n) )
 end
 
 % LOS guidance law
-Kp = 1/Delta;
-chi_d = pi_p - atan( Kp * y_e );
+Kp = 1 / Delta;
+chi_ref = pi_h - atan( Kp * y_e );
 
-% kinematic differential equations
-Dy_e = U * sin( chi - pi_p );
+% kinematic differential equation dy_e/dt
+Dy_e = U * sin( chi - pi_h );
 
-% Course rate (optionally)
-if (nargin == 7)
-    omega_chi_d = -Kp * Dy_e / ( (Kp * y_e)^2 + 1);
-end
+% desired course rate
+omega_chi_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );   
+
+% observer for chi_d
+chi_f = chi_f + h * (omega_chi_d + K * ssa( chi_ref - chi_f ) );
+chi_d = chi_f;
 
 end
 
