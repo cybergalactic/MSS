@@ -1,9 +1,11 @@
-function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
-% [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt) 
-% computes the desired heading angle psi_d and cross-track error y_e when
-% the path is  straight lines going through the waypoints (wpt.pos.x, wpt.pos.y).  
-% The desired heading angle computed using the classical ILOS guidance law by 
-% Børhaug et al. (2008).
+function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U)
+% Classical ILOS: [psi_d,y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
+% With observer:  [psi_d,y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U) 
+% 
+% ILOSpsi computes the desired heading angle psi_d and cross-track error y_e 
+% when the path is  straight lines going through the waypoints 
+% (wpt.pos.x, wpt.pos.y). The desired heading angle computed using the
+% classical ILOS guidance law by Børhaug et al. (2008).
 %
 %    psi_d = pi_h - atan( Kp * (y_e + kappa * y_int) ),  Kp = 1/Delta
 %
@@ -26,6 +28,8 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %             is less than R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]' array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]' array of waypoints expressed in NED (m)
+%   psi: optionally heading angle (rad) used by observer
+%   U: optionally speed (m/s) used by observer
 %
 % Feasibility citerion: 
 %   The switching parameter R_switch > 0 must satisfy, R_switch < dist, 
@@ -48,10 +52,14 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 % Date:      10 June 2021
 % Revisions: 26 June 2022 - use constant bearing when last wpt is reached,  
 %                           bugfixes and improved documentation
+%            17 Oct 2022  - added filter/observer for psi_d to avoid steps 
 
 persistent k;      % active waypoint index (initialized by: clear ILOSpsi)
 persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
+persistent psi_f;  % filtered heading angle command
 persistent y_int;  % integral state
+
+K = 0.1;   % observer gain for desired yaw angle filter
 
 %% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
 if isempty(k)
@@ -66,6 +74,7 @@ if isempty(k)
     if (Delta < 0); error("Delta must be larger than zero"); end
 
     y_int = 0;              % initial states
+    psi_f = 0;
     k = 1;                  % set first waypoint as the active waypoint
     xk = wpt.pos.x(k);
     yk = wpt.pos.y(k);
@@ -104,8 +113,20 @@ end
 
 % ILOS guidance law
 Kp = 1/Delta;
-psi_d = pi_h - atan( Kp * (y_e + kappa * y_int) );
+psi_ref = pi_h - atan( Kp * (y_e + kappa * y_int) ); 
 
+% observer/filter for psi_d
+if nargin == 9
+    chi = psi;                     % assume that beta_c = 0 
+    Dy_e = U * sin( chi - pi_h );  % kinematic differential equation dy_e/dt
+    r_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );
+    psi_f = psi_f + h * (r_d + K * ssa( psi_ref - psi_f ) );
+    psi_d = psi_f;
+elseif nargin == 7
+    psi_d = psi_ref;    % bypass observer and use classical ILOS
+end
+
+% integral state
 y_int = y_int + h * Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
 
 end
