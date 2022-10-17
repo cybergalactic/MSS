@@ -47,7 +47,7 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
 % Author:    Thor I. Fossen
 % Date:      2 June 2021
 % Revisions: 18 June 2021 - added output omega_chi_d
-%            17 Oct 2022  - added filter/observer for chi_d tp avoid steps 
+%            17 Oct 2022  - added filter/observer for chi_d to avoid steps 
 
 persistent k;      % active waypoint index (initialized by: clear LOSchi)
 persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
@@ -109,10 +109,8 @@ end
 Kp = 1 / Delta;
 chi_ref = pi_h - atan( Kp * y_e );
 
-% kinematic differential equation dy_e/dt
-Dy_e = U * sin( chi - pi_h );
-
 % desired course rate
+Dy_e = U * sin( chi - pi_h );    % kinematic differential equation dy_e/dt
 omega_chi_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );   
 
 % observer for chi_d
