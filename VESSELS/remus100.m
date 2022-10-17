@@ -1,25 +1,29 @@
-function [xdot,U] = remus100(x,ui,Vc,betaVc)
-% [xdot,U] = remus100(x,ui,Vc,betaVc) returns the time derivative of the 
-% state vector: x = [ u v w p q r x y z phi theta psi ]', alternatively 
-% x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' in addition to the speed U 
-% in m/s (optionally) for the Remus 100 autonomous underwater vehicle (AUV). 
-% The length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
-% mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
-% when the propeller runs at 1525 rpm in zero currents. The state vector 
-% can be of dimension 12 (Euler angles) or 13 (unit quaternions):
+function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
+% The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
+% and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
+% obtained when the propeller runs at 1525 rpm in zero currents. The
+% function calls are:
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c)  3-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)      horizontal ocean currents
+%   [xdot,U] = remus100(x,ui)                        no ocean currents
+% The function returns the time derivative xdot of the state vector: 
+%   x = [ u v w p q r x y z phi theta psi ]',     alternatively 
+%   x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' 
+% in addition to the speed U in m/s (optionally). The state vector can be 
+% of dimension 12 (Euler angles) or 13 (unit quaternions):
 %
-%  u:       surge velocity          (m/s)
-%  v:       sway velocity           (m/s)
-%  w:       heave velocity          (m/s)
-%  p:       roll rate               (rad/s)
-%  q:       pitch rate              (rad/s)
-%  r:       yaw rate                (rad/s)
-%  x:       North position          (m)
-%  y:       East position           (m)
-%  z:       downwards position      (m)
-%  phi:     roll angle              (rad)       
-%  theta:   pitch angle             (rad)
-%  psi:     yaw angle               (rad)
+%   u:       surge velocity          (m/s)
+%   v:       sway velocity           (m/s)
+%   w:       heave velocity          (m/s)
+%   p:       roll rate               (rad/s)
+%   q:       pitch rate              (rad/s)
+%   r:       yaw rate                (rad/s)
+%   x:       North position          (m)
+%   y:       East position           (m)
+%   z:       downwards position      (m)
+%   phi:     roll angle              (rad)       
+%   theta:   pitch angle             (rad)
+%   psi:     yaw angle               (rad)
 % 
 % For the unit quaternion representation, the last three arguments of the 
 % x-vector, the Euler angles (phi, theta, psi), are replaced by the unit 
@@ -29,15 +33,17 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 % The control inputs are one tail rudder, two stern planes and a single-screw 
 % propeller:
 %
-%  ui = [ delta_r delta_s n ]'  where
+%   ui = [ delta_r delta_s n ]'  where
 %
 %    delta_r:   rudder angle (rad)
 %    delta_s:   stern plane angle (rad) 
 %    n:         propeller revolution (rpm)
 %
-% The arguments Vc (m/s) and betaVc (rad) are optional arguments for ocean 
-% current speed and direction expressed in NED.
+% The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
+% ocean currents
 %
+%    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
+% 
 % Author:    Thor I. Fossen
 % Date:      27 May 2021
 % Revisions: 24 Aug 2021  Ocean currents are now expressed in NED 
@@ -48,6 +54,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %                         data from Allen et al. (2000)
 %            08 May 2022  Added compability for unit quaternions in 
 %                         addition to the Euler angle representation
+%            16 Oct 2022  Added vertical currents
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -57,7 +64,8 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc)
 %      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %           Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
-if (nargin == 2), Vc = 0; betaVc = 0; end     % optional ocean currents
+if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end  % no ocean currents
+if (nargin == 4), w_c = 0; end             % no vertical ocean currents
 
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 if (length(x) ~= 12 && length(x) ~= 13)
@@ -80,7 +88,7 @@ n = ui(3)/60;           % propeller revolution (rps)
 u_c = Vc * cos( betaVc - eta(6) );                               
 v_c = Vc * sin( betaVc - eta(6) );   
 
-nu_c = [u_c v_c 0 0 0 0]';                  % ocean current velocities
+nu_c = [u_c v_c w_c 0 0 0]';                  % ocean current velocities
 Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]';    % time derivative of nu_c
 
 % Amplitude saturation of rudder angle, stern plane and propeller revolution
