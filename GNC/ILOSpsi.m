@@ -1,16 +1,16 @@
 function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
-% [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi) computes the 
-% desired heading angle psi_d and cross-track error y_e when the path is 
-% straight lines going through the waypoints (wpt.pos.x, wpt.pos.y). The 
-% desired heading angle computed using the classical ILOS guidance law by 
-% Børhaug et al. (2008),
+% [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt) 
+% computes the desired heading angle psi_d and cross-track error y_e when
+% the path is  straight lines going through the waypoints (wpt.pos.x, wpt.pos.y).  
+% The desired heading angle computed using the classical ILOS guidance law by 
+% Børhaug et al. (2008).
 %
-%  psi_d = pi_p - atan( Kp * (y_e + kappa * y_int) ),  Kp = 1/Delta
+%    psi_d = pi_h - atan( Kp * (y_e + kappa * y_int) ),  Kp = 1/Delta
 %
-%  Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
+%    d/dt y_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
 %
-% where pi_p is the path-tangential angle with respect to the North axis
-% and y_e is the cross-track error. 
+% where pi_h is the path-tangential (azimuth) angle with respect to the 
+% North axis and y_e is the cross-track error. 
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -18,12 +18,11 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %   >> clear ILOSpsi
 %
 % Inputs:   
-%   (x,y), craft North-East positions (m)
-%   Delta, positive look-ahead distance (m)
-%   kappa, positive integral gain constant, Ki = kappa * Kp
-%   U, speed of the craft (m/s)
-%   h, sampling time (s)
-%   R_switch, go to next waypoint when the along-track distance x_e 
+%   (x,y): craft North-East positions (m)
+%   Delta: positive look-ahead distance (m)
+%   kappa: positive integral gain constant, Ki = kappa * Kp
+%   h: sampling time (s)
+%   R_switch: go to next waypoint when the along-track distance x_e 
 %             is less than R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]' array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]' array of waypoints expressed in NED (m)
@@ -51,8 +50,7 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
 %                           bugfixes and improved documentation
 
 persistent k;      % active waypoint index (initialized by: clear ILOSpsi)
-persistent xk;     % active waypoint (xk, yk) corresponding to integer k
-persistent yk;
+persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
 persistent y_int;  % integral state
 
 %% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
@@ -64,15 +62,10 @@ if isempty(k)
     end
 
     % check input parameters
-    if (R_switch < 0)
-        error("R_switch must be larger than zero");
-    end
+    if (R_switch < 0); error("R_switch must be larger than zero"); end
+    if (Delta < 0); error("Delta must be larger than zero"); end
 
-    if (Delta < 0)
-        error("Delta must be larger than zero");
-    end
-
-    y_int = 0;              % integral state
+    y_int = 0;              % initial states
     k = 1;                  % set first waypoint as the active waypoint
     xk = wpt.pos.x(k);
     yk = wpt.pos.y(k);
@@ -87,18 +80,18 @@ if k < n                        % if there are more waypoints, read next one
     xk_next = wpt.pos.x(k+1);  
     yk_next = wpt.pos.y(k+1);    
 else                            % else, continue with last bearing
-    bearing = atan2(wpt.pos.y(n)-wpt.pos.y(n-1), wpt.pos.x(n)-wpt.pos.x(n-1));
+    bearing = atan2((wpt.pos.y(n)- wpt.pos.y(n-1)), (wpt.pos.x(n)-wpt.pos.x(n-1)));
     R = 1e10;
     xk_next = wpt.pos.x(n) + R * cos(bearing);
     yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
 
-%% Compute the path-tangnetial angle
-pi_p = atan2(yk_next-yk, xk_next-xk); % path-tangential angle w.r.t. to North
+%% Compute the path-tangnetial angle w.r.t. North
+pi_h = atan2( (yk_next-yk), (xk_next-xk) ); 
 
 % along-track and cross-track errors (x_e, y_e) 
-x_e =  (x-xk) * cos(pi_p) + (y-yk) * sin(pi_p);
-y_e = -(x-xk) * sin(pi_p) + (y-yk) * cos(pi_p);
+x_e =  (x-xk) * cos(pi_h) + (y-yk) * sin(pi_h);
+y_e = -(x-xk) * sin(pi_h) + (y-yk) * cos(pi_h);
 
 % if the next waypoint satisfy the switching criterion, k = k + 1
 d = sqrt( (xk_next-xk)^2 + (yk_next-yk)^2 );
@@ -111,13 +104,9 @@ end
 
 % ILOS guidance law
 Kp = 1/Delta;
-psi_d = pi_p - atan( Kp * (y_e + kappa * y_int) );
+psi_d = pi_h - atan( Kp * (y_e + kappa * y_int) );
 
-% kinematic differential equation
-Dy_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
-
-% Euler integration
-y_int = y_int + h * Dy_int;
+y_int = y_int + h * Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
 
 end
 
