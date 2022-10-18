@@ -1,18 +1,24 @@
-function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U)
-% Classical ILOS: [psi_d,y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt)
-% With observer:  [psi_d,y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U) 
-% 
-% ILOSpsi computes the desired heading angle psi_d and cross-track error y_e 
-% when the path is  straight lines going through the waypoints 
-% (wpt.pos.x, wpt.pos.y). The desired heading angle computed using the
-% classical ILOS guidance law by Børhaug et al. (2008).
+function [psi_d, r_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,U,K_f)
+% [psi_d, r_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,U) 
+% ILOSpsi computes the desired heading angle psi_d, desired yaw rate r_d 
+% and cross-track error y_e when the path is  straight lines going through 
+% the waypoints (wpt.pos.x, wpt.pos.y). The desired heading angle computed 
+% using the classical ILOS guidance law by Børhaug et al. (2008).
 %
 %    psi_d = pi_h - atan( Kp * (y_e + kappa * y_int) ),  Kp = 1/Delta
 %
 %    d/dt y_int = Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 )
 %
 % where pi_h is the path-tangential (azimuth) angle with respect to the 
-% North axis and y_e is the cross-track error. 
+% North axis and y_e is the cross-track error. The observer/filter for the 
+% desired yaw angle psi_d is
+%
+%    d/dt psi_f = r_d + K_f * ssa( psi_d - psi_f ) )
+%
+% where the desired yaw rate r_d = d(psi_d)/dt is computed by
+%
+%    d/dt y_e = -U * y_e / sqrt( Delta^2 + y_e^2 )
+%    r_d = -Kp * dy_e/dt / ( 1 + (Kp * y_e)^2 )   
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -28,8 +34,8 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U)
 %             is less than R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]' array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]' array of waypoints expressed in NED (m)
-%   psi: optionally heading angle (rad) used by observer
-%   U: optionally speed (m/s) used by observer
+%   U: speed, vehicle cruise speed or time-varying measurement (m/s)
+%   K_f: observer gain for desired yaw angle (typically 0.1-0-5)
 %
 % Feasibility citerion: 
 %   The switching parameter R_switch > 0 must satisfy, R_switch < dist, 
@@ -39,7 +45,8 @@ function [psi_d, y_e] = ILOSpsi(x,y,Delta,kappa,h,R_switch,wpt,psi,U)
 %
 % Outputs:  
 %    psi_d: desired heading angle (rad)
-%    y_e: cross-track error (m)
+%    r_d:   desired yaw rate (rad/s)
+%    y_e:   cross-track error (m)
 %
 % For course control use the functions LOSchi.m and ILOSchi.m.
 %
@@ -58,8 +65,6 @@ persistent k;      % active waypoint index (initialized by: clear ILOSpsi)
 persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
 persistent psi_f;  % filtered heading angle command
 persistent y_int;  % integral state
-
-K = 0.1;   % observer gain for desired yaw angle filter
 
 %% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
 if isempty(k)
@@ -113,21 +118,19 @@ end
 
 % ILOS guidance law
 Kp = 1/Delta;
+psi_d = psi_f;
 psi_ref = pi_h - atan( Kp * (y_e + kappa * y_int) ); 
 
-% observer/filter for psi_d
-if nargin == 9
-    chi = psi;                     % assume that beta_c = 0 
-    Dy_e = U * sin( chi - pi_h );  % kinematic differential equation dy_e/dt
-    r_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );
-    psi_f = psi_f + h * (r_d + K * ssa( psi_ref - psi_f ) );
-    psi_d = psi_f;
-elseif nargin == 7
-    psi_d = psi_ref;    % bypass observer and use classical ILOS
-end
+% desired yaw rate r_d
+Dy_e = -U * y_e / sqrt( Delta^2 + y_e^2 );    % d/dt y_e
+r_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );      % d/dt psi_d
 
-% integral state
+% integral state: y_int[k+1]
 y_int = y_int + h * Delta * y_e / ( Delta^2 + (y_e + kappa * y_int)^2 );
+
+% observer/filter: psi_f[k+1]
+psi_f = psi_f + h * ( r_d + K_f * ssa( psi_ref - psi_f ) );
+
 
 end
 
