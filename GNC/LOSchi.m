@@ -1,8 +1,8 @@
-function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
-% [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
-% computes thedesired course angle when the path is straight lines going 
-% through the waypoints  (wpt.pos.x, wpt.pos.y). The desired course angle 
-% chi_d and course rate d/dt chi_d = omega_chi_d used by course 
+function [chi_d, omega_chi_d,y_e] = LOSchi(x,y,Delta,R_switch,wpt,U,K_f,h)
+% [chi_d, omega_chi_d,y_e] = LOSchi(x,y,Delta,R_switch,wpt,U,K_f,h)
+% LOSpsi computes thedesired course angle when the path is straight lines 
+% going through the waypoints  (wpt.pos.x, wpt.pos.y). The desired course
+% angle chi_d and course rate d/dt chi_d = omega_chi_d used by course 
 % autopilot systems are computed using the roportional LOS guidance law:
 %
 %  chi_d = pi_h - atan( Kp * y_e ),    Kp = 1/Delta  
@@ -10,8 +10,15 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
 %  omega_chi_d = -Kp * U * sin( chi - pi_h ) / ( 1 + (Kp * y_e)^2 )
 %
 % where pi_h is the path-tangential (azimuth) angle with respect to the North 
-% axis and y_e is the cross-track error. The function can be
-% called according to:
+% axis and y_e is the cross-track error. The observer/filter for the desired 
+% yaw angle psi_d is
+%
+%    d/dt psi_f = r_d + K_f * ssa( psi_d - psi_f ) )
+%
+% where the desired course rate omega_d = d(psi_d)/dt is computed by
+%
+%    d/dt y_e = -U * y_e / sqrt( Delta^2 + y_e^2 )
+%    omega_chi_d = -Kp * dy_e/dt / ( 1 + (Kp * y_e)^2 )  
 %
 % Initialization:
 %   The active waypoint (xk, yk) where k = 1,2,...,n is a persistent
@@ -25,8 +32,8 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
 %             is less than R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]': array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]': array of waypoints expressed in NED (m)
-%   U: speed (m/s)
-%   chi: course angle (rad)
+%   U: speed, vehicle cruise speed or time-varying measurement (m/s)
+%   K_f: observer gain for desired yaw angle (typically 0.1-0-5)
 %   h: sampling time (s)
 %
 % Feasibility citerion: 
@@ -52,8 +59,6 @@ function [chi_d, omega_chi_d] = LOSchi(x,y,Delta,R_switch,wpt,U,chi,h)
 persistent k;      % active waypoint index (initialized by: clear LOSchi)
 persistent xk yk;  % active waypoint (xk, yk) corresponding to integer k
 persistent chi_f;
-
-K = 0.1;   % observer gain for chi_d
 
 %% Initialization of (xk, yk) and (xk_next, yk_next)
 if isempty(k)   
@@ -85,7 +90,6 @@ else                            % else, continue with last bearing
     yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
 
-
 %% Print active waypoint 
 fprintf('Active waypoint:\n')
 fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
@@ -106,16 +110,15 @@ if ( (d - x_e < R_switch) && (k < n) )
 end
 
 % LOS guidance law
-Kp = 1 / Delta;
-chi_ref = pi_h - atan( Kp * y_e );
-
-% desired course rate
-Dy_e = U * sin( chi - pi_h );    % kinematic differential equation dy_e/dt
-omega_chi_d = -Kp * Dy_e / ( 1 + (Kp * y_e)^2 );   
-
-% observer for chi_d
-chi_f = chi_f + h * (omega_chi_d + K * ssa( chi_ref - chi_f ) );
 chi_d = chi_f;
+chi_ref = pi_h - atan( y_e/Delta );
+
+% desired course rate: omega_chi_d[k]
+Dy_e = -U * y_e / sqrt( Delta^2 + y_e^2 );        % d/dt y_e
+omega_chi_d = -(1/Delta) * Dy_e / ( 1 + (y_e/Delta)^2 );   
+
+% observer: chi_f[k+1]
+chi_f = chi_f + h * (omega_chi_d + K_f * ssa( chi_ref - chi_f ) );
 
 end
 
