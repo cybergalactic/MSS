@@ -12,8 +12,8 @@
 % actuator dynamics and saturation
 %
 % Author:    Thor I. Fossen
-% Date:      20 June 2020
-% Revisions: 
+% Date:      20 Jun 2020
+% Revisions: 29 Nov 2022 - beta is changed to beta = beta_1 * alpha + beta_0
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
@@ -27,8 +27,9 @@ psi_ref = 10 * pi/180;  % desired yaw angle
 T = 30;                 % ship time constant
 K = 0.3;                % ship gain constant
 lambda = 0.1;           % sliding variable parameter lambda > 0
-alpha_0 = 0.03;         % adaptation gain
-beta_0 = 0.0001;       % adaptation gain
+alpha_0 = 0.03;         % adaptation gains
+beta_0 = 0.0001;       
+beta_1 = 0.0001;
 v = 0;                  % initial state
 alpha = 0;              % initial state
 
@@ -76,7 +77,7 @@ for i=1:N+1
         alpha_dot = alpha_0;
     end
     
-    beta = beta_0;
+    beta = beta_1 * alpha + beta_0;
     phi = 0.01;
     v_dot = -beta * tanh(sigma/phi);  
     w = -alpha * sqrt(abs(sigma)) * sign(sigma) + v;
