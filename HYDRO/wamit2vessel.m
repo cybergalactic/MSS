@@ -1,18 +1,24 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
-% wamit2vessel reads data from Wamit output files and store the data in vesselname.mat
-%   using the MSS vessel struture.
+% wamit2vessel reads data from WAMIT output files and store the data in 
+%   vesselname.mat using the MSS vessel struture.
 %
 %   vessel = wamit2vessel(filename) 
 % 
 % The Wamit GDF-file must be defined in GLOBAL COORDINATES, i.e. origin 
-% [Lpp/2 B/2 WL], see the Wamit manual. The axes are transformed from Wamit
+% [Lpp/2 B/2 WL], see the Wamit manual. The axes are transformed from WAMIT
 % axes to Fossen axes. 
 %
-% Examples:
+% Examples:   
+%   ../MSS/HYDRO/vessels_wamit/tanker
+%       vessel = wamit2vessel('tanker')
+%       vessel = wamit2vessel('tanker',10,246,46)
+%       vessel = wamit2vessel('tanker',10,246,46,'1111')
 %
-%   vessel = wamit2vessel('tanker')
-%   vessel = wamit2vessel('tanker',10,246,46)
-%   vessel = wamit2vessel('tanker',10,246,46,'1111')
+% ../MSS/HYDRO/vessels_wamit/semisub
+%       vessel = wamit2vessel('semisub',21,115,80,'1111')
+%
+% ../MSS/HYDRO/vessels_wamit/fpso
+%       vessel = wamit2vessel('fpso',12,200,44,'1111')
 %
 % Inputs:
 %    filename (without extension) reads and processes the following
@@ -89,6 +95,7 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 % Revisions: 2008-02-15 Minor bug fixes
 %            2009-09-11 Using new viscous damping viscous.m
 %            2021-03-07 Minor bug fixes
+%            2022-12-20 Fixed incorrect mirroring of RAOs to 180-360 deg
 
 %%
 if ~exist('plot_flag')
@@ -119,7 +126,7 @@ if nargin == 1
     Lpp       = input('Length between perpendiculars L_{pp}(m)    : ');
     Boa       = input('Breadth (m)                                : ');
     
-elseif nargin == 4 | nargin == 5  % Lpp, B and T_draught are specified in call
+elseif nargin == 4 || nargin == 5  % Lpp, B and T_draught are specified in call
      vesselfile = filename; 
 else
     error('wrong number of input arguments');
@@ -145,7 +152,7 @@ vessel.main.T     = T_draught;
 vessel.main.B     = Boa;
 vessel.main.Lpp   = Lpp;
 vessel.velocities = 0;
-vessel.headings   = (pi/180)*[0:10:180];
+vessel.headings   = (pi/180)*(0:10:180);
 Nheadings         = length(vessel.headings);
 
 % Axes transformations for data processing:
@@ -155,10 +162,10 @@ T_gdf = [1 -1 -1];             % Wamit2Fossen axes (sign correction)
 T_data = [1 -1 1 -1 1 -1];     % RAO data sign correction due to neg. wave angles beta
 
 % Scaling of raw data:
-% Matrix: Tscale*A*Tscale
+% Matrix: Tscale * A * Tscale
 % RAO: change amplitude with signs in T_rao (alternavively change phase with pi)
-Tscale = diag([T_gdf T_gdf]);  % 6 DOF transformation matrix for A and B data
-T_rao = [T_gdf T_gdf].*T_data; % total force/motion RAO transformation
+Tscale = diag([T_gdf T_gdf]);    % 6-DOF transformation matrix for A and B data
+T_rao = [T_gdf T_gdf] .* T_data; % total force/motion RAO transformation
 
 %--------------------------------------------------------------------------
 %% Check number of WAMIT headings in *.pot file
@@ -336,7 +343,7 @@ if exist([filename '.out'])
             
             % spring stiffness matrix in CO (Fossen axes)             
             C_wamit = Tscale*C_wamit*Tscale;            
-            for i = 1:Nfreqs,
+            for i = 1:Nfreqs
                 vessel.C(:,:,i) = C_wamit;
             end
             
@@ -435,8 +442,8 @@ if exist([filename '.1'])
         B_dim = Bij_sorted (:,:,w)*vessel.main.rho .* vessel.freqs(w) ...
             .* (ULEN .^ scaleA);      
         % transform to Fossen axes
-        vessel.A(:,:,w) = Tscale*A_dim*Tscale;     
-        vessel.B(:,:,w) = Tscale*B_dim*Tscale;
+        vessel.A(:,:,w) = Tscale * A_dim * Tscale;     
+        vessel.B(:,:,w) = Tscale * B_dim * Tscale;
     end
          
 else
@@ -505,7 +512,7 @@ end
 %--------------------------------------------------------------------------
 if exist([filename '.2']) && exist([filename '.3'])
 
-    forceRAOinput = input('WAMIT force RAOs from  DIFFRACTION (0) or HASKIND (1)? ')
+    forceRAOinput = input('WAMIT force RAOs from  DIFFRACTION (0) or HASKIND (1)? ');
 
     if forceRAOinput == 0
         forceRAOfile = [filename '.3'];
@@ -585,7 +592,7 @@ vessel.forceRAO.phase{6}(:,:,1) = FKphase_sorted{6}(:,:)*pi/180 - min(0,T_rao(6)
 %--------------------------------------------------------------------------
 if exist([filename '.8']) && exist([filename '.9'])
  
-    WDinput = input('WAMIT wave drift from MOMENTUM (0) or PRESSURE (1)? ')
+    WDinput = input('WAMIT wave drift from MOMENTUM (0) or PRESSURE (1)? ');
 
     if WDinput == 0
         WDfile = [filename '.8'];
@@ -666,20 +673,28 @@ vessel.driftfrc.amp{2}(:,:,1) = Fy;
 vessel.driftfrc.amp{3}(:,:,1) = Mz;
 
 %-------------------------------------------------------------------------%
-%% map data from 0-180 deg to 180-360 deg (symmetry about x-axes)
+%% mirror data from 0-180 deg to 180-360 deg (symmetry about x-axes)
 %-------------------------------------------------------------------------
-vessel.headings = (pi/180)*[0:10:350];
+vessel.headings = (pi/180)*(0:10:350);
 
-rao_sign = [1 -1 1 1 -1 1];
+% correct sign of flipped motions RAOs by modyfying the phases in sway, 
+% roll and yaw (2, 4, 6) by pi
+rao_sign = [0 1 0 1 0 1];
 for i = 1:6
-   vessel.motionRAO.amp{i}(:,20:36,1)   = vessel.motionRAO.amp{i}(:,2:18,1);  
-   vessel.motionRAO.phase{i}(:,20:36,1) = rao_sign(i)*vessel.motionRAO.phase{i}(:,2:18,1);    
-   vessel.forceRAO.amp{i}(:,20:36,1)    = vessel.forceRAO.amp{i}(:,2:18,1); 
-   vessel.forceRAO.phase{i}(:,20:36,1)  = rao_sign(i)*vessel.forceRAO.phase{i}(:,2:18,1);   
+    
+    vessel.motionRAO.amp{i}(:,20:36,1) = vessel.motionRAO.amp{i}(:,flip(2:18),1);
+    vessel.motionRAO.phase{i}(:,20:36,1) = rao_sign(i) * pi + ...
+        vessel.motionRAO.phase{i}(:,flip(2:18),1);
+    
+    vessel.forceRAO.amp{i}(:,20:36,1) = vessel.forceRAO.amp{i}(:,flip(2:18),1);
+    vessel.forceRAO.phase{i}(:,20:36,1) = rao_sign(i) * pi + ...
+        vessel.forceRAO.phase{i}(:,flip(2:18),1);  
 end      
 
+% correct sign of flipped motion RAOs amplitudes in surge, sway and yaw (1, 2, 6)
+rao_sign_WD = [1 -1 -1];
 for i = 1:3
-   vessel.driftfrc.amp{i}(:,20:36,1)   = rao_sign(i)*vessel.driftfrc.amp{i}(:,2:18,1);     
+   vessel.driftfrc.amp{i}(:,20:36,1) = rao_sign_WD(i) * vessel.driftfrc.amp{i}(:,2:18,1);     
 end 
 
 %--------------------------------------------------------------------------
