@@ -143,7 +143,7 @@ end
 % Scale, transform, and store data in MSS vessel structure
 % (x-forward, y-starboard, z-upwards, 0 deg beam seas)
 %
-% A_new   = T*A*T,   Veres to MSS (Fossen 2002): T = diag([-1 1 -1 -1 1 -1])
+% A_new   = T*A*T,   Veres to MSS (Fossen 2021): T = diag([-1 1 -1 -1 1 -1])
 % tau_new = T*tau    Veres (0 deg head seas), MSS (0 deg beam seas)
 %--------------------------------------------------------------------------
 nhead_tot = (nhead - 2)*2 + 2;
