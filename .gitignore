@@ -6,3 +6,7 @@ slprj/
 *.slxc
 SIMULINK/mssWamitShipXTemplates/cache
 SIMULINK/mssWamitShipXTemplates/slprj
+
+# Simscape
+cache/
+build/
