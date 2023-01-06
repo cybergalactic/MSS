@@ -1,0 +1,1 @@
+conda activate base && sphinx-autobuild . _build/html

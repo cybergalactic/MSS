@@ -1,0 +1,41 @@
+99
+DATA-CHECK PROPERTIES
+Run name:
+
+Ship name: S175
+Loading condition description: Design waterline
+
+ShipX exported data
+Main dimensions (from input):
+______________________________________________________________
+
+Length between perpendiculars    (m)    175.000
+Breadth                          (m)     25.400
+Draught, midship                 (m)      9.500
+Sinkage                          (m)      0.000
+Trim, + = aft                  (deg)      0.000
+______________________________________________________________
+
+Coefficients for data check etc.:
+Type                                  Specified    Calculated
+______________________________________________________________
+
+Displacement                (tonnes)   24589.00      24609.62*
+Vertical center of bouyancy,     KB                     5.207*
+Vertical center of gravity,      VCG      9.550*
+Longitudinal center of bouyancy, LCB                   84.953*
+Longitudinal center of gravity,  LCG     84.950        84.953*
+Block coefficient,               Cb       0.570         0.569
+Water plane area coefficient,    Cw       0.704         0.709
+Prismatic coefficient,           Cp                     0.589
+Mid section area coefficient,    Cm       0.967         0.966*
+Longitudinal metacentric height, GMl                  204.436*
+Transverse metacentric height,   GMt                    0.996*
+Roll radius of gyration,         r44      8.331*
+Pitch radius of gyration,        r55     42.000*
+Yaw radius of gyration,          r66     42.000*
+Roll-yaw radius of gyration,     r46      0.000*
+______________________________________________________________
+
+* - Applied in the hydrodynamic calculations
+
