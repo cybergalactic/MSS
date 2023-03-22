@@ -1,29 +1,31 @@
 function [xdot, U] = supply(x,tau)
-% [xdot, U] = supply(x,tau) returns the speed the time derivative xdot = A*x + B*tau
-% of the state vector: x = [ x y psi u v r]'  for a supply vessel length L = 76 m.
+% [xdot, U] = supply(x,tau) returns the speed and the time derivative 
+%  xdot = A*x + B*tau of the state vector: x = [ x y psi u v r ]'  for a 
+% supply vessel length L = 76 m.
 %
-% The model is only valid around zero speed (dynamic positioning) and 
-% small speeds U = sqrt(u^2+v^2).
+% The model is only valid for staionkeeping (dynamic positioning) and 
+% low speed U = sqrt( u^2 + v^2 ).
 %
-% u     = surge velocity                    (m/s)     
-% v     = sway velocity                     (m/s)
-% r     = yaw velocity                      (rad/s)
-% x     = position in x-direction           (m)
-% y     = position in y-direction           (m)
-% psi   = yaw angle                         (rad)
+% u:   surge velocity                    (m/s)     
+% v:   sway velocity                     (m/s)
+% r:   yaw velocity                      (rad/s)
+% x    position in the x-direction       (m)
+% y:   position in the y-direction       (m)
+% psi: yaw angle                         (rad)
 %
 % tau   = [X, Y, N]' control force/moment
 %
-% Reference : Fossen, T. I., S. I. Sagatun and A. J. Sorensen (1996)
-%             Identification of Dynamically Positioned Ships
-%             Journal of Control Engineering Practice CEP-4(3):369-376
+% Reference: Fossen, T. I., S. I. Sagatun and A. J. Sorensen (1996)
+%            Identification of Dynamically Positioned Ships
+%            Journal of Control Engineering Practice CEP-4(3):369-376
 %
 % Author:     Thor I. Fossen
 % Date:       12 July 2002
-% Revisions:  24 February 2004 - Included missing mass scaling in the Bis transformation
+% Revisions:  24 February 2004 - Included missing mass in the Bis transformation
 %             12 October 2011 - Corrected T and Tinv, which were switched 
 %             27 May 2019 - Added U as ouput
 %             31 May 2019 - Included the rotation matrix in yaw
+%             22 Mar 2023 - Corrected wrong assignmnet of states
 
 % Normalization variables
 L    =  76.2;           % length of ship (m)
@@ -47,22 +49,23 @@ Dbis = [0.0358        0        0
  if (length(x)  ~= 6),error('x-vector must have dimension 6 !');end
  if (length(tau) ~= 3),error('u-vector must have dimension 3 !');end
  
- psi = x(6);
- R = [cos(psi) -sin(psi) 0
-      sin(psi)  cos(psi) 0
-            0         0  1 ];
+ psi = x(3);
+ R = [ cos(psi) -sin(psi) 0
+       sin(psi)  cos(psi) 0
+             0         0  1 ];
   
- M = (mass*Tinv^2)*(T*Mbis*Tinv);
- D = (mass*Tinv^2)*(sqrt(g/L)*T*Dbis*Tinv);
+ M = mass * Tinv^2 * (T * Mbis * Tinv);
+ D = mass * Tinv^2 * (sqrt(g/L) * T * Dbis * Tinv);
  
  A = [ zeros(3,3)         R
        zeros(3,3) -inv(M)*D ];
  
- B = [zeros(3,3); inv(M) ];
+ B = [ zeros(3,3)
+       inv(M) ];
  
  % Dimensional state derivative
- xdot = A*x + B*tau;
+ xdot = A * x + B * tau;
  
  % speed
-  U = sqrt(x(1)^2+x(2)^2);
+  U = sqrt( x(4)^2 + x(5)^2 );
  
