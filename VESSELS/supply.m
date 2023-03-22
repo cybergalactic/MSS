@@ -46,8 +46,8 @@ Dbis = [0.0358        0        0
  
  
  % Check of input and state dimensions
- if (length(x)  ~= 6),error('x-vector must have dimension 6 !');end
- if (length(tau) ~= 3),error('u-vector must have dimension 3 !');end
+ if (length(x)  ~= 6),error('x-vector must have dimension 6!');end
+ if (length(tau) ~= 3),error('u-vector must have dimension 3!');end
  
  psi = x(3);
  R = [ cos(psi) -sin(psi) 0
