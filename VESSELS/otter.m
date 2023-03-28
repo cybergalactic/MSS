@@ -37,20 +37,11 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %            2021-06-21 Munk moment in yaw is neglected
 %            2021-07-22 Added a new state for the trim moment
 %            2021-12-17 New method Xudot = -addedMassSurge(m,L,rho) 
+%            2023-03-28 Trim state is replaced by payload mp and rp
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
 if (length(n) ~= 2),error('n vector must have dimension 2!'); end
-
-% trim: theta = -7.5 deg corresponds to 13.5 cm less height aft maximum load
-trim_setpoint = 280;
-
-% trim_setpoint is a step input, which is filtered using the state trim_moment
-persistent trim_moment;
-
-if isempty(trim_moment)
-   trim_moment = 0;
-end
 
 % Main data
 g   = 9.81;         % acceleration of gravity (m/s^2)
@@ -121,6 +112,9 @@ MA = -diag([Xudot, Yvdot, Zwdot, Kpdot, Mqdot, Nrdot]);
 CA  = m2c(MA, nu_r);
 CA(6,1) = 0; % Assume that the Munk moment in yaw can be neglected
 CA(6,2) = 0; % These terms, if nonzero, must be balanced by adding nonlinear damping
+CA(1,6) = 0;
+CA(2,6) = 0;
+
 
 % System mass and Coriolis-centripetal matrices
 M = MRB + MA;
@@ -194,16 +188,17 @@ tau_damp = [Xh Yh Zh Kh Mh Nh]';
 % Strip theory: cross-flow drag integrals for Yh and Nh
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
 
-% Ballast
-g_0 = [0 0 0 0 trim_moment 0]';
+% Payload
+fp = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mp*g ]';   % force due to payload 
+mp = Smtrx(rp) * fp;                                % moment due to payload 
+g_0 = [ fp
+        mp ];
 
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
 % Time derivative of the state vector - numerical integration; see ExOtter.m  
-xdot = [ M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta - g_0)
+xdot = [ M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta + g_0)
          J * nu ];  
      
-trim_moment = trim_moment + 0.05 * (trim_setpoint - trim_moment);
-
 end
