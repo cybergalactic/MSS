@@ -20,8 +20,8 @@ x = zeros(12,1);
 n = [80 60]';          % n = [ n_left n_right ]' 
 
 % Load condition
-mp = 25;               % payload mass (kg), max value 45 kg
-rp = [0 0 -0.35]';     % location of payload (m)
+mp = 25;                  % payload mass (kg), max value 45 kg
+rp = [0.05 0 -0.35]';     % location of payload (m)
 
 % Current
 V_c = 0;               % current speed (m/s)
