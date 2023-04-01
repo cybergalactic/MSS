@@ -189,10 +189,10 @@ tau_damp = [Xh Yh Zh Kh Mh Nh]';
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
 
 % Payload
-fp = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mp*g ]';   % force due to payload 
-mp = Smtrx(rp) * fp;                                % moment due to payload 
-g_0 = [ fp
-        mp ];
+f_payload = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mp*g ]';  % payload force 
+m_payload = Smtrx(rp) * f_payload;                        % payload moment 
+g_0 = [ f_payload 
+        m_payload ];
 
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
