@@ -17,7 +17,7 @@ N  = 1000;		  % number of samples
 x = zeros(12,1);	   
 
 % propeller revolutions (rps)
-n = [80 60]';          % n = [ n_left n_right ]' 
+n = [80 60]';             % n = [ n_left n_right ]' 
 
 % Load condition
 mp = 25;                  % payload mass (kg), max value 45 kg
