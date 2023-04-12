@@ -24,10 +24,16 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %    n(1): propeller shaft speed, left (rad/s)
 %    n(2): propeller shaft speed, right (rad/s)
 %
-% mp = payload mass (kg), maximum 45 kg
-%  rp = [xp, yp, zp]' (m) is the location of the payload w.r.t. the CO
-%  V_c:     current speed (m/s)
-%  beta_c:  current direction (rad)
+% mp: payload mass (kg), maximum 45 kg and minimum 0 kg
+% rp = [xp, yp, zp]' (m) is the location of the payload w.r.t. the CO
+% V_c:     current speed (m/s)
+% beta_c:  current direction (rad)
+%
+% The coordinate origign CO is chosen midtships on the centerline. The 
+% draft is T = 13.4 cm when the payload mp = 0. This corresponds to z = 0. 
+% Choosing mp = 25 kg gives T = 19.5 cm and z = 0.04 m in steady state.
+% Adding a non-zero payload mp will change the steady-state z value since 
+% the payload is added as an external force g_0 in the code.
 %
 % See, ExOtter.m and demoOtterUSVHeadingControl.slx
 %
@@ -74,7 +80,7 @@ nu_r = nu - [u_c v_c 0 0 0 0]';             % relative velocity vector
 
 % Inertia dyadic, volume displacement and draft
 nabla = (m+mp)/rho;                         % volume
-T = nabla / (2 * Cb_pont * B_pont*L);       % draft
+T = nabla / (2 * Cb_pont * B_pont * L);     % draft
 Ig_CG = m * diag([R44^2, R55^2, R66^2]);    % only hull in CG
 rg = (m*rg + mp*rp)/(m+mp);           % CG location corrected for payload
 Ig = Ig_CG - m * Smtrx(rg)^2 - mp * Smtrx(rp)^2;  % hull + payload in CO
@@ -135,8 +141,8 @@ GM_T = KM_T - KG;       % GM values
 GM_L = KM_L - KG;
 
 G33 = rho * g * (2 * Aw_pont);      % spring stiffness
-G44 = rho * g *nabla * GM_T;
-G55 = rho * g *nabla * GM_L;
+G44 = rho * g * nabla * GM_T;
+G55 = rho * g * nabla * GM_L;
 
 G_CF = diag([0 0 G33 G44 G55 0]);   % spring stiffness matrix in the CF
 LCF = -0.2;
