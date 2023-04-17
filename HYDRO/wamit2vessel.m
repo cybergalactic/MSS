@@ -96,6 +96,7 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 %            2009-09-11 Using new viscous damping viscous.m
 %            2021-03-07 Minor bug fixes
 %            2022-12-20 Fixed incorrect mirroring of RAOs to 180-360 deg
+%            2023-04-17 Added a correction for LCF when computing GM_L
 
 %%
 if ~exist('plot_flag')
@@ -347,8 +348,27 @@ if exist([filename '.out'])
                 vessel.C(:,:,i) = C_wamit;
             end
             
-            vessel.main.GM_T  = C_wamit(4,4)/(vessel.main.m*vessel.main.g);
-            vessel.main.GM_L  = C_wamit(5,5)/(vessel.main.m*vessel.main.g);
+            vessel.main.GM_T  = C_wamit(4,4) / (vessel.main.m*vessel.main.g);
+            
+            % vessel.main.GM_L  = C_wamit(5,5) / (vessel.main.m*vessel.main.g)
+            % is only correct for LCF = 0. Hence, we use an approximation
+
+
+            % water-plane area
+            if (vessel.main.Lpp >= 100)    % large ships such as tankers
+                Awp = 0.8 * vessel.main.Lpp * vessel.main.B;
+            elseif (vessel.main.Lpp < 100  && vessel.main.Lpp > 50) 
+                Awp = 0.65 * vessel.main.Lpp * vessel.main.B;
+            else % small ships less than 50 m
+                Awp = 0.5 * vessel.main.Lpp * vessel.main.B;
+            end
+
+            LCF = -0.1 * vessel.main.Lpp;    % location of the CF
+
+            % From Equation (4.33) in Fossen (2021)
+            vessel.main.GM_L  = ( C_wamit(5,5) - ...
+                vessel.main.rho * vessel.main.g * Awp *LCF^2 ) / ...
+                (vessel.main.m * vessel.main.g ); 
 
             if vessel.main.GM_T < 0
                 disp(['Error: GM_T = ' num2str(vessel.main.GM_T) ' < 0']);
