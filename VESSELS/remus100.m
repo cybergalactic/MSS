@@ -55,6 +55,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %            08 May 2022  Added compability for unit quaternions in 
 %                         addition to the Euler angle representation
 %            16 Oct 2022  Added vertical currents
+%            02 May 2023  Corrected the rudder area A_r
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -154,7 +155,7 @@ end
 
 % Tail rudder (single)
 CL_delta_r = 0.5;        % rudder lift coefficient (-)
-A_r = 0.10 * 0.05;       % rudder area (m2)
+A_r = 2 * 0.10 * 0.05;   % rudder area (m2)
 x_r = -a;                % rudder x-position (m)
 
 % Stern plane (double)
