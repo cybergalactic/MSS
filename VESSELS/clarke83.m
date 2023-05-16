@@ -4,10 +4,12 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 % hydrodynamic derivatives are based on multiple  linear regression from two 
 % sets of model tests. The first data set (Yv, Yr, Nv, Nr) is obtained from 
 % rotating arm model experiments, while the second data set 
-% (Yvdot, Yrdot, Nvdot, Nrdot, Yv, Yr, Nv, Nr) was obtained from a PMM  model.
-% The surge model is approximated by Xudot = -0.1 * m. The time constant 
-% in surge is optionally with default value T_surge = L such that 
-% Xu = -(m-Xudot) / T_surge.
+% (Yvdot, Yrdot, Nvdot, Nrdot, Yv, Yr, Nv, Nr) was obtained from a PMM model.
+% Added mass in surge is approximated by Sodings formula: 
+%   Xudot = -addedMassSurge(m,L)
+% The time constant in surge is optionally with default value T_surge = L 
+% such that:
+%   Xu = -(m - Xudot) / T_surge
 %
 % Outputs: 3x3 model matrices M and N in surge, sway and yaw
 %      .
@@ -91,6 +93,3 @@ MA = (0.5 * rho * L^3) * Tinv^2 * (T * MA_prime * Tinv);
 N =  (0.5 * rho * L^2 * U) * Tinv^2 * (T * N_prime * Tinv);
  
 M = MRB + MA;       % system inertia matrix
-
- 
- 
