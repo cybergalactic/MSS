@@ -57,6 +57,7 @@
 %
 % Navigation systems:
 %  acc2rollpitch - computes the static roll-pitch angles from specific force
+%  EKF_5states   - estimation of SOG and COG from positions or latitude-longitude
 %  gravity       - acceleration of gravity as a function lattitude (WGS-84)
 %  ins_ahrs      - INS error-state Kalman filter using AHRS
 %  ins_mekf      - INS error-state MEKF (quaternion representation) 
