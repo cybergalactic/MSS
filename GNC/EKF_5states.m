@@ -16,14 +16,17 @@ function x_hat = EKF_5states(GNSS1,GNSS2,h_samp,Z,frame,Qd,Rd)
 %  Qd:          EKF 2x2 process cov. matrix for speed and course rate
 %  Rd:          EKF 2x2 GNSS measurement cov. matrix
 %
-% Reference: S. Fossen and T. I. Fossen (2021). Five-state extended Kalman 
-% filter for estimation of speed over ground(SOG), course over ground (COG) 
-% and course rate of surface vehicles. Journal of Marine Science and 
-% Applications. Submitted.
+% Reference: S. Fossen and T. I. Fossen (2021). Five-state Extended Kalman 
+% Filter for Estimation of Speed Over Ground (SOG), Course Over Ground (COG) 
+% and Course Rate of Unmanned Surface Vehicles (USVs): Experimental Results. 
+% Sensors 21(23). 
+%
+% See ExOtter.m for a case study using EKF_5states.m to estimate the COG,
+% SOG and course rate.
 %
 % Author:   Thor I. Fossen
 % Date:     25 July 2021
-% Revisions: 
+% Revisions:
 
 persistent x_prd;
 persistent P_prd;
