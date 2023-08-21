@@ -44,4 +44,8 @@ CD_DATA = [...
 3.7379 0.559877
 4.00309 0.559315];
 
-CY_2D = interp1(CD_DATA(:,1),CD_DATA(:,2),B/(2*T));
+if B/(2*T) <= 4.00309
+    CY_2D = interp1(CD_DATA(:,1),CD_DATA(:,2),B/(2*T));
+else
+    CY_2D = 0.559315;
+end
