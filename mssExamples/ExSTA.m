@@ -1,5 +1,5 @@
-% ExSTA adaptive-gain super twisting algorithm (STA) for heading control. 
-% The yaw dynamics is based on the Norrbin (1963) nonlinear model
+% ExSTA super twisting adaptive-gain (STA) sliding mode control for heading
+% control. The yaw dynamics is based on the Norrbin (1963) nonlinear model
 % 
 %                       psi_dot = r
 %       T r_dot + n3 r^3 + n1 r = K delta + d_r
@@ -9,40 +9,42 @@
 %   [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r)
 %
 % is the Norrbin model for the ROV Zefakkel (Length 45 m) inclduing
-% actuator dynamics and saturation
+% actuator dynamics and saturation. 
 %
 % Author:    Thor I. Fossen
-% Date:      20 Jun 2020
+% Date:      20 June 2020
 % Revisions: 29 Nov 2022 - beta is changed to beta = beta_1 * alpha + beta_0
+%            30 Aug 2023 - minor updates and improvements
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-h  = 0.05;    % sampling time [s]
-N  = 8000;    % no. of samples
+h  = 0.01;     % sampling time (s)
+N  = 40000;    % no. of samples
 
-psi_ref = 10 * pi/180;  % desired yaw angle
+psi_ref = deg2rad(10);  % desired yaw angle
                
 % STW parameters
 T = 30;                 % ship time constant
 K = 0.3;                % ship gain constant
-lambda = 0.1;           % sliding variable parameter lambda > 0
-alpha_0 = 0.03;         % adaptation gains
-beta_0 = 0.0001;       
+lambda = 0.05;          % sliding variable parameter lambda > 0
+alpha_0 = 0.01;         % adaptation gains
+beta_0 = 0.00001;       
 beta_1 = 0.0001;
-v = 0;                  % initial state
-alpha = 0;              % initial state
+
+v = 0;                  % initial STA states
+alpha = 0;              
 
 % ship model parameters
 psi = 0;                % initial yaw angle (rad)
 r = 0;                  % initial yaw rate (rad/s)
 delta = 0;              % initial rudder angle (rad)
 U = 4;                  % ship cruise speed (m/s)
-d_r = 0.37*(1*pi/180);  % d_r = K delta_0 (1 degree unknown rudder bias)
+d_r = K * deg2rad(1);   % d_r = K delta_0 (1 degree unknown rudder bias)
 
 % reference model
 wn = 0.1;               % reference model nataural frequnecy
-xd = [ 0 0 0]';         % inital reference model states (3rd order)
+xd = [0 0 0]';          % inital reference model states (3rd order)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
@@ -53,9 +55,10 @@ for i=1:N+1
 
     t = (i-1) * h;                      % time (s)   
     
-    if (i > 2000), psi_ref = -10 * pi/180;  end 
-    if (i > 4000), psi_ref =  10 * pi/180;  end 
-    if (i > 6000), psi_ref = -10 * pi/180;  end    
+    % setpoints and steps in rudder bias 
+    if (t > 100), psi_ref = -10 * pi/180; d_r =  2*K * deg2rad(1); end 
+    if (t > 200), psi_ref =  10 * pi/180; d_r = -2*K * deg2rad(1); end 
+    if (t > 300), psi_ref = -10 * pi/180; d_r = 0; end    
     
     % 3rd-order reference model for yaw
     Ad = [ 0 1 0
@@ -65,21 +68,20 @@ for i=1:N+1
            
     xd_dot = Ad * xd + Bd * psi_ref;    
     
-    % sliding variable with integral action 
+    % sliding variable 
     e_psi   = ssa( psi - xd(1) );
     e_r     = r - xd(2);
     sigma = e_r + lambda * e_psi; 
     
-    % STW sliding mode controller    
-    if (abs(sigma) < 0.01)
+    % STW adaptive-gain sliding mode controller    
+    if (abs(sigma) < 0.001)
         alpha_dot = 0;
     else
         alpha_dot = alpha_0;
     end
     
     beta = beta_1 * alpha + beta_0;
-    phi = 0.01;
-    v_dot = -beta * tanh(sigma/phi);  
+    v_dot = -beta * sign(sigma); 
     w = -alpha * sqrt(abs(sigma)) * sign(sigma) + v;
     delta_c = (T/K) * w;
     
@@ -103,29 +105,33 @@ end
 %% PLOTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 t       = simdata(:,1);           
-psi     = (180/pi) * simdata(:,2); 
-r       = (180/pi) * simdata(:,3); 
-delta   = (180/pi) * simdata(:,4);
-delta_c = (180/pi) * simdata(:,5);           
-psi_d   = (180/pi) * simdata(:,6); 
-r_d     = (180/pi) * simdata(:,7);
-a_d     = (180/pi) * simdata(:,8);
+psi     = rad2deg(simdata(:,2)); 
+r       = rad2deg(simdata(:,3)); 
+delta   = rad2deg(simdata(:,4));
+delta_c = rad2deg(simdata(:,5));           
+psi_d   = rad2deg(simdata(:,6)); 
+r_d     = rad2deg(simdata(:,7));
+a_d     = rad2deg(simdata(:,8));
 alpha   = simdata(:,9);
-beta    = 100 * simdata(:,10);
+beta    = 1000 * simdata(:,10);
 v       = 100 * simdata(:,11);
 
 figure(gcf)
 subplot(411)
-plot(t,psi,t,psi_d,'linewidth',2);
+plot(t,psi,t,psi_d);
 title('Actual and desired yaw angles (deg)'); xlabel('time (s)');
 subplot(412)
-plot(t,r,t,r_d,'linewidth',2);
+plot(t,r,t,r_d);
 title('Actual and desired yaw rates (deg/s)'); xlabel('time (s)');
 subplot(413)
-plot(t,delta,t,delta_c,'linewidth',2);
+plot(t,delta,t,delta_c);
 title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
 subplot(414)
-plot(t,alpha,'r',t,beta,'b:',t,v,'k-.','linewidth',2);
+plot(t,alpha,'r',t,beta,'b:',t,v,'k-.');
 title('STW variables'); xlabel('time (s)');
-legend('\alpha','100 \beta','100 v')
+legend('\alpha','1000 \beta','100 v')
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
 
