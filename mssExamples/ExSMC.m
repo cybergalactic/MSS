@@ -8,24 +8,24 @@
 %
 %   [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r)
 %
-% is the Norrbin model for the ROV Zefakkel (Length 45 m) inclduing
-% actuator dynamics and saturation
+% is the Norrbin model for the ROV Zefakkel (Length 45 m) including
+% actuator dynamics and saturation.
 %
 % Author:    Thor I. Fossen
 % Date:      19 June 20200
-% Revisions: 
+% Revisions: 30 Aug 2023 - minor updates and improvements
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-h    = 0.05;     % sampling time [s]
-N  =   6000;    % no. of samples
+h  = 0.05;    % sampling time [s]
+N  = 6000;    % no. of samples
 
-psi_ref = 10 * pi/180;  % desired yaw angle
+psi_ref = deg2rad(10);  % desired yaw angle
 
-flag = 3;      % 1 = conventional SMC using sgn(sigma)
-               % 2 = conventional SMC using tanh(sigma/phi)
-               % 3 = conventional SMC using sat(sigma)
+flag = 3;     % 1 = conventional SMC using sgn(sigma)
+              % 2 = conventional SMC using tanh(sigma/phi)
+              % 3 = conventional SMC using sat(sigma)
                
 % SMC parameters
 T_hat = 30;             % ship time constant
@@ -42,23 +42,23 @@ psi = 0;                % initial yaw angle (rad)
 r = 0;                  % initial yaw rate (rad/s)
 delta = 0;              % initial rudder angle (rad)
 U = 4;                  % ship cruise speed (m/s)
-d_r = 0.37*(1*pi/180);  % d_r = K delta_0 (1 degree unknown rudder bias)
+d_r = 0.37*deg2rad(1);  % d_r = K delta_0 (1 degree unknown rudder bias)
 
 % reference model
 wn = 0.1;               % reference model nataural frequnecy
-xd = [ 0 0 0]';         % inital reference model states (3rd order)
+xd = [0 0 0]';          % inital reference model states (3rd order)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-simdata = zeros(N+1,8);                  % table of simulation data
+simdata = zeros(N+1,8);  % table of simulation data
 
 for i=1:N+1
 
-    t = (i-1) * h;                      % time (s)   
+    t = (i-1) * h;       % time (s)   
     
-    if (i > 2000), psi_ref = -10 * pi/180;  end 
-    if (i > 2000 && i>4000), psi_ref = 20 * pi/180;  end 
+    if (t > 100), psi_ref = deg2rad(-10); end 
+    if (t > 200), psi_ref = deg2rad(20);  end 
     
     % 3rd-order reference model for yaw
     Ad = [ 0 1 0
@@ -68,8 +68,8 @@ for i=1:N+1
            
     xd_dot = Ad * xd + Bd * psi_ref;    
     
-    % conventional sliding mode controller 
-    % the rudder rudder dynamics is unknown and |d_r | < d_r^max
+    % Conventional sliding mode controller 
+    % The rudder rudder dynamics is unknown and |d_r | < d_r^max
     e_psi   = ssa( psi - xd(1) );
     e_r     = r - xd(2);
     sigma = e_r + 2 * lambda * e_psi + lambda^2 * z_psi; 
@@ -79,22 +79,23 @@ for i=1:N+1
     switch flag
         case flag==1        % sgm(sigma)
             delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
-            - K_sigma * sign(sigma) );
+                - K_sigma * sign(sigma) );
         case flag == 2      % tanh(sigma)
             delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
-            - K_sigma * tanh(sigma/phi) );
+                - K_sigma * tanh(sigma/phi) );
         otherwise           % sat(sigma)
             if (abs(sigma/phi) > 1)
               delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
-              - K_sigma * sign(sigma/phi) );
+                - K_sigma * sign(sigma/phi) );
             else
               delta_c = (1/K_hat) * ( T_hat * r_r_dot + (n3 * r^2 + n1) * r_r... 
-              - K_sigma * (sigma/phi) );
+                - K_sigma * (sigma/phi) );
             end
     end
     
     % Norrbin model for the ROV Zefakkel
     [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r); 
+    
     % store simulation data in a table (for testing)
     simdata(i,:) = [t psi r delta delta_c xd'];       
      
@@ -111,20 +112,24 @@ end
 %% PLOTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 t       = simdata(:,1);           
-psi     = (180/pi) * simdata(:,2); 
-r       = (180/pi) * simdata(:,3); 
-delta   = (180/pi) * simdata(:,4);
-delta_c = (180/pi) * simdata(:,5);           
-psi_d   = (180/pi) * simdata(:,6); 
-r_d     = (180/pi) * simdata(:,7);
+psi     = rad2deg(simdata(:,2)); 
+r       = rad2deg(simdata(:,3)); 
+delta   = rad2deg(simdata(:,4));
+delta_c = rad2deg(simdata(:,5));           
+psi_d   = rad2deg(simdata(:,6)); 
+r_d     = rad2deg(simdata(:,7));
 
 figure(gcf)
 subplot(311)
-plot(t,psi,t,psi_d,'linewidth',2);
+plot(t,psi,t,psi_d);
 title('Actual and desired yaw angles (deg)'); xlabel('time (s)');
 subplot(312)
-plot(t,r,t,r_d,'linewidth',2);
+plot(t,r,t,r_d);
 title('Actual and desired yaw rates (deg/s)'); xlabel('time (s)');
 subplot(313)
-plot(t,delta,t,delta_c,'linewidth',2);
+plot(t,delta,t,delta_c);
 title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
