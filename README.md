@@ -4,8 +4,7 @@ The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine s
 
     T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. ISBN-13: 978-1119575054
 
-The lecture notes: https://wiley.fossen.biz
-serves as documentation for the toolbox. Please include the following reference when using the MSS libraries: 
+The lecture notes https://wiley.fossen.biz serve as documentation for the toolbox. Please include the following reference when using the MSS libraries: 
 
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
     URL: https://github.com/cybergalactic/MSS
