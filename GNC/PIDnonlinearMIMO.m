@@ -8,8 +8,8 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %
 %    tau = -R(psi)' * ( Kp * (eta - eta_d) + Kd * nu + Ki * z_int )
 %
-%    Kp = M * wn * wn
-%    Kd = M * 2 * zeta * wn
+%    Kp = M_diag * wn * wn,                  M_diag = diag(diag(M))
+%    Kd = M_diag * 2 * zeta * wn
 %    Ki = 1/10 * Kp * wn
 %
 % is based on Algorithm 15.2, MIMO nonlinear PID Pole-Placement Algorithm, 
@@ -48,11 +48,13 @@ if isempty(z_int)
     eta_d = [0 0 0]';
 end
 
+if isrow(eta_ref); eta_ref = eta_ref'; end
+
 % Reduce 6-DOF model to 3-DOF model
 if length(nu) == 6
     eta = [eta(1) eta(2) eta(6)]';
     nu  = [nu(1) nu(2) nu(6)]';
-    M = diag( M([1 2 6],[1 2 6]) );
+    M = M([1 2 6],[1 2 6]);
     DOF = 6;
 end
 
@@ -62,9 +64,10 @@ R = [ cos(eta(3)) -sin(eta(3)) 0
       0            0           1 ];
 
 % MIMO pole placement (Algorithm 15.2)
-Kp = M .* wn .* wn;
-Kd = M .* 2 .* zeta .* wn;
-Ki = 1/10 * Kp * wn;
+M_diag = diag(diag(M));             % diagonal M matrix
+Kp = M_diag .* wn .* wn;
+Kd = M_diag .* 2 .* zeta .* wn;
+Ki = 1/10 * Kp .* wn;
 
 % 3-DOF control law for surge, sway and yaw
 e = eta - eta_d;
