@@ -1,6 +1,6 @@
 function vessel = veres2vessel(filename, plot_flag)
-% veres2vessel reads data from ShipX output files and store the data in vesselname.mat
-%   using the MSS vessel struture.
+% veres2vessel reads data from ShipX output files and store the data in 
+% vesselname.mat using the MSS vessel struture.
 %
 %   vessel = veres2vessel(filename, disp_flag) 
 %
@@ -79,10 +79,10 @@ function vessel = veres2vessel(filename, plot_flag)
 % Revisions: 2008-02-15 Minor bug fixes
 %            2009-09-11 Using new viscous damping viscous.m
 %            2013-07-09 Fixed: SINTEF Ocean coordinate origin not in CO
-%            2021-03-0  Minor bug fixes
+%            2021-03-01 Minor bug fixes
 
 %%
-if ~exist('plot_flag')
+if nargin == 1
 	plot_flag = '1000';
 end
 
@@ -122,7 +122,6 @@ vessel.driftfrc  = data3.driftfrc;
 %--------------------------------------------------------------------------
 fid1 = fopen(strcat(filename,'.hyd'));
 
-abort = 0;
 while feof(fid1) == 0
     txt = char(fgetl(fid1));
 
@@ -145,7 +144,7 @@ end
 vessel.main.GM_L  = GM_L;
 vessel.main.GM_T  = GM_T;
 vessel.main.C_B   = C_B;
-vessel.main.CB(1) = LCB-vessel.main.Lpp/2;
+vessel.main.CB(1) = LCB - vessel.main.Lpp / 2;
 vessel.main.CB(2) = 0;
 vessel.main.CB(3) = KB;
 
@@ -153,7 +152,7 @@ fclose(fid1);
 
 % approximations
 vessel.main.Lwl = vessel.main.Lpp; 
-vessel.main.S   = vessel.main.B*(vessel.main.Lpp + 2*vessel.main.T);
+vessel.main.S   = vessel.main.B * (vessel.main.Lpp + 2*vessel.main.T);
 
 %--------------------------------------------------------------------------
 %% plots
