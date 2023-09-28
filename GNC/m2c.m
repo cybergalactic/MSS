@@ -14,11 +14,13 @@ function C = m2c(M,nu)
 %  nu: nu = [u, v, w, p, q, r]' or nu = [u, v, r]'
 %
 % The Coriolis and centripetal matrix depends on nu1 = [u,v,w]' and nu2 =
-% [p,q,r]' as shown in Fossen (2021, Theorem 3.2). Alternatively, It is possible to
-% compute CRB = CRB(nu2) where nu2 = [p,q,r]' using the linear velocity-
-% independent representation, see
-%
+% [p,q,r]' as shown in Fossen (2021, Theorem 3.2). Alternatively, the matrix 
+% CRB = CRB(nu2) can be computed using 
+% 
 % [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp) 
+%
+% which only requires the angular velocity vector nu2 = [p,q,r]'. This is 
+% known as the linear velocity-independent representation.
 %
 % Author:    Thor I. Fossen
 % Date:      14 Jun 2001
