@@ -18,6 +18,8 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Modelling](#modelling)
   - [Kinematics](#kinematics)
   - [Environment](#environment)
+  - [Ship maneuvers](#ship-maneuvers)
+  - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
 - [HYDRO](#hydro)
@@ -181,6 +183,21 @@ vw2hs              % converts average wind speed to significant wave height
 waveresponse345    % steady-state heave, roll, and pitch responses for a ship in regular waves 
 wavespec           % function used to evaluate different types of wave spectra
 ww2we              % function used to transform a vector of wave frequencies to encounter frequencies
+```
+
+## Ship maneuvers
+
+```matlab
+pullout            % ship pullout maneuver
+turncircle         % ship turning circle
+zigzag             % ship zigzag maneuver 
+```
+
+## Motion sickness
+
+```matlab
+ISOmsi             % ISO 2631-3, 1997 motion sickness incidence
+HMmsi              % O'Hanlon and McCauley (1974) motion sickness incidence
 ```
 
 ## Transformations
