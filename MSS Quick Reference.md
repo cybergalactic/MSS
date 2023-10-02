@@ -11,8 +11,9 @@ A quick reference guide for the MATLAB MSS toolbox:
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
 - [Examples (m-files)](#examples-m-files)
-- [Vessel models (m-files)](#vessel-models-m-files)
-- [Vessel time-series simulation (m-files)](#vessel-time-series-simulation-m-files)
+- [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
+  - [Marine craft models](#marine-craft-models)
+  - [Time-series simulation](#time-series-simulation)
 
 ---
 
@@ -78,7 +79,9 @@ ExWindForce     % plots the wind coefficients by Isherwoods (1972)
 ExZigZag        % generates zigzag maneuvers for two different ships
 ```
 
-## Vessel models (m-files)
+## Marine craft simulator (m-files)
+
+### Marine craft models
 
 ```matlab
 clarke83        % linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
@@ -97,7 +100,7 @@ supply          % linear DP model of a supply vessel, L = 76.2 m
 tanker          % nonlinear course unstable maneuvering model of a tanker, L = 304 m 
 ```
 
-## Vessel time-series simulation (m-files)
+### Time-series simulation
 
 ```matlab
 SIMclarke83     % simulate clarke83.m under PD control
