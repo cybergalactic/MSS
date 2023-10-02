@@ -170,11 +170,28 @@ quest6dof          % 6-DOF vector eta = [x,y,z,phi,theta,psi] from three marker 
 ```
 
 ## Environment
+
 ```matlab
+blendermann94      % computes the wind forces and wind coefficients using Blendermann (1994)
+encounter          % encounter frequency as a function of wave peak frequency, vessel speed, and wave direction
+hs2vw              % converts significant wave height into an equivalent wind speed
+isherwood72        % computes the wind forces and coefficients based on Isherwood (1972) 
+rand_phases        % generates a uniformly distributed vector of random phases in the interval [-pi pi]
+vw2hs              % converts average wind speed to significant wave height
+waveresponse345    % steady-state heave, roll, and pitch responses for a ship in regular waves 
+wavespec           % function used to evaluate different types of wave spectra
+ww2we              % function used to transform a vector of wave frequencies to encounter frequencies
 ```
 
 ## Transformations
+
 ```matlab
+conversion         % defines global conversion factors for GNC applications
+rad2pipi           % obsolete, use ssa
+ssa                % smallest signed angle maps an angle in rad to the interval [-pi pi) or [-180 180)
+Smtrx              % 3x3 vector skew-symmetric matrix S
+Hmtrx              % 6x6 system transformation matrix H
+vex                % computes a = vex(S(a)) where S is a skew-symmetric matrix
 ```
 
 ## Numerical integration methods
