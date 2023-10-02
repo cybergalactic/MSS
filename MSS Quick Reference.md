@@ -4,8 +4,8 @@ A quick reference guide for MATLAB syntax and operations.
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
-- [Examples (m-files)](#mfile-examples)
-- [Vessel models (m-files)](#mfile-models)
+- [Examples (m-files)](#examples-m-files)
+- [Vessel models (m-files)](#vessel-models-m-files)
 
 ---
 
