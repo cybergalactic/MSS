@@ -12,6 +12,7 @@ A quick reference guide for the MATLAB MSS toolbox:
 - [Simulink demos](#simulink-demos)
 - [Examples (m-files)](#examples-m-files)
 - [Vessel models (m-files)](#vessel-models-m-files)
+- [Vessel time-series simulation (m-files)](#vessel-time-series-simulation-m-files)
 
 ---
 
@@ -76,5 +77,33 @@ ExWageningen    % computes thrust and torque curves for a propeller using the Wa
 ExWindForce     % plots the wind coefficients by Isherwoods (1972) 
 ExZigZag        % generates zigzag maneuvers for two different ships
 ```
+
 ## Vessel models (m-files)
+```matlab
+clarke83        % linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
+container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
+DSRV            % deep submergence rescue vehicle (DSRV), L = 5.0 m (Healey 1992)
+frigate         % nonlinear autopilot model for a frigate, L = 100 m
+Lcontainer      % linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
+mariner         % nonlinear maneuvering model for the Mariner class vessel, L = 160 m 
+navalvessel     % nonlinear maneuvering model of a multipurpose naval vessel, L = 51.5 m
+npsauv          % Naval Postgraduate School autonomous underwater vehicle (AUV), L = 5.3 m 
+otter           % OTTER small autonomous USV, L = 2.0 m
+remus100        % REMUS 100 autonomous underwater vehicle (AUV), L = 1.9 m
+rig             % semisubmersible linear mass-damper-spring model, L = 84.6 m
+ROVzefakkel     % nonlinear autopilot model  of a boat, L = 45 m
+supply          % linear DP model of a supply vessel, L = 76.2 m
+tanker          % nonlinear course unstable maneuvering model of a tanker, L = 304 m 
+```
+
+## Vessel time-series simulation (m-files)
+```matlab
+SIMclarke83     % simulate clarke83.m under PD control
+SIMmariner      % simulate mariner.m under PD control
+SIMotter        % simulate otter.m under feedback control
+SIMcontainer    % simulate container.m and Lcontainer.m under PD control
+SIMnavalvessel  % simulate navalvessel.m under PD control
+SIMremus100     % simulate remus100.m under PD control
+SIMrig          % simulate the 6-DOF semisubmersible model under PID control
+```
 
