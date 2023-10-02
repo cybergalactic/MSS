@@ -139,16 +139,34 @@ crossFlowDrag 	   % crossflow drag computed from strip theory integrals
 Dmtrx              % 6x6 linear damping matrix for marine craft (submerged and floating)
 Gmtrx              % 6x6 system spring stiffness matrix G
 gvect              % 6x1 vector of restoring forces, Euler angles as input
-gRvect      			 % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
-imlay61		         % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
-m2c			           % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
+gRvect             % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
+imlay61            % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
+m2c                % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
 rbody              % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
 spheroid           % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
 wageningen         % thrust and torque coefficients of the Wageningen B-series propellers 
 ```
 
 ## Kinematics
+
 ```matlab
+ecef2llh           % longitude, latitude, and height from ECEEF positions x, y, and z
+euler2q            % unit quaternion from Euler angles
+eulerang           % computes the Euler angle transformation matrices J, Rzyx and Tzyx
+flat2llh           % longitude, latitude, and height from flat-earth positions x, y, and z
+llh2ecef           % ECEEF positions x, y, and z from longitude, latitude, and height
+llh2flat           % flat-earth positions x, y, and z from longitude, latitude, and height
+R2euler            % Euler angles from rotation matrix elements
+Rll                % Euler angle rotation matrix Rll for longitude and latitude
+Rquat              % unit quaternion rotation matrix R in SO(3)
+Rzyx               % Euler angle rotation matrix R in SO(3)
+Tquat              % unit quaternion transformation matrix T, representing the attitude dynamics
+Tzyx               % Euler angle transformation matrix T, representing the attitude dynamics
+q2euler            % Euler angles from a unit quaternion
+quatern            % unit quaternion transformation matrix J
+quatprod           % quaternion product
+quest              % quaternion rotation matrix R(q) and unit quaternion q between two vectors W = R(q) V
+quest6dof          % 6-DOF vector eta = [x,y,z,phi,theta,psi] from three marker positions using the QUEST algorithm
 ```
 
 ## Environment
