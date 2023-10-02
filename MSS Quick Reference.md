@@ -195,7 +195,10 @@ vex                % computes a = vex(S(a)) where S is a skew-symmetric matrix
 ```
 
 ## Numerical integration methods
+
 ```matlab
+euler2             % integrates a system of ordinary differential equations using Euler’s 2nd-order method
+rk4                % integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
 ### HYDRO
