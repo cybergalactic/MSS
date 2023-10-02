@@ -36,7 +36,7 @@ demoWaveElevation.slx                   % computation of wave elevation from wav
 demoWaypointGuidance.slx                % waypoint guidance system
 ```
 
-## Examples (m-files)
+## M-file examples
 ```matlab
 ExEKF           % for-loop implementation (predictor-corrector representation)  of a discrete-time extended Kalman filter (EKF) 
 ExFeedback      % for-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
