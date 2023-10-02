@@ -129,7 +129,22 @@ SIMrig          % simulate the 6-DOF semisubmersible model under PID control
 ### Modelling (m-files)
 
 ## Model components
+
 ```matlab
+addedMassSurge     % hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
+coeffLiftDrag      % hydrodynamic lift and drag coefficients as a function of angle of attack of a submerged "wing profile"
+forceLiftDrag      % hydrodynamic lift and drag forces as a function of angle of attack of a submerged "wing profile" 
+forceSurgeDamping  % linear and quadratic damping forces in surge
+crossFlowDrag 	   % crossflow drag computed from strip theory integrals
+Dmtrx              % 6x6 linear damping matrix for marine craft (submerged and floating)
+Gmtrx              % 6x6 system spring stiffness matrix G
+gvect              % 6x1 vector of restoring forces, Euler angles as input
+gRvect      			 % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
+imlay61		         % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
+m2c			           % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
+rbody              % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
+spheroid           % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
+wageningen         % thrust and torque coefficients of the Wageningen B-series propellers 
 ```
 
 ## Kinematics
