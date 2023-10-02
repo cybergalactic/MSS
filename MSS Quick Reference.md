@@ -79,6 +79,7 @@ ExZigZag        % generates zigzag maneuvers for two different ships
 ```
 
 ## Vessel models (m-files)
+
 ```matlab
 clarke83        % linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
 container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
@@ -97,6 +98,7 @@ tanker          % nonlinear course unstable maneuvering model of a tanker, L = 3
 ```
 
 ## Vessel time-series simulation (m-files)
+
 ```matlab
 SIMclarke83     % simulate clarke83.m under PD control
 SIMmariner      % simulate mariner.m under PD control
