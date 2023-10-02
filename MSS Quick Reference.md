@@ -4,12 +4,12 @@ A quick reference guide for MATLAB syntax and operations.
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
-- [Examples (m-files)](#examples-mfiles)
+- [M-file examples](#mfile-examples)
 
 ---
 
 ```matlab
->> help mss               % List mss commands
+>> help MSS               % List mss commands
 >> help mssExamples       % List book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
 >> mssSimulink            % Simulink Library
 ```
