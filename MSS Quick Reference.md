@@ -4,7 +4,8 @@ A quick reference guide for MATLAB syntax and operations.
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
-- [M-file examples](#mfile-examples)
+- [Examples (m-files)](#mfile-examples)
+- [Vessel models (m-files)](#mfile-models)
 
 ---
 
@@ -36,7 +37,7 @@ demoWaveElevation.slx                   % computation of wave elevation from wav
 demoWaypointGuidance.slx                % waypoint guidance system
 ```
 
-## M-file examples
+## Examples (m-files)
 ```matlab
 ExEKF           % for-loop implementation (predictor-corrector representation)  of a discrete-time extended Kalman filter (EKF) 
 ExFeedback      % for-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
@@ -75,4 +76,5 @@ ExWageningen    % computes thrust and torque curves for a propeller using the Wa
 ExWindForce     % plots the wind coefficients by Isherwoods (1972) 
 ExZigZag        % generates zigzag maneuvers for two different ships
 ```
+## Vessel models (m-files)
 
