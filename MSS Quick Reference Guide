@@ -1,0 +1,21 @@
+# MSS Quick Reference Guide
+
+A quick reference guide for MATLAB syntax and operations.
+
+## Table of Contents
+- Simulink demos](#simulink-demos)
+- [Matrix Operations](#matrix-operations)
+- [Plotting](#plotting)
+- [Useful Functions](#useful-functions)
+
+---
+
+mssSimulink.slx				 Simulink Library
+
+## Simulink demos
+
+### Variables
+```matlab
+x = 5; % Assign value
+
+mssSimulink.slx				 Simulink Library
