@@ -14,8 +14,8 @@ A quick reference guide for the MATLAB MSS toolbox:
 - [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
   - [Marine craft models](#marine-craft-models)
   - [Time-series simulation](#time-series-simulation)
-- [Modelling (m-files)](#modelling-m-files)
-  - [Model components](#model-components)
+- [Utils (m-files)](#utils)
+  - [Modelling](#modelling)
   - [Kinematics](#kinematics)
   - [Environment](#environment)
   - [Transformations](#transformations)
@@ -126,9 +126,9 @@ SIMremus100     % simulate remus100.m under PD control
 SIMrig          % simulate the 6-DOF semisubmersible model under PID control
 ```
 
-### Modelling (m-files)
+### Utils (m-files)
 
-## Model components
+## Modelling
 
 ```matlab
 addedMassSurge     % hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
