@@ -15,20 +15,20 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Marine craft models](#marine-craft-models)
   - [Time-series simulation](#time-series-simulation)
 - [Modelling (m-files)](#modelling-m-files)
-  - [Model components](#)
-  - [Kinematics](#)
-  - [Environment](#)
-  - [Transformations](#)
-  - [Numerical integration methods](#)
-- [HYDRO](#)
-  - [Hydrodynamic templates (Simulink)](#)
-  - [Processing of data from hydrodynamic codes (m-files)](#)
-  - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#)
-- [GNC (m-files)](#)
-  - [Guidance](#)
-  - [Navigation](#)
-  - [Control](#)
-- [Frequency-domain identification (FDI) of radiation models (m-files)](#)
+  - [Model components](#model-components)
+  - [Kinematics](#kinematics)
+  - [Environment](#environment)
+  - [Transformations](#transformations)
+  - [Numerical integration methods](#numerical-integration-methods)
+- [HYDRO](#hydro)
+  - [Hydrodynamic templates (Simulink)](#hydrodynamic-templatess-simulink)
+  - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
+  - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
+- [GNC (m-files)](#gnc)
+  - [Guidance](#guidance)
+  - [Navigation](#navigation)
+  - [Control](#control)
+- [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
 ---
 
 ## Simulink demos
@@ -125,4 +125,58 @@ SIMnavalvessel  % simulate navalvessel.m under PD control
 SIMremus100     % simulate remus100.m under PD control
 SIMrig          % simulate the 6-DOF semisubmersible model under PID control
 ```
+
+### Modelling (m-files)
+
+## Model components
+```matlab
+```
+
+## Kinematics
+```matlab
+```
+
+## Environment
+```matlab
+```
+
+## Transformations
+```matlab
+```
+
+## Numerical integration methods
+```matlab
+```
+
+### HYDRO
+
+## Hydrodynamic templates (Simulink)
+
+### Processing of data from hydrodynamic codes (m-files)
+```matlab
+```
+
+### Data files (mat-files that can be loaded to workspace and used by Simulink templates)
+```matlab
+```
+
+### GNC (m-files)
+
+## Guidance
+```matlab
+```
+
+## Navigation
+```matlab
+```
+
+## Control
+```matlab
+```
+
+### Frequency-domain identification (FDI) of radiation models (m-files)
+```matlab
+```
+
+- 
 
