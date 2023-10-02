@@ -1,6 +1,12 @@
 # MSS Quick Reference
 
-A quick reference guide for MATLAB syntax and operations.
+A quick reference guide for the MATLAB MSS toolbox:
+
+```matlab
+>> help MSS               % List mss commands
+>> help mssExamples       % List book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
+>> mssSimulink            % Simulink Library
+```
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
@@ -8,12 +14,6 @@ A quick reference guide for MATLAB syntax and operations.
 - [Vessel models (m-files)](#vessel-models-m-files)
 
 ---
-
-```matlab
->> help MSS               % List mss commands
->> help mssExamples       % List book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
->> mssSimulink            % Simulink Library
-```
 
 ## Simulink demos
 
