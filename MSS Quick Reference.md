@@ -14,7 +14,21 @@ A quick reference guide for the MATLAB MSS toolbox:
 - [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
   - [Marine craft models](#marine-craft-models)
   - [Time-series simulation](#time-series-simulation)
-
+- [Modelling (m-files)](#modelling-m-files)
+  - [Model components](#)
+  - [Kinematics](#)
+  - [Environment](#)
+  - [Transformations](#)
+  - [Numerical integration methods](#)
+- [HYDRO](#)
+  - [Hydrodynamic templates (Simulink)](#)
+  - [Processing of data from hydrodynamic codes (m-files)](#)
+  - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#)
+- [GNC (m-files)](#)
+  - [Guidance](#)
+  - [Navigation](#)
+  - [Control](#)
+- [Frequency-domain identification (FDI) of radiation models (m-files)](#)
 ---
 
 ## Simulink demos
