@@ -287,16 +287,33 @@ plotWD              % plots the wave drift amplitudes
 ```matlab
 ALOSpsi             % ALOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
 crosstrack          % computes the path-tangential origin and cross-track error for a target
+crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
+hybridPath          % generates coefficients for subpaths between waypoints
+LOSchi              % LOS guidance law for course autopilot control (see demoOtterUSVPathFollowingCourseControl.slx)
+ILOSpsi             % ILOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
+order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
+order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
 ```
 
 ## Navigation
 
 ```matlab
+acc2rollpitch        % static roll and pitch angles from the specific force
+EKF_5states          % estimation of SOG, COG, and course rate from NED positions or latitude-longitude
+gravity              % acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
+ins_ahrs             % error-state Kalman filter for INS aided by position and AHRS measurements 
+ins_euler            % error-state Kalman filter for INS aided by position and yaw angle measurements
+ins_mekf             % error-state Kalman filter for INS aided by position and magnetic field measurements
+ins_mekf_psi         % error-state Kalman filter for INS aided by position and yaw angle measurements
+insSignal            % basic INS signal generator
 ```
 
 ## Control
 
 ```matlab
+lqtracker             % computes the LQ tracker gain matrices for LTI systems
+nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
+ucalloc               % unconstrained control allocation
 ```
 
 ### Frequency-domain identification (FDI) of radiation models (m-files)
