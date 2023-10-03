@@ -229,15 +229,15 @@ DP_MotionRAO.slx   % Simulink template for a DP vessel where wave loads are comp
 MAN_ForceRAO.slx   % Simulink template for the unified maneuvering model where wave loads are computed using force RAOs
 ```
 
-### Processing of data from hydrodynamic codes (m-files)
+## Processing of data from hydrodynamic codes (m-files)
 
 ```matlab
-veres2vessel       % reads data from ShipX output files and store the data as a mat-file containing the structure <vessel>
-vessel2ss          % computes the fluid-memory transfer functions and store the data as a mat-file containing the structure <vesselABC>
-wamit2vessel       % reads data from WAMIT output files and store the data as a mat-file containing the structure <vessel>
+veres2vessel       % reads data from ShipX output files and stores the data as a mat-file containing the structure <vessel>
+vessel2ss          % computes the fluid-memory transfer functions and stores the data as a mat-file containing the structure <vesselABC>
+wamit2vessel       % reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
 ```
 
-### Data files (mat-files that can be loaded to workspace and used by Simulink templates)
+## Data files (mat-files that can be loaded to workspace and used by Simulink templates)
 
 ```matlab
 fpso, fpsoABC       % WAMIT data for a FPSO
@@ -261,7 +261,7 @@ supply, supplyABC   % ShipX data for the S175
 |      driftfrc: [1×1 struct]      | | | 
 |            Bv: [6×6×60 double]   | | | 
 
-### Hydrodynamics (m-files)
+## Hydrodynamics (m-files)
 
 ```matlab
 DPperiods           % periods and natural frequencies of a marine craft in DP
