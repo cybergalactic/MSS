@@ -247,6 +247,8 @@ s175, s175ABC       % ShipX data for a supply vessel
 supply, supplyABC   % ShipX data for the S175
 ```
 
+After loading the data files to the workspace using the Matlab command load, the following data structures are available:
+
 | vessel   | vessel.main | vesselABC |
 | -------- | --------    | --------  |
 |          main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell} |
@@ -264,6 +266,7 @@ supply, supplyABC   % ShipX data for the S175
 |                                  | GM_T: tranverse metacentric height |
 |                                  | GM_L: longitudinal metacentric height |
 |                                  | CG: center of gravity | |
+
 
 ## Hydrodynamics (m-files)
 
