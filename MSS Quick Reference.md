@@ -248,18 +248,22 @@ supply, supplyABC   % ShipX data for the S175
 ```
 
 | vessel   | vessel.main | vesselABC |
+| -------- | --------    | --------  |
 |          main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell} |
-|    velocities: 1×60              |         T: 10       | Br: {6×6 cell} |
-|      headings: [1×36 double]     | | |
-|           MRB: [6×6 double]      | | | 
-|             C: [6×6×60 double]   | | | 
-|         freqs: [1×60 double]     | | | 
-|             A: [6×6×60 double]   | | | 
-|             B: [6×6×60 double]   | | | 
-|     motionRAO: [1×1 struct]      | | | 
-|      forceRAO: [1×1 struct]      | | | 
-|      driftfrc: [1×1 struct]      | | | 
-|            Bv: [6×6×60 double]   | | | 
+|    velocities: 1×60              |         T: draft    | Br: {6×6 cell} |
+|      headings: [1×36 double]     |         B: beam     | Cr: {6×6 cell} |
+|           MRB: [6×6 double]      |       Lpp: length   | Dr: {6×6 cell} | 
+|             C: [6×6×60 double]   |         m: mass     | MRB: [6×6 double] | 
+|         freqs: [1×60 double]     | rho: density of water | MA: [6×6 double] | 
+|             A: [6×6×60 double]   | k44: radius of gyration | G: [6×6 double] | 
+|             B: [6×6×60 double]   | k55: radius of gyration | Minv: [6×6 double] | 
+|     motionRAO: [1×1 struct]      | k66: radius of gyration | r_g: [x_g y_g z_g] | 
+|      forceRAO: [1×1 struct]      | g: acceleration of gravity | 
+|      driftfrc: [1×1 struct]      | nabla: volume displacement | 
+|            Bv: [6×6×60 double]   | CB: center of buyoancy |
+|                                  | GM_T: tranverse metacentric height |
+|                                  | GM_L: longitudinal metacentric height |
+|                                  | CG: center of gravity |
 
 ## Hydrodynamics (m-files)
 
