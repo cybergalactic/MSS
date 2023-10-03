@@ -263,7 +263,7 @@ supply, supplyABC   % ShipX data for the S175
 |            Bv: [6×6×60 double]   | CB: center of buyoancy |
 |                                  | GM_T: tranverse metacentric height |
 |                                  | GM_L: longitudinal metacentric height |
-|                                  | CG: center of gravity |
+|                                  | CG: center of gravity | |
 
 ## Hydrodynamics (m-files)
 
