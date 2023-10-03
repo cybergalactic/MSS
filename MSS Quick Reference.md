@@ -247,34 +247,31 @@ s175, s175ABC       % ShipX data for a supply vessel
 supply, supplyABC   % ShipX data for the S175
 ```
 
+| vessel   | vessel.main | vesselABC |
+|          main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell} |
+|    velocities: 1×60              |         T: 10       | Br: {6×6 cell} |
+|      headings: [1×36 double]     | | |
+|           MRB: [6×6 double]      | | | 
+|             C: [6×6×60 double]   | | | 
+|         freqs: [1×60 double]     | | | 
+|             A: [6×6×60 double]   | | | 
+|             B: [6×6×60 double]   | | | 
+|     motionRAO: [1×1 struct]      | | | 
+|      forceRAO: [1×1 struct]      | | | 
+|      driftfrc: [1×1 struct]      | | | 
+|            Bv: [6×6×60 double]   | | | 
+
 ### Hydrodynamics (m-files)
 
 ```matlab
 DPperiods           % periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner crossflow form coefficient as a function of B and T
 loadcond            % plots the roll and pitch periods as a function of GM_T and GM_L
-plotABC             % plots the hydrodynamic coefficients Aij, Bij and Cij as a function of frequency 
+plotABC             % plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
 plotBv              % plots viscous damping Bvii as a function of frequency 
 plotTF              % plots the motion or force RAO transfer functions
 plotWD              % plots the wave drift amplitudes
 ```
-
-| vessel   | vessel.main | vesselABC |
-| -------- | -------- | -------- |
-|         main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell}
-    velocities: 1×60              | | 
-      headings: [1×36 double]     | | 
-           MRB: [6×6 double]      | | 
-             C: [6×6×60 double]   | | 
-         freqs: [1×60 double]     | | 
-             A: [6×6×60 double]   | | 
-             B: [6×6×60 double]   | | 
-     motionRAO: [1×1 struct]      | | 
-      forceRAO: [1×1 struct]      | | 
-      driftfrc: [1×1 struct]      | | 
-            Bv: [6×6×60 double]   | | 
-
-
 
 ### GNC (m-files)
 
