@@ -23,7 +23,7 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
 - [HYDRO](#hydro)
-  - [Hydrodynamic templates (Simulink)](#hydrodynamic-templatess-simulink)
+  - [Hydrodynamic templates (Simulink)](#hydrodynamic-templates-simulink)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
   - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
   - [Hydrodynamics (m-files)] (#hydrodynamics-m-files)
