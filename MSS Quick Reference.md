@@ -283,18 +283,24 @@ plotWD              % plots the wave drift amplitudes
 ### GNC (m-files)
 
 ## Guidance
+
 ```matlab
+ALOSpsi             % ALOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
+crosstrack          % computes the path-tangential origin and cross-track error for a target
 ```
 
 ## Navigation
+
 ```matlab
 ```
 
 ## Control
+
 ```matlab
 ```
 
 ### Frequency-domain identification (FDI) of radiation models (m-files)
+
 ```matlab
 ```
 
