@@ -26,6 +26,7 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Hydrodynamic templates (Simulink)](#hydrodynamic-templatess-simulink)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
   - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
+  - [Hydrodynamics (m-files)] (#hydrodynamics-m-files)
 - [GNC (m-files)](#gnc)
   - [Guidance](#guidance)
   - [Navigation](#navigation)
@@ -222,13 +223,58 @@ rk4                % integrates a system of ordinary differential equations usin
 
 ## Hydrodynamic templates (Simulink)
 
-### Processing of data from hydrodynamic codes (m-files)
 ```matlab
+DP_ForceRAO.slx    % Simulink template for a DP vessel where wave loads are computed using force RAOs
+DP_MotionRAO.slx   % Simulink template for a DP vessel where wave loads are computed using motion RAOs
+MAN_ForceRAO.slx   % Simulink template for the unified maneuvering model where wave loads are computed using force RAOs
+```
+
+### Processing of data from hydrodynamic codes (m-files)
+
+```matlab
+veres2vessel       % reads data from ShipX output files and store the data as a mat-file containing the structure <vessel>
+vessel2ss          % computes the fluid-memory transfer functions and store the data as a mat-file containing the structure <vesselABC>
+wamit2vessel       % reads data from WAMIT output files and store the data as a mat-file containing the structure <vessel>
 ```
 
 ### Data files (mat-files that can be loaded to workspace and used by Simulink templates)
+
 ```matlab
+fpso, fpsoABC       % WAMIT data for a FPSO
+semisub, semisubABC % WAMIT data for a semisubmersible
+tanker, tankerABC   % WAMIT data for a tanker
+s175, s175ABC       % ShipX data for a supply vessel
+supply, supplyABC   % ShipX data for the S175
 ```
+
+### Hydrodynamics (m-files)
+
+```matlab
+DPperiods           % periods and natural frequencies of a marine craft in DP
+Hoerner             % 2-D Hoerner crossflow form coefficient as a function of B and T
+loadcond            % plots the roll and pitch periods as a function of GM_T and GM_L
+plotABC             % plots the hydrodynamic coefficients Aij, Bij and Cij as a function of frequency 
+plotBv              % plots viscous damping Bvii as a function of frequency 
+plotTF              % plots the motion or force RAO transfer functions
+plotWD              % plots the wave drift amplitudes
+```
+
+| vessel   | vessel.main | vesselABC |
+| -------- | -------- | -------- |
+|         main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell}
+    velocities: 1×60              | | 
+      headings: [1×36 double]     | | 
+           MRB: [6×6 double]      | | 
+             C: [6×6×60 double]   | | 
+         freqs: [1×60 double]     | | 
+             A: [6×6×60 double]   | | 
+             B: [6×6×60 double]   | | 
+     motionRAO: [1×1 struct]      | | 
+      forceRAO: [1×1 struct]      | | 
+      driftfrc: [1×1 struct]      | | 
+            Bv: [6×6×60 double]   | | 
+
+
 
 ### GNC (m-files)
 
