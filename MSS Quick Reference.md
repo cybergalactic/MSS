@@ -313,6 +313,7 @@ insSignal            % basic INS signal generator
 ```matlab
 lqtracker             % computes the LQ tracker gain matrices for LTI systems
 nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
+PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
 ucalloc               % unconstrained control allocation
 ```
 
