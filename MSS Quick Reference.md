@@ -288,7 +288,8 @@ plotWD              % plots the wave drift amplitudes
 ALOSpsi             % ALOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
 crosstrack          % computes the path-tangential origin and cross-track error for a target
 crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
-hybridPath          % generates coefficients for subpaths between waypoints
+crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+hybridPath          % generates coefficients for sub-paths between waypoints
 LOSchi              % LOS guidance law for course autopilot control (see demoOtterUSVPathFollowingCourseControl.slx)
 ILOSpsi             % ILOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
 order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
