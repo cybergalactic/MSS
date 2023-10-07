@@ -23,14 +23,8 @@ N  = 10000;              % number of samples
 flag = 1;                % 0 = Euler angles, 1 = unit quaternions
 
 % Initial states
-phi = 0; theta = 0; psi = 0;
-
-if (flag == 0)          % x = [ u v w p q r x y z phi theta psi ]'   
-    x = [zeros(9,1); phi; theta; psi];
-else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
-    quat = euler2q(phi,theta,psi);
-    x = [zeros(9,1); quat];
-end
+x = 0; y = 0; z = 10;
+phi = 0; theta = 0; psi = 0; 
 
 % Autopilot integral states
 z_int = 0;                  % depth
@@ -40,10 +34,17 @@ psi_int = 0;                % heading angle
 % Autopilot setpoints
 n = 0;                      % initial propeller revolution (rpm)
 n_d = 1525;                 % desired propeller revolution, max 1525 rpm
-z_d = 0;                    % initial depth (m)
+z_d = z;                    % initial depth (m), reference model
+psi_d = psi;                % initial heading angle (rad), reference model
 z_step = 30;                % step change in depth, max 100 m
-psi_d = 0;                  % initial heading angle (rad)
 psi_step = deg2rad(-60);    % step change in heading angle (rad)
+
+if (flag == 0)          % x = [ u v w p q r x y z phi theta psi ]'   
+    x = [zeros(6,1); x; y; z; phi; theta; psi];
+else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
+    quat = euler2q(phi,theta,psi);
+    x = [zeros(6,1); x; y; z; quat];
+end
 
 % Ocean current speed and direction expressed in NED
 Vc = 0.5;                   % speed (m/s)
@@ -97,7 +98,7 @@ for i = 1:N+1
    if t > 200
        z_ref = z_step;
    else
-       z_ref = 0;
+       z_ref = 10;
    end
    z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;  % LP filter
    
@@ -106,10 +107,10 @@ for i = 1:N+1
        - Ki_theta * theta_int;                                     % PID
    
    % PID heading controller
-   if t > 100
+   if t > 200
       psi_ref = psi_step;
    else
-       psi_ref = 0;
+       psi_ref = deg2rad(0);       
    end   
    
    % LP filter
@@ -160,9 +161,9 @@ psi_d   = simdata(:,4);
 u       = simdata(:,5:7); 
 nu      = simdata(:,8:13);
 
-if (flag==0)                   % Euler angle representation
+if (flag==0)               % Euler angle representation
     eta = simdata(:,14:19);
-else                            % Transform unit quaternions to Euler angles
+else                       % Transform the unit quaternions to Euler angles
     quaternion = simdata(:,17:20);
     for i = 1:N+1
         [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
@@ -175,6 +176,7 @@ else                            % Transform unit quaternions to Euler angles
     legend('\eta','\epsilon_1','\epsilon_2','\epsilon_3')
 end
 
+%% Generalized velocity
 figure(1); 
 subplot(611),plot(t,nu(:,1))
 xlabel('time (s)'),title('Surge velocity (m/s)'),grid
@@ -182,43 +184,67 @@ subplot(612),plot(t,nu(:,2))
 xlabel('time (s)'),title('Sway velocity (m/s)'),grid
 subplot(613),plot(t,nu(:,3))
 xlabel('time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4))
+subplot(614),plot(t,rad2deg(nu(:,4)))
 xlabel('time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5))
+subplot(615),plot(t,rad2deg(nu(:,5)))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6))
+subplot(616),plot(t,rad2deg(nu(:,6)))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
+%% Speed, heave position and Euler angles
 figure(2); 
-subplot(611),plot(eta(:,2),eta(:,1)); 
-title('xy plot (m)'),grid
-subplot(612),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2));
+subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2));
 xlabel('time (s)'),title('speed (m/s)'),grid
-subplot(613),plot(t,eta(:,3),t,z_d)
+subplot(512),plot(t,eta(:,3),t,z_d)
 xlabel('time (s)'),title('heave position (m)'),grid
 legend('true','desired')
-subplot(614),plot(t,(180/pi)*eta(:,4))
+subplot(513),plot(t,rad2deg(eta(:,4)))
 xlabel('time (s)'),title('roll angle (deg)'),grid
-subplot(615),plot(t,(180/pi)*eta(:,5),t,(180/pi)*theta_d)
+subplot(514),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d))
 xlabel('time (s)'),title('pitch angle (deg)'),grid
 legend('true','desired')
-subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d)
+subplot(515),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
 xlabel('time (s)'),title('yaw angle (deg)'),grid
 legend('true','desired')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
+%% Control signals
 figure(3); 
-subplot(311),plot(t,(180/pi)*u(:,1))
+subplot(311),plot(t,rad2deg(u(:,1)))
 xlabel('time (s)'),title('Rudder \delta_r (deg)'),grid
-subplot(312),plot(t,(180/pi)*u(:,2))
+subplot(312),plot(t,rad2deg(u(:,2)))
 xlabel('time (s)'),title('Stern planes \delta_s (deg)'),grid
 subplot(313),plot(t,u(:,3))
 xlabel('time (s)'),title('Propeller revolutions n (rpm)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
+
+%% 3-D position plot
+figure(4); 
+subplot(212)
+plot3(eta(:,2),eta(:,1),eta(:,3))
+title('North-East-Down plot (m)')
+xlabel('E'); ylabel('N'); zlabel('D'); grid
+set(gca, 'ZDir', 'reverse');
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+view(-25, 30);  % view(AZ,EL) 
+
+subplot(211)
+plot(eta(:,2),eta(:,1))
+title('North-East plot (m)')
+xlabel('E'); ylabel('N'); grid
+
+%axis equal;
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+
+
