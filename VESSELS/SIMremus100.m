@@ -227,6 +227,15 @@ set(findall(gcf,'type','legend'),'FontSize',16)
 
 %% 3-D position plot
 figure(4); 
+subplot(211)
+plot(eta(:,2),eta(:,1))
+title('North-East plot (m)')
+xlabel('E'); ylabel('N'); grid
+axis equal;
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+
 subplot(212)
 plot3(eta(:,2),eta(:,1),eta(:,3))
 title('North-East-Down plot (m)')
@@ -236,15 +245,5 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 view(-25, 30);  % view(AZ,EL) 
-
-subplot(211)
-plot(eta(:,2),eta(:,1))
-title('North-East plot (m)')
-xlabel('E'); ylabel('N'); grid
-
-%axis equal;
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
 
 
