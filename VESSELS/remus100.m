@@ -56,6 +56,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %                         addition to the Euler angle representation
 %            16 Oct 2022  Added vertical currents
 %            02 May 2023  Corrected the rudder area A_r
+%            07 Oct 2023  Scaled down the propeller roll-induced moment
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -85,16 +86,20 @@ delta_r = ui(1);        % tail rudder (rad)
 delta_s = ui(2);        % stern plane (rad)
 n = ui(3)/60;           % propeller revolution (rps)
 
+% Amplitude saturation of the control signals
+n_max = 1525;                                   % maximum propeller rpm
+max_ui = [deg2rad(30) deg2rad(30) n_max/60]';   % deg, deg, rps
+
+if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
+if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
+if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
+
 % Ocean currents expressed in BODY
 u_c = Vc * cos( betaVc - eta(6) );                               
 v_c = Vc * sin( betaVc - eta(6) );   
 
 nu_c = [u_c v_c w_c 0 0 0]';                  % ocean current velocities
 Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]';    % time derivative of nu_c
-
-% Amplitude saturation of rudder angle, stern plane and propeller revolution
-n_max = 1525;                                % maximum propeller rpm
-max_ui = [30*pi/180 30*pi/180  n_max/60]';   % deg, deg, rps
 
 % Relative velocities/speed, angle of attack and vehicle speed
 nu_r = nu - nu_c;                                 % relative velocity
@@ -183,7 +188,7 @@ CA(6,2) = 0;
 
 M = MRB + MA;
 C = CRB + CA;
-m = MRB(1,1); W = m*g_mu; B = W;
+m = MRB(1,1); W = m * g_mu; B = W;
 
 % Dissipative forces and moments
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
@@ -204,11 +209,6 @@ end
 % Restoring forces and moments
 g = gRvect(W,B,R,r_bg,r_bb);
 
-% Amplitude saturation of the control signals
-if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
-if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
-if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
-
 % Horizontal- and vertical-plane relative speed
 U_rh = sqrt( nu_r(1)^2 + nu_r(2)^2 );  
 U_rv = sqrt( nu_r(1)^2 + nu_r(3)^2 );  
@@ -228,7 +228,7 @@ tau = zeros(6,1);
 tau(1) = (1-t_prop) * X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
-tau(4) = K_prop;
+tau(4) = K_prop / 10;  % scaled down by a factor of 10 to match exp. results
 tau(5) = x_s * Z_s;
 tau(6) = x_r * Y_r;
 
