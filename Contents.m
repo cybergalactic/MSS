@@ -24,13 +24,16 @@
 %
 % Control systems:
 %  lqtracker   - Computes the LQ tracker gain matrices for LTI systems 
+%  PIDnonlinearMIMO - Nonlinear MIMO PID regulator for dynamic positioning (DP)
 %
 % Guidance systems:
-%  ALOSpsi		 - ALOS guidance law for heading autopilot control 
-%  crosstrack    - computes the crosstrack error and origin of the path-tangential frame
-%  crosstrackWpt - computes the crosstrack error between two waypoints
-%  ILOSpsi		 - ILOS guidance law for heading autopilot control
-%  LOSchi		 - LOS guidance law for course autopilot control 
+%  ALOS3D		 - ALOS guidance laws for heading and pitch control in 3-D
+%  ALOSpsi		 - ALOS guidance law for heading control in 2-D
+%  crosstrack    - crosstrack error and origin of the path-tangential frame
+%  crosstrackWpt - crosstrack error between two waypoints in the plane
+%  crosstrackWpt3D - 3-D tracking errors between two waypoints
+%  ILOSpsi		 - ILOS guidance law for heading control in 2-D
+%  LOSchi		 - LOS guidance law for course control in 2-D
 %
 % Kinematics:
 %  eulerang   - Euler angle transformation matrices J, J1 and J2
@@ -62,7 +65,7 @@
 %  ins_ahrs      - INS error-state Kalman filter using AHRS
 %  ins_mekf      - INS error-state MEKF (quaternion representation) 
 %  ins_mekf_psi  - INS error-state MEKF using compass measurement
-%  insSignal - basic INS signal generator 
+%  insSignal     - basic INS signal generator 
 %
 % Numerical integration:
 %  euler2     - 2nd-order Euler integration, fixed step
