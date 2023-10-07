@@ -33,6 +33,8 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Navigation](#navigation)
   - [Control](#control)
 - [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
+  - [Demos](#demos)
+  - [Utils](#utils)
 ---
 
 ## Simulink demos
@@ -332,6 +334,18 @@ ucalloc               % unconstrained control allocation
 
 ### Frequency-domain identification (FDI) of radiation models (m-files)
 
+## Demos
 ```matlab
+Demo_FDIRadMod_NA     % FDI using hydrodynamic data without infinite-frequency added mass
+Demo_FDIRadMod_WA     % FDI using hydrodynamic data including infinite-frequency added mass
+```
+
+## Utils
+```matlab
+EditAB                 % Function preparing the data for identification, select frequency range and remove wild-points
+FDIRadMod              % Identify the SISO transfer function corresponding to the coupling specified
+fit_siso_fresp         % Fit a continuous SISO transfer function to the frequency response data
+ident_retardation_FD   % Identification of a parametric radiation convolution model K(s) = P(s)/Q(s)
+ident_retardation_FDna % Identification of a parametric model A(jw) = B(w)/(jw) - A(w) 
 ```
 
