@@ -332,15 +332,15 @@ PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP
 ucalloc               % unconstrained control allocation
 ```
 
-### Frequency-domain identification (FDI) of radiation models (m-files)
+## Frequency-domain identification (FDI) of radiation models (m-files)
 
-## Demos
+### Demos
 ```matlab
 Demo_FDIRadMod_NA     % FDI using hydrodynamic data without infinite-frequency added mass
 Demo_FDIRadMod_WA     % FDI using hydrodynamic data including infinite-frequency added mass
 ```
 
-## Utils
+### Utils
 ```matlab
 EditAB                 % Function preparing the data for identification, select frequency range and remove wild-points
 FDIRadMod              % Identify the SISO transfer function corresponding to the coupling specified
