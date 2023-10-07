@@ -1,7 +1,9 @@
 % SIMremus100 User editable script for simulation of the Remus 100 AUV
-%             (remus100.m) under feedback control (depth and heading control 
-%             when exposed to ocean currents). Both the Euler angle and unit
-%             quaternion representations of the Remus 100 model can be used.
+%             (remus100.m) under feedback control (simultaneously depth and 
+%             heading control) when exposed to ocean currents. The depth
+%             and heading autopilots are designed using succesive-loop 
+%             closure. Both the Euler angle and unit quaternion
+%             representations of the Remus 100 model can be used.
 %
 % Calls:      remus100.m
 %
@@ -18,53 +20,53 @@ clearvars;
 %% USER INPUTS
 h  = 0.05;               % sample time (s)
 N  = 10000;              % number of samples
-param = 1;               % 0 = Euler angles, 1 = unit quaternions
+flag = 1;                % 0 = Euler angles, 1 = unit quaternions
 
-% initial state vector
+% Initial states
 phi = 0; theta = 0; psi = 0;
 
-if (param == 0)         % x = [ u v w p q r x y z phi theta psi ]'   
+if (flag == 0)          % x = [ u v w p q r x y z phi theta psi ]'   
     x = [zeros(9,1); phi; theta; psi];
 else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
     quat = euler2q(phi,theta,psi);
     x = [zeros(9,1); quat];
 end
 
-% integral states (autopilots)
-z_int = 0;
-theta_int = 0;
-psi_int = 0;
+% Autopilot integral states
+z_int = 0;                  % depth
+theta_int = 0;              % pitch angle
+psi_int = 0;                % heading angle
 
-% setpoints (autopilots)
-n = 0;                  % initial propeller revolution (rpm)
-n_d = 1525;             % desired propeller revolution, max 1525 rpm
-z_d = 0;                % initial depth (m)
-z_step = 30;            % step change in depth, max 100 m
-psi_d = 0;              % initial heading angle (rad)
-psi_step = -60*pi/180;  % step change in heading angle (rad)
+% Autopilot setpoints
+n = 0;                      % initial propeller revolution (rpm)
+n_d = 1525;                 % desired propeller revolution, max 1525 rpm
+z_d = 0;                    % initial depth (m)
+z_step = 30;                % step change in depth, max 100 m
+psi_d = 0;                  % initial heading angle (rad)
+psi_step = deg2rad(-60);    % step change in heading angle (rad)
 
-% ocean current velcoities expressed in NED
+% Ocean current speed and direction expressed in NED
 Vc = 0.5;                   % speed (m/s)
-betaVc = 170 * pi/180;      % direction (rad)
+betaVc = deg2rad(170);      % direction (rad)
 
-% depth controller
+% Depth controller gains
 wn_d_z = 1/20;              % desired natural frequency, reference model
-Kp_z = 0.1;                 % proportional gain
-T_z = 100;                  % integral gain
-Kp_theta = 2;            
-Kd_theta = 3;
-Ki_theta = 0.1;
+Kp_z = 0.1;                 % proportional gain (heave)
+T_z = 100;                  % integral time constant (heave)
+Kp_theta = 2;               % proportional gain (pitch)
+Kd_theta = 3;               % derivative gain (pitch)
+Ki_theta = 0.1;             % integral gain (pitch)
 
-% heading autopilot 
+% Heading autopilot gains
 wn_d_psi = 1/5;             % desired natural frequency, reference model 
-wn_b_psi = 1;               % bandwidth, pole placement algorithm 
+wn_b_psi = 1;               % bandwidth, pole-placement algorithm 
 m66 = 7.5;                  % moment of inertia, yaw
-Kp_psi = m66 * wn_b_psi^2;                 
-Kd_psi = m66 * 2*wn_b_psi; 
-Ki_psi = Kp_psi * (wn_b_psi/10);
+Kp_psi = m66 * wn_b_psi^2;  % proportional gain (yaw)                
+Kd_psi = m66 * 2*wn_b_psi;  % derivative gain (yaw)
+Ki_psi = Kp_psi * (wn_b_psi / 10);  % integral gain (yaw)
    
 %% MAIN LOOP
-if (param == 0)
+if (flag == 0)
     disp('...simulating the Remus 100 AUV using Euler angles (12 states)')
 else
     disp('...simulating the Remus 100 AUV using unit quaternions (13 states)') 
@@ -76,20 +78,20 @@ for i = 1:N+1
     
    t = (i-1)*h;             % time
    
-   % measurements
+   % Measurements
    q = x(5);                % pitch rate
    r = x(6);                % yaw rate
    z = x(9);                % z-position (depth)
    
-   if (param==0)
+   if (flag==0)
          phi = x(10); theta = x(11); psi = x(12);   % Euler angles
    else
          [phi,theta,psi] = q2euler(x(10:13));  % quaternion to Euler angles
    end
    
-   % depth controller (succesive-loop closure)  
+   % Depth controller (succesive-loop closure)  
    if (z_step > 100 || z_step < 0)
-       error('desired depth must be between 0-100 m')
+       error('The desired depth must be between 0-100 m')
    end  
    
    if t > 200
@@ -115,12 +117,12 @@ for i = 1:N+1
    
    delta_r = -Kp_psi * ssa( psi - psi_d ) - Kd_psi * r - Ki_psi * psi_int;                                           % PID 
 
-   % propeller revolution (rpm)
+   % Propeller revolution (rpm)
    if (n < n_d)
        n = n + 1;
    end
    
-   % control inputs 
+   % Control inputs 
    max_ui = [30*pi/180 30*pi/180  1525]';   % rad, rad, rpm
    if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
    if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
@@ -128,20 +130,19 @@ for i = 1:N+1
     
    ui = [delta_r delta_s n]';
    
-   % store simulation data in a table 
+   % Store simulation data in a table 
    simdata(i,:) = [t z_d theta_d psi_d ui' x'];   
    
    % Propagate the vehicle dynamics (k+1)
    xdot = remus100(x,ui,Vc,betaVc);
    
-   if (param == 0)     
+   if (flag == 0)     
        x = x + h * xdot;                       % Euler's integration method
    else
-       x(1:9) = x(1:9) + h * xdot(1:9);        % Euler's integration method
-       
+       x(1:9) = x(1:9) + h * xdot(1:9);        % Euler's integration method       
        quat = x(10:13);                        % unit quaternion
        quat = expm(Tquat(x(4:6)) * h) * quat;  % exact discretization
-       x(10:13) = quat/norm(quat);             % normalization
+       x(10:13) = quat / norm(quat);           % normalization
    end
    
    % Euler's integration method (k+1)
@@ -159,7 +160,7 @@ psi_d   = simdata(:,4);
 u       = simdata(:,5:7); 
 nu      = simdata(:,8:13);
 
-if (param==0)                   % Euler angle representation
+if (flag==0)                   % Euler angle representation
     eta = simdata(:,14:19);
 else                            % Transform unit quaternions to Euler angles
     quaternion = simdata(:,17:20);
@@ -187,7 +188,6 @@ subplot(615),plot(t,(180/pi)*nu(:,5))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,(180/pi)*nu(:,6))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
-
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
@@ -208,7 +208,6 @@ legend('true','desired')
 subplot(616),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d)
 xlabel('time (s)'),title('yaw angle (deg)'),grid
 legend('true','desired')
-
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
@@ -220,7 +219,6 @@ subplot(312),plot(t,(180/pi)*u(:,2))
 xlabel('time (s)'),title('Stern planes \delta_s (deg)'),grid
 subplot(313),plot(t,u(:,3))
 xlabel('time (s)'),title('Propeller revolutions n (rpm)'),grid
-
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
