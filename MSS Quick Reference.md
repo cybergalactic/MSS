@@ -23,15 +23,15 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
+- [GNC (m-files)](#gnc)
+  - [Guidance](#guidance)
+  - [Navigation](#navigation)
+  - [Control](#control)  
 - [HYDRO](#hydro)
   - [Hydrodynamic templates (Simulink)](#hydrodynamic-templates-simulink)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
   - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
   - [Hydrodynamics (m-files)](#hydrodynamics-m-files)
-- [GNC (m-files)](#gnc)
-  - [Guidance](#guidance)
-  - [Navigation](#navigation)
-  - [Control](#control)
 - [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
   - [Demos](#demos)
   - [Utils](#utils)
@@ -232,6 +232,45 @@ euler2             % integrates a system of ordinary differential equations usin
 rk4                % integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
+### GNC (m-files)
+
+## Guidance
+
+```matlab
+ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
+ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+crosstrack          % computes the path-tangential origin and cross-track error for a target
+crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
+crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+hybridPath          % generates coefficients for sub-paths between waypoints
+LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
+order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+```
+
+## Navigation
+
+```matlab
+acc2rollpitch        % static roll and pitch angles from the specific force
+EKF_5states          % estimation of SOG, COG, and course rate from NED positions or latitude-longitude
+gravity              % acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
+ins_ahrs             % error-state Kalman filter for INS aided by position and AHRS measurements 
+ins_euler            % error-state Kalman filter for INS aided by position and yaw angle measurements
+ins_mekf             % error-state Kalman filter for INS aided by position and magnetic field measurements
+ins_mekf_psi         % error-state Kalman filter for INS aided by position and yaw angle measurements
+insSignal            % basic INS signal generator
+```
+
+## Control
+
+```matlab
+lqtracker             % computes the LQ tracker gain matrices for LTI systems
+nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
+PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
+ucalloc               % unconstrained control allocation
+```
+
 ### HYDRO
 
 ## Hydrodynamic templates (Simulink)
@@ -291,45 +330,6 @@ plotABC             % plots the hydrodynamic coefficients Aij, Bij, and Cij as a
 plotBv              % plots viscous damping Bvii as a function of frequency 
 plotTF              % plots the motion or force RAO transfer functions
 plotWD              % plots the wave drift amplitudes
-```
-
-### GNC (m-files)
-
-## Guidance
-
-```matlab
-ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
-ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
-crosstrack          % computes the path-tangential origin and cross-track error for a target
-crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
-crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
-hybridPath          % generates coefficients for sub-paths between waypoints
-LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
-ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
-order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
-order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
-```
-
-## Navigation
-
-```matlab
-acc2rollpitch        % static roll and pitch angles from the specific force
-EKF_5states          % estimation of SOG, COG, and course rate from NED positions or latitude-longitude
-gravity              % acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
-ins_ahrs             % error-state Kalman filter for INS aided by position and AHRS measurements 
-ins_euler            % error-state Kalman filter for INS aided by position and yaw angle measurements
-ins_mekf             % error-state Kalman filter for INS aided by position and magnetic field measurements
-ins_mekf_psi         % error-state Kalman filter for INS aided by position and yaw angle measurements
-insSignal            % basic INS signal generator
-```
-
-## Control
-
-```matlab
-lqtracker             % computes the LQ tracker gain matrices for LTI systems
-nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
-PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
-ucalloc               % unconstrained control allocation
 ```
 
 ## Frequency-domain identification (FDI) of radiation models (m-files)
