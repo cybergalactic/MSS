@@ -23,7 +23,7 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
-- [GNC (m-files)](#gnc)
+- [GNC (m-files)](#gnc-m-files)
   - [Guidance](#guidance)
   - [Navigation](#navigation)
   - [Control](#control)  
