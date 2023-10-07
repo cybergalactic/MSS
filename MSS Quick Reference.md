@@ -97,8 +97,8 @@ ExQuest         % 6-DOF position/attitude vector from camera measurements using 
 ExRefMod        % 2nd-order reference model with nonlinear damping and velocity saturation
 ExResonance     % computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
 ExRRD1          % roll and sway-yaw transfer functions for the Son and Nomoto container ship
-ExRRD2          % rudder-roll damping (RRD) system for the Son and Nomoto  container ship
-ExRRD3          % inverse response in roll for the Son and Nomoto container ship  due to a right-half-plane zero  (non-minimum phase)  
+ExRRD2          % rudder-roll damping (RRD) system for the Son and Nomoto container ship
+ExRRD3          % inverse response in roll for the Son and Nomoto container ship due to a right-half-plane zero  (non-minimum phase)  
 ExSMC           % integral sliding mode control (SMC) design for heading control
 ExSpline        % path generation using cubic Hermite spline interpolation 
 ExSTA           % adaptive-gain super twisting algorithm (STA) for heading control
@@ -114,7 +114,7 @@ ExZigZag        % generates zigzag maneuvers for two different ships
 
 ```matlab
 clarke83        % linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
-container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
+container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including roll (Son and Nomoto 1982)
 DSRV            % deep submergence rescue vehicle (DSRV), L = 5.0 m (Healey 1992)
 frigate         % nonlinear autopilot model for a frigate, L = 100 m
 Lcontainer      % linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
@@ -266,7 +266,7 @@ insSignal            % basic INS signal generator
 
 ```matlab
 lqtracker             % computes the LQ tracker gain matrices for LTI systems
-nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
+nomoto                % generates Bode plots for the 1st- and 2nd-order Nomoto models
 PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
 ucalloc               % unconstrained control allocation
 ```
@@ -324,7 +324,7 @@ After loading the data files to the workspace using the Matlab command load, the
 
 ```matlab
 DPperiods           % periods and natural frequencies of a marine craft in DP
-Hoerner             % 2-D Hoerner crossflow form coefficient as a function of B and T
+Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % plots the roll and pitch periods as a function of GM_T and GM_L
 plotABC             % plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
 plotBv              % plots viscous damping Bvii as a function of frequency 
