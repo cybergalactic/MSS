@@ -10,6 +10,7 @@ A quick reference guide for the MATLAB MSS toolbox:
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
+- [GNC demos (m-files)](#GNC-demos-m-files)
 - [Examples (m-files)](#examples-m-files)
 - [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
   - [Marine craft models](#marine-craft-models)
@@ -54,6 +55,15 @@ demoS175WindCurrentAutopilot.slx        % S175 heading autopilot with wind and c
 demoSemisubDPsystem.slx                 % semisubmersible DP system
 demoWaveElevation.slx                   % computation of wave elevation from wave spectra
 demoWaypointGuidance.slx                % waypoint guidance system
+```
+
+## GNC demos (m-files)
+```matlab
+GNCdemo        % MAIN PROGRAM
+1) KinDemo     % Euler angle and quaternion kinematics
+2) ManDemo     % Maneuvering trials
+3) StabDemo    % Straight-line, directional and positional motion stability
+4) WaveDemo    % Wave spectra demonstrations
 ```
 
 ## Examples (m-files)
@@ -125,7 +135,8 @@ SIMmariner      % simulate mariner.m under PD control
 SIMotter        % simulate otter.m under feedback control
 SIMcontainer    % simulate container.m and Lcontainer.m under PD control
 SIMnavalvessel  % simulate navalvessel.m under PD control
-SIMremus100     % simulate remus100.m under PD control
+SIMremus100     % simulate remus100.m using autopilots for depth and heading control
+SIMremus100ALOS % simulate remus100.m in a 3-D path-following scenario using adaptive LOS (ALOS)
 SIMrig          % simulate the 6-DOF semisubmersible model under PID control
 ```
 
@@ -285,13 +296,14 @@ plotWD              % plots the wave drift amplitudes
 ## Guidance
 
 ```matlab
-ALOSpsi             % ALOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
+ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
+ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 crosstrack          % computes the path-tangential origin and cross-track error for a target
 crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
 crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
 hybridPath          % generates coefficients for sub-paths between waypoints
-LOSchi              % LOS guidance law for course autopilot control (see demoOtterUSVPathFollowingCourseControl.slx)
-ILOSpsi             % ILOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
+LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
 order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
 ```
@@ -322,6 +334,4 @@ ucalloc               % unconstrained control allocation
 
 ```matlab
 ```
-
-- 
 
