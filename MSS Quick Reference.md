@@ -10,6 +10,7 @@ A quick reference guide for the MATLAB MSS toolbox:
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
+- [GNC demos (m-files)](#GNC-demos-m-files)
 - [Examples (m-files)](#examples-m-files)
 - [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
   - [Marine craft models](#marine-craft-models)
@@ -22,16 +23,18 @@ A quick reference guide for the MATLAB MSS toolbox:
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
+- [GNC (m-files)](#gnc-m-files)
+  - [Guidance](#guidance)
+  - [Navigation](#navigation)
+  - [Control](#control)  
 - [HYDRO](#hydro)
   - [Hydrodynamic templates (Simulink)](#hydrodynamic-templates-simulink)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
   - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
   - [Hydrodynamics (m-files)](#hydrodynamics-m-files)
-- [GNC (m-files)](#gnc)
-  - [Guidance](#guidance)
-  - [Navigation](#navigation)
-  - [Control](#control)
 - [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
+  - [Demos](#demos)
+  - [Utils](#utils)
 ---
 
 ## Simulink demos
@@ -54,6 +57,15 @@ demoS175WindCurrentAutopilot.slx        % S175 heading autopilot with wind and c
 demoSemisubDPsystem.slx                 % semisubmersible DP system
 demoWaveElevation.slx                   % computation of wave elevation from wave spectra
 demoWaypointGuidance.slx                % waypoint guidance system
+```
+
+## GNC demos (m-files)
+```matlab
+GNCdemo        % MAIN PROGRAM
+1) KinDemo     % Euler angle and quaternion kinematics
+2) ManDemo     % Maneuvering trials
+3) StabDemo    % Straight-line, directional and positional motion stability
+4) WaveDemo    % Wave spectra demonstrations
 ```
 
 ## Examples (m-files)
@@ -85,8 +97,8 @@ ExQuest         % 6-DOF position/attitude vector from camera measurements using 
 ExRefMod        % 2nd-order reference model with nonlinear damping and velocity saturation
 ExResonance     % computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
 ExRRD1          % roll and sway-yaw transfer functions for the Son and Nomoto container ship
-ExRRD2          % rudder-roll damping (RRD) system for the Son and Nomoto  container ship
-ExRRD3          % inverse response in roll for the Son and Nomoto container ship  due to a right-half-plane zero  (non-minimum phase)  
+ExRRD2          % rudder-roll damping (RRD) system for the Son and Nomoto container ship
+ExRRD3          % inverse response in roll for the Son and Nomoto container ship due to a right-half-plane zero  (non-minimum phase)  
 ExSMC           % integral sliding mode control (SMC) design for heading control
 ExSpline        % path generation using cubic Hermite spline interpolation 
 ExSTA           % adaptive-gain super twisting algorithm (STA) for heading control
@@ -102,7 +114,7 @@ ExZigZag        % generates zigzag maneuvers for two different ships
 
 ```matlab
 clarke83        % linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
-container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
+container       % nonlinear maneuvering model of a high-speed container ship, L = 175 m, including roll (Son and Nomoto 1982)
 DSRV            % deep submergence rescue vehicle (DSRV), L = 5.0 m (Healey 1992)
 frigate         % nonlinear autopilot model for a frigate, L = 100 m
 Lcontainer      % linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
@@ -125,7 +137,8 @@ SIMmariner      % simulate mariner.m under PD control
 SIMotter        % simulate otter.m under feedback control
 SIMcontainer    % simulate container.m and Lcontainer.m under PD control
 SIMnavalvessel  % simulate navalvessel.m under PD control
-SIMremus100     % simulate remus100.m under PD control
+SIMremus100     % simulate remus100.m using autopilots for depth and heading control
+SIMremus100ALOS % simulate remus100.m in a 3-D path-following scenario using adaptive LOS (ALOS)
 SIMrig          % simulate the 6-DOF semisubmersible model under PID control
 ```
 
@@ -219,6 +232,45 @@ euler2             % integrates a system of ordinary differential equations usin
 rk4                % integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
+### GNC (m-files)
+
+## Guidance
+
+```matlab
+ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
+ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+crosstrack          % computes the path-tangential origin and cross-track error for a target
+crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
+crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+hybridPath          % generates coefficients for sub-paths between waypoints
+LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
+order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+```
+
+## Navigation
+
+```matlab
+acc2rollpitch        % static roll and pitch angles from the specific force
+EKF_5states          % estimation of SOG, COG, and course rate from NED positions or latitude-longitude
+gravity              % acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
+ins_ahrs             % error-state Kalman filter for INS aided by position and AHRS measurements 
+ins_euler            % error-state Kalman filter for INS aided by position and yaw angle measurements
+ins_mekf             % error-state Kalman filter for INS aided by position and magnetic field measurements
+ins_mekf_psi         % error-state Kalman filter for INS aided by position and yaw angle measurements
+insSignal            % basic INS signal generator
+```
+
+## Control
+
+```matlab
+lqtracker             % computes the LQ tracker gain matrices for LTI systems
+nomoto                % generates Bode plots for the 1st- and 2nd-order Nomoto models
+PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
+ucalloc               % unconstrained control allocation
+```
+
 ### HYDRO
 
 ## Hydrodynamic templates (Simulink)
@@ -272,7 +324,7 @@ After loading the data files to the workspace using the Matlab command load, the
 
 ```matlab
 DPperiods           % periods and natural frequencies of a marine craft in DP
-Hoerner             % 2-D Hoerner crossflow form coefficient as a function of B and T
+Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % plots the roll and pitch periods as a function of GM_T and GM_L
 plotABC             % plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
 plotBv              % plots viscous damping Bvii as a function of frequency 
@@ -280,47 +332,20 @@ plotTF              % plots the motion or force RAO transfer functions
 plotWD              % plots the wave drift amplitudes
 ```
 
-### GNC (m-files)
+## Frequency-domain identification (FDI) of radiation models (m-files)
 
-## Guidance
-
+### Demos
 ```matlab
-ALOSpsi             % ALOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
-crosstrack          % computes the path-tangential origin and cross-track error for a target
-crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
-hybridPath          % generates coefficients for subpaths between waypoints
-LOSchi              % LOS guidance law for course autopilot control (see demoOtterUSVPathFollowingCourseControl.slx)
-ILOSpsi             % ILOS guidance law for heading autopilot control (see demoOtterUSVPathFollowingHeadingControl.slx)
-order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
-order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+Demo_FDIRadMod_NA     % FDI using hydrodynamic data without infinite-frequency added mass
+Demo_FDIRadMod_WA     % FDI using hydrodynamic data including infinite-frequency added mass
 ```
 
-## Navigation
-
+### Utils
 ```matlab
-acc2rollpitch        % static roll and pitch angles from the specific force
-EKF_5states          % estimation of SOG, COG, and course rate from NED positions or latitude-longitude
-gravity              % acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
-ins_ahrs             % error-state Kalman filter for INS aided by position and AHRS measurements 
-ins_euler            % error-state Kalman filter for INS aided by position and yaw angle measurements
-ins_mekf             % error-state Kalman filter for INS aided by position and magnetic field measurements
-ins_mekf_psi         % error-state Kalman filter for INS aided by position and yaw angle measurements
-insSignal            % basic INS signal generator
+EditAB                 % Function preparing the data for identification, select frequency range and remove wild-points
+FDIRadMod              % Identify the SISO transfer function corresponding to the coupling specified
+fit_siso_fresp         % Fit a continuous SISO transfer function to the frequency response data
+ident_retardation_FD   % Identification of a parametric radiation convolution model K(s) = P(s)/Q(s)
+ident_retardation_FDna % Identification of a parametric model A(jw) = B(w)/(jw) - A(w) 
 ```
-
-## Control
-
-```matlab
-lqtracker             % computes the LQ tracker gain matrices for LTI systems
-nomoto                % generates  Bode plots for the 1st- and 2nd-order Nomoto models
-PIDnonlinearMIMO      % nonlinear MIMO PID regulator for dynamic positioning (DP)
-ucalloc               % unconstrained control allocation
-```
-
-### Frequency-domain identification (FDI) of radiation models (m-files)
-
-```matlab
-```
-
-- 
 

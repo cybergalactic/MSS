@@ -6,3 +6,5 @@ slprj/
 *.slxc
 SIMULINK/mssWamitShipXTemplates/cache
 SIMULINK/mssWamitShipXTemplates/slprj
+**/html/
+**/helpsearch-v3/
