@@ -47,7 +47,8 @@ function [X,Xuu,Xu] = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 %   X = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 %
 % Author:    Thor I. Fossen
-% Date:      17 Dec 2021 
+% Date:      2021-12-17  
+% Revisions: 2022-02-01 corrected (1-k) to (1+k) in Xuu 
 
 % linear damping coefficient
 Xudot = -addedMassSurge(m,L,rho);
@@ -67,7 +68,7 @@ else
     Rn = (L / nu_kin) * abs(u_r);                 % Reynolds number
     Cf = 0.075 / (log10(Rn + eps) -  2)^2;        % ITTC resistance curve
     
-    Xuu = -0.5 * rho * S * (1-k) * Cf;
+    Xuu = -0.5 * rho * S * (1+k) * Cf;
     
 end
 
