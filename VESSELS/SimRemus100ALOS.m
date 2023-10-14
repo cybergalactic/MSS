@@ -32,7 +32,7 @@ Delta_v = 20;               % vertical look-ahead distance (m)
 gamma_h = 0.002;            % adaptive gain, horizontal plane 
 gamma_v = 0.002;            % adaptive gain, vertical plane 
 
-M_theta = deg2rad(10);      % maximum value of estimates, alpha_c, beta_c
+M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 K_f = 0.3;                  % observer gain
 
 % Waypoints
