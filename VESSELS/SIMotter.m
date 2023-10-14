@@ -24,8 +24,8 @@ mp = 25;                  % payload mass (kg), max value 45 kg
 rp = [0.05 0 -0.35]';     % location of payload (m)
 
 % Current
-V_c = 0.3;               % current speed (m/s)
-beta_c = 30 * pi/180;  % current direction (rad)
+V_c = 0.3;                % current speed (m/s)
+beta_c = 30 * pi/180;     % current direction (rad)
 
 %% MAIN LOOP
 simdata = zeros(N+1,13);                   % table for simulation data
