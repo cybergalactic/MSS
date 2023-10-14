@@ -44,6 +44,7 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %            2021-07-22 Added a new state for the trim moment
 %            2021-12-17 New method Xudot = -addedMassSurge(m,L,rho) 
 %            2023-03-28 Trim state is replaced by payload mp and rp
+%            2023-10-14 Added ocean current acceleration terms
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -71,12 +72,15 @@ Cb_pont = 0.4;      % block coefficient, computed from m = 55 kg
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % State and current variables
-nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % velocities
+nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % velocity vectors
 eta = x(7:12);                              % positions
 U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % speed
 u_c = V_c * cos(beta_c - eta(6));           % current surge velocity
 v_c = V_c * sin(beta_c - eta(6));           % current sway velocity
-nu_r = nu - [u_c v_c 0 0 0 0]';             % relative velocity vector
+nu_c = [u_c v_c 0 0 0 0 ]';                 % current veloicty vector
+nu_r = nu - nu_c;                           % relative velocity vector
+nu_c_dot = [-Smtrx(nu2) * nu_c(1:3)         % current acceleration vector
+             zeros(3,1)              ];
 
 % Inertia dyadic, volume displacement and draft
 nabla = (m+mp)/rho;                         % volume
@@ -120,7 +124,6 @@ CA(6,1) = 0; % Assume that the Munk moment in yaw can be neglected
 CA(6,2) = 0; % These terms, if nonzero, must be balanced by adding nonlinear damping
 CA(1,6) = 0;
 CA(2,6) = 0;
-
 
 % System mass and Coriolis-centripetal matrices
 M = MRB + MA;
@@ -204,7 +207,8 @@ g_0 = [ f_payload
 J = eulerang(eta(4),eta(5),eta(6));
 
 % Time derivative of the state vector - numerical integration; see ExOtter.m  
-xdot = [ M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta + g_0)
+xdot = [ nu_c_dot + M \ ( tau + tau_damp + tau_crossflow ...
+            - C * nu_r - G * eta + g_0 )
          J * nu ];  
      
 end
