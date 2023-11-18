@@ -105,7 +105,7 @@ ExSTA           % adaptive-gain super twisting algorithm (STA) for heading contr
 ExTurnCircle    % generates the turning circle for two different ships
 ExWageningen    % computes thrust and torque curves for a propeller using the Wageningen B-series data
 ExWindForce     % plots the wind coefficients by Isherwoods (1972) 
-ExZigZag        % generates zigzag maneuvers for two different ships
+ExZigZag        % generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
 
 ## Marine craft simulator (m-files)
@@ -204,7 +204,8 @@ ww2we              % function used to transform a vector of wave frequencies to 
 ```matlab
 pullout            % ship pullout maneuver
 turncircle         % ship turning circle
-zigzag             % ship zigzag maneuver 
+zigzag             % zigzag maneuver for 3-DOF models
+zigzag6dof         % zigzag maneuver for 6-DOF models
 ```
 
 ## Motion sickness
