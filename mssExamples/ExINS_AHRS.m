@@ -157,25 +157,29 @@ y_m = ydata(:,2:4);
 figure(1); figure(gcf)
 
 subplot(311)
-h1 = plot(t_m,y_m,'xb'); hold on;
-h2 = plot(t,x_hat(:,1:3),'r'); hold off;
+h1 = plot(t_m,y_m,'xr'); hold on;
+h2 = plot(t,x_hat(:,1:3),'b'); hold off;
 xlabel('time (s)'),title('Position [m]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_gnss), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz']);
 
 subplot(312)
-h1 = plot(t,x(:,4:6),'b'); hold on;
-h2 = plot(t,x_hat(:,4:6),'r'); hold off;
+h1 = plot(t,x(:,4:6),'r'); hold on;
+h2 = plot(t,x_hat(:,4:6),'b'); hold off;
 xlabel('time (s)'),title('Velocity [m/s]'),grid
 legend([h1(1),h2(1)],['True velocity at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 subplot(313)
-h1 = plot(t,x(:,7:9),'b'); hold on;
-h2 = plot(t,x_hat(:,7:9),'r'); hold off;
+h1 = plot(t,x(:,7:9),'r'); hold on;
+h2 = plot(t,x_hat(:,7:9),'b'); hold off;
 xlabel('time (s)'),title('Acc bias'),grid
 legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(2); figure(gcf)
 
@@ -192,4 +196,8 @@ h2 = plot(t,x_hat(:,13:15),'r'); hold off;
 xlabel('time (s)'),title('ARS bias'),grid
 legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
 
