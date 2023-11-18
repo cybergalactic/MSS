@@ -39,9 +39,9 @@ t_final = 100;           % final simulation time (sec)
 x       = zeros(12,1);   % initial state vector
 delta_r = 0;             % delta_r = 0 for time t < t_rudderexecute
 delta_s = 0;             % stern dive plane
-n_c     = 1000;          % n_c = propeller speed in rpm 
+n_c     = 300;           % n_c = propeller speed in rpm 
 ui = [delta_r, delta_s, n_c];
 
-zigzag6dof('remus100',zeros(12,1),[0 0 300],100,t_rudderexecute,0.02,[20,20]);
+zigzag6dof('remus100',zeros(12,1),ui,t_final,t_rudderexecute,0.02,[20,20]);
 
 
