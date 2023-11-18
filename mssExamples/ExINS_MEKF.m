@@ -30,8 +30,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f_s    = 100;   % sampling frequency [Hz]
-f_gnss = 1;     % GNSS measurement frequency [Hz]
+f_s    = 100;     % sampling frequency [Hz]
+f_gnss = 1;       % GNSS measurement frequency [Hz]
 
 % Flags
 mag = 1;          % 0 = compass, 1 = magnetometer 
@@ -174,10 +174,11 @@ t     = simdata(:,1);
 x     = simdata(:,2:16); 
 x_hat = simdata(:,17:32); 
 
+phi = zeros(length(t),1);theta = zeros(length(t),1);psi = zeros(length(t),1);
 for i = 1:length(t)
  [phi(i), theta(i), psi(i)] = q2euler(x_hat(i,10:13));
 end
-Theta = [phi' theta' psi'];
+Theta = [phi theta psi];
 
 t_m = ydata(:,1);              % slow GNSS measurements
 y_m = ydata(:,2:4);
@@ -185,38 +186,46 @@ y_m = ydata(:,2:4);
 figure(1); figure(gcf)
 
 subplot(311)
-h1 = plot(t_m,y_m,'xb'); hold on;
-h2 = plot(t,x_hat(:,1:3),'r'); hold off;
+h1 = plot(t_m,y_m,'xr'); hold on;
+h2 = plot(t,x_hat(:,1:3),'b'); hold off;
 xlabel('time (s)'),title('Position [m]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_gnss), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 subplot(312)
-h1 = plot(t,x(:,4:6),'b'); hold on;
-h2 = plot(t,x_hat(:,4:6),'r'); hold off;
+h1 = plot(t,x(:,4:6),'r'); hold on;
+h2 = plot(t,x_hat(:,4:6),'b'); hold off;
 xlabel('time (s)'),title('Velocity [m/s]'),grid
 legend([h1(1),h2(1)],['True velocity at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 subplot(313)
-h1 = plot(t,x(:,7:9),'b'); hold on;
-h2 = plot(t,x_hat(:,7:9),'r'); hold off;
+h1 = plot(t,x(:,7:9),'r'); hold on;
+h2 = plot(t,x_hat(:,7:9),'b'); hold off;
 xlabel('time (s)'),title('Acc bias'),grid
 legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+
 figure(2); figure(gcf)
 
 subplot(211)
-h1 = plot(t,(180/pi)*x(:,10:12),'b'); hold on;
-h2 = plot(t,(180/pi)*Theta,'r'); hold off;
+h1 = plot(t,deg2rad( x(:,10:12) ),'r'); hold on;
+h2 = plot(t,deg2rad( Theta ),'b'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
 
 subplot(212)
-h1 = plot(t,x(:,13:15),'b'); hold on;
-h2 = plot(t,x_hat(:,14:16),'r'); hold off;
+h1 = plot(t,x(:,13:15),'r'); hold on;
+h2 = plot(t,x_hat(:,14:16),'b'); hold off;
 xlabel('time (s)'),title('ARS bias'),grid
 legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
