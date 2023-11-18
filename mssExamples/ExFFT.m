@@ -36,7 +36,7 @@ M = 600;                               % no of samples to plot
 figure(gcf);
 subplot(2,1,1); 
 plot(w(1:M),P1(1,1:M)/max(P1(1,1:M)),wout,mag/max(mag),'linewidth',2);
-title(['Normalized wave spectrum in the frequency domain']); grid;
+title('Normalized wave spectrum in the frequency domain'); grid;
 subplot(2,1,2);
 plot(w(1:M),P1(2,1:M),'linewidth',2);    
-title(['Normalized sinusoidal in the frequency domain']); grid;
+title('Normalized sinusoidal in the frequency domain'); grid;
