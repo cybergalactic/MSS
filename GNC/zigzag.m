@@ -23,9 +23,11 @@ function [t,u,v,r,x,y,psi,U] = zigzag(ship,x,ui,t_final,t_rudderexecute, ...
 % Revisions: 15th July 2002, switching logic has been modified to handle 
 %                            arbitrarily maneuvers
 
-if nargin>7 || nargin<6, error('number of inputs must be 6 or 7'); end
-if t_final<t_rudderexecute, error('t_final must be larger than t_rudderexecute'); end
-if nargin==6, maneuver = [20,20]; end
+if nargin>7 || nargin < 6, error('number of inputs must be 6 or 7'); end
+if t_final < t_rudderexecute
+    error('t_final must be larger than t_rudderexecute'); 
+end
+if nargin == 6, maneuver = [20,20]; end
 
 N = round(t_final/h);               % number of samples
 xout = zeros(N+1,9);                % memory allocation
@@ -37,7 +39,7 @@ u_ship=ui;
 for i=1:N+1
     time = (i-1)*h;
     
-    psi = x(6)*180/pi;
+    psi = rad2deg( x(6) );
     r   = x(3);
     
     if round(time) == t_rudderexecute 
@@ -72,17 +74,14 @@ delta_c = rad2deg( xout(:,9) );
 
 % plots
 figure(1)
-plot(x,y,'linewidth',2),grid,axis('equal'),xlabel('x-position'),ylabel('y-position')
-title('Zig-zag test')
+plot(y,x),grid,axis('equal'),xlabel('East'),ylabel('North')
+title('Zigzag test')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(2)
-subplot(211),plot(t,psi,'linewidth',2)
-hold on
-plot(t,delta_c,'r')
-hold off
+subplot(211),plot(t,psi,t,delta_c,'r')
 xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
 legend('\psi','\delta_c')
 subplot(212),plot(t,U),xlabel('time (s)'),title('speed U (m/s)'),grid
