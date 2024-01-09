@@ -182,7 +182,7 @@ T6 = 5;                  % time constant in yaw (s)
 % Nonlinear quadratic velocity terms in pitch and yaw. Munk moments 
 % are set to zero since only linear rotational damping is used in the model
 CA(5,1) = 0;   
-CA(5,4) = 0;
+CA(5,3) = 0;
 CA(6,1) = 0;
 CA(6,2) = 0;
 
