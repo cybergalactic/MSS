@@ -25,9 +25,10 @@ Yh = 0; Zh = 0; Mh = 0; Nh = 0;
 for xL = -L/2:dx:L/2
     v_r = nu_r(2);          % relative sway velocity
     w_r = nu_r(3);
+    q = nu_r(5);            % pitch rate
     r = nu_r(6);            % yaw rate
     U_h = abs(v_r + xL * r) * (v_r + xL * r);
-    U_v = abs(w_r + xL * r) * (v_r + xL * r);    
+    U_v = abs(w_r + xL * q) * (w_r + xL * q);   
     Yh = Yh - 0.5 * rho * T * Cd_2D * U_h * dx;       % sway force
     Zh = Zh - 0.5 * rho * T * Cd_2D * U_v * dx;       % heave force  
     Mh = Mh - 0.5 * rho * T * Cd_2D * xL * U_v * dx;  % pitch moment    
