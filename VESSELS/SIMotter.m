@@ -11,13 +11,10 @@ clearvars;
 
 %% USER INPUTS
 h  = 0.02;        % sampling time [s]
-N  = 1000;		  % number of samples
+N  = 2000;		  % number of samples
 
 % initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1);	   
-
-% propeller revolutions (rps)
-n = [80 60]';             % n = [ n_left n_right ]' 
 
 % Load condition
 mp = 25;                  % payload mass (kg), max value 45 kg
@@ -32,31 +29,33 @@ T = 1;
 m = 41.4;        % m = T/K
 K = T / m;
 
-wn = 1.5;        % pole placement parameters
+wn = 2.5;          % pole placement parameters
 zeta = 1;
 
 Kp = m * wn^2;
 Kd = m * (2*zeta*wn - 1/T);
-Td = Kd/Kp; 
-Ti = 10/wn;
+Td = Kd / Kp; 
+Ti = 10 / wn;
 
-B = 0.0111 * [1 1                   % input matrix
-              0.395 -0.395 ];
+y_prop = 0.395;                 % distance from centerline to propeller (m)
+k_pos = 0.0111;                 % positive Bollard, one propeller 
+B = k_pos * [ 1 1               % input matrix
+               y_prop  -y_prop  ];
 Binv = inv(B);
 
-z_psi = 0;                           % integral state
+z_psi = 0;                      % integral state
 
 % Reference model
-wn_d = 0.5;         % natural frequency
-zeta_d = 1.0;       % relative damping factor
+wn_d = 0.5;                     % natural frequency
+zeta_d = 1.0;                   % relative damping factor
 
 psi_d = 0;
 r_d = 0;
 a_d = 0;
 
 % Propeller dynamics
-Tn = 1;                % Propeller time constant      
-n = [0 0]';            % n = [ n_left n_right ]'
+Tn = 0.1;                       % propeller time constant (s)      
+n = [0 0]';                     % n = [ n_left n_right ]'
 
 
 %% MAIN LOOP
@@ -66,11 +65,11 @@ for i=1:N+1
 
    t = (i-1) * h;                          % time (s)    
 
-   % heading angle setpoints
+   % Heading angle setpoints
    if ( t < 20 )
        psi_ref = deg2rad(20);
    else
-       chi_ref = deg2rad(0); 
+       psi_ref = deg2rad(0); 
    end
 
    % Measurements
@@ -84,8 +83,6 @@ for i=1:N+1
         Td * (r - r_d) + (1/Ti) * z_psi );
    u = Binv * [tau_X tau_N]';
    n_c = sign(u) .* sqrt( abs(u) );   
-   
-   % n_c = [80 60]';          % n = [ n_left n_right ]' 
 
    % Reference model jerk
    j_d = wn_d^3 * ssa(psi_ref - psi_d) - (2*zeta_d+1) * wn_d^2 * r_d...
