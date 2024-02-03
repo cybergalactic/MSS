@@ -45,18 +45,19 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 % 
 % Author:    Thor I. Fossen
-% Date:      27 May 2021
-% Revisions: 24 Aug 2021  Ocean currents are now expressed in NED 
-%            21 Oct 2021  imlay61.m is called using the relative velocity
-%            30 Dec 2021  Added the time derivative of the current velocity
-%            01 Feb 2022  Updated lift and drag forces
-%            06 May 2022  Calibration of drag and propulsion forces using
-%                         data from Allen et al. (2000)
-%            08 May 2022  Added compability for unit quaternions in 
+% Date:      2021-05-27
+% Revisions: 2021-08-24  Ocean currents are now expressed in NED 
+%            2021-10-21  imlay61.m is called using the relative velocity
+%            2021-12-30  Added the time derivative of the current velocity
+%            2022-02-01  Updated lift and drag forces
+%            2022-05-06  Calibration of drag and propulsion forces using
+%                        data from Allen et al. (2000)
+%            2022-06-08  Added compability for unit quaternions in 
 %                         addition to the Euler angle representation
-%            16 Oct 2022  Added vertical currents
-%            02 May 2023  Corrected the rudder area A_r
-%            07 Oct 2023  Scaled down the propeller roll-induced moment
+%            2022-10-16  Added vertical currents
+%            2023-05-02  Corrected the rudder area A_r
+%            2023-10-07  Scaled down the propeller roll-induced moment
+%            2024-02-03  Added nonlinear yaw damping to balance Munk moment
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -143,15 +144,15 @@ KQ_max = 0.0312;
 % Propeller thrust and propeller-induced roll moment
 % Linear approximations for positive Ja values
 % KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja   
-% KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja  
-      
+% KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja        
 if n > 0   % forward thrust
+
     X_prop = rho * D_prop^4 * (... 
         KT_0 * abs(n) * n + (KT_max-KT_0)/Ja_max * (Va/D_prop) * abs(n) );        
     K_prop = rho * D_prop^5 * (...
         KQ_0 * abs(n) * n + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n) );           
             
-else    % reverse thrust (braking)
+else       % reverse thrust (braking)
         
     X_prop = rho * D_prop^4 * KT_0 * abs(n) * n; 
     K_prop = rho * D_prop^5 * KQ_0 * abs(n) * n;
@@ -179,12 +180,9 @@ T6 = 5;                  % time constant in yaw (s)
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
-% Nonlinear quadratic velocity terms in pitch and yaw. Munk moments 
-% are set to zero since only linear rotational damping is used in the model
-CA(5,1) = 0;   
-CA(5,3) = 0;
-CA(6,1) = 0;
-CA(6,2) = 0;
+% Uncomment to cancel the Munk moment in yaw, if stability problems
+% CA(6,1) = 0;
+% CA(6,2) = 0;
 
 M = MRB + MA;
 C = CRB + CA;
@@ -194,7 +192,10 @@ m = MRB(1,1); W = m * g_mu; B = W;
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
 D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where quadratic
 D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift forces dominates
-D(6,6) = D(6,6) * exp(-3*U_r);
+
+% linear and quadratic yaw damper
+Nrr = -100 * D(6,6);             
+D(6,6) = D(6,6) * ( exp(-3*U_r) - Nrr * abs(nu_r(6)) );
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
