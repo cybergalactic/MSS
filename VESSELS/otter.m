@@ -20,16 +20,16 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % The other inputs are:
 %
-% n = [ n(1) n(2) ]' where
+%  n = [ n(1) n(2) ]' where
 %    n(1): propeller shaft speed, left (rad/s)
 %    n(2): propeller shaft speed, right (rad/s)
 %
-% mp: payload mass (kg), maximum 45 kg and minimum 0 kg
-% rp = [xp, yp, zp]' (m) is the location of the payload w.r.t. the CO
-% V_c:     current speed (m/s)
-% beta_c:  current direction (rad)
+%  mp: payload mass (kg), maximum 45 kg and minimum 0 kg
+%  rp = [xp, yp, zp]' (m) is the location of the payload w.r.t. the CO
+%  V_c:     ocean current speed (m/s)
+%  beta_c:  ocean current direction (rad)
 %
-% The coordinate origign CO is chosen midtships on the centerline. The 
+% The coordinate origin CO is chosen midtships on the centerline. The 
 % draft is T = 13.4 cm when the payload mp = 0. This corresponds to z = 0. 
 % Choosing mp = 25 kg gives T = 19.5 cm and z = 0.04 m in steady state.
 % Adding a non-zero payload mp will change the steady-state z value since 
@@ -39,12 +39,12 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
-% Revisions: 2021-04-25 added call to new function crossFlowDrag.m
-%            2021-06-21 Munk moment in yaw is neglected
+% Revisions: 2021-04-25 Added call to new function crossFlowDrag.m
 %            2021-07-22 Added a new state for the trim moment
 %            2021-12-17 New method Xudot = -addedMassSurge(m,L,rho) 
 %            2023-03-28 Trim state is replaced by payload mp and rp
 %            2023-10-14 Added ocean current acceleration terms
+%            2024-02-03 Recalibration of damping terms
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -60,6 +60,7 @@ rg = [0.2 0 -0.2]'; % CG for hull only (m)
 R44 = 0.4 * B;      % radii of gyrations (m)
 R55 = 0.25 * L;
 R66 = 0.25 * L;
+T_sway = 1;         % time constant in syaw (s)
 T_yaw = 1;          % time constant in yaw (s)
 Umax = 6 * 0.5144;  % max forward speed (m/s)
 
@@ -120,10 +121,12 @@ Nrdot = -1.7 * Ig(3,3);
 
 MA = -diag([Xudot, Yvdot, Zwdot, Kpdot, Mqdot, Nrdot]);   
 CA  = m2c(MA, nu_r);
-CA(6,1) = 0; % Assume that the Munk moment in yaw can be neglected
-CA(6,2) = 0; % These terms, if nonzero, must be balanced by adding nonlinear damping
-CA(1,6) = 0;
-CA(2,6) = 0;
+
+% Uncomment to cancel the Munk moment in yaw, if stability problems
+% CA(6,1) = 0; 
+% CA(6,2) = 0; 
+% CA(1,6) = 0;
+% CA(2,6) = 0;
 
 % System mass and Coriolis-centripetal matrices
 M = MRB + MA;
@@ -158,26 +161,26 @@ w4 = sqrt( G44/M(4,4) );
 w5 = sqrt( G55/M(5,5) );
 
 % Linear damping terms (hydrodynamic derivatives)
-Xu = -24.4 * g / Umax;           % specified using the maximum speed  
-Yv = 0;
-Zw = -2 * 0.3 *w3 * M(3,3);      % specified using relative damping factors
+Xu = -24.4 * g / Umax;        % specified using the maximum speed  
+Yv = -M(2,2) / T_sway;        % specified using the time constant in T_sway
+Zw = -2 * 0.3 *w3 * M(3,3);   % specified using relative damping factors
 Kp = -2 * 0.2 *w4 * M(4,4);
 Mq = -2 * 0.4 *w5 * M(5,5);
-Nr = -M(6,6) / T_yaw;            % specified using the time constant in T_yaw
+Nr = -M(6,6) / T_yaw;         % specified using the time constant in T_yaw
 
-% Control forces and moments - with propeller revolution saturation 
+% Control forces and moments, with saturated propeller speed
 Thrust = zeros(2,1);
 for i = 1:1:2
-    if n(i) > n_max              % saturation, physical limits
+    if n(i) > n_max           % saturation, physical limits
        n(i) = n_max; 
     elseif n(i) < n_min
        n(i) = n_min; 
    end
     
    if n(i) > 0                          
-     Thrust(i) = k_pos * n(i)*abs(n(i));    % positive thrust (N) 
+     Thrust(i) = k_pos * n(i) * abs(n(i));    % positive thrust (N) 
    else
-     Thrust(i) = k_neg * n(i)*abs(n(i));    % negative thrust (N) 
+     Thrust(i) = k_neg * n(i) * abs(n(i));    % negative thrust (N) 
    end
 end
 
