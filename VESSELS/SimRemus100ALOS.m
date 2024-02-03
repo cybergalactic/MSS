@@ -13,9 +13,9 @@
 %             ALOS3D.m       3-D adaptive LOS guidance law
 %
 % Author:     Thor I. Fossen
-% Date:       2023-10-07
+% Date:       2024-02-03
 clearvars;
-clear ALOS3D                 % clear the static variables used by ALOS3D
+clear ALOS3D                % clear the static variables used by ALOS3D
 
 %% USER INPUTS
 h  = 0.05;                  % sample time (s)
@@ -56,12 +56,12 @@ n_d = 1300;             % desired propeller revolution, max 1525 rpm
 z_int = 0; theta_int = 0; psi_int = 0;
 
 % Depth autopilot PID gains
-Kp_theta = 2;            
-Kd_theta = 3;
-Ki_theta = 0.1;
+Kp_theta = 10;            
+Kd_theta = 10;
+Ki_theta = 1;
 
 % Heading autopilot PID gains
-wn_b_psi = 0.9;             % bandwidth, pole placement algorithm 
+wn_b_psi = 0.5;             % bandwidth, pole placement algorithm 
 wn_d_psi = wn_b_psi/5;      % desired natural frequency, reference model 
 m66 = 7.5;                  % moment of inertia, yaw
 Kp_psi = m66 * wn_b_psi^2;                 
