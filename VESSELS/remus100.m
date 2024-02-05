@@ -57,7 +57,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %            2022-10-16  Added vertical currents
 %            2023-05-02  Corrected the rudder area A_r
 %            2023-10-07  Scaled down the propeller roll-induced moment
-%            2024-02-03  Added nonlinear yaw damping to balance Munk moment
+%            2024-02-03  Added nonlinear yaw damping to balance the Munk moment
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
