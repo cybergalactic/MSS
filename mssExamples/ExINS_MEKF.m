@@ -34,8 +34,8 @@ f_s    = 100;     % sampling frequency [Hz]
 f_gnss = 1;       % GNSS measurement frequency [Hz]
 
 % Flags
-mag = 1;          % 0 = compass, 1 = magnetometer 
-vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
+mag = 0;          % 0 = compass, 1 = magnetometer 
+vel = 1;          % 0 = no velocity meaurement, 1 = velocity aiding
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
