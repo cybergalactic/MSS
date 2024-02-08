@@ -248,6 +248,7 @@ LOSchi              % LOS guidance law for course control in 2-D (see demoOtterU
 ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 order3              % path generation using cubic polynomials (see demoWaypointGuidance.slx)
 order5              % path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+refModel            % third-order reference model for position, velocity and acceleration
 ```
 
 ## Navigation
