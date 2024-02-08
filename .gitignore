@@ -4,6 +4,7 @@ documentation/Textbooks.pages
 .DS_Store
 slprj/
 *.slxc
+*.asv
 SIMULINK/mssWamitShipXTemplates/cache
 SIMULINK/mssWamitShipXTemplates/slprj
 **/html/
