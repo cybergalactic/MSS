@@ -53,11 +53,12 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %            2022-05-06  Calibration of drag and propulsion forces using
 %                        data from Allen et al. (2000)
 %            2022-06-08  Added compability for unit quaternions in 
-%                         addition to the Euler angle representation
+%                        addition to the Euler angle representation
 %            2022-10-16  Added vertical currents
 %            2023-05-02  Corrected the rudder area A_r
 %            2023-10-07  Scaled down the propeller roll-induced moment
 %            2024-02-03  Added nonlinear yaw damping to balance the Munk moment
+%            2024-02-09  Updated rudder and stern-plane areas
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -89,7 +90,7 @@ n = ui(3)/60;           % propeller revolution (rps)
 
 % Amplitude saturation of the control signals
 n_max = 1525;                                   % maximum propeller rpm
-max_ui = [deg2rad(30) deg2rad(30) n_max/60]';   % deg, deg, rps
+max_ui = [deg2rad(20) deg2rad(20) n_max/60]';   % deg, deg, rps
 
 if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
 if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
@@ -159,14 +160,16 @@ else       % reverse thrust (braking)
             
 end            
 
-% Tail rudder (single)
+S_fin = 0.00665;         % fin area
+
+% Tail rudder
 CL_delta_r = 0.5;        % rudder lift coefficient (-)
-A_r = 2 * 0.10 * 0.05;   % rudder area (m2)
+A_r = 2 * S_fin;         % rudder area (m2)
 x_r = -a;                % rudder x-position (m)
 
 % Stern plane (double)
 CL_delta_s = 0.7;        % stern-plane lift coefficient (-)
-A_s = 2 * 0.10 * 0.05;   % stern-plane area (m2)
+A_s = 2 * S_fin;         % stern-plane area (m2)
 x_s = -a;                % stern-plane z-position (m)
 
 % Low-speed linear damping matrix parameters
@@ -180,7 +183,12 @@ T6 = 5;                  % time constant in yaw (s)
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
-% Uncomment to cancel the Munk moment in yaw, if stability problems
+% CA-terms in roll, pitch and yaw can destabilize the model if quadrtaic
+% damping is missing
+CA(5,3) = 0; CA(3,5) = 0;  % cancel quadratic velocity terms due to pitching
+CA(5,1) = 0; CA(1,5) = 0;  % since only linear pitch damping is used
+
+% The Munk moment in yaw is non-zero since quadratic yaw damping Nrr is included
 % CA(6,1) = 0;
 % CA(6,2) = 0;
 
@@ -194,8 +202,9 @@ D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where quadratic
 D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift forces dominates
 
 % linear and quadratic yaw damper
-Nrr = -100 * D(6,6);             
-D(6,6) = D(6,6) * ( exp(-3*U_r) - Nrr * abs(nu_r(6)) );
+Nrr = -100 * D(6,6);       
+Nr = D(6,6) * exp(-3*U_r);
+D(6,6) = -Nr - Nrr * abs(nu_r(6));
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
