@@ -5,15 +5,15 @@
 % straigh lines going through waypoints. The heading and pitch commands
 % are computed using the 3-D adaptive line-of-sight (ALOS) algorithm by
 %
-% T. I. Fossen and A. P. Aguiar (2023). A Uniform Semiglobal Exponential 
+% T. I. Fossen and A. P. Aguiar (2024). A Uniform Semiglobal Exponential 
 % Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following. 
-% Automatica (submitted).
+% Automatica 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
 %
 % Calls:      remus100.m     Remus 100 vehicle dynamics
 %             ALOS3D.m       3-D adaptive LOS guidance law
 %
 % Author:     Thor I. Fossen
-% Date:       2024-02-03
+% Date:       2024-02-09
 clearvars;
 clear ALOS3D                % clear the static variables used by ALOS3D
 
@@ -56,9 +56,10 @@ n_d = 1300;             % desired propeller revolution, max 1525 rpm
 z_int = 0; theta_int = 0; psi_int = 0;
 
 % Depth autopilot PID gains
-Kp_theta = 10;            
-Kd_theta = 10;
-Ki_theta = 1;
+Kp_theta = 5.0;             % proportional gain (pitch)
+Kd_theta = 2.0;             % derivative gain (pitch)
+Ki_theta = 0.3;             % integral gain (pitch
+K_w = 5.0;                  % optional heave velocity feedback gain
 
 % Heading autopilot PID gains
 wn_b_psi = 0.5;             % bandwidth, pole placement algorithm 
@@ -66,8 +67,14 @@ wn_d_psi = wn_b_psi/5;      % desired natural frequency, reference model
 m66 = 7.5;                  % moment of inertia, yaw
 Kp_psi = m66 * wn_b_psi^2;                 
 Kd_psi = m66 * 2*wn_b_psi; 
-Ki_psi = Kp_psi * (wn_b_psi/10);
-   
+Ki_psi = Kp_psi * (wn_b_psi / 10);
+
+%% Display
+disp('-------------------------------------------------------------');
+disp('MSS toolbox: Remus 100 AUV (Length = 1.6 m, Diameter = 19 cm)')  
+disp('3-D adaptive LOS path-following control')
+disp('-------------------------------------------------------------');
+
 %% MAIN LOOP
 simdata = zeros(N+1,25); % allocate empty table for simulation data
 
@@ -78,6 +85,7 @@ for i = 1:N+1
    % Measurements
    u = x(1);                % surge velocity (m/s)
    v = x(2);                % sway veloicty (m/s)
+   w = x(3);                % heave veloicty (m/s)   
    q = x(5);                % pitch rate (rad/s)
    r = x(6);                % yaw rate (rad/s)
    xn = x(7);               % North position (m)
@@ -102,7 +110,7 @@ for i = 1:N+1
    end
 
    if t > 500 
-       betaVc_d = 160*pi/180;
+       betaVc_d = deg2rad(160);
        w_beta = 0.1;
        betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
    else
@@ -116,7 +124,7 @@ for i = 1:N+1
    delta_r = -Kp_psi * ssa( psi - psi_d ) - Kd_psi * r... 
        -Ki_psi * psi_int;                                          
    delta_s = -Kp_theta * ssa( theta - theta_d ) - Kd_theta * q ...
-       -Ki_theta * theta_int;  
+       -Ki_theta * theta_int  - K_w * w; 
 
    % Propeller revolution (rpm)
    if (n < n_d)
@@ -124,7 +132,7 @@ for i = 1:N+1
    end
    
    % Saturation, maximum controls
-   max_ui = [30*pi/180 30*pi/180  1525]';   % rad, rad, rpm
+   max_ui = [deg2rad(15) deg2rad(15)  1525]';   % rad, rad, rpm
    if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end  
    if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end  
    if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
