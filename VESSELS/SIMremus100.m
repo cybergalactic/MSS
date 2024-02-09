@@ -28,7 +28,7 @@ N  = 25000;                 % number of samples
 kinematicsFlag = 1;         % 0: Euler angles
                             % 1: Unit quaternions
 % Heading autopilot                   
-headingControlFlag = 0;     % 0: PID pole placement algorithm
+headingControlFlag = 1;     % 0: PID pole placement algorithm
                             % 1: Intergral slidng mode control (SMC)
 
 % Autopilot setpoints
