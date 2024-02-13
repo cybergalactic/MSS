@@ -57,8 +57,8 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %            2022-10-16  Added vertical currents
 %            2023-05-02  Corrected the rudder area A_r
 %            2023-10-07  Scaled down the propeller roll-induced moment
-%            2024-02-03  Added nonlinear yaw damping to balance the Munk moment
 %            2024-02-09  Updated rudder and stern-plane areas
+%            2024-02-13  Calibration of the model parameters
 %
 % Refs: 
 %      B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -177,20 +177,18 @@ T1 = 20;                 % time constant in surge (s)
 T2 = 20;                 % time constant in sway (s)
 zeta4 = 0.3;             % relative damping ratio in roll
 zeta5 = 0.8;             % relative damping ratio in pitch
-T6 = 5;                  % time constant in yaw (s)
+T6 = 1;                  % time constant in yaw (s)
 
 % Rigid-body mass and hydrodynamic added mass
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
-% CA-terms in roll, pitch and yaw can destabilize the model if quadrtaic
-% damping is missing
-CA(5,3) = 0; CA(3,5) = 0;  % cancel quadratic velocity terms due to pitching
-CA(5,1) = 0; CA(1,5) = 0;  % since only linear pitch damping is used
-
-% The Munk moment in yaw is non-zero since quadratic yaw damping Nrr is included
-% CA(6,1) = 0;
-% CA(6,2) = 0;
+% CA-terms in roll, pitch and yaw can destabilize the model if quadratic
+% rotational damping is missing. These terms are assumed to be zero
+CA(5,3) = 0; CA(3,5) = 0;  % quadratic velocity terms due to pitching
+CA(5,1) = 0; CA(1,5) = 0;  
+CA(6,1) = 0; CA(1,6) = 0;  % Munk moment in yaw 
+CA(6,2) = 0; CA(2,6) = 0;
 
 M = MRB + MA;
 C = CRB + CA;
@@ -200,11 +198,6 @@ m = MRB(1,1); W = m * g_mu; B = W;
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
 D(1,1) = D(1,1) * exp(-3*U_r);   % vanish at high speed where quadratic
 D(2,2) = D(2,2) * exp(-3*U_r);   % drag and lift forces dominates
-
-% linear and quadratic yaw damper
-Nrr = -100 * D(6,6);       
-Nr = D(6,6) * exp(-3*U_r);
-D(6,6) = -Nr - Nrr * abs(nu_r(6));
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
