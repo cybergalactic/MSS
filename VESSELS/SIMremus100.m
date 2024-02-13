@@ -27,8 +27,8 @@ N  = 25000;                 % number of samples
 % Kinematic representation
 kinematicsFlag = 1;         % 0: Euler angles
                             % 1: Unit quaternions
-% Heading autopilot                   
-headingControlFlag = 1;     % 0: PID pole placement algorithm
+% Heading autopilot                  
+headingControlFlag = 0;     % 0: PID pole placement algorithm
                             % 1: Intergral slidng mode control (SMC)
 
 % Autopilot setpoints
@@ -70,7 +70,7 @@ Kd_theta = 2.0;             % derivative gain (pitch)
 Ki_theta = 0.3;             % integral gain (pitch
 K_w = 5.0;                  % optional heave velocity feedback gain
 
-% Nomoto gain parameters
+% Feed forward gains (Nomoto gain parameters)
 K_yaw = 5/20;               % K_yaw = r_max / delta_max
 T_yaw = 1;                  % Time constant in yaw
 
