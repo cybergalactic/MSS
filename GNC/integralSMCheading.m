@@ -1,21 +1,22 @@
 function delta = integralSMCheading(...
-    psi,r,psi_d,r_d,a_d,K_d,K_sigma,lambda,phi_b,K_yaw,T_yaw,h)
+    psi,r,psi_d,r_d,a_d,K_d,K_sigma,lambda,phi_b,K_nomoto,T_nomoto,h)
 % PID and integral sliding mode controller (SMC) for heading control. The 
 % yaw dynamics is modelled by 
 %
 %  psi_dot = r
-%  r_dot + (1 / T_yaw) * r = (K_yaw / T_yaw) * delta
+%  r_dot + (1 / T_yaw) * r = (K_nomoto / T_nomoto) * delta
 % 
-% where delta is the rudder angle. The input gain, K_yaw, is found from the 
-% steady-state condition, r_max = K_yaw * delta_max, while T_yaw is the time 
-% constant in yaw observered during steady turning.
+% where delta is the rudder angle. The input gain, K_nomoto, is found from 
+% the steady-state condition, r_max = K_nomoto * delta_max, while T_nomoto 
+% is the time constant in yaw observered during steady turning.
 %
 % The heading autopilot (Equation 16.479 in Fossen 2021) sliding surface 
 % and control law are
 %
 %   sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
 %
-%   delta = (T_yaw*r_r_dot + r_r - K_d*sigma - K_sigma*(sigma/phi_b)) / K_yaw
+%   delta = (T_nomoto * r_r_dot + r_r - K_d * sigma 
+%       - K_sigma*(sigma/phi_b)) / K_nomoto
 % 
 % where lambda > 0, K_d > 0 (PID control), and K_sigma > 0 (SMC). 
 % The integral state psi_int is a persistent variable that should be cleared 
@@ -35,8 +36,8 @@ function delta = integralSMCheading(...
 %   K_sigma: SMC gain
 %   lambda: constant defining the dynamics on the slideing surface
 %   phi_b: boundary layer thickness
-%   K_yaw: Nomoto gain constant (1/s)
-%   T_yaw: Nomoto time constant (s)
+%   K_nomto: Nomoto gain constant (1/s)
+%   T_nomto: Nomoto time constant (s)
 %   h: sampling time (s)
 %
 % Outputs:  
@@ -61,11 +62,11 @@ r_r     = r_d - 2 * lambda * e_psi - lambda^2 * psi_int;
 sigma   = r - r_r;
 
 if abs(sigma / phi_b) > 1
-    delta = ( T_yaw * r_r_dot + r_r - K_d * sigma...
-        - K_sigma * sign(sigma) ) / K_yaw;
+    delta = ( T_nomoto * r_r_dot + r_r - K_d * sigma...
+        - K_sigma * sign(sigma) ) / K_nomoto;
 else
-    delta = ( T_yaw * r_r_dot + r_r - K_d * sigma...
-        - K_sigma * (sigma / phi_b) ) / K_yaw;
+    delta = ( T_nomoto * r_r_dot + r_r - K_d * sigma...
+        - K_sigma * (sigma / phi_b) ) / K_nomoto;
 end
 
 % Propagation of persistent integral state: psi_int[k+1]
