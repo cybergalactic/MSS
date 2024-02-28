@@ -3,7 +3,7 @@
 A quick reference guide for the MATLAB MSS toolbox:
 
 ```matlab
->> help MSS               % List mss commands
+>> help mss               % List MSS commands
 >> help mssExamples       % List book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
 >> mssSimulink            % Simulink Library
 ```
@@ -41,10 +41,10 @@ A quick reference guide for the MATLAB MSS toolbox:
 
 ```matlab
 demoAUVdepthHeadingControl.slx          % simultaneously heading and depth control of the Remus 100 AUV
-demoCS2passiveObserverDP.slx            %  passive observer with wave filtering and nonlinear PID control for the CyberShip2 model ship
+demoCS2passiveObserverDP.slx            % passive observer with wave filtering and nonlinear PID control for the CyberShip2 model ship
 demoDPThrusterModels.slx                % supply vessel with azimuth thrusters
 demoDSRVdepthControl.slx                % depth control of DSRV
-demoKalmanWavefilterAutop.slx           %  Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
+demoKalmanWavefilterAutop.slx           % Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
 demoNavalVesselMano.slx                 % zigzag test for the naval ship Mano  
 demoNPSAUV.slx                          % NPS AUV heading control system
 demoOtterUSVHeadingControl.slx	        % Otter USV heading control system
