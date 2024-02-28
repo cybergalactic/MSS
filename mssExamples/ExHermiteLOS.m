@@ -1,11 +1,11 @@
-% ExHermiteLOS is a example script for computation of the vehicle cross-
-% track error, the Line-of-Sight (LOS) course angle and course rate 
-% commands when the path isparametrized using a cubic Hermite spline 
-% through given waypoints. 
+% ExHermiteLOS is a sample script for calculating the cross-track error 
+% of a vehicle during 2-D path following. It computes the Line-of-Sight (LOS) 
+% course angle and course rate commands for a path that is represented by 
+% a cubic Hermite spline through specified waypoints.
 %
-% This script visualizes the path, vehicle position, and navigational vectors 
-% including the LOS vector, cross-track error, and tangent vectors at
-% closest points on the path. 
+% This script visualizes the 2-D path, vehicle position, and navigational 
+% vectors including the LOS vector, cross-track error, and tangent vectors
+% at closest points on the path. 
 %
 % Calls:      crossTrackErrorHermite.m, hermiteSpline.m     
 %
@@ -13,7 +13,7 @@
 % Date:       2024-02-28
 clearvars;
 
-% Waypoint table (xy-coordinates)
+% Table of waypoints (xy-coordinates)
 wayPoints = [ 0 20
               9 50 
               30 60
@@ -52,15 +52,16 @@ plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
 N = 25;
 table = zeros(N,4);
 
-for step = 1:N  % Loop to update vehicle position and compute cross-track error
+for step = 1:N  % Loop to update vehicle position and cross-track error
 
-    % Update vehicle position 
+    % Update dummy vehicle position 
     vehiclePos = vehiclePos + [step * 0.25, step * 0.2];
     
     % Compute the cross-track error, closest point on the spline, and tangent
     [y_e, pi_h, chi_d, omega_chi_d, closestPoint, closestTangent] = ...
         crosstrackHermiteLOS(wayPoints, vehiclePos, Delta_h, U);
 
+    % Store data 
     table(step,:) = [y_e, pi_h, chi_d, omega_chi_d];
 
     % Plot the vehicle North-East position
@@ -90,7 +91,7 @@ xlabel('Y (East)'); ylabel('X (North)'); axis equal; grid on; hold off;
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-%% Plot the LOS variables
+%% Plot the LOS variables stored in table(:,1:4)
 figure(2); figure(gcf);
 subplot(221)
 plot(1:N,table(:,1), 'LineWidth', 2), grid
