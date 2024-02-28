@@ -1,6 +1,7 @@
-% User editable script for computation of the vehicle cross-track error,
-% the Line-of-Sight (LOS) course angle and course rate commands when the 
-% path isparametrized using a cubic Hermite spline through given waypoints. 
+% ExHermiteLOS is a example script for computation of the vehicle cross-
+% track error, the Line-of-Sight (LOS) course angle and course rate 
+% commands when the path isparametrized using a cubic Hermite spline 
+% through given waypoints. 
 %
 % This script visualizes the path, vehicle position, and navigational vectors 
 % including the LOS vector, cross-track error, and tangent vectors at
@@ -26,7 +27,7 @@ vehiclePos = [-10 30];
 Delta_h = 10;   % look-ahead distance
 U = 0.5;        % vehicle speed, should be reduced if omega_chi_d is to large
 
-% Plot the Hermite spline
+%% Plot the Hermite spline
 figure(1); figure(gcf)
 
 t = linspace(0, 1, 200);
@@ -87,7 +88,7 @@ legend({'Hermite Spline', 'Waypoints', 'Vehicle Position', ...
     'Cross-Track Error', 'Tangent Vector', 'LOS Vector'}, 'Location', 'best');
 xlabel('Y (East)'); ylabel('X (North)'); axis equal; grid on; hold off;
 
-% Plot the LOS variables
+%% Plot the LOS variables
 figure(2); figure(gcf);
 subplot(221)
 plot(1:N,table(:,1), 'LineWidth', 2), grid
