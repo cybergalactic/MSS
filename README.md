@@ -11,7 +11,7 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
 
 Copy the directory MSS/contents to your computer and "add the path with subfolders" to Matlab. Then type:
 
-    help MSS
+    mssHelp
 
 Examples and demo files are located under the catalogs: 
 
