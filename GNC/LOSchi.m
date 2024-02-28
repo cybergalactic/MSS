@@ -1,9 +1,9 @@
 function [chi_d, omega_chi_d,y_e] = LOSchi(x,y,Delta,R_switch,wpt,U,K_f,h)
 % [chi_d, omega_chi_d,y_e] = LOSchi(x,y,Delta,R_switch,wpt,U,K_f,h)
-% LOSpsi computes thedesired course angle when the path is straight lines 
+% computes the desired course angle when the path is straight lines 
 % going through the waypoints  (wpt.pos.x, wpt.pos.y). The desired course
 % angle chi_d and course rate d/dt chi_d = omega_chi_d used by course 
-% autopilot systems are computed using the roportional LOS guidance law:
+% autopilot systems are computed using the proportional LOS guidance law:
 %
 %  chi_d = pi_h - atan( Kp * y_e ),    Kp = 1/Delta  
 %
@@ -47,6 +47,7 @@ function [chi_d, omega_chi_d,y_e] = LOSchi(x,y,Delta,R_switch,wpt,U,K_f,h)
 %    omega_chi_d: desired course rate (rad/s)
 %
 % For heading control use the functions LOSpsi.m and ILOSpsi.m.
+% See also: crosstracHermiteLOS.m
 %
 % Ref. T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 % Motion Control. 2nd. Edition, Wiley
