@@ -87,6 +87,8 @@ end
 legend({'Hermite Spline', 'Waypoints', 'Vehicle Position', ...
     'Cross-Track Error', 'Tangent Vector', 'LOS Vector'}, 'Location', 'best');
 xlabel('Y (East)'); ylabel('X (North)'); axis equal; grid on; hold off;
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
 
 %% Plot the LOS variables
 figure(2); figure(gcf);
@@ -102,8 +104,6 @@ title('LOS course angle \chi_d (deg)')
 subplot(224)
 plot(1:N,rad2deg(table(:,4)), 'LineWidth', 2), grid
 title(['LOS course rate \omega_{\chi_d} (deg/s) for U = ' num2str(U) ' m/s'])
-
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
 
 
