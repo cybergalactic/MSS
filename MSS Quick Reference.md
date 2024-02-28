@@ -242,7 +242,9 @@ ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
 ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 crosstrack          % computes the path-tangential origin and cross-track error for a target
 crosstrackWpt       % computes the cross-track error when the path is a straight line between two waypoints
+crosstrackHermiteLOS% computes the cross-track error and LOS angle to a cubic Hermite splines defined by waypoints
 crosstrackWpt3D     % computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+hermiteSpline       % computes a cubic Hermite spline and the tangents to the spline for a given waypoints
 hybridPath          % generates coefficients for sub-paths between waypoints
 LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
 ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
