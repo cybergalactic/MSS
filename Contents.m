@@ -4,7 +4,7 @@
 % contains guidance, navigation, and control (GNC) blocks for real-time 
 % simulation. 
 % 
-% mssHelp - online Quick Reference Guide 
+% mssHelp     - Online Quick Reference Guide 
 % mssExamples - Book examples       /MSS/mssExamples/ 
 % mssDemos    - GNC m-file demos    /MSS/mssDemos/
 %
