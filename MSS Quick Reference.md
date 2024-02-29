@@ -3,9 +3,10 @@
 A quick reference guide for the MATLAB MSS toolbox:
 
 ```matlab
->> help mss               % List MSS commands
->> help mssExamples       % List book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
->> mssSimulink            % Simulink Library
+>> mssHelp            % List MSS commands
+>> mssSimulink        % Simulink Library
+>> help mssDemos      % MSS demonstrations
+>> help mssExamples   % Book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
 ```
 
 ## Table of Contents
