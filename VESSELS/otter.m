@@ -60,7 +60,7 @@ rg = [0.2 0 -0.2]'; % CG for hull only (m)
 R44 = 0.4 * B;      % radii of gyrations (m)
 R55 = 0.25 * L;
 R66 = 0.25 * L;
-T_sway = 1;         % time constant in syaw (s)
+T_sway = 1;         % time constant in sway (s)
 T_yaw = 1;          % time constant in yaw (s)
 Umax = 6 * 0.5144;  % max forward speed (m/s)
 
@@ -78,7 +78,7 @@ eta = x(7:12);                              % positions
 U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % speed
 u_c = V_c * cos(beta_c - eta(6));           % current surge velocity
 v_c = V_c * sin(beta_c - eta(6));           % current sway velocity
-nu_c = [u_c v_c 0 0 0 0 ]';                 % current veloicty vector
+nu_c = [u_c v_c 0 0 0 0 ]';                 % current velocity vector
 nu_r = nu - nu_c;                           % relative velocity vector
 nu_c_dot = [-Smtrx(nu2) * nu_c(1:3)         % current acceleration vector
              zeros(3,1)              ];
@@ -111,7 +111,7 @@ H = Hmtrx(rg);              % Transform MRB and CRB from the CG to the CO
 MRB = H' * MRB_CG * H;
 CRB = H' * CRB_CG * H;
 
-% Hydrodynamic added mass (best practise)
+% Hydrodynamic added mass (best practice)
 Xudot = -addedMassSurge(m,L,rho);   
 Yvdot = -1.5 * m;
 Zwdot = -1.0 * m;
@@ -162,7 +162,7 @@ w5 = sqrt( G55/M(5,5) );
 
 % Linear damping terms (hydrodynamic derivatives)
 Xu = -24.4 * g / Umax;        % specified using the maximum speed  
-Yv = -M(2,2) / T_sway;        % specified using the time constant in T_sway
+Yv = -M(2,2) / T_sway;        % specified using the time constant in sway
 Zw = -2 * 0.3 *w3 * M(3,3);   % specified using relative damping factors
 Kp = -2 * 0.2 *w4 * M(4,4);
 Mq = -2 * 0.4 *w5 * M(5,5);
