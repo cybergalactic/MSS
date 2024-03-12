@@ -93,7 +93,7 @@ disp('Attitude parametrization: 2 x Gibbs vector (MEKF)');
 if (vel == 0)
    disp(['INS aided by position at ',num2str(f_gnss), ' Hz']);
 else
-    disp(['INS aided by position and velocity at ',num2str(f_gnss),' Hz']);  
+   disp(['INS aided by position and velocity at ',num2str(f_gnss),' Hz']);  
 end
    disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
 if (mag == 1)
@@ -119,9 +119,9 @@ for i=1:N+1
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0
         
-        y_pos = x(1:3) + 0.05 * randn(3,1);     % position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
-        ydata = [ydata; t, y_pos'];             % store position measurements                  
+        y_pos = x(1:3) + 0.05 * randn(3,1);   % position measurements
+        y_vel = x(4:6) + 0.01 * randn(3,1);   % optionally velocity meas.
+        ydata = [ydata; t, y_pos'];           % store position measurements                  
               
         if (vel == 0 && mag == 1)  % position aiding + magnetometer
             
@@ -154,8 +154,8 @@ for i=1:N+1
              
         else           % compass
             
-              [x_ins,P_prd] = ins_mekf_psi(...
-                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);          
+           [x_ins,P_prd] = ins_mekf_psi(...
+               x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);          
            
         end
         
@@ -164,7 +164,6 @@ for i=1:N+1
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x' x_ins']; 
     
-
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,7 +175,7 @@ x_hat = simdata(:,17:32);
 
 phi = zeros(length(t),1);theta = zeros(length(t),1);psi = zeros(length(t),1);
 for i = 1:length(t)
- [phi(i), theta(i), psi(i)] = q2euler(x_hat(i,10:13));
+    [phi(i), theta(i), psi(i)] = q2euler(x_hat(i,10:13));
 end
 Theta = [phi theta psi];
 
@@ -213,8 +212,8 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 figure(2); figure(gcf)
 
 subplot(211)
-h1 = plot(t,deg2rad( x(:,10:12) ),'r'); hold on;
-h2 = plot(t,deg2rad( Theta ),'b'); hold off;
+h1 = plot(t,rad2deg( x(:,10:12) ),'r'); hold on;
+h2 = plot(t,rad2deg( Theta ),'b'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
