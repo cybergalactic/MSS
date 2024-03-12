@@ -1,10 +1,10 @@
 function [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t_k)
 % INS signal generator
 %
-%    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t_k)
+%   [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t_k)
 %
 % Inputs: 
-%    x, signal vector [p^n; v^n; b_acc^b; Theta; b_ars^n], dim 15 
+%    x: signal vector [p^n; v^n; b_acc^b; Theta; b_ars^n], dim 15 
 %       
 %       p^n, NED position vector, dim 3 
 %       v^n, NED velocity vector, dim 3 
@@ -12,16 +12,16 @@ function [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t_k)
 %       Theta, vector of Euler angles phi, theta and psi, dim 3 
 %       b_ars^n, BODY attitude rate bias vector, dim 3 
 %
-%    mu, lattitude [rad]
-%    h, sampling time [s]
-%    t_k, present time [s] 
+%    mu: lattitude [rad]
+%    h: sampling time [s]
+%    t_k: present time [s] 
 %
 % Outputs: 
-%    x, propgated signal vector, dim 15
-%    f_imu, IMU specific force vector expressed in BODY [m/s^2]
-%    w_imu, IMU attitude rate vector expressed in BODY [rad/s]
-%    m_imu, IMU magentic field vector expressed in BODY [nT]
-%    m_ref, Magentic field vector expressed in NED for Trondheim, Norway
+%    x: propgated signal vector, dim 15
+%    f_imu: IMU specific force vector expressed in BODY [m/s^2]
+%    w_imu: IMU attitude rate vector expressed in BODY [rad/s]
+%    m_imu: IMU magentic field vector expressed in BODY [nT]
+%    m_ref: Magentic field vector expressed in NED for Trondheim, Norway
 %
 % Author:    Thor I. Fossen
 % Date:      28 March 2020
@@ -32,9 +32,9 @@ g_b = Rzyx(x(10),x(11),x(12))' * g_n;   % BODY gravity vector
     
 f_true = [0.1  * sin(0.1*t_k)           % true specific force: f = a - g
           0.1  * cos(0.1*t_k)
-         0.05 * sin(0.05*t_k) ] - g_b;
+          0.05 * sin(0.05*t_k) ] - g_b;
 
-w_true = [ 0.01 * cos(0.2*t_k)              % true angular rate
+w_true = [ 0.02 * cos(0.2*t_k)              % true angular rate
           -0.02 * sin(0.1*t_k)
            0.01 * sin(0.1*t_k) ];
 
