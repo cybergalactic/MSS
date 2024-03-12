@@ -1,6 +1,6 @@
 % ExINS_AHRS error-state (indirect) feedback Kalman filter for INS aided by
-% position measurements. It is assumed that the attitude (phi, theta, psi) is 
-% measured by an AHRS. Alternatively, the roll and pitch angles can be 
+% position measurements. It is assumed that the attitude (phi, theta, psi)
+% is measured by an AHRS. Alternatively, the roll and pitch angles can be 
 % computed from specific force measurements (to less accuracy) using: 
 %
 %    [phi, theta] = acc2rollpitch(f)
@@ -119,10 +119,10 @@ for i=1:N+1
     % GNSS measurements are Z times slower than the sampling time
     if mod( t, h_gnss ) == 0
         
-        y_pos = x(1:3) + 0.1 * randn(3,1);      % position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1);     % optionally velocity meas.
-        ydata = [ydata; t, y_pos'];             % store position measurements                  
-        
+        y_pos = x(1:3) + 0.1 * randn(3,1);    % position measurements
+        y_vel = x(4:6) + 0.01 * randn(3,1);   % optionally velocity meas.
+        ydata = [ydata; t, y_pos'];           % store position measurements                  
+       
         if (vel == 0)
             [x_ins,P_prd] = ins_ahrs(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
@@ -184,8 +184,8 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 figure(2); figure(gcf)
 
 subplot(211)
-h1 = plot(t,(180/pi)*theta_m,'b'); hold on;
-h2 = plot(t,(180/pi)*x_hat(:,10:12),'r'); hold off;
+h1 = plot(t,rad2deg(theta_m),'b'); hold on;
+h2 = plot(t,rad2deg(x_hat(:,10:12)),'r'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
