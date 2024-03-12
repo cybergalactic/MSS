@@ -168,8 +168,8 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 figure(2); figure(gcf)
 
 subplot(211)
-h1 = plot(t,(180/pi)*x(:,10:12),'r'); hold on;
-h2 = plot(t,(180/pi)*x_hat(:,10:12),'b'); hold off;
+h1 = plot(t,rad2deg(x(:,10:12)),'r'); hold on;
+h2 = plot(t,rad2deg(x_hat(:,10:12)),'b'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
 legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
     ['Estimate at ', num2str(f_s), ' Hz'] );
