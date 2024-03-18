@@ -92,10 +92,12 @@ for i=1:N+1
    % Store simulation data in a table   
    simdata(i,:) = [t x' r_d psi_d];    
    
-   % Euler's integration methods (k+1)
+   % USV dynamics
    xdot = otter(x,n,mp,rp,V_c,beta_c);
-   x(1:6) = x(1:6) + h * xdot(1:6);       % Forward Euler (velocity)
-   x(7:12) = x(7:12) + h * x(1:6);        % Backward Euler (position)
+
+   % Euler's integration methods (k+1)
+   x(1:6) = x(1:6) + h * xdot(1:6);  % Forward Euler (Fossen 2021, Eq. B27)
+   x(7:12) = x(7:12) + h * x(1:6);   % Backward Euler (Fossen 2021, Eq. B28)
    n = n - h/Tn * (n - n_c);              
    z_psi = z_psi + h * ssa( psi-psi_d );  
    psi_d = psi_d + h * r_d;               
