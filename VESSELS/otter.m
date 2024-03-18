@@ -86,9 +86,9 @@ nu_c_dot = [-Smtrx(nu2) * nu_c(1:3)         % current acceleration vector
 % Inertia dyadic, volume displacement and draft
 nabla = (m+mp)/rho;                         % volume
 T = nabla / (2 * Cb_pont * B_pont * L);     % draft
-Ig_CG = m * diag([R44^2, R55^2, R66^2]);    % only hull in CG
+Ig_CG = m * diag([R44^2, R55^2, R66^2]);    % only hull in the CG
 rg = (m*rg + mp*rp)/(m+mp);           % CG location corrected for payload
-Ig = Ig_CG - m * Smtrx(rg)^2 - mp * Smtrx(rp)^2;  % hull + payload in CO
+Ig = Ig_CG - m * Smtrx(rg)^2 - mp * Smtrx(rp)^2; % hull + payload in the CO
 
 % Experimental propeller data including lever arms
 l1 = -y_pont;                           % lever arm, left propeller (m)
@@ -163,9 +163,9 @@ w5 = sqrt( G55/M(5,5) );
 % Linear damping terms (hydrodynamic derivatives)
 Xu = -24.4 * g / Umax;        % specified using the maximum speed  
 Yv = -M(2,2) / T_sway;        % specified using the time constant in sway
-Zw = -2 * 0.3 *w3 * M(3,3);   % specified using relative damping factors
-Kp = -2 * 0.2 *w4 * M(4,4);
-Mq = -2 * 0.4 *w5 * M(5,5);
+Zw = -2 * 0.3 * w3 * M(3,3);  % specified using relative damping factors
+Kp = -2 * 0.2 * w4 * M(4,4);
+Mq = -2 * 0.4 * w5 * M(5,5);
 Nr = -M(6,6) / T_yaw;         % specified using the time constant in T_yaw
 
 % Control forces and moments, with saturated propeller speed
@@ -197,19 +197,19 @@ Nh = Nr * (1 + 10 * abs(nu_r(6))) * nu_r(6);
 
 tau_damp = [Xh Yh Zh Kh Mh Nh]';
 
-% Strip theory: cross-flow drag integrals for Yh and Nh
+% Strip theory: cross-flow drag integrals
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
 
 % Payload
 f_payload = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mp*g ]';  % payload force 
 m_payload = Smtrx(rp) * f_payload;                        % payload moment 
-g_0 = [ f_payload 
+g_0 = [ f_payload
         m_payload ];
 
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
-% Time derivative of the state vector - numerical integration; see ExOtter.m  
+% Time derivative of the state vector, numerical integration see ExOtter.m  
 xdot = [ nu_c_dot + M \ ( tau + tau_damp + tau_crossflow ...
             - C * nu_r - G * eta + g_0 )
          J * nu ];  
