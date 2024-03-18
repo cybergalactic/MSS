@@ -6,6 +6,7 @@
 % Author:    Thor I. Fossen
 % Date:      2021-04-25
 % Revisions: 2023-10-14 Added a heading autopilot and reference model
+%            2024-03-18 Using forward and backward Euler to integrate xdot
 
 clearvars;
 
