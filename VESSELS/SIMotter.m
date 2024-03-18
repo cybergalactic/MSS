@@ -88,16 +88,18 @@ for i=1:N+1
    j_d = wn_d^3 * ssa(psi_ref - psi_d) - (2*zeta_d+1) * wn_d^2 * r_d...
        - (2*zeta_d+1) * wn_d * a_d;
 
-   % store simulation data in a table   
+   % Store simulation data in a table   
    simdata(i,:) = [t x' r_d psi_d];    
    
-   % Forward Euler (k+1)
-   x = x + h * otter(x,n,mp, rp, V_c,beta_c);
-   n = n - h/Tn * (n - n_c); 
-   z_psi = z_psi + h * ssa( psi-psi_d );
-   psi_d = psi_d + h * r_d; 
-   r_d = r_d + h * a_d;
-   a_d = a_d + h * j_d; 
+   % Euler's integration methods (k+1)
+   xdot = otter(x,n,mp,rp,V_c,beta_c);
+   x(1:6) = x(1:6) + h * xdot(1:6);       % Forward Euler (velocity)
+   x(7:12) = x(7:12) + h * x(1:6);        % Backward Euler (position)
+   n = n - h/Tn * (n - n_c);              
+   z_psi = z_psi + h * ssa( psi-psi_d );  
+   psi_d = psi_d + h * r_d;               
+   r_d = r_d + h * a_d;                   
+   a_d = a_d + h * j_d;                   
    
 end
 
