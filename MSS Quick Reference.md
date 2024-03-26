@@ -151,91 +151,91 @@ SIMrig          % Simulate the 6-DOF semisubmersible model under PID control
 ## Modelling
 
 ```matlab
-addedMassSurge     % Hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
-coeffLiftDrag      % Hydrodynamic lift and drag coefficients as a function of angle of attack of a submerged "wing profile"
-forceLiftDrag      % Hydrodynamic lift and drag forces as a function of angle of attack of a submerged "wing profile" 
-forceSurgeDamping  % Linear and quadratic damping forces in surge
-crossFlowDrag 	   % Crossflow drag computed from strip theory integrals
-Dmtrx              % 6x6 linear damping matrix for marine craft (submerged and floating)
-Gmtrx              % 6x6 system spring stiffness matrix G
-gvect              % 6x1 vector of restoring forces, Euler angles as input
-gRvect             % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
-imlay61            % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
-m2c                % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
-rbody              % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
-spheroid           % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
-thrConfig          % 3xr thruster configuration matrix for main propellers, tunnel thrusters and azimuth thrusters
-wageningen         % Thrust and torque coefficients of the Wageningen B-series propellers 
+addedMassSurge      % Hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
+coeffLiftDrag       % Hydrodynamic lift and drag coefficients as a function of angle of attack of a submerged "wing profile"
+forceLiftDrag       % Hydrodynamic lift and drag forces as a function of angle of attack of a submerged "wing profile" 
+forceSurgeDamping   % Linear and quadratic damping forces in surge
+crossFlowDrag 	    % Crossflow drag computed from strip theory integrals
+Dmtrx               % 6x6 linear damping matrix for marine craft (submerged and floating)
+Gmtrx               % 6x6 system spring stiffness matrix G
+gvect               % 6x1 vector of restoring forces, Euler angles as input
+gRvect              % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
+imlay61             % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
+m2c                 % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
+rbody               % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
+spheroid            % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
+thrConfig           % 3xr thruster configuration matrix for main propellers, tunnel thrusters and azimuth thrusters
+wageningen          % Thrust and torque coefficients of the Wageningen B-series propellers 
 ```
 
 ## Kinematics
 
 ```matlab
-ecef2llh           % Longitude, latitude, and height from ECEEF positions x, y, and z
-euler2q            % Unit quaternion from Euler angles
-eulerang           % Computes the Euler angle transformation matrices J, Rzyx and Tzyx
-flat2llh           % Longitude, latitude, and height from flat-earth positions x, y, and z
-llh2ecef           % ECEEF positions x, y, and z from longitude, latitude, and height
-llh2flat           % Flat-earth positions x, y, and z from longitude, latitude, and height
-R2euler            % Euler angles from rotation matrix elements
-Rll                % Euler angle rotation matrix Rll for longitude and latitude
-Rquat              % Unit quaternion rotation matrix R in SO(3)
-Rzyx               % Euler angle rotation matrix R in SO(3)
-Tquat              % Unit quaternion transformation matrix T, representing the attitude dynamics
-Tzyx               % Euler angle transformation matrix T, representing the attitude dynamics
-q2euler            % Euler angles from a unit quaternion
-quatern            % Unit quaternion transformation matrix J
-quatprod           % Quaternion product
-quest              % Quaternion rotation matrix R(q) and unit quaternion q between two vectors W = R(q) V
-quest6dof          % 6-DOF vector eta = [x,y,z,phi,theta,psi] from three marker positions using the QUEST algorithm
+ecef2llh            % Longitude, latitude, and height from ECEEF positions x, y, and z
+euler2q             % Unit quaternion from Euler angles
+eulerang            % Computes the Euler angle transformation matrices J, Rzyx and Tzyx
+flat2llh            % Longitude, latitude, and height from flat-earth positions x, y, and z
+llh2ecef            % ECEEF positions x, y, and z from longitude, latitude, and height
+llh2flat            % Flat-Earth positions x, y, and z from longitude, latitude, and height
+R2euler             % Euler angles from rotation matrix elements
+Rll                 % Euler angle rotation matrix Rll for longitude and latitude
+Rquat               % Unit quaternion rotation matrix R in SO(3)
+Rzyx                % Euler angle rotation matrix R in SO(3)
+Tquat               % Unit quaternion transformation matrix T, representing the attitude dynamics
+Tzyx                % Euler angle transformation matrix T, representing the attitude dynamics
+q2euler             % Euler angles from a unit quaternion
+quatern             % Unit quaternion transformation matrix J
+quatprod            % Quaternion product
+quest               % Quaternion rotation matrix R(q) and unit quaternion q between two vectors W = R(q) V
+quest6dof           % 6-DOF vector eta = [x,y,z,phi,theta,psi] from three marker positions using the QUEST algorithm
 ```
 
 ## Environment
 
 ```matlab
-blendermann94      % Computes the wind forces and wind coefficients using Blendermann (1994)
-encounter          % Encounter frequency as a function of wave peak frequency, vessel speed, and wave direction
-hs2vw              % Converts significant wave height into an equivalent wind speed
-isherwood72        % Computes the wind forces and coefficients based on Isherwood (1972) 
-rand_phases        % Generates a uniformly distributed vector of random phases in the interval [-pi pi]
-vw2hs              % Converts average wind speed to significant wave height
-waveresponse345    % Steady-state heave, roll, and pitch responses for a ship in regular waves 
-wavespec           % Function used to evaluate different types of wave spectra
-ww2we              % Function used to transform a vector of wave frequencies to encounter frequencies
+blendermann94       % Computes the wind forces and wind coefficients using Blendermann (1994)
+encounter           % Encounter frequency as a function of wave peak frequency, vessel speed, and wave direction
+hs2vw               % Converts significant wave height into an equivalent wind speed
+isherwood72         % Computes the wind forces and coefficients based on Isherwood (1972) 
+rand_phases         % Generates a uniformly distributed vector of random phases in the interval [-pi pi]
+vw2hs               % Converts average wind speed to significant wave height
+waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
+wavespec            % Function used to evaluate different types of wave spectra
+ww2we               % Function used to transform a vector of wave frequencies to encounter frequencies
 ```
 
 ## Ship maneuvers
 
 ```matlab
-pullout            % ship pullout maneuver
-turncircle         % ship turning circle
-zigzag             % zigzag maneuver for 3-DOF models
-zigzag6dof         % zigzag maneuver for 6-DOF models
+pullout             % Ship pullout maneuver
+turncircle          % Ship turning circle
+zigzag              % Zigzag maneuver for 3-DOF models
+zigzag6dof          % Zigzag maneuver for 6-DOF models
 ```
 
 ## Motion sickness
 
 ```matlab
-ISOmsi             % ISO 2631-3, 1997 motion sickness incidence
-HMmsi              % O'Hanlon and McCauley (1974) motion sickness incidence
+ISOmsi              % ISO 2631-3, 1997 motion sickness incidence
+HMmsi               % O'Hanlon and McCauley (1974) motion sickness incidence
 ```
 
 ## Transformations
 
 ```matlab
-conversion         % Defines global conversion factors for GNC applications
-rad2pipi           % Obsolete, use ssa.m
-ssa                % Smallest signed angle maps an angle in rad to the interval [-pi pi) or [-180 180)
-Smtrx              % 3x3 vector skew-symmetric matrix S
-Hmtrx              % 6x6 system transformation matrix H
-vex                % Computes a = vex(S(a)) where S is a skew-symmetric matrix
+conversion          % Defines global conversion factors for GNC applications
+rad2pipi            % Obsolete, use ssa.m
+ssa                 % Smallest signed angle maps an angle in rad to the interval [-pi pi) or [-180 180)
+Smtrx               % 3x3 vector skew-symmetric matrix S
+Hmtrx               % 6x6 system transformation matrix H
+vex                 % Computes a = vex(S(a)) where S is a skew-symmetric matrix
 ```
 
 ## Numerical integration methods
 
 ```matlab
-euler2             % Integrates a system of ordinary differential equations using Euler’s 2nd-order method
-rk4                % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
+euler2              % Integrates a system of ordinary differential equations using Euler’s 2nd-order method
+rk4                 % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
 ### GNC (m-files)
@@ -243,19 +243,19 @@ rk4                % Integrates a system of ordinary differential equations usin
 ## Guidance
 
 ```matlab
-ALOS3D              % ALOS guidance laws for heading and pitch control in 3-D
-ALOSpsi             % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
-crosstrack          % Computes the path-tangential origin and cross-track error for a target
-crosstrackWpt       % Computes the cross-track error when the path is a straight line between two waypoints
-crosstrackHermiteLOS% Computes the cross-track error and LOS angle to a cubic Hermite splines defined by waypoints
-crosstrackWpt3D     % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
-hermiteSpline       % Computes a cubic Hermite spline and the tangents to the spline for a given waypoints
-hybridPath          % Generates coefficients for sub-paths between waypoints
-LOSchi              % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
-ILOSpsi             % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
-order3              % Path generation using cubic polynomials (see demoWaypointGuidance.slx)
-order5              % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
-refModel            % Third-order reference model for position, velocity and acceleration
+ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
+ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+crosstrack           % Computes the path-tangential origin and cross-track error for a target
+crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
+crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite splines defined by waypoints
+crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoints
+hybridPath           % Generates coefficients for sub-paths between waypoints
+LOSchi               % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+ILOSpsi              % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+order3               % Path generation using cubic polynomials (see demoWaypointGuidance.slx)
+order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+refModel             % Third-order reference model for position, velocity and acceleration
 ```
 
 ## Navigation
@@ -334,7 +334,7 @@ After loading the data files to the workspace using the Matlab command load, the
 ## Hydrodynamics (m-files)
 
 ```matlab
-DPperiods           % periods and natural frequencies of a marine craft in DP
+DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
 plotABC             % Plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
