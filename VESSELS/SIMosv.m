@@ -50,7 +50,7 @@ clearvars;                   % clear other variables
 osv;                         % display the OSV main data
 
 % Control allocation 
-ALLOC = 0;                   % 0 = constant azimuth, 1 = dynamic optimization
+ALLOC = 1;                   % 0 = constant azimuth, 1 = dynamic optimization
 alpha0 = deg2rad([-28 28])'; % constant azimuth, minimizing cond(T_thr)
 
 % Simulation parameters
