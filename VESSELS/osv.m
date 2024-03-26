@@ -40,9 +40,9 @@ function [xdot,U] = osv(x,ui,Vc,betaVc)
 % main characteristics are displayed by calling the function OSV without 
 % input arguments. The function calls are:
 %
-%   OSV;                                        Display the OSV main data
-%   [xdot,U] = OSV(x,ui,Vc,betaVc,alphaVc)      2-D ocean currents
-%   [xdot,U] = OSV(x,ui)                        No ocean currents 
+%   osv;                                        Display the OSV main data
+%   [xdot,U] = osv(x,ui,Vc,betaVc,alphaVc)      2-D ocean currents
+%   [xdot,U] = osv(x,ui)                        No ocean currents 
 % 
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
