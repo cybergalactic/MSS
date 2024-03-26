@@ -26,7 +26,7 @@ function [xdot,U] = osv(x,ui,Vc,betaVc)
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), 0 ] 
 % 
-% % The generalized thrust vector satisfy (Fossen 2021, Section 11.2.1)
+% The generalized thrust vector satisfy (Fossen 2021, Section 11.2.1)
 %
 %   tau_thr = T_thr(alpha) * K_thr * u_thr
 %
