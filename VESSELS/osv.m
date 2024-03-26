@@ -165,7 +165,7 @@ nu_c_dot = [-Smtrx(nu(4:6)) * v_c
 nu_r = nu - nu_c;
 
 % Add linear and quadratic drag in surge using the blending function sigma
-X = forceSurgeDamping(flag,nu_r(1),m,S,L,T1,rho,U_max,thrust_max);
+[X,Xuu,Xu] = forceSurgeDamping(flag,nu_r(1),m,S,L,T1,rho,U_max,thrust_max);
 tau_drag = [ X; zeros(5,1) ];
 
 % Avoid double counting, linear and quadratic damping terms
@@ -223,11 +223,14 @@ if nargin == 0
     fprintf('%-40s %8.2f m \n', 'Longitudinal metacentric height (GM_L):', GM_L);
     fprintf('%-40s %8.2f s \n', 'Natural period in heave (T3):', T3);
     fprintf('%-40s %8.2f s \n', 'Natural period in roll (T4):', T4);
-    fprintf('%-40s %8.2f s \n', 'Natural period in pitch (T5):', T5);        
-  
+    fprintf('%-40s %8.2f s \n', 'Natural period in pitch (T5):', T5);   
+    fprintf('%-40s %8.2f \n', 'Linear surge damping coefficient (Xu):', Xu); 
+    fprintf('%-40s %8.2f \n', 'Quadratic drag coefficient (X|u|u):', Xuu); 
+   
+    D(1,1) = -Xu;
     matrices = {'Mass matrix: M = MRB + MA', M;...
         'Linear damping matrix: D', D; 'Restoring matrix: G', G};
-
+    
     for k = 1:size(matrices, 1)
         fprintf('%s\n','-------------------------------------------------------------------------------------');
         fprintf('%-40s\n', matrices{k, 1});
