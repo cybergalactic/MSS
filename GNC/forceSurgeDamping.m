@@ -93,13 +93,18 @@ if (flag == 1)
     figure(gcf)
     subplot(211)
     plot(u,(d_lin+d_quad).*u,'-',u_max,T_max,'*','linewidth',2), grid
-    legend('Linear + quadratic damping force (N)','Max speed/thrust');
+    xlabel('Speed (m(s)')
+    ylabel('Force (N)')
+    legend('Linear + quadratic damping force (N)',...
+        'Max speed/thrust','Location','best');
     title('X = sigma * Xu * u + (1 - sigma) * Xuu * abs(u) * u')
     subplot(212)
     u = 0:0.1:3;
     sigma = exp( -alpha * u.^2 );
     plot(u,-sigma * Xu,u,-(1 - sigma) .* Xuu .* abs(u),'linewidth',2), grid;
-    legend('Linear damping coefficient: -Xu','Quadratic damping term: -Xuu * |u|');
+    xlabel('Speed (m(s)')
+    legend('Linear damping coefficient: -Xu',...
+        'Quadratic damping term: -Xuu * |u|','Location','best');
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
