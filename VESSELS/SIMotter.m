@@ -6,7 +6,7 @@
 % Author:    Thor I. Fossen
 % Date:      2021-04-25
 % Revisions: 2023-10-14 Added a heading autopilot and reference model
-%            2024-03-18 Using forward and backward Euler to integrate xdot
+%            2024-03-27 Using forward and backward Euler to integrate xdot
 
 clearvars;
 
@@ -14,8 +14,9 @@ clearvars;
 h  = 0.02;        % sampling time [s]
 N  = 2000;		  % number of samples
 
-% initial values for x = [ u v w p q r x y z phi theta psi ]'
-x = zeros(12,1);	   
+% Initial states
+eta = [0 0 0 0 0 0]';    % eta = [x y z phi theta psi]' 
+nu  = [0 0 0 0 0 0]';    % nu  = [u v w p q r]'	   
 
 % Load condition
 mp = 25;                  % payload mass (kg), max value 45 kg
@@ -74,8 +75,8 @@ for i=1:N+1
    end
 
    % Measurements
-   r = x(6);
-   psi = x(12);
+   r = nu(6);
+   psi = eta(6);
 
    % Heading autopilot (PID pole placement with reference model)
    tau_X = 100;
@@ -90,16 +91,16 @@ for i=1:N+1
        - (2*zeta_d+1) * wn_d * a_d;
 
    % Store simulation data in a table   
-   simdata(i,:) = [t x' r_d psi_d];    
+   simdata(i,:) = [t eta' nu' r_d psi_d];    
    
    % USV dynamics
-   xdot = otter(x,n,mp,rp,V_c,beta_c);
-   Jmtrx = eulerang(x(10),x(11),x(12));
+   xdot = otter([nu; eta],n,mp,rp,V_c,beta_c);
+   Jmtrx = eulerang(eta(4),eta(5),eta(6));
 
    % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
    % x = x + h * xdot is replaced by forward and backward Euler integration
-   x(1:6) = x(1:6) + h * xdot(1:6);          % Forward Euler 
-   x(7:12) = x(7:12) + h * Jmtrx * x(1:6);   % Backward Euler
+   nu = nu + h * xdot(1:6);          % Forward Euler 
+   eta = eta + h * Jmtrx * nu;       % Backward Euler
    n = n - h/Tn * (n - n_c);              
    z_psi = z_psi + h * ssa( psi-psi_d );  
    psi_d = psi_d + h * r_d;               
@@ -109,9 +110,9 @@ for i=1:N+1
 end
 
 %% PLOTS
-t    = simdata(:,1); 
-nu   = simdata(:,2:7); 
-eta  = simdata(:,8:13); 
+t = simdata(:,1); 
+eta = simdata(:,2:7); 
+nu  = simdata(:,8:13); 
 r_d = simdata(:,14); 
 psi_d = simdata(:,15); 
 
@@ -129,7 +130,7 @@ subplot(615),plot(t,rad2deg(nu(:,5)))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
-legend('r','r_d')
+legend('r','r_d','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
@@ -147,7 +148,7 @@ subplot(615),plot(t,rad2deg(eta(:,5)))
 xlabel('time (s)'),title('pitch angle (deg)'),grid
 subplot(616),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
 xlabel('time (s)'),title('yaw angle (deg)'),grid
-legend('\psi','\psi_d')
+legend('\psi','\psi_d','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
