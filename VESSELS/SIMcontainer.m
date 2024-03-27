@@ -11,7 +11,9 @@ echo on
 %
 % Author:      Thor I. Fossen
 % Date:        2018-07-21
-% Revisions: 
+% Revisions:
+
+clearvars;
 
 echo off
 disp('Simulating container.m and Lcontainer.m under PD control with psi_ref = 5 deg ...')
@@ -60,7 +62,7 @@ end
 %% PLOTS
 t1     = simdata1(:,1);
 u1     = simdata1(:,2); 
-v1     = simdata(:,3);          
+v1     = simdata1(:,3);          
 r1     = rad2deg(simdata1(:,4));   
 x1     = simdata1(:,5);
 y1     = simdata1(:,6);
@@ -92,13 +94,13 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(2)
-subplot(221),plot(t1,r1,'r',t,r2,'b'),xlabel('time (s)'),title('yaw rate r (deg/s)'),grid
+subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('time (s)'),title('yaw rate r (deg/s)'),grid
 legend('nonlinear model','linear model','Location','best')
-subplot(222),plot(t1,phi1,'r',t,phi2,'b'),xlabel('time (s)'),title('roll angle \phi (deg/s)'),grid
+subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('time (s)'),title('roll angle \phi (deg/s)'),grid
 legend('nonlinear model','linear model','Location','best')
-subplot(223),plot(t1,psi1,'r',t,psi2,'b'),xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
+subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
 legend('nonlinear model','linear model','Location','best')
-subplot(224),plot(t1,delta1,'r',t,delta2,'b'),xlabel('time (s)'),title('rudder angle \delta (deg)'),grid
+subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('time (s)'),title('rudder angle \delta (deg)'),grid
 legend('nonlinear model','linear model','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
