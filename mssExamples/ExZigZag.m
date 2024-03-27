@@ -3,7 +3,7 @@
 %
 % Author:    Thor I. Fossen
 % Date:      23 Jul 2001
-% Revisions: 16 Nov 2023 - included the Remus 100 AUV
+% Revisions: 16 Nov 2023 - Included the Remus 100 AUV
 
 t_final = 600;           % final simulation time (sec)
 t_rudderexecute = 10;    % time rudder is executed (sec)
