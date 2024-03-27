@@ -11,9 +11,9 @@
 %
 % Author:     Thor I. Fossen
 % Date:       2019-03-12
-% Revisions:  2020-10-22 Retuning the PID controller
-%             2020-08-04 Major update
-%             2024-03-27 Using PIDnonlinearMIMO.m as new DP control law
+% Revisions:  2020-10-22 Retuning of the PID controller
+%             2020-08-04 Major updates
+%             2024-03-27 DP control law replaced by PIDnonlinearMIMO.m 
 
 clearvars;
 clear PIDnonlinearMIMO;         % clear persistent integrator state
