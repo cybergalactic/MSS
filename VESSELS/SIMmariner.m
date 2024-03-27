@@ -1,6 +1,6 @@
 echo on
-% SIMmariner  User editable script for simulation of the 
-%             mariner class vessel under feedback control
+% SIMmariner  User editable script for simulation of the mariner class 
+% vessel under PID heading control.
 %
 % Calls:      mariner.m
 %             euler2.m
@@ -18,11 +18,13 @@ disp('Simulating mariner.m under PD-control with psi_ref = 5 (deg)...')
 t_f = 600;   % final simulation time (sec)
 h   = 0.1;   % sample time (sec)
 
-Kp = 1;      % controller P-gain
-Td = 10;     % controller derivative time
+Kp = 1;      % controller proportional gain
+Td = 10;     % controller derivative time (s)
+Ti = 100;    % controller integral time (s)
 
-% initial states:  x = [ u v r x y psi delta ]' 
-x = zeros(7,1);   
+% Initial states
+x = zeros(7,1);     % x = [ u v r x y psi delta ]'
+z_psi = 0;          % integral state
 
 %% MAIN LOOP
 N = round(t_f/h);                    % number of samples
@@ -32,21 +34,23 @@ for i=1:N+1
 
     time = (i-1) * h;                % simulation time in seconds
 
-    r   = x(3);
-    psi = x(6);
+    % Measurements
+    r   = x(3) + 0.001 * randn;
+    psi = x(6) + 0.01 * randn;
     
-    % control system
-    psi_ref = deg2rad(5);                         % desired heading
-    delta = -Kp * ( ssa(psi-psi_ref) + Td * r );  % PD-controller
+    % PID control system
+    psi_ref = deg2rad(5);            % desired heading
+    delta = -Kp * ( ssa(psi - psi_ref) + Td * r + 1/Ti * z_psi );  
 
-    % ship model
-    [xdot,U] = mariner(x,delta);       % ship dynamics
+    % Ship dynamics
+    [xdot,U] = mariner(x,delta);     
     
-    % store data for presentation
+    % Store data for presentation
     simdata(i,:) = [time,x',U]; 
     
-    % numerical integration
-    x = euler2(xdot,x,h);             % Euler's method
+    % Numerical integration
+    x = euler2(xdot,x,h);                           % Euler's method
+    z_psi = z_psi + h * ssa(psi  - psi_ref);
 
 end
 
@@ -77,7 +81,7 @@ xlabel('time (s)')
 title('speed U (m/s)')
 grid
 subplot(223)
-plot(t,psi)
+plot(t,psi,[0,t(end)],rad2deg([psi_ref psi_ref]))
 xlabel('time (s)')
 title('yaw angle \psi (deg)')
 grid
