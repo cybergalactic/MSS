@@ -7,7 +7,10 @@ echo on
 %
 % Author:     Thor I. Fossen
 % Date:       2018-07-21
-% Revisions: 
+% Revisions:  2024-03-27 Added animation of the ship North-East positions
+
+clear animateShip  % clear the persistent animation variables
+clearvars;
 
 echo off 
 disp('Simulating mariner.m under PD-control with psi_ref = 5 (deg)...')
@@ -58,15 +61,9 @@ psi   = rad2deg(simdata(:,7));
 delta = rad2deg(simdata(:,8));
 U     = simdata(:,9);
 
-figure(1)
-plot(y,x)
-grid,axis('equal')
-xlabel('East')
-ylabel('North')
-title('Ship position')
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
+figNo = 1;
+shipSize = 1.0;
+animateShip(x,y,shipSize,'b-',figNo); % animation of the North-East positions
 
 figure(2)
 subplot(221)
@@ -92,3 +89,4 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
+
