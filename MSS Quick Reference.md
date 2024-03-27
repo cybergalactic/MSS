@@ -204,9 +204,10 @@ wavespec            % Function used to evaluate different types of wave spectra
 ww2we               % Function used to transform a vector of wave frequencies to encounter frequencies
 ```
 
-## Ship maneuvers
+## Ship maneuvers and visualization
 
 ```matlab
+animateShip         % Animates a viking ship moving along a specified path on a North-East (y-x) plot
 pullout             % Ship pullout maneuver
 turncircle          % Ship turning circle
 zigzag              % Zigzag maneuver for 3-DOF models
