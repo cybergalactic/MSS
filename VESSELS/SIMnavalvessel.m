@@ -1,69 +1,92 @@
 echo on
-% SIMnavalvessel User editable script for simulation of the naval vessel under feedback control
+% SIMnavalvessel User editable script for simulation of the naval vessel 
+% under PD heading control.
 %
-% Calls:       navalvessel.m and euler2.m
+% Calls:       navalvessel.m
+%              euler2.m
 %
 % Author:      Thor I. Fossen
 % Date:        2019-05-27
-% Revisions: 
+% Revisions:   2024-03-27 Added animation of the ship North-East positions
+echo off 
 
-echo off
-disp('Simulating navalvessel.m under PD-control with psi_ref=5 (deg) ...')
+clear animateShip  % clear the persistent animation variables
 
-t_f = 600;   % final simulation time (sec)
-h   = 0.05;   % sample time (sec)
+disp('Simulating navalvessel.m under PD-control with psi_ref = 5 (deg) ...')
 
-Kp = 1e6;     % controller P-gain
-Td = 20;     % controller derivative time
+t_f = 600;          % final simulation time (sec)
+h   = 0.05;         % sample time (sec)
+N = round(t_f/h);   % number of samples
 
-% initial states:
-x  = [6 0 0 0 0 0 ]';   % x = [u,v p r phi psi] ]'   
+Kp = 1e6;           % controller proportional gain
+Td = 20;            % controller derivative time
 
-% initial control inputs
-tau = [1e5 0 0 0]';
+% Initial states
+x  = [6 0 0 0 0 0 ]';   % x = [u v p r phi psi] ]'   
+pos = [0 0 0]';         % initial position expressed in NED
 
-% --- MAIN LOOP ---
-N = round(t_f/h);               % number of samples
-xout = zeros(N+1,length(x)+length(tau)+2);  % memory allocation
+%% MAIN LOOP
+simdata = zeros(N+1,11);                % memory allocation
 
 for i=1:N+1
-    time = (i-1)*h;                   % simulation time in seconds
+    time = (i-1)*h;                     % simulation time in seconds
 
-    r   = x(4);
-    psi = x(6);
+    % Measurements
+    r   = x(4) + 0.001 * randn;
+    psi = x(6) + 0.01 * randn;
     
-    % control system
-    psi_ref = 5*(pi/180);                % desired heading
-    tau(4) = -Kp*((psi-psi_ref)+Td*r);   % PD-controller
+    % Control system
+    psi_ref = deg2rad(20);                          % desired heading
+    tauX = 1e5;                                    % surge command 
+    tauN = -Kp * ( ssa(psi - psi_ref) + Td * r );  % PD heading controller
     
-    % ship model
-    [xdot,U] = navalvessel(x,tau);  % ship model
+    % Ship dynamics
+    tau = [tauX 0 0 tauN]';
+    [xdot,U] = navalvessel(x,tau);       
    
-    % store data for presentation
-    xout(i,:) = [time,x',tau',U]; 
+    % Store data for presentation
+    simdata(i,:) = [ time, x', tauN, U, pos(1:2)' ]; 
     
-    % numerical integration
-    x  = euler2(xdot,x,h);             % Euler integration      
+    % Numerical integration
+    x = euler2(xdot,x,h);                 
+    pos = pos + h * Rzyx(0,0,psi) * [x(1) x(2) x(4)]'; 
+
 end
 
-% time-series
-t     = xout(:,1);
-u     = xout(:,2); 
-v     = xout(:,3);          
-p     = xout(:,4) * 180/pi;   
-r     = xout(:,5) * 180/pi;
-phi   = xout(:,6) * 180/pi;
-psi   = xout(:,7) * 180/pi;
-tau4  = xout(:,11);
-U     = xout(:,12);
+%% PLOTS
+t     = simdata(:,1);
+u     = simdata(:,2); 
+v     = simdata(:,3);          
+p     = rad2deg(simdata(:,4));   
+r     = rad2deg(simdata(:,5));
+phi   = rad2deg(simdata(:,6));
+psi   = rad2deg(simdata(:,7));
+tauN  = simdata(:,8);
+U     = simdata(:,9);
+x     = simdata(:,10);
+y     = simdata(:,11);
 
-% plots
-figure(1)
-plot(t,U,'r')
-grid,xlabel('time (s)'),title('speed U (m/s)'),grid
+figNo = 1;
+shipSize = 0.5;
+animateShip(x,y,shipSize,'b-',figNo); % animation of the North-East positions
 
 figure(2)
-subplot(221),plot(t,r,'r'),xlabel('time (s)'),title('yaw rate r (deg/s)'),grid
-subplot(222),plot(t,phi,'r'),xlabel('time (s)'),title('roll angle \phi (deg)'),grid
-subplot(223),plot(t,psi,'r'),xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
-subplot(224),plot(t,tau4,'r'),xlabel('time (s)'),title('yaw moment (Nm)'),grid
+plot(t,U,'b')
+xlabel('time (s)'),title('Speed U (m/s)'),grid
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+
+figure(3)
+subplot(221)
+plot(t,r,'b'),xlabel('time (s)'),title('Yaw rate r (deg/s)'),grid
+subplot(222)
+plot(t,phi,'b'),xlabel('time (s)'),title('Roll angle \phi (deg)'),grid
+subplot(223)
+plot(t,psi,'b',[0,t(end)],rad2deg([psi_ref psi_ref])),xlabel('time (s)'),
+title('Yaw angle \psi (deg)'),grid
+subplot(224)
+plot(t,tauN,'b'),xlabel('time (s)'),title('Yaw control moment (Nm)'),grid
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
