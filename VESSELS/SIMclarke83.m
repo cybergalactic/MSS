@@ -10,6 +10,9 @@
 % Author:    Thor I. Fossen
 % Date:      2020-10-22
 %            2024-03-27 Using forward and backward Euler to integrate xdot
+%                       Added animation of the ship North-East positions
+
+clear animateShip  % clear the persistent animation variables
 clearvars;
 
 h = 0.05;               % sampling time
@@ -72,14 +75,15 @@ v     = simdata(:,6);
 r     = rad2deg(simdata(:,7)); 
 U     = sqrt(u.^2 + v.^2);
 
-figure(1)
-subplot(311)
-plot(y,x); grid,axis('equal')
-xlabel('East'),ylabel('North'),title('Ship position (m)')
-subplot(312)
+figNo = 1;
+shipSize = 0.6;
+animateShip(x,y,shipSize,'b-',figNo); % animation of the North-East positions
+
+figure(2)
+subplot(211)
 plot(t,U)
 xlabel('time (s)'),title('Ship speed (m/s)'),grid
-subplot(313)
+subplot(212)
 plot(t,psi)
 xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
