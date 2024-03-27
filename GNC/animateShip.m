@@ -9,12 +9,12 @@ function animateShip(xPath, yPath, shipSize, lineColor, figNo)
 % persistent variables by adding 'clear animateShip' on top of your script.
 %
 % Inputs:
-%   xPath     - East coordinates of the path (1xN vector).
-%   yPath     - North coordinates of the path (1xN vector).
+%   xPath     - x coordinates of the path (1xN vector)
+%   yPath     - y coordinates of the path (1xN vector)
 %   shipSize  - Proportion of the plot width that the ship's width should 
-%               occupy (scalar).
-%   lineColor - Color of the path line (string or RGB vector).
-%   figNo     - Figure number for plotting (scalar).
+%               occupy (scalar)
+%   lineColor - Color of the path line (string or RGB vector)
+%   figNo     - Figure number for plotting (scalar)
 %
 % Example usage:
 %   animateShip([0 1 2 3], [0 1 4 9], 0.1, 'b', 1)
@@ -22,7 +22,7 @@ function animateShip(xPath, yPath, shipSize, lineColor, figNo)
 %   path colored blue and the ship's width being 5% of the plot's width.
 %
 % Dependencies:
-%   Requires the image file 'viking.png' in the MSS/GNC/utils directory. 
+%   Requires the image file 'viking.png' located in the MSS/GNC/utils directory. 
 %
 % Author:    Thor I. Fossen
 % Date:      27 Mar 2024
@@ -35,7 +35,7 @@ function animateShip(xPath, yPath, shipSize, lineColor, figNo)
 persistent shipImgRotated shipAlphaRotated shipHandle
 
 if isempty(shipImgRotated)
-    [shipImg, ~, shipAlpha] = imread('viking.png');
+    [shipImg, ~, shipAlpha] = imread('viking.png');  % MSS/GNC/utils/..
     shipImgRotated = rot90(shipImg, 2); % Rotate if necessary
     if ~isempty(shipAlpha)
         shipAlphaRotated = rot90(shipAlpha, 2);
