@@ -166,10 +166,12 @@ for i = 1:N+1
 
    % Offshore supply vessel dynamics
    xdot = osv([nu; eta],ui,Vc,betaVc);
+   Jmtrx = eulerang(eta(4),eta(5),eta(6));
 
-   % Numerical integration (k+1)
+   % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
+   % x = x + h * xdot is replaced by forward and backward Euler integration
    nu = nu + h * xdot(1:6);        % Forward Euler, velocity
-   eta = eta + h * xdot(7:12);     % Backward Euler, position
+   eta = eta + h * Jmtrx * nu;     % Backward Euler, position
    
 end
 
