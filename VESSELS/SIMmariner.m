@@ -8,11 +8,10 @@ echo on
 % Author:     Thor I. Fossen
 % Date:       2018-07-21
 % Revisions:  2024-03-27 Added animation of the ship North-East positions
+echo off 
 
 clear animateShip  % clear the persistent animation variables
-clearvars;
 
-echo off 
 disp('Simulating mariner.m under PD-control with psi_ref = 5 (deg)...')
 
 t_f = 600;   % final simulation time (sec)
