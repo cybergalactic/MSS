@@ -12,10 +12,11 @@
 %
 % Author:     Thor I. Fossen
 % Date:       2021-06-28
-% Revisions:  2022-02-01 redesign of the autopilots
-%             2022-05-06 retuning for new version of remus100.m
-%             2022-05-08 added compability for unit quaternions
-%             2023-02-09 added flags for multiple control laws
+% Revisions:  2022-02-01 Redesign of the autopilots
+%             2022-05-06 Retuning for new version of remus100.m
+%             2022-05-08 Added compability for unit quaternions
+%             2023-02-09 Added flags for multiple control laws
+%             2024-03-27 Using forward and backward Euler to integrate xdot
 
 clearvars;
 clear integralSMCheading    % reset integral state in integralSMCheading.m
@@ -185,15 +186,20 @@ for i = 1:N+1
    % Store simulation data in a table 
    simdata(i,:) = [t z_d theta_d psi_d r_d ui' x'];   
    
-   % Propagate the vehicle dynamics (k+1)
+   % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
+   % x = x + h * xdot is replaced by forward and backward Euler integration
    xdot = remus100(x,ui,Vc,betaVc);
-   
+
    if (kinematicsFlag == 0)     
-       x = x + h * xdot;                       % Euler's integration method
+       Jmtrx = eulerang(x(10),x(11),x(12));
+       x(1:6) = x(1:6) + h * xdot(1:6);        % forward Euler 
+       x(7:12) = x(7:12) + h * Jmtrx * x(1:6); % backward Euler 
    else
-       x(1:9) = x(1:9) + h * xdot(1:9);        % Euler's integration method       
        quat = x(10:13);                        % unit quaternion
-       quat = expm(Tquat(x(4:6)) * h) * quat;  % exact discretization
+       Rq = Rquat(quat);                       % rotation matrix
+       x(1:6) = x(1:6) + h * xdot(1:6);        % forward Euler       
+       x(7:9) = x(7:9) + h * Rq * x(1:3);      % backward Euler
+       quat = expm(Tquat(x(4:6)) * h) * quat;  % exact quat. discretization
        x(10:13) = quat / norm(quat);           % normalization
    end
    
