@@ -19,18 +19,18 @@ No = menu('Choose maneuver','Straight-line stability',...
 r=0; psi=0; x=0; y=0; delta = 0; z=0;
 xout = zeros(N+1,5);
 
-for i=1:N+1,
+for i=1:N+1
     xout(i,:) = [r psi x y delta];
      
-    if No==1,
+    if No==1
         delta = 0;
-    elseif (No==2 | No==3),
+    elseif (No==2 || No==3)
         if No==2, zeta = 1;   wn = 3/T;  end
         if No==3, zeta = 0.1; wn = 3/T;  end        
         Kp = (T/K)*wn*wn;              % PD-control
         Kd = (T/K)*(2*zeta*wn+1/T);
         delta = -Kp*(psi)-Kd*r;
-    elseif No==4,
+    elseif No==4
         zeta = 1; wn = 7/T;  
         Kp = (T/K)*wn*wn; 
         Kd = (T/K)*(2*zeta*wn+1/T);
@@ -51,7 +51,7 @@ for i=1:N+1,
 end
 
 % plots
-if No~=5,  
+if No~=5
     t = h*(0:N)';
     r=(180/pi)*xout(:,1); psi=(180/pi)*xout(:,2); x=xout(:,3); y=xout(:,4); delta=(180/pi)*xout(:,5);
 
