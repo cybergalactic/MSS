@@ -94,10 +94,12 @@ for i=1:N+1
    
    % USV dynamics
    xdot = otter(x,n,mp,rp,V_c,beta_c);
+   Jmtrx = eulerang(x(10),x(11),x(12));
 
-   % Euler's integration methods (k+1)
-   x(1:6) = x(1:6) + h * xdot(1:6);  % Forward Euler (Fossen 2021, Eq. B27)
-   x(7:12) = x(7:12) + h * x(1:6);   % Backward Euler (Fossen 2021, Eq. B28)
+   % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
+   % x = x + h * xdot is replaced by forward and backward Euler integration
+   x(1:6) = x(1:6) + h * xdot(1:6);          % Forward Euler 
+   x(7:12) = x(7:12) + h * Jmtrx * x(1:6);   % Backward Euler
    n = n - h/Tn * (n - n_c);              
    z_psi = z_psi + h * ssa( psi-psi_d );  
    psi_d = psi_d + h * r_d;               
