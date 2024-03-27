@@ -22,9 +22,7 @@ nu = sin((0:N)*h)'*[0.5 0.1 -0.2];  % angular velocity vector
 
 pause % Strike any key to continue
 
-%##########################################################################
-% Euler angle kinematics
-%##########################################################################
+%% Euler angle kinematics
 x = [phi theta psi]';
 
 xdata = zeros(N,7);
@@ -39,9 +37,7 @@ for i = 1:N
 end
 echo on; 
 
-%##########################################################################
-% Quaternion kinematics
-%##########################################################################
+%% Quaternion kinematics
 q = euler2q(phi,theta,psi); 
 
 qdata = zeros(N,7);
@@ -63,9 +59,7 @@ echo on;
 pause % Strike any key to continue
 echo off
 
-%##########################################################################
-% Plots
-%##########################################################################
+%% Plots
 t = (0:h:(N-1)*h)';
 figure(1)
 subplot(221); plot(t,qdata(:,1:4),'linewidth',2); 
@@ -80,8 +74,10 @@ xlabel('time (s)'); ylabel('deg'); grid;
 subplot(224); plot(t,R2D*xdata(:,5:7),'linewidth',2);
 title('Euler angles \phi,\theta and \psi from ODE','fontsize',14); 
 xlabel('time (s)'); ylabel('deg'); grid;
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
 
-%##########################################################################
 echo on
 pause % Strike any key for main menu
 echo off
