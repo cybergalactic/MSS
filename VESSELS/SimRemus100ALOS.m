@@ -14,6 +14,8 @@
 %
 % Author:     Thor I. Fossen
 % Date:       2024-02-09
+% Revisions:  2024-03-27 Using forward and backward Euler to integrate xdot
+
 clearvars;
 clear ALOS3D                % clear the static variables used by ALOS3D
 
@@ -29,14 +31,14 @@ w_c = 0.1;
 % ALOS guidance law
 Delta_h = 20;               % horizontal look-ahead distance (m)
 Delta_v = 20;               % vertical look-ahead distance (m)
-gamma_h = 0.002;            % adaptive gain, horizontal plane 
-gamma_v = 0.002;            % adaptive gain, vertical plane 
+gamma_h = 0.001;            % adaptive gain, horizontal plane 
+gamma_v = 0.001;            % adaptive gain, vertical plane 
 
 M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 K_f = 0.3;                  % observer gain
 
 % Waypoints
-R_switch = 10;          % radius of sphere (m) used for waypoint switching 
+R_switch = 5;           % radius of sphere (m) used for waypoint switching 
 wpt.pos.x = [0  -20  -100 0   200, 200  400];
 wpt.pos.y = [0  200   600 950 1300 1800 2200];
 wpt.pos.z = [0  10   100 100 50 50 50];
@@ -92,7 +94,8 @@ for i = 1:N+1
    yn = x(8);               % East position (m)   
    zn = x(9);               % Down position, depth (m)
 
-   [phi,theta,psi] = q2euler(x(10:13));  % quaternion to Euler angles 
+   quat = x(10:13);                  % unit quaternion
+   [phi,theta,psi] = q2euler(quat);  % quaternion to Euler angles 
 
    % PID heading and depth controllers
    U_design = 2;        % ALOS design speed
@@ -142,11 +145,13 @@ for i = 1:N+1
    % Store simulation data in a table 
    simdata(i,:) = [t theta_d psi_d ui' x' y_e betaVc Vc beta_c_hat alpha_c_hat z_e];   
 
-   % Propagate the vehicle dynamics (k+1)
-   xdot = remus100(x,ui,Vc,betaVc,w_c);     % Remus 100 dyanmics
-   x(1:9) = x(1:9) + h * xdot(1:9);         % Euler's integration method    
-   quat = x(10:13);     
-   quat = expm(Tquat(x(4:6)) * h) * quat;   % exact discretization
+   % Propagate the vehicle dynamics (k+1)   
+   % x = x + h * xdot is replaced by forward and backward Euler integration
+   xdot = remus100(x,ui,Vc,betaVc,w_c);     % Remus 100 dynamics
+   Rq = Rquat(quat);                        % rotation matrix
+   x(1:6) = x(1:6) + h * xdot(1:6);         % forward Euler       
+   x(7:9) = x(7:9) + h * Rq * x(1:3);       % backward Euler
+   quat = expm(Tquat(x(4:6)) * h) * quat;   % exact quat. discretization
    x(10:13) = quat / norm(quat);            % normalization
    
    % Propagate integral states (k+1)
@@ -231,7 +236,7 @@ legend('vehicle speed (m/s)','current speed (m/s)','Location','southeast')
 
 subplot(313),plot(t,(180/pi)*betaVc)
 xlabel('time (s)'),grid
-legend('Current direction (deg)')
+legend('Current direction (deg)','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
@@ -243,7 +248,7 @@ xlabel('time (s)'),title('pitch angle (deg)'),grid
 legend('true','desired')
 subplot(212),plot(t,(180/pi)*eta(:,6),t,(180/pi)*psi_d)
 xlabel('time (s)'),title('yaw angle (deg)'),grid
-legend('true','desired')
+legend('true','desired','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',12)
@@ -256,14 +261,14 @@ subplot(311)
 plot(t,(180/pi)*alpha,'g',t,(180/pi)*alpha_c,'b',t,(180/pi)*alpha_c_hat,'r')
 title('Angle of attack (deg)')
 grid
-legend('\alpha','\alpha_c','\alpha_c estimate')
+legend('\alpha','\alpha_c','\alpha_c estimate','Location','best')
 
 subplot(312)
 plot(t,(180/pi)*beta,'g',t,(180/pi)*beta_c,'b',t,(180/pi)*beta_c_hat,'r')
 title('Sideslip angle (deg)')
 xlabel('time (s)')
 grid
-legend('\beta','\beta_c','\beta_c estimate')
+legend('\beta','\beta_c','\beta_c estimate','Location','best')
 
 subplot(313)
 plot(t,y_e,t,z_e)
@@ -285,7 +290,7 @@ xlabel('y^n (m)'),ylabel('x^n (m)')
 xlim([0,2500])
 axis('equal')
 grid
-legend('actual path','waypoints')
+legend('actual path','waypoints','Location','best')
 
 subplot(212)
 plot(eta(:,2),eta(:,3))
@@ -296,7 +301,7 @@ xlim([0,2500])
 ylim([0,150])
 xlabel('y^n (m)'),ylabel('z^n (m)')
 grid
-legend('actual path','waypoints')
+legend('actual path','waypoints','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
@@ -319,7 +324,7 @@ plot3(wpt.pos.y,wpt.pos.x,wpt.pos.z,'ro','markersize',15)
 hold off
 title('North-East-Down plot (m)')
 xlabel('E'); ylabel('N'); zlabel('D');
-legend('actual path','waypoints'),grid
+legend('actual path','waypoints','Location','best'),grid
 set(gca, 'ZDir', 'reverse');
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
