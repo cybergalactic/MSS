@@ -47,7 +47,7 @@ for i=1:N+1
 
 end
 
-%% Plots
+%% PLOTS
 t     = simdata(:,1);
 u     = simdata(:,2); 
 v     = simdata(:,3);          
