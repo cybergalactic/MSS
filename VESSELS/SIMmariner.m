@@ -27,13 +27,13 @@ simdata = zeros(N+1,length(x)+2);    % memory allocation
 
 for i=1:N+1
 
-    time = (i-1)*h;                  % simulation time in seconds
+    time = (i-1) * h;                % simulation time in seconds
 
     r   = x(3);
     psi = x(6);
     
     % control system
-    psi_ref = 5*(pi/180);                         % desired heading
+    psi_ref = deg2rad(5);                         % desired heading
     delta = -Kp * ( ssa(psi-psi_ref) + Td * r );  % PD-controller
 
     % ship model
