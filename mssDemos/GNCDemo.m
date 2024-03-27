@@ -1,4 +1,4 @@
-%       ------- GUIDANCE, NAVIGATION AND CONTROL TOOLBOX Demonstrations---
+%       MSS TOOLBOX Demonstrations
 %
 %       1)  Euler angle and quaternion kinematics
 %       2)  Ship maneuvering trials 
@@ -9,26 +9,27 @@
 %       0)  Quit
 echo off
 
-%   Guidance, Navigation and Control Toolbox Demonstrations.
-%
-%   Thor I. Fossen 2001-08-14
+% Author:     Thor I. Fossen
+% Date:       2001-08-14
 
+while(1)
 
-while 1
     demos= ['KinDemo '
-            'ManDemo '
-            'SimDemo ' 
-            'StabDemo'
-            'WaveDemo'];
+        'ManDemo '
+        'SimDemo '
+        'StabDemo'
+        'WaveDemo'];
     clc
     help gncdemo
     n = input('Select a demo number: ');
-    if ((n <= 0) | (n > 5)) 
+    if ( n <= 0 || n > 5 )
         break
     end
     demos = demos(n,:);
     eval(demos)
     clear
- end
- clear n demos
+
+end
+
+clear n demos
 clc
