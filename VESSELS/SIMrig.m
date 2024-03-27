@@ -121,24 +121,30 @@ p     = rad2deg(simdata(:,11));
 q     = rad2deg(simdata(:,12));
 r     = rad2deg(simdata(:,13)); 
 
-figure(1)
+figure(1); figure(gcf)
 subplot(211)
 plot(y,x,'linewidth',2)
-grid,axis('equal'),xlabel('East'),ylabel('North'),title('Semisub xy-plot (m)')
+grid,axis('equal')
+xlabel('East')
+ylabel('North')
+title('Semisub xy-plot (m)')
 subplot(212)
 plot(t,x,t,y,'linewidth',2),title('Semisub positions (m)'),
-legend('x position','y position','Location','best'),grid
+legend('x position','y position','Location','best')
+grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend','Location','best'),'FontSize',14)
 
-figure(2)
+figure(2); figure(gcf)
 subplot(311)
 plot(t,phi,'linewidth',2),xlabel('time (s)')
-title('roll angle \phi (deg)'),grid
+title('Roll angle \phi (deg)')
+grid
 subplot(312)
 plot(t,theta,'linewidth',2),xlabel('time (s)')
-title('pitch angle \theta (deg)'),grid
+title('Pitch angle \theta (deg)')
+grid
 subplot(313)
 plot(t,psi,'linewidth',2)
 hold on
@@ -146,7 +152,8 @@ plot( [0, t(end)],-rad2deg([psi_d, psi_d]),'c')
 plot( [0, t(end)], rad2deg([psi_d, psi_d]),'c')
 hold off
 xlabel('time (s)')
-title('yaw angle \psi (deg)'),grid
+title('Yaw angle \psi (deg)')
+grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend','Location','best'),'FontSize',14)
