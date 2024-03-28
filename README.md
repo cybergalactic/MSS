@@ -9,14 +9,22 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
     URL: https://github.com/cybergalactic/MSS
 
-Copy the directory MSS/contents to your computer and "add the path with subfolders" to Matlab. Then type:
+Copy the directory MSS/... to your computer and "add the path with subfolders" to Matlab. Then type:
 
     mssHelp
+
+Marine craft models and time-series simulation templates (m-files) are located under the catalog:
+
+    /MSS/VESSELS/                           Marine craft model library
+
+and the m-files can be listed by typing
+
+    help VESSELS                            Marine craft models and time-series simulation templates (m-files)
 
 Examples and demo files are located under the catalogs: 
 
     /MSS/mssExamples/                       Textbook m-file examples (Fossen 2021)  
-    /MSS/mssDemos/                          GNC m-file demos
+    /MSS/mssDemos/                          MSS m-file demos
     /MSS/SIMULINK/mssSimulinkDemos/         Simulink demos  
     /MSS/SIMULINK/mssWamitShipXTemplates/   Simulink templates for simulation of WAMIT and ShipX vessel and RAO data
     
