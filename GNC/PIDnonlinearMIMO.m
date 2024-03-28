@@ -29,8 +29,8 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %   eta_ref: vector [x_ref,y_ref,psi_ref] of setpoints in surge, sway, and yaw
 %   M: system inertia matrix, 3x3 (surge, sway, and yaw) or 6x6
 %   wn: closed-loop natural frequencies, scalar or diagonal matrix 3x3
-%   zeta: realtive damping ratios, scalar or diagonal matrix 3x3
-%   T_f: low-pass filter time constant (s)
+%   zeta: closed-loop relative damping ratios, scalar or diagonal matrix 3x3
+%   T_f: setpointlow-pass filter time constant (s)
 %   h: sampling time (s)
 %
 % Outputs:  
@@ -51,6 +51,7 @@ end
 if isrow(eta_ref); eta_ref = eta_ref'; end
 
 % Reduce 6-DOF model to 3-DOF model
+DOF = 3;
 if length(nu) == 6
     eta = [eta(1) eta(2) eta(6)]';
     nu  = [nu(1) nu(2) nu(6)]';
