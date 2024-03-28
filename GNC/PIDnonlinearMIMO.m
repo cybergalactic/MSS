@@ -6,7 +6,7 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %    .
 %    z_int = eta - eta_d,     where eta_d = 1 / (T_f * s + 1) * eta_ref
 %
-%    tau = -R(psi)' * ( Kp * (eta - eta_d) + Kd * nu + Ki * z_int )
+%    tau = -R(psi)' * ( Kp * (eta - eta_d) + Ki * z_int ) - Kd * nu
 %
 %    Kp = M_diag * wn * wn,                  M_diag = diag(diag(M))
 %    Kd = M_diag * 2 * zeta * wn
@@ -73,7 +73,7 @@ Ki = 1/10 * Kp .* wn;
 % 3-DOF control law for surge, sway and yaw
 e = eta - eta_d;
 e(3) = ssa( e(3) );
-tau_PID = -R' * ( Kp * e + Kd * nu + Ki * z_int );
+tau_PID = -R' * ( Kp * e + Ki * z_int ) - Kd * nu;
 
 if DOF == 6
     tau = [tau_PID(1), tau_PID(2), 0, 0, 0, tau_PID(3)]'; 
