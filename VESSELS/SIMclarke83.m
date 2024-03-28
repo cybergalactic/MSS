@@ -1,7 +1,7 @@
 % SIMclarke83 User editable script for simulation of a ship with main
 % dimensions L, B, and T. The hydrodynamic data is based on:
 %
-% CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
+% Reference: CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
 % manoeuvring criteria in hull design using linear thory. Trans.  
 % R. lnsm nav. Archit.  125, 45-68. 
 %
