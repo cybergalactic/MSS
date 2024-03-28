@@ -21,8 +21,8 @@ function [xdot, U] = supply(x,tau)
 %
 % Author:     Thor I. Fossen
 % Date:       12 July 2002
-% Revisions:  24 February 2004 - Included missing mass in the Bis transformation
-%             12 October 2011 - Corrected T and Tinv, which were switched 
+% Revisions:  24 Feb 2004 - Included missing mass in the Bis transformation
+%             12 Oct 2011 - Corrected T and Tinv, which were switched 
 %             27 May 2019 - Added U as ouput
 %             31 May 2019 - Included the rotation matrix in yaw
 %             22 Mar 2023 - Corrected wrong assignmnet of states
