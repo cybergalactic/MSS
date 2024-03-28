@@ -45,6 +45,7 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 %            2023-03-28 Trim state is replaced by payload mp and rp
 %            2023-10-14 Added ocean current acceleration terms
 %            2024-02-03 Recalibration of damping terms
+%            2024-02-28 Corrected the trim condition for eta
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -200,18 +201,22 @@ tau_damp = [Xh Yh Zh Kh Mh Nh]';
 % Strip theory: cross-flow drag integrals
 tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
 
-% Payload
+% Payload expressed in NED
 f_payload = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mp*g ]';  % payload force 
 m_payload = Smtrx(rp) * f_payload;                        % payload moment 
 g_0 = [ f_payload
         m_payload ];
 
-% Kinematics
+% Trim condition: G * eta_0 = g_0
+eta_0 = [0; 0; inv(G(3:5,3:5)) * g_0(3:5); 0];
+eta = eta - eta_0; % shifted equilibrium
+
+% Kinematic transformation matrix
 J = eulerang(eta(4),eta(5),eta(6));
 
 % Time derivative of the state vector, numerical integration see ExOtter.m  
-xdot = [ nu_c_dot + M \ ( tau + tau_damp + tau_crossflow ...
-            - C * nu_r - G * eta + g_0 )
+xdot = [ nu_c_dot + ...
+         M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta )
          J * nu ];  
      
 end
