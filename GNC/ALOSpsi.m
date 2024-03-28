@@ -1,5 +1,5 @@
 function [psi_d, r_d, y_e] = ALOSpsi(x,y,Delta,gamma,h,R_switch,wpt,U,K_f)
-% [psi_d, r_d, y_e] = ALOSpsi(x,y,Delta,gamma,h,R_switch,wpt,U) 
+% [psi_d, r_d, y_e] = ALOSpsi(x,y,Delta,gamma,h,R_switch,wpt,U,K_f) 
 % ALOSpsi computes the desired heading angle psi_d, desired yaw rate r_d 
 % and cross-track error y_e when the path is  straight lines going through 
 % the waypoints (wpt.pos.x, wpt.pos.y). The desired heading angle computed 
@@ -128,7 +128,6 @@ beta_hat = beta_hat + h * gamma * Delta * y_e / sqrt( Delta^2 + y_e^2 );
 
 % observer/filter: psi_f[k+1]
 psi_f = psi_f + h * ( r_d + K_f * ssa( psi_ref - psi_f ) );
-
 
 end
 
