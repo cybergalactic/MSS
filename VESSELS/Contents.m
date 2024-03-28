@@ -1,33 +1,43 @@
-% MSS Vessel Models
+% MSS Marine craft models:
+% clarke83        - Linear maneuvering model parametrized using (L,B,T) 
+%                   found from linear regression of model tests (Clarke et 
+%                   al. 1983)
+% container       - Nonlinear maneuvering model of a high-speed container 
+%                   ship, L = 175 m, including roll (Son and Nomoto 1982)
+% DSRV            - Deep submergence rescue vehicle (DSRV), L = 5.0 m 
+%                   (Healey 1992)
+% frigate         - Nonlinear autopilot model for a frigate, L = 100 m
+% Lcontainer      - Linearized model of a high-speed container ship, 
+%                   L = 175 m, including the roll mode (Son and Nomoto 1982)
+% mariner         - Nonlinear maneuvering model for the Mariner class 
+%                   vessel, L = 160 m 
+% navalvessel     - Nonlinear maneuvering model of a multipurpose naval 
+%                   vessel, L = 51.5 m
+% npsauv          - Naval Postgraduate School autonomous underwater vehicle
+%                   (AUV), L = 5.3 m 
+% osv             - Nonlinear model of an Offshore supply vessel (OSV), 
+%                   L = 83.0 m
+% otter           - OTTER small autonomous USV, L = 2.0 m
+% remus100        - REMUS 100 autonomous underwater vehicle (AUV), L = 1.9 m
+% rig             - Semisubmersible linear mass-damper-spring model, 
+%                   L = 84.6 m
+% ROVzefakkel     - Nonlinear autopilot model  of a boat, L = 45 m
+% supply          - Linear DP model of a supply vessel, L = 76.2 m
+% tanker          - Nonlinear course unstable maneuvering model of a 
+%                   tanker, L = 304 m 
 %
-% Standard ship, semisubmersible and underwater vehicle models.
-%
-%    Ships:
-%    clarke83    - Ship maneuvering model parametrized using L, B and T
-%    frigate     - Frigate, L = 100 m (nonlinear autopilot model)
-%    mariner     - Mariner class vessel, L=160 m (nonlinear maneuvering model)
-%    tanker      - Tanker, L=304 m (nonlinear course unstable maneuvering model)
-%    container   - Container ship, L=175 m (nonlinear maneuvering model including the roll mode)
-%    Lcontainer  - Container ship, L=175 m (LINEAR maneuvering model including the roll mode)
-%    navalvessel - Multipurpose naval vessel, L = 51.5 m (nonlinear manneuvering model)
-%    ROVzefakkel - Boat, L = 45 m (nonlinear autopilot model) 
-%    supply      - Supply vessel, L = 76.2 m (linear DP model)
-%
-%    Underwater vehicles:
-%    DSRV        - Deep submergence rescue vehicle (DSRV), L = 5.0 m
-%    npsauv      - Naval Postgraduate School autnomous underwater vehicle (AUV), L = 5.3 m
-%	 remus100    - Remus 100 autnomous underwater vehicle (AUV), L = 1.9 m
-
-%    Semisubmersibles:
-%    rig         - Semisub (mass-damper-spring) model, L = 84.6 m
-%
-%    USV models:
-%    otter       - Small autonomous USV, L = 2.0 m
-%
-%    Time-series simulations:
-%    SIMclarke83    - Simulate clarke83.m under PD control
-%    SIMmariner     - Simulate mariner.m under PD control
-%    SIMotter       - Smulate otter.m under feedback control
-%    SIMcontainer   - Simulate container.m and Lcontainer.m under PD control
-%    SIMnavalvessel - Simulate navalvessel.m under PD control
-%    SIMrig         - Simulate the 6-DOF semisub model under PID control
+% Time-series simulations:
+% SIMclarke83     - Simulate clarke83.m under PD control
+% SIMmariner      - Simulate mariner.m under PD control
+% SIMotter        - Simulate otter.m under feedback control
+% SIMosv          - Simulate osv.m under nonlinear DP control with 
+%                   constrained control allocation (dynamic optimization)
+% SIMcontainer    - Simulate container.m and Lcontainer.m under PD control
+% SIMnavalvessel  - Simulate navalvessel.m under PD control
+% SIMremus100     - Simulate remus100.m using autopilots for depth and 
+%                   heading control
+% SIMremus100ALOS - Simulate remus100.m in a 3-D path-following scenario 
+%                   using adaptive LOS (ALOS)
+% SIMrig          - Simulate the 6-DOF semisubmersible model under PID 
+%                   control
+% SIMsupply       - Simulate the linear supply vessel model under DP control
