@@ -33,8 +33,6 @@ M = 1e9 * [...                  % supply vessel mass matrix
          0    0.0113   -0.0340
          0   -0.0340    4.4524 ];
 
-M = diag(diag(M));
-
 % Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
 %   #1 Bow tunnel thruster (RPM)
 %   #2 Bow tunnel thruster (RPM)
