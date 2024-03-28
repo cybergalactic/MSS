@@ -1,7 +1,7 @@
 % SIMotter User editable script for simulation of the Otter USV ('otter.m')
 % under feedback control when exposed to ocean currents. Methods for
-% heading and path-following have been implemented, and switching between
-% these methods is done by specifying the control flag. 
+% heading and path-following control have been implemented, and switching 
+% between these methods is done by specifying the control flag. 
 %
 % Calls:      otter.m
 %             refModel.m
