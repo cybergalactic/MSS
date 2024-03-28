@@ -23,7 +23,7 @@ betaVc = deg2rad(20);           % current direction (rad)
 
 % DP control law
 psi_ref = deg2rad(50);
-eta_ref = [ 5 5 psi_ref ]'; % DP setpoint
+eta_ref = [ 5 5 psi_ref ]';     % DP setpoint
 wn = diag([0.1, 0.1, 0.2]);     % closed-loop natural frequencies
 zeta = diag([1, 1, 1]);         % closed-loop relative damping ratios
 T_f = 10;                       % setpoint LP-filter time constant
