@@ -60,9 +60,8 @@ demoWaveElevation.slx                   % Computation of wave elevation from wav
 demoWaypointGuidance.slx                % Waypoint guidance system
 ```
 
-## GNC demos (m-files)
+## MSS demos (m-files)
 ```matlab
-GNCdemo        % MAIN PROGRAM
 1) KinDemo     % Euler angle and quaternion kinematics
 2) ManDemo     % Maneuvering trials
 3) StabDemo    % Straight-line, directional and positional motion stability
