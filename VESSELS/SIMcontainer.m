@@ -1,4 +1,3 @@
-echo on
 % SIMcontainer - User editable script for simulating the dynamics of a 
 % container ship under feedback control. The script concurrently simulates 
 % the ship using both a linear model, defined in 'Lcontainer.m', and a 
@@ -14,9 +13,6 @@ echo on
 % Revisions:
 
 clearvars;
-
-echo off
-disp('Simulating container.m and Lcontainer.m under PD control with psi_ref = 5 deg ...')
 
 t_f = 600;   % final simulation time (sec)
 h   = 0.1;   % sample time (sec)
