@@ -28,7 +28,7 @@
 %             2024-03-29 Added ALOS path-following control algorithms 
 %                        for straight lines and Hermite splines
 
-clear ALOSpsi crosstrackHermiteLOS % clear persisten variables
+clear ALOSpsi crosstrackHermiteLOS % clear persistent variables
 clearvars;
 
 %% USER INPUTS
