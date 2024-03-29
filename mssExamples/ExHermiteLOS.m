@@ -64,7 +64,7 @@ for h = 1:N  % Loop to update vehicle position and cross-track error
     
     % Compute the cross-track error, closest point on the spline, and tangent
     [chi_d, omega_chi_d, y_e, pi_h, closestPoint, closestTangent] = ...
-    crosstrackHermiteLOS3(wayPoints,vehiclePos,h,U_h,Delta_h);
+        crosstrackHermiteLOS(wayPoints,vehiclePos,h,U_h,Delta_h);
 
     % Store data 
     table(h,:) = [y_e, pi_h, chi_d, omega_chi_d];
