@@ -33,7 +33,7 @@ Delta_h = 10;   % look-ahead distance
 U_h = 0.5;      % vehicle speed, should be reduced if omega_chi_d is to large
 
 %% Plot the Hermite spline
-figure(1); figure(gcf)
+figure(1); clf; figure(gcf)
 
 t = linspace(0, 1, 200);
 for i = 1:size(wayPoints, 1)-1
@@ -97,7 +97,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 %% Plot the LOS variables stored in table(:,1:4)
-figure(2); figure(gcf);
+figure(2); clf; figure(gcf);
 subplot(221)
 plot(1:N,table(:,1), 'LineWidth', 2), grid
 title('Cross-track error y_e^p (m)')
