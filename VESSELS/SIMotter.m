@@ -1,6 +1,6 @@
 % SIMotter: User editable script for simulation of the Otter USV('otter.m'),
-% length 1.6 m, beam 1.08 m, and mass 55 kg under feedback control when 
-% exposed to ocean currents; see 'otter.m' . Methods for heading and 2-D
+% length 2.0 m, beam 1.08 m, and mass 55 kg under feedback control when 
+% exposed to ocean currents; see 'otter.m'. Methods for heading and 2-D
 % adaptive line-of-sight (ALOS) path-following control have been implemented, 
 % and switching between these methods is done by specifying the flag:
 %
