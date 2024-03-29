@@ -27,8 +27,8 @@ function [psi_d, r_d, y_e] = ALOSpsi(x,y,Delta,gamma,h,R_switch,wpt,U,K_f)
 %
 % Inputs:   
 %   (x,y): craft North-East positions (m)
-%   Delta: positive look-ahead distance (m)
-%   gamma: positive adaptive gain constant
+%   Delta_h: positive look-ahead distance (m)
+%   gamma_h: positive adaptive gain constant
 %   h: sampling time (s)
 %   R_switch: go to next waypoint when the along-track distance x_e 
 %             is less than R_switch (m)
