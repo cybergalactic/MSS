@@ -7,25 +7,30 @@
 % vectors including the LOS vector, cross-track error, and tangent vectors
 % at closest points on the path. 
 %
-% Calls:      crossTrackErrorHermite.m, hermiteSpline.m     
+% Calls:      crossTrackErrorHermite.m
+%             hermiteSpline.m     
+%
+% Example:    See 'SIMotter.m' for an example with adaptive line-of-sight
+%             (ALOS) path-following control using Hermite splines
 %
 % Author:     Thor I. Fossen
-% Date:       2024-02-28
+% Date:       2024-03-29
+
 clearvars;
 
 % Table of waypoints (xy-coordinates)
-wayPoints = [ 0 20
-              9 50 
-              30 60
-              35 80
-              55 100];
+wpt.pos.x = [ 0, 9, 30, 35, 55]';
+wpt.pos.y = [ 20, 50, 60, 80, 100]';
+wayPoints = [wpt.pos.x wpt.pos.y];
 
 % Initial vehicle position (xy-coordinates)
-vehiclePos = [-10 30];
+x = -10;
+y = 30;
+vehiclePos = [x y];
 
 % LOS parameters
 Delta_h = 10;   % look-ahead distance
-U = 0.5;        % vehicle speed, should be reduced if omega_chi_d is to large
+U_h = 0.5;      % vehicle speed, should be reduced if omega_chi_d is to large
 
 %% Plot the Hermite spline
 figure(1); figure(gcf)
@@ -52,17 +57,17 @@ plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
 N = 25;
 table = zeros(N,4);
 
-for step = 1:N  % Loop to update vehicle position and cross-track error
+for h = 1:N  % Loop to update vehicle position and cross-track error
 
     % Update dummy vehicle position 
-    vehiclePos = vehiclePos + [step * 0.25, step * 0.2];
+    vehiclePos = vehiclePos + [h * 0.25, h * 0.2];
     
     % Compute the cross-track error, closest point on the spline, and tangent
-    [y_e, pi_h, chi_d, omega_chi_d, closestPoint, closestTangent] = ...
-        crosstrackHermiteLOS(wayPoints, vehiclePos, Delta_h, U);
+    [chi_d, omega_chi_d, y_e, pi_h, closestPoint, closestTangent] = ...
+    crosstrackHermiteLOS3(wayPoints,vehiclePos,h,U_h,Delta_h);
 
     % Store data 
-    table(step,:) = [y_e, pi_h, chi_d, omega_chi_d];
+    table(h,:) = [y_e, pi_h, chi_d, omega_chi_d];
 
     % Plot the vehicle North-East position
     plot(vehiclePos(2), vehiclePos(1),'rs','MarkerFaceColor','r', ...
@@ -104,7 +109,7 @@ plot(1:N,rad2deg(table(:,3)), 'LineWidth', 2), grid
 title('LOS course angle \chi_d (deg)')
 subplot(224)
 plot(1:N,rad2deg(table(:,4)), 'LineWidth', 2), grid
-title(['LOS course rate \omega_{\chi_d} (deg/s) for U = ' num2str(U) ' m/s'])
+title(['LOS course rate \omega_{\chi_d} (deg/s) for U = ' num2str(U_h) ' m/s'])
 set(findall(gcf,'type','text'),'FontSize',14)
 
 
