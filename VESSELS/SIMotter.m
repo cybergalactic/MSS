@@ -11,6 +11,7 @@
 % Calls:      otter.m
 %             refModel.m
 %             ALOS.m
+%             crosstrackHermiteLOS
 %
 % References: Fossen, T. I. and A. P. Aguiar (2024). A Uniform Semiglobal 
 %             Exponential Stable Adaptive Line-of-Sight (ALOS) Guidance Law 
