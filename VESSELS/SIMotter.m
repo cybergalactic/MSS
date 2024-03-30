@@ -34,7 +34,7 @@ clearvars;
 
 %% USER INPUTS
 h  = 0.05;        % sampling time [s]
-N  = 4000;		  % number of samples
+N  = 20000;		  % number of samples
 
 % Control system flag                  
 ControlFlag = 2;  % 0: PID heading autopilot, no path following
@@ -50,8 +50,8 @@ V_c = 0.3;                      % ocean current speed (m/s)
 beta_c = deg2rad(30);           % ocean current direction (rad)
 
 % Waypoints
-wpt.pos.x = [0,50,80,80]';      
-wpt.pos.y = [0,50,100,200]';
+wpt.pos.x = [0 0   300 300 -100 -100 200 ]';
+wpt.pos.y = [0 200 200  50   50  300 300 ]';
 wayPoints = [wpt.pos.x wpt.pos.y];
 
 % LOS parameters
@@ -93,7 +93,7 @@ T_n = 0.1;                      % propeller time constant (s)
 n = [0 0]';                     % intital speed n = [ n_left n_right ]'
 
 % Initial states
-eta = [5 0 0 0 0 0]';           % eta = [x y z phi theta psi]' 
+eta = [0 0 0 0 0 0]';           % eta = [x y z phi theta psi]' 
 nu  = [0 0 0 0 0 0]';           % nu  = [u v w p q r]'	 
 z_psi = 0;                      % integral state
 psi_d = eta(6);                 % reference model states
