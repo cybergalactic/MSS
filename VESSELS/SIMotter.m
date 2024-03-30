@@ -260,17 +260,20 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 
 % Figure 3
 figure(3); clf;
-subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
+subplot(611),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
 xlabel('time (s)'),title('speed (m/s)'),grid
-subplot(512),plot(t,eta(:,3),'linewidt',2)
+subplot(612),plot(t,eta(:,3),'linewidt',2)
 xlabel('time (s)'),title('heave position (m)'),grid
-subplot(513),plot(t,rad2deg(eta(:,4)))
+subplot(613),plot(t,rad2deg(eta(:,4)))
 xlabel('time (s)'),title('roll angle (deg)'),grid
-subplot(514),plot(t,rad2deg(eta(:,5)))
+subplot(614),plot(t,rad2deg(eta(:,5)))
 xlabel('time (s)'),title('pitch angle (deg)'),grid
-subplot(515),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
+subplot(615),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
+legend('\psi','\psi_d')
 xlabel('time (s)'),title('yaw angle (deg)'),grid
-legend('\psi','\psi_d','Location','best')
+
+subplot(616),plot(t,rad2deg(ssa(eta(:,6)-psi_d)))
+xlabel('time (s)'),title('yaw angle tracking error (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
