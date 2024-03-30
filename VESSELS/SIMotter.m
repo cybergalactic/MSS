@@ -50,8 +50,8 @@ V_c = 0.3;                      % ocean current speed (m/s)
 beta_c = deg2rad(30);           % ocean current direction (rad)
 
 % Waypoints
-wpt.pos.x = [0 0   300 300 -100 -100 200 ]';
-wpt.pos.y = [0 200 200  50   50  300 300 ]';
+wpt.pos.x = [0 0   300 300 -100 -100 200]';
+wpt.pos.y = [0 200 200  50   50  300 300]';
 wayPoints = [wpt.pos.x wpt.pos.y];
 
 % LOS parameters
