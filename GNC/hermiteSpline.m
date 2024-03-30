@@ -10,7 +10,7 @@ function [P, T] = hermiteSpline(t, segmentIndex, wayPoints)
 %    position(s) within a segment of the spline. It varies from 0 to 1, where 
 %    0 corresponds to the start of the segment and 1 corresponds to the end 
 %    the segment. t is used to evaluate the spline and its derivative at 
-%    of specific points along the segment.
+%    specific points along the segment.
 %  segmentIndex: integer that specifies the index of the segment for which 
 %    the spline and its tangents are to be computed. The segments are 
 %    defined by the waypoints, with each segment spanning from one waypoint 
@@ -44,35 +44,46 @@ function [P, T] = hermiteSpline(t, segmentIndex, wayPoints)
 %
 % Author:    Thor I. Fossen
 % Date:      2024-02-28
-% Revisions: 
+% Revisions: 2012-03-29 - Added a tangent scale factor to reduce undulation
 
 n = size(wayPoints, 1);     % Number of waypoints
 tangents = zeros(n, 2);     % Initialize tangents array
 
-% Compute tangents using finite differences
+% Find the maximum absolute value among the waypoints to determine scaling
+maxVal = max(abs(wayPoints), [], 'all');
+
+% By scaling the tangents, the influence of each waypoint's direction on 
+% the spline's curvature is reduced, which can help in achieving a 
+% smoother transition between waypoints, thus reducing undulation.
+scale_factor = 1 / (1 + log10(maxVal + 1));
+
+% Compute and scale tangents using finite differences
 for i = 1:n
-    if i == 1 % First point
-        tangents(i, :) = wayPoints(i+1, :) - wayPoints(i, :);
-    elseif i == n % Last point
-        tangents(i, :) = wayPoints(i, :) - wayPoints(i-1, :);
-    else % Middle points
-        tangents(i, :) = (wayPoints(i+1, :) - wayPoints(i-1, :)) / 2;
+    if i == 1
+        tangents(i, :) = (wayPoints(i+1, :) - wayPoints(i, :)) * scale_factor;
+    elseif i == n
+        tangents(i, :) = (wayPoints(i, :) - wayPoints(i-1, :)) * scale_factor;
+    else
+        tangents(i, :) = ((wayPoints(i+1, :) - wayPoints(i-1, :)) / 2) * scale_factor;
     end
 end
 
+% Hermite spline interpolation for the given segment
 P0 = wayPoints(segmentIndex, :);
 P1 = wayPoints(segmentIndex + 1, :);
 T0 = tangents(segmentIndex, :);
 T1 = tangents(segmentIndex + 1, :);
 
+% Hermite basis functions
 h00 = 2*t.^3 - 3*t.^2 + 1;
 h10 = t.^3 - 2*t.^2 + t;
 h01 = -2*t.^3 + 3*t.^2;
 h11 = t.^3 - t.^2;
 
+% Compute the spline points
 P = h00.*P0 + h10.*T0 + h01.*P1 + h11.*T1;
 
-% Derivatives of the basis functions
+% Compute the derivatives for the tangent vectors, if needed
 dh00 = 6*t.^2 - 6*t;
 dh10 = 3*t.^2 - 4*t + 1;
 dh01 = -6*t.^2 + 6*t;
