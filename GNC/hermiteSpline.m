@@ -1,9 +1,9 @@
-function [P, T] = hermiteSpline(t, segmentIndex, wayPoints)
-% [P, T] = hermiteSpline(t, segmentIndex, wayPoints) computes the cubic 
-% Hermite spline P and the tangents T to the spline for n > 3 waypoints.
-% The tangents at the waypoints are computed using finite differences, 
-% ensuring a smooth and continuous spline that is customizable through the 
-% choice of waypoints.
+function [P, T] = hermiteSpline(t,segmentIndex,wayPoints,undulation_factor)
+% [P, T] = hermiteSpline(t,segmentIndex,wayPoints,undulation_factor)) 
+% computes the cubic Hermite spline P and the tangents T to the spline for 
+% n > 3 waypoints. The tangents at the waypoints are computed using finite 
+% differences, ensuring a smooth and continuous spline that is customizable 
+% through the choice of waypoints.
 %
 % Inputs:    
 %  t: parameter (or a vector of parameters) that represents the normalized 
@@ -22,6 +22,11 @@ function [P, T] = hermiteSpline(t, segmentIndex, wayPoints)
 %    the Hermite spline is interpolated. The spline will be smooth and 
 %    continuous, passing through each waypoint and oriented according to 
 %    the computed tangents.
+%  undulation_factor: (OPTIONALLY): A parameter larger than 0 (typically 1)
+%    that controls influences the smoothness of the spline's transition 
+%    between waypoints by scaling the tangents. The undulation_factor 
+%    directly affects the spline's curvature, helping to achieve smoother 
+%    transitions and reduce undulation, which again minimize the turning rate.
 %
 % Outputs:  
 %  P: matrix or vector (depending on the size of t) that represents the 
@@ -44,18 +49,22 @@ function [P, T] = hermiteSpline(t, segmentIndex, wayPoints)
 %
 % Author:    Thor I. Fossen
 % Date:      2024-02-28
-% Revisions: 2012-03-29 - Added a tangent scale factor to reduce undulation
+% Revisions: 2012-04-01 - Added a tangent scale factor to reduce undulation
 
-n = size(wayPoints, 1);     % Number of waypoints
-tangents = zeros(n, 2);     % Initialize tangents array
+if nargin == 3
+    undulation_factor = 0.5;
+end
 
-% Find the maximum absolute value among the waypoints to determine scaling
-maxVal = max(abs(wayPoints), [], 'all');
+n = size(wayPoints, 1);     % number of waypoints
+tangents = zeros(n, 2);     % initialize tangents array
+
+% Exclude the last dummy waypoint before finding the maximum absolute value
+maxVal = max(abs(wayPoints(1:n-1, :)), [], 'all');
 
 % By scaling the tangents, the influence of each waypoint's direction on 
 % the spline's curvature is reduced, which can help in achieving a 
 % smoother transition between waypoints, thus reducing undulation.
-scale_factor = 1 / (1 + log10(maxVal + 1));
+scale_factor = undulation_factor / (1 + log10(maxVal + 1));
 
 % Compute and scale tangents using finite differences
 for i = 1:n
