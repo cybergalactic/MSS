@@ -5,17 +5,19 @@
 % straigh lines going through waypoints. The heading and pitch commands
 % are computed using the 3-D adaptive line-of-sight (ALOS) algorithm by
 %
+% Reference:
 % T. I. Fossen and A. P. Aguiar (2024). A Uniform Semiglobal Exponential 
 % Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following. 
 % Automatica 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
 %
 % Calls:      remus100.m     Remus 100 vehicle dynamics
 %             ALOS3D.m       3-D adaptive LOS guidance law
+%             LOSobserver.m  LOS observer
 %
 % Author:     Thor I. Fossen
 % Date:       2024-02-09
-% Revisions:  2024-03-27 Using forward and backward Euler to integrate xdot
-
+% Revisions:  2024-03-27 - Using forward and backward Euler to integrate xdot
+%             2024-04-01 - Added compability to LOSobserver.m
 clearvars;
 clear ALOS3D                % clear the static variables used by ALOS3D
 
@@ -33,15 +35,16 @@ Delta_h = 20;               % horizontal look-ahead distance (m)
 Delta_v = 20;               % vertical look-ahead distance (m)
 gamma_h = 0.001;            % adaptive gain, horizontal plane 
 gamma_v = 0.001;            % adaptive gain, vertical plane 
-
 M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
-K_f = 0.3;                  % observer gain
 
 % Waypoints
-R_switch = 5;           % radius of sphere (m) used for waypoint switching 
 wpt.pos.x = [0  -20  -100 0   200, 200  400];
 wpt.pos.y = [0  200   600 950 1300 1800 2200];
 wpt.pos.z = [0  10   100 100 50 50 50];
+
+% Additional parameter for straigh-line path following
+R_switch = 5;                   % radius of switching circle
+K_f = 0.5;                      % pitch and yaw rate observer gain
 
 % Initial state vector: x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
 phi = 0; theta = 0; psi = pi/2;     % Euler angles
@@ -49,6 +52,12 @@ U = 1.0;                            % surge velocity
 quat = euler2q(phi,theta,psi);
 x = [zeros(9,1); quat]; 
 x(1) = U;
+
+% Initial reference states
+theta_d = 0;
+psi_d = psi;
+q_d = 0;
+r_d = 0;
 
 % Propeller initialization
 n = 1000;               % initial propeller revolution (rpm)
@@ -98,10 +107,10 @@ for i = 1:N+1
    [phi,theta,psi] = q2euler(quat);  % quaternion to Euler angles 
 
    % PID heading and depth controllers
-   U_design = 2;        % ALOS design speed
-   [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
-       ALOS3D(xn,yn,zn,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,...
-       R_switch,wpt,U_design,K_f);       
+   [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
+       ALOS3D(xn,yn,zn,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt); 
+   [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
+   [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
    % Ocean current dynamics
    if t > 800 
