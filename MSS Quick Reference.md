@@ -253,6 +253,7 @@ crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vert
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoints
 hybridPath           % Generates coefficients for sub-paths between waypoints
 LOSchi               % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+LOSobserver          % Estimates the desired LOS angle and LOS rate from a LOS guidance law command
 ILOSpsi              % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 order3               % Path generation using cubic polynomials (see demoWaypointGuidance.slx)
 order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
