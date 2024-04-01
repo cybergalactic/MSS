@@ -43,7 +43,7 @@ h  = 0.05;        % sampling time [s]
 N  = 20000;		  % number of samples
 
 % Control system flag                  
-ControlFlag = 3;  % 0: PID heading autopilot, no path following
+ControlFlag = 1;  % 0: PID heading autopilot, no path following
                   % 1: ALOS path-following control using straight lines 
                   %    and waypoint switching
                   % 2: ILOS path-following control using straight lines 
