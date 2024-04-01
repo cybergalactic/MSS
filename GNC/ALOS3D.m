@@ -1,6 +1,6 @@
-function [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
-    ALOS3D(x,y,z,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt,U,K_f)
-% [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
+function [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
+    ALOS3D(x,y,z,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt)
+% [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 % ALOS3D(x,y,z,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt)
 % computes the desired heading angle psi_d and pitch angle theta_d when
 % the path is a straight line segment going through the waypoints 
@@ -8,20 +8,23 @@ function [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 % computed using the adaptive LOS (ALOS) guidance law by Fossen and Aguiar
 % (2023) where
 %
-%   theta_ref = pi_v + alpha_hat + atan( z_e / Delta_v )
-%   psi_ref   = pi_h - beta_hat  - atan( y_e / Delta_h )
+%   theta_ref[k] = pi_v + alpha_hat[k] + atan( z_e[k] / Delta_v )
+%   psi_ref[k]   = pi_h - beta_hat[k]  - atan( y_e[k] / Delta_h )
 %
-%   d/dt alpha_hat = gamma_v * Delta_v/sqrt(Delta_v^2+z_e^2) * Proj(alpha_hat,z_e)
-%   d/dt beta_hat  = gamma_h * Delta_h/sqrt(Delta_h^2+y_e^2) * Proj(beta_hat,y_e)
+%   alpha_hat[k+1] = gamma_v * Delta_v / ...
+%       sqrt( Delta_v^2 + z_e[k]^2 ) * Proj( alpha_hat, z_e[k] )
+%   beta_hat[k+1]  = gamma_h * Delta_h / ...
+%       sqrt( Delta_h^2 + y_e[k]^2 ) * Proj( beta_hat, y_e[k] )
 %
-% The theta_ref and psi_ref commands are filtered using the observer
+% To handle steps in the pitch and yaw angle commands, theta_ref and psi_ref, 
+% due to waypoint switching, the following observers should be used:
 %
-%  psi_f = psi_f + h * (r_d + K_f * ssa( psi_ref - psi_f ) );
-%  theta_f = theta_f + h * (q_d + K_f * ssa( theta_ref - theta_f ) );
+%  [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f, T_f)
+%  [psi_d, r_d]   = LOSobserver(psi_d, r_d, psi_ref, h, K_f, T_f)
 %
-% where K_f > 0. The NED tracking errors are rotated an azimuth angle 
-% pi_h about the z axis and an elevation angle pi_v about the resulting 
-% y axis from the first rotation using
+% The NED tracking errors are rotated an azimuth angle pi_h about the 
+% z-axis and an elevation angle pi_v about the resulting y-axis from the 
+% first rotation using
 %
 %   e = Ry' * Rz' * [x-xk, y-yk, z-zk]'
 %
@@ -31,19 +34,17 @@ function [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 %   >> clear ALOS3D
 %,
 % Inputs:   
-%   (x,y,z), craft North-East-Down positions (m)
-%   Delta_h, positive look-ahead distance, horizontal plane (m)
-%   Delta_v, positive look-ahead distance, vertical plane (m)
-%   gamma_h, positive parameter adapation gain, horizontal plane
-%   gamma_v, positive parameter adapation gain, vertical plane
-%   M_theta, maximum parameter: abs(alpha_c) < M_theta, abs(beta_c) < M_theta
-%   h, sampling time (s)
-%   R_switch, go to next waypoint when the inside the circle of radius R_switch (m)
+%   (x,y,z):  craft North-East-Down positions (m)
+%   Delta_h:  positive look-ahead distance, horizontal plane (m)
+%   Delta_v:  positive look-ahead distance, vertical plane (m)
+%   gamma_h:  positive parameter adapation gain, horizontal plane
+%   gamma_v:  positive parameter adapation gain, vertical plane
+%   M_theta:  maximum parameter: abs(alpha_c) < M_theta, abs(beta_c) < M_theta
+%   h:        sampling time (s)
+%   R_switch: go to next waypoint when the inside the circle of radius R_switch (m)
 %   wpt.pos.x = [x1, x2,..,xn]' array of waypoints expressed in NED (m)
 %   wpt.pos.y = [y1, y2,..,yn]' 
 %   wpt.pos.z = [z1, z2,..,zn]' 
-%   U: speed, vehicle cruise speed or time-varying measurement (m/s)
-%   K_f: observer gain for desired yaw angle (typically 0.1-0-5)
 %
 % Feasibility citerion: 
 %   The switching parameter R_switch > 0 must satisfy, R_switch < dist, 
@@ -51,30 +52,28 @@ function [psi_d, theta_d, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 %      dist = sqrt(  ( wpt.pos.x(k+1) - wpt.pos.x(k))^2 
 %                  + ( wpt.pos.y(k+1) - wpt.pos.y(k))^2 )
 %                  + ( wpt.pos.z(k+1) - wpt.pos.z(k))^2 );
-%
 % Outputs:  
-%    psi_d: desired heading angle (rad)
-%    theta_d: desired pitch angle (rad)
-%    y_e: cross-track error (m)
-%    z_e: vertical-track error (m)
+%    psi_ref:     LOS heading angle (rad)
+%    theta_ref:   LOS pitch angle (rad)
+%    y_e:         cross-track error (m)
+%    z_e:         vertical-track error (m)
 %    alpha_c_hat: estimate of alpha_c (rad)
-%    beta_c_hat: estimate of beta_c (rad)
+%    beta_c_hat:  estimate of beta_c (rad)
 %
-% Ref. T. I. Fossen and P. Aguiar (submitted). Uniform Semiglobal Exponential 
-% Stable Adaptive Line-of-Sight (ALOS) Guidance Laws for 3-D Path Following
-% Automatica (submitted).
+% Reference:
+% T. I. Fossen and P. Aguiar (2024). A Uniform Semiglobal Exponential 
+% Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following. 
+% Automatica 163, 111556. doi.org/10.1016/j.automatica.2024.111556
 %  
 % Author:    Thor I. Fossen
 % Date:      2022-10-16
-% Revisions: 
+% Revisions: 2024-04-01 - Added compability to LOSobserver.m
 
 % Persistent states
 persistent k;         % active waypoint index
 persistent xk yk zk;  % active waypoint (xk,yk,zk) corresponding to integer k
 persistent alpha_hat; % parameter estimate
 persistent beta_hat;  % parameter estimate
-persistent psi_f;     % filtered yaw angle
-persistent theta_f;   % filtered pitch angle
 
 %% Initialization of (xk,yk,zk) and (xk_next,yk_next,zk_next), and integral state 
 if isempty(k)   
@@ -95,8 +94,6 @@ if isempty(k)
     
     alpha_hat = 0;        % initial states 
     beta_hat = 0;               
-    psi_f = 0;
-    theta_f = 0;
 
     k = 1;                % set first waypoint as the active waypoint
     xk = wpt.pos.x(k); 
@@ -148,16 +145,8 @@ if (d < R_switch) && (k < n)
 end
 
 % ALOS guidance laws
-psi_d = psi_f;
-theta_d = theta_f;
-psi_ref = pi_h - beta_hat  - atan( y_e / Delta_h );
+psi_ref   = pi_h - beta_hat  - atan( y_e / Delta_h );
 theta_ref = pi_v + alpha_hat + atan( z_e / Delta_v );
-
-% Desired yaw rate r_d and pitch rate q_d
-Dy_e = -U * y_e / sqrt( Delta_h^2 + y_e^2  );               % d/dt y_e
-Dz_e = -U * z_e / sqrt( Delta_v^2 + z_e^2  );               % d/dt z_e
-r_d = -( 1 / Delta_h ) * Dy_e / ( 1 + (y_e / Delta_h)^2 );
-q_d = -( 1 / Delta_v ) * Dz_e / ( 1 + (z_e / Delta_v)^2 );
 
 % ALOS parameter estimates with projection: alpha_hat[k+1], beta_hat[k+1]
 alpha_c_hat = alpha_hat;
@@ -166,10 +155,6 @@ alpha_hat = alpha_hat + h * gamma_v * ...
     Delta_v / sqrt( Delta_v^2 + z_e^2 ) * proj(alpha_hat, z_e, M_theta);
 beta_hat = beta_hat + h * gamma_h * ...
     Delta_h / sqrt( Delta_h^2 + y_e^2 ) * proj(beta_hat, y_e, M_theta);
-
-% Observer: psi_f[k+1], theta_f[k+1]
-psi_f = psi_f + h * (r_d + K_f * ssa( psi_ref - psi_f ) );
-theta_f = theta_f + h * (q_d + K_f * ssa( theta_ref - theta_f ) );
 
 end
 
