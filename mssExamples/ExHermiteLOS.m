@@ -14,13 +14,13 @@
 %             (ALOS) path-following control using Hermite splines
 %
 % Author:     Thor I. Fossen
-% Date:       2024-03-29
+% Date:       2024-04-01
 
 clearvars;
 
 % Table of waypoints (xy-coordinates)
-wpt.pos.x = [ 0, 9, 30, 35, 55]';
-wpt.pos.y = [ 20, 50, 60, 80, 100]';
+wpt.pos.x = [0, 9, 30, 35, 55]';
+wpt.pos.y = [20, 50, 60, 80, 100]';
 wayPoints = [wpt.pos.x wpt.pos.y];
 
 % Initial vehicle position (xy-coordinates)
@@ -29,8 +29,8 @@ y = 30;
 vehiclePos = [x y];
 
 % LOS parameters
-Delta_h = 10;   % look-ahead distance
-U_h = 0.5;      % vehicle speed, should be reduced if omega_chi_d is to large
+Delta_h = 10;               % look-ahead distance
+undulation_factor = 0.5;    % smoothness of the spline between waypoints
 
 %% Plot the Hermite spline
 figure(1); clf; figure(gcf)
@@ -55,7 +55,7 @@ plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
 
 %% MAIN LOOP
 N = 25;
-table = zeros(N,4);
+table = zeros(N,3);
 
 for h = 1:N  % Loop to update vehicle position and cross-track error
 
@@ -63,11 +63,10 @@ for h = 1:N  % Loop to update vehicle position and cross-track error
     vehiclePos = vehiclePos + [h * 0.25, h * 0.2];
     
     % Compute the cross-track error, closest point on the spline, and tangent
-    [chi_d, omega_chi_d, y_e, pi_h, closestPoint, closestTangent] = ...
-        crosstrackHermiteLOS(wayPoints,vehiclePos,h,U_h,Delta_h);
-
+    [chi_ref, y_e, pi_h, closestPoint, closestTangent] = ...
+      crosstrackHermiteLOS(wayPoints,vehiclePos,h,undulation_factor,Delta_h);
     % Store data 
-    table(h,:) = [y_e, pi_h, chi_d, omega_chi_d];
+    table(h,:) = [y_e, pi_h, chi_ref];
 
     % Plot the vehicle North-East position
     plot(vehiclePos(2), vehiclePos(1),'rs','MarkerFaceColor','r', ...
@@ -85,7 +84,7 @@ for h = 1:N  % Loop to update vehicle position and cross-track error
 
     % Plot the LOS vector
     R = sqrt(Delta_h^2 + y_e^2);
-    quiver(vehiclePos(2), vehiclePos(1), R*sin(chi_d), R*cos(chi_d), 0, ...
+    quiver(vehiclePos(2), vehiclePos(1), R*sin(chi_ref), R*cos(chi_ref), 0, ...
         'k', 'LineWidth', 1.5);
 
 end
@@ -104,12 +103,9 @@ title('Cross-track error y_e^p (m)')
 subplot(222)
 plot(1:N,rad2deg(table(:,2)), 'LineWidth', 2), grid
 title('Path-tangential angle \pi_h (deg)')
-subplot(223)
+subplot(212)
 plot(1:N,rad2deg(table(:,3)), 'LineWidth', 2), grid
-title('LOS course angle \chi_d (deg)')
-subplot(224)
-plot(1:N,rad2deg(table(:,4)), 'LineWidth', 2), grid
-title(['LOS course rate \omega_{\chi_d} (deg/s) for U = ' num2str(U_h) ' m/s'])
-set(findall(gcf,'type','text'),'FontSize',14)
+title('LOS course angle \chi_{ref} (deg)')
+
 
 
