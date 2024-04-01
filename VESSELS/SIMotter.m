@@ -27,7 +27,8 @@
 %             IEEE Transactions on Control Systems Techn. 31(6), 2887-2894.
 %             https://doi.org/10.1109/TCST.2023.3259819
 %
-% See also:   Simulink example: demoOtterUSVPathFollowingHeadingControl.slx
+% Simulink:   demoOtterUSVPathFollowingHeadingControl.slx
+%             demoOtterUSVPathFollowingCourseControl.slx
 %
 % Author:     Thor I. Fossen
 % Date:       2021-04-25
