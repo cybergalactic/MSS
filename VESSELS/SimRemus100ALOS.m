@@ -18,7 +18,9 @@
 % Date:       2024-02-09
 % Revisions:  2024-03-27 - Using forward and backward Euler to integrate xdot
 %             2024-04-01 - Added compability to LOSobserver.m
-clearvars;
+
+clearvars;                  % clear variables from memory
+close all;                  % closes all figure windows 
 clear ALOS3D                % clear the static variables used by ALOS3D
 
 %% USER INPUTS
