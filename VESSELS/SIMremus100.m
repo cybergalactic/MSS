@@ -20,8 +20,9 @@
 %             2022-05-08 Added compability for unit quaternions
 %             2024-03-27 Using forward and backward Euler to integrate xdot
 
-clearvars;
-clear integralSMCheading             % reset integral state
+clearvars;                  % clear variables from memory
+close all;                  % closes all figure windows 
+clear integralSMCheading    % reset integral state
 
 %% USER INPUTS
 h  = 0.02;                  % sample time (s)
