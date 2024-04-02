@@ -1,5 +1,6 @@
-% SIMmariner  User editable script for simulation of the mariner class 
-%             vessel under PID heading control.
+% SIMmariner  
+% User editable script for simulation of the mariner class vessel under 
+% PID heading control.
 %
 % Calls:      mariner.m
 %             euler2.m
@@ -88,4 +89,3 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
-
