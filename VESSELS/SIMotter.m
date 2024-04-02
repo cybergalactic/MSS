@@ -11,8 +11,10 @@
 %
 % Calls:      otter.m
 %             refModel.m
-%             ALOS.m
+%             ALOSpsi.m
+%             ILOSpsi.m
 %             crosstrackHermiteLOS
+%             LOSobserver.m
 %
 % References: Fossen, T. I. and A. P. Aguiar (2024). A Uniform Semiglobal 
 %             Exponential Stable Adaptive Line-of-Sight (ALOS) Guidance Law 
@@ -53,10 +55,13 @@ wpt.pos.x = [0 0   150 150 -100 -100 200]';
 wpt.pos.y = [0 200 200 -50  -50  250 250]';
 wayPoints = [wpt.pos.x wpt.pos.y];
 
-% LOS parameters
+% ALOS and ILOS parameters
 Delta_h = 10;                   % look-ahead distance
 gamma_h = 0.001;                % ALOS adaptive gain
 kappa = 0.001;                  % ILOS integral gain
+
+% Hermite spline 
+undulation_factor = 0.5;        % positive, reduce to avoid undulation
 
 % Additional parameter for straigh-line path following
 R_switch = 5;                   % radius of switching circle
@@ -144,8 +149,6 @@ for i=1:N+1
         [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
     else % ALOS heading autopilot, Hermite spline interpolation
-
-        undulation_factor = 0.5; % larger than 0, reduce to avoid undulation
 
         [psi_ref, y_e, pi_h, closestPoint, closestTangent] = ...
             crosstrackHermiteLOS(wayPoints, [x y], h,...
@@ -288,7 +291,7 @@ method = {'PID heading autopilot, no path following',...
 'ILOS path-following control using straight lines and waypoint switching',...                   
 'ALOS path-following control using Hermite splines'};
 
-dlgtitle = 'Choose a method:';
+dlgtitle = 'Double click to choose control method:';
 
 [index, tf] = listdlg('PromptString',dlgtitle,...
     'ListString', method,'SelectionMode', 'single', ...
