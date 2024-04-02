@@ -35,8 +35,9 @@
 %             2024-04-01 - Added ALOS/ILOS path-following control algorithms 
 %                          for straight-line paths and Hermite splines
 
-clear ALOSpsi ILOSpsi crosstrackHermiteLOS % clear persistent variables
-clearvars;
+clearvars;                                   % clear variables from memory
+close all;                                   % closes all figure windows 
+clear ALOSpsi ILOSpsi crosstrackHermiteLOS   % clear persistent variables
 
 %% USER INPUTS
 h  = 0.05;        % sampling time [s]
