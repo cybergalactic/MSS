@@ -1,6 +1,7 @@
-% SIMosv User editable script for simulation of an Offshore Supply Vessel
-% (osv.m). The OSV is expressed by the nonlinear equations of motion based
-% on Fossen (2021, Eqs. 6.111-6.116):
+% SIMosv 
+% User editable script for simulation of an Offshore Supply Vessel ('osv.m'). 
+% The OSV is expressed by the nonlinear equations of motion based on
+% Fossen (2021, Eqs. 6.111-6.116):
 %   
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * (tau_thr +  tau_drag + tau_crossflow...
@@ -18,20 +19,21 @@
 % for setpoint regulation using the function PIDnonlinearMIMO.m based on 
 % Fossen (2021, Algorithm 15.2) where
 %   
-%  z_int = z_int + h * (eta - eta_d) 
-%  tau_thr = -R(psi)' * ( Kp * (eta - eta_d) + Kd * nu + Ki * z_int )
+%   z_int = z_int + h * (eta - eta_d) 
+%   tau_thr = -R(psi)' * ( Kp * (eta - eta_d) + Kd * nu + Ki * z_int )
 % 
 % Both unconstrained control alloction (pseduoinverse) and constrained
 % control allocation (dynamic optimization) are implemented using Fossen
 % (2021, Sections 11.2.2-11.2.3).
 %
-% Calls: fmincon            - Sequential Quadratic Programming (SQP).
-%                             Requires the MATLAB optimization toolbox.
-%        osv                - OSV equations of motion (MSS toolbox)
-%        PIDnonlinearMIMO   - MIMO nonlinear PID controller (MSS toolbox)
-%        allocPseudoinverse - Unconstrained control allocation (MSS toolbox) 
-%        optimalAlloc       - Custom function for constrained control 
-%                             allocation, defined within the SIMosv.m script
+% Calls: 
+%   fmincon.m            - Sequential Quadratic Programming (SQP).
+%                          Requires the MATLAB optimization toolbox.
+%   osv.m                - OSV equations of motion.
+%   PIDnonlinearMIMO.m   - MIMO nonlinear PID controller.
+%   allocPseudoinverse.m - Unconstrained control allocation. 
+%   optimalAlloc.m       - Custom function for constrained control 
+%                          allocation, defined within the 'SIMosv.m' script.
 %
 % It is possible to run SIMosv without the MATLAB optimization toolbox 
 % by choosing ALLOC = 0. Then the control allocation problem is solved with
@@ -354,7 +356,7 @@ cost = w1 * norm(u)^2 ...
 end
 
 % Constraints
-function [c, ceq] = constraints(x, alpha_old, u_old, l_x, l_y, K_thr, tau, h)
+function [c, ceq] = constraints(x, alpha_old, u_old, l_x, l_y, K_thr,tau,h)
 
 alpha = x(1:2)';     % azimuth angles
 u = x(3:6)';         % quadratic controls
@@ -378,7 +380,6 @@ T_alpha = thrConfig( {'T', 'T', alpha(1), alpha(2)}, l_x, l_y);
 ceq = T_alpha * K_thr * u - tau + s;
 
 end
-
 
 
 
