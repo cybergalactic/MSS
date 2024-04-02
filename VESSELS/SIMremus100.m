@@ -72,8 +72,6 @@ end
 % Ocean current speed and direction expressed in NED
 Vc = 0.5;                   % horisontal speed (m/s)
 betaVc = deg2rad(150);      % horizontal direction (rad)
-uc = Vc .* cos(betaVc);
-vc = Vc .* sin(betaVc);
 wc = 0.1;                   % vertical speed (m/s)
 
 % Propeller initialization
@@ -137,7 +135,7 @@ K_f = 0.5;                  % pitch and yaw rate observer gain
 
 %% MAIN LOOP
 simdata = zeros(N+1,length(x)+8); % allocate empty table for simulation data
-ALOSdata = zeros(N+1,4);          % allocate empty table for ALOS data
+ALOSdata = zeros(N+1,6);          % allocate empty table for ALOS data
 
 for i = 1:N+1
     
@@ -216,8 +214,29 @@ for i = 1:N+1
        % ALOS observer
        [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
        [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+       if abs(r_d) > r_max, r_d = sign(r_d) * r_max; end
 
-       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
+       % Ocean current dynamics
+       if t > 800
+           Vc_d = 0.65;
+           w_V = 0.1;
+           Vc = exp(-h*w_V) * Vc + (1 - exp(-h*w_V)) * Vc_d;
+       else
+           Vc = 0.5;
+       end
+
+       if t > 500
+           betaVc_d = deg2rad(160);
+           w_beta = 0.1;
+           betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
+       else
+           betaVc = deg2rad(150);
+       end
+
+       betaVc = betaVc + (pi/180) * randn / 20;
+       Vc = Vc + 0.002 * randn;
+
+       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat Vc betaVc];
 
    end
 
@@ -265,7 +284,7 @@ end
 
 %% PLOTS
 t       = simdata(:,1);  % simdata = [t z_d theta_d psi_d ui' x']
-z_d     = simdata(:,2); 
+z_d     = simdata(:,2);
 theta_d = simdata(:,3); 
 psi_d   = simdata(:,4); 
 r_d     = simdata(:,5); 
@@ -276,6 +295,8 @@ y_e = ALOSdata(:,1);
 z_e = ALOSdata(:,2);
 alpha_c_hat = ALOSdata(:,3);
 beta_c_hat = ALOSdata(:,4);
+Vc = ALOSdata(:,5);
+betaVc = ALOSdata(:,6);
 
 if (KinematicsFlag == 1)        % Euler angle representation
     eta = simdata(:,15:20);
@@ -288,14 +309,15 @@ else                       % Transform the unit quaternions to Euler angles
     
 end
 
+uc = Vc .* cos(betaVc);
+vc = Vc .* sin(betaVc);
 alpha_c = atan( (nu(:,2).*sin(eta(:,4))+nu(:,3).*cos(eta(:,4))) ./ nu(:,1) );
 Uv = nu(:,1) .* sqrt( 1 + tan(alpha_c).^2 );
 beta_c = atan( ( nu(:,2).*cos(eta(:,4))-nu(:,3).*sin(eta(:,4)) ) ./ ... 
     ( Uv .* cos(eta(:,5)-alpha_c) ) );
-
 alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
 beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
-chi = eta(:,6) + beta(:,1);                     % course angle (rad)
+
 
 %% Generalized velocity
 figure(1); 
@@ -317,6 +339,7 @@ set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Speed, heave position and Euler angles
 figure(2); 
+if ControlFlag == 3; z_d = eta(:,3); end
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2));
 xlabel('time (s)'),title('speed (m/s)'),grid
 subplot(512),plot(t,eta(:,3),t,z_d)
@@ -346,9 +369,28 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
-%% Sideslip and angle of attack
+%% Ocean current
 if ControlFlag == 3
     figure(4);
+    subplot(311),plot(t,nu(:,1),t,nu(:,2))
+    ylim([0,2.2])
+    xlabel('time (s)'),grid
+    legend('surge veloicty (m/s)','sway velocity (m/s)','Location','east')
+    subplot(312),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
+    ylim([0,2.2])
+    xlabel('time (s)'),grid
+    legend('vehicle speed (m/s)','current speed (m/s)','Location','southeast')
+    subplot(313),plot(t,(180/pi)*betaVc)
+    xlabel('time (s)'),grid
+    legend('Current direction (deg)','Location','best')
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+end
+
+%% Sideslip and angle of attack
+if ControlFlag == 3
+    figure(5);
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
@@ -374,7 +416,7 @@ end
 
 %% 2-D position plots with waypoints
 if ControlFlag == 3
-    figure(5);
+    figure(6);
     subplot(211)
     plot(eta(:,2),eta(:,1))
     hold on; 
@@ -404,7 +446,7 @@ end
 
 %% 3-D position plot with waypoints
 if ControlFlag == 3
-    figure(6);
+    figure(7);
     plot3(eta(:,2),eta(:,1),eta(:,3))
     hold on; 
     plot3(wpt.pos.y,wpt.pos.x,wpt.pos.z,'ro','markersize',15); 
