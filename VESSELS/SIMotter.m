@@ -1,16 +1,13 @@
-% SIMotter: User editable script for simulation of the Otter USV('otter.m'),
+% SIMotter
+% User editable script for simulation of the Otter USV('otter.m'),
 % length 2.0 m, beam 1.08 m, and mass 55 kg under feedback control when 
-% exposed to ocean currents; see 'otter.m'. Methods for heading and 2-D
-% adaptive line-of-sight (ALOS) and integral line-of-sight (ILOS) 
-% path-following control have been implemented, and switching between 
-% these methods is done by specifying the flag:
+% exposed to ocean currents; see 'otter.m'. The following methods are 
+% available for selection:
 %
-% ControlFlag: 0 - PID heading autopilot, no path following
-%              1 - ALOS path-following control using straight lines 
-%                  and waypoint switching
-%              2 - ILOS path-following control using straight lines 
-%                  and waypoint switching
-%              3 - ALOS path-following control using Hermite splines
+% 1. PID heading autopilot, no path following
+% 2. ALOS path-following control using straight lines and waypoint switching
+% 3. ILOS path-following control using straight lines and waypoint switching
+% 4. ALOS path-following control using Hermite spline interpolation
 %
 % Calls:      otter.m
 %             refModel.m
@@ -42,14 +39,6 @@ clearvars;
 %% USER INPUTS
 h  = 0.05;        % sampling time [s]
 N  = 20000;		  % number of samples
-
-% Control system flag                  
-ControlFlag = 1;  % 0: PID heading autopilot, no path following
-                  % 1: ALOS path-following control using straight lines 
-                  %    and waypoint switching
-                  % 2: ILOS path-following control using straight lines 
-                  %    and waypoint switching
-                  % 3: ALOS path-following control using Hermite splines
 
 % Load condition
 mp = 25;                        % payload mass (kg), max value 45 kg
@@ -113,29 +102,11 @@ psi_d = eta(6);                 % reference model states
 r_d = 0;
 a_d = 0;
 
-%% Display
-disp('--------------------------------------------------------------------');
-disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)')  
-if (ControlFlag == 0)
-    disp('PID heading autopilot with reference feeforward')
-elseif ControlFlag == 1
-    disp(['ALOS path-following control using straight lines and ' ...
-        'waypoint switching']) 
-    disp(['Cirlce of acceptance: R = ',num2str(R_switch), ' m'])
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
-elseif ControlFlag == 2
-    disp(['ILOS path-following control using straight lines and ' ...
-        'waypoint switching'])  
-    disp(['Cirlce of acceptance: R =  ',num2str(R_switch), ' m'])
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
-else
-    disp('ALOS path-following control using Hermite splines') 
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
-end
-disp('--------------------------------------------------------------------');
-
 %% MAIN LOOP
-simdata = zeros(N+1,15);                   % table for simulation data
+ControlFlag = controlMethod(R_switch,Delta_h); % choose control method
+if isnan(ControlFlag); return; end             
+
+simdata = zeros(N+1,15);                       % table for simulation data
 
 for i=1:N+1
 
@@ -201,6 +172,7 @@ for i=1:N+1
    z_psi = z_psi + h * ssa( psi-psi_d );  
 
 end
+
 
 %% PLOTS
 t = simdata(:,1); 
@@ -304,4 +276,62 @@ legend('\psi','\psi_d'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
+
+
+%% DISPLAY AND CHOOSE GUIDANCE/CONTROL LAW
+function ControlFlag= controlMethod(R_switch, Delta_h)
+method = {'PID heading autopilot, no path following',...
+'ALOS path-following control using straight lines and waypoint switching',...
+'ILOS path-following control using straight lines and waypoint switching',...                   
+'ALOS path-following control using Hermite splines'};
+
+dlgtitle = 'Choose a method:';
+
+[index, tf] = listdlg('PromptString',dlgtitle,...
+    'ListString', method,'SelectionMode', 'single', ...
+    'InitialValue', 2, 'ListSize', [400 80]);
+
+if tf % check if the user made a selection
+    switch index
+        case 1
+            disp(method{index})
+            ControlFlag = 0;
+        case 2
+            disp(method{index})
+            ControlFlag = 1;
+        case 3
+            disp(method{index})
+            ControlFlag = 2;  
+        case 4
+            disp(method{index})
+            ControlFlag = 3;       
+    end
+else
+    ControlFlag = NaN; % Handle the case where no selection is made.
+end
+
+% Display
+if ~isnan(ControlFlag)
+disp('--------------------------------------------------------------------');
+disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)')  
+if (ControlFlag == 0)
+    disp('PID heading autopilot with reference feeforward')
+elseif ControlFlag == 1
+    disp(['ALOS path-following control using straight lines and ' ...
+        'waypoint switching']) 
+    disp(['Cirlce of acceptance: R = ',num2str(R_switch), ' m'])
+    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
+elseif ControlFlag == 2
+    disp(['ILOS path-following control using straight lines and ' ...
+        'waypoint switching'])  
+    disp(['Cirlce of acceptance: R =  ',num2str(R_switch), ' m'])
+    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
+else
+    disp('ALOS path-following control using Hermite splines') 
+    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
+end
+disp('--------------------------------------------------------------------');
+end
+
+end
 
