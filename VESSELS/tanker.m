@@ -1,56 +1,55 @@
 function [xdot,U] = tanker(x,ui)
 % [xdot,U] = tanker(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta n ]'  for
-% a large tanker L = 304.8 m where:
+% a large tanker L = 304.8 m where
 %
-% u     = surge velocity, must be positive  (m/s)         - design speed u = 8.23 m/s
-% v     = sway velocity                     (m/s)
-% r     = yaw velocity                      (rad/s)
-% x     = position in x-direction           (m)
-% y     = position in y-direction           (m)
-% psi   = yaw angle                         (rad)
-% delta = actual rudder angle               (rad)
-% n     = actual shaft velocity             (rpm)          - nominal propeller 80 rpm
+%   u:     surge velocity, must be positive (m/s) - design speed u = 8.23 m/s
+%   v:     sway velocity (m/s)
+%   r:     yaw velocity (rad/s)
+%   x:     position in x-direction (m)
+%   y:     position in y-direction (m)
+%   psi:   yaw angle (rad)
+%   delta: actual rudder angle (rad)
+%   n:     actual shaft velocity (rpm)  - nominal propeller speed is 80 rpm
 % 
-% The input vector is :
+% The input vector is
 %
-% ui      = [ delta_c  n_c h ]'  where
+%   ui = [ delta_c  n_c h ]'  where
 %
-% delta_c = commanded rudder angle                 (rad)
-% n_c     = commanded shaft velocity               (rpm)
-% h       = water depth, must be larger than draft (m)      - draft is 18.46 m
+%   delta_c: commanded rudder angle (rad)
+%   n_c:     commanded shaft velocity (rpm)
+%   h:       water depth, must be larger than draft (m) - draft is 18.46 m
 %
-% Reference : Van Berlekom, W.B. and Goddard, T.A. (1972). Maneuvering of Large Tankers,
-%             Transaction of SNAME, 80:264-298
+% Reference: 
+%   Van Berlekom, W.B. and Goddard, T.A. (1972). Maneuvering of Large
+%     Tankers, Transaction of SNAME, 80:264-298
 %
 % Author:    Trygve Lauvdal
 % Date:      1994-05-12
-% Revisions: 2001-07-20, T. I. Fossen: added speed output U, changed order of x-vector
-%            2005-05-02, T. I. Fossen: changed the incorrect expression 
-%                        c = sqrt(cun^2*u*n + cnn^2*n^2) to c = sqrt(cun*u*n + cnn*n^2)
-%                        - thanks to Dr. Euan McGookin, University of Glasgow
+% Revisions: 2001-07-20 - Added speed output U, changed order of x-vector
+%            2005-05-02 - Changed the incorrect expression 
+%                         c = sqrt(cun^2*u*n + cnn^2*n^2) to 
+%                         c = sqrt(cun*u*n + cnn*n^2)
 
-% Check of input and state dimensions
-
-if (length(x)  ~= 8),error('x-vector must have dimension 8 !');end
-if (length(ui) ~= 3),error('u-vector must have dimension 3 !');end
+if (length(x)  ~= 8),error('x-vector must have dimension 8!'); end
+if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 
 % Normalization variables
 L   =  304.8;          % length of ship (m)
 g   =  9.8;            % acceleration of gravity (m/s^2)
 
-% Dimensional states and input
-delta_c = ui(1); 
-n_c     = ui(2)/60;
-h       = ui(3);
-
+% Dimensional states and inputs
 u     = x(1);    
 v     = x(2); 
 r     = x(3);
 psi   = x(6); 
 delta = x(7);
-n     = x(8)/60; 
+n     = x(8) / 60; % rps
 U     = sqrt(x(1)^2 + x(2)^2);
+
+delta_c = ui(1); 
+n_c     = ui(2) / 60;  % rps
+h       = ui(3);
 
 % Parameters, hydrodynamic derivatives and main dimensions
 delta_max  = 10;       % max rudder angle      (deg)
@@ -88,29 +87,36 @@ Xvvzz  =  0.0125;   Yccbbd = -2.16;   Nccbbd  =  0.688;
                     Yccbbdz= -0.191;  Nccbbdz =  0.344;
 
 % Additional terms in shallow water
-z = T/(h - T);
-if h<18.5, error('the depth must be larger than the draft (18.5 m)'); end
-if z >= 0.8, Yuvz = -0.85*(1-0.8/z);end 
+z = T / (h - T);
+if h < 18.5 
+    error('The depth must be larger than the draft (18.5 m)'); 
+end
+if z >= 0.8
+    Yuvz = -0.85 * (1 - 0.8/z);
+end 
 
 % Rudder saturation and dynamics
-if abs(delta_c) >= delta_max*pi/180,
-   delta_c = sign(delta_c)*delta_max*pi/180;
+if abs(delta_c) >= deg2rad(delta_max)
+   delta_c = sign(delta_c) * deg2rad(delta_max);
 end
 delta_dot = delta_c - delta;
-if abs(delta_dot) >= Ddelta_max*pi/180,
-   delta_dot = sign(delta_dot)*Ddelta_max*pi/180;
+if abs(delta_dot) >= deg2rad(Ddelta_max)
+   delta_dot = sign(delta_dot) * deg2rad(Ddelta_max);
 end
 
 % Shaft saturation and dynamics
-if abs(n_c) >= n_max/60,
-   n_c = sign(n_c)*n_max/60;
+if abs(n_c) >= n_max/60
+   n_c = sign(n_c) * n_max/60;
 end                 
 
 n_dot = 1/Tm*(n_c-n)*60;
 
 % Forces and moments
-if u<=0, error('u must be larger than zero'); end
-beta = v/u;
+if u <= 0
+    error('u must be larger than zero'); 
+end
+
+beta = atan(v / u);
 gT   = (1/L*Tuu*u^2 + Tun*u*n + L*Tnn*abs(n)*n);
 c    = sqrt(cun*u*n + cnn*n^2);
 
@@ -134,12 +140,12 @@ m33 = (m33 - Nrdotz*z);
 
 % Dimensional state derivative
 xdot = [  gX/m11
-    gY/m22
-    gLN/(L^2*m33)
-    cos(psi)*u-sin(psi)*v
-    sin(psi)*u+cos(psi)*v
-    r
-    delta_dot
-    n_dot         ];
+          gY/m22
+          gLN/(L^2*m33)
+          cos(psi) * u - sin(psi) * v
+          sin(psi) * u + cos(psi) * v
+          r
+          delta_dot
+          n_dot    ];
 
     
