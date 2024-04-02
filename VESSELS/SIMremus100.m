@@ -1,17 +1,31 @@
 % SIMremus100 
-% User-editable script for simulating the Remus 100 AUV ('remus100.m') 
-% under feedback control (simultaneously for depth and heading control 
-% when exposed to ocean currents. Both the Euler angle and unit quaternion 
-% representations of the Remus 100 model can be used. The following methods
-% are available for selection:
+% User-editable script for simulating the Remus 100 AUV ('remus100.m') under
+% depth and heading control when exposed to ocean currents. The autpilots 
+% can also be combined with the 3-D Adaptive Line-Of-Sight (ALOS) guidance 
+% law by Fossen and Aguiar (2024) for path following. The ALOS algorithm
+% computes the desired heading and pitch angles when the path is a straight
+% line segment going through the waypoints (wpt.pos.x,wpt.pos.y,wpt.pos.z).
+% Both the Euler angle and unit quaternion representations of the Remus 100 
+% model can be used. The following methods are available for selection:
 %
-% 1: PID pole-placement algorithm
-% 2. Intergral slidng mode control (SMC)
+% 1: Heading control: PID pole-placement algorithm
+% 2. Heading control: Integral slidng mode control (SMC)
+% 3. Path-following:  ALOS guidance law for 3-D path following
 %
-% Calls:      remus100.m (Remus 100 equations of motion)
-%             integralSMCheading.m, refModel.m, q2euler.m, ssa.m
+% Calls:    remus100.m (Remus 100 equations of motion)
+%           integralSMCheading.m
+%           refModel.m
+%           ALOS.m
+%           LOSobserver.m
+%           q2euler.m
+%           ssa.m
 %
-% Simulink:   demoAUVdepthHeadingControl.slx
+% Simulink: demoAUVdepthHeadingControl.slx
+%
+% Reference:
+%   T. I. Fossen and P. Aguiar (2024). A Uniform Semiglobal Exponential 
+%   Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following. 
+%   Automatica 163, 111556. doi.org/10.1016/j.automatica.2024.111556
 %
 % Author:     Thor I. Fossen
 % Date:       2021-06-28
@@ -19,48 +33,66 @@
 %             2022-05-06 Retuning for new version of remus100.m
 %             2022-05-08 Added compability for unit quaternions
 %             2024-03-27 Using forward and backward Euler to integrate xdot
+%             2024-04-02 Added simulation menu and ALOS path following
 
 clearvars;                  % clear variables from memory
+clear integralSMCheading    % clear the integral state in integralSMCheading
+clear ALOS3D                % clear the static variables used by ALOS3D
 close all;                  % closes all figure windows 
-clear integralSMCheading    % reset integral state
 
 %% USER INPUTS
-h  = 0.02;                  % sample time (s)
-N  = 25000;                 % number of samples
+h  = 0.05;                  % sample time (s)
+N  = 28000;                 % number of samples
 
 [ControlFlag, KinematicsFlag] = controlMethod(); % choose control method
 
-% Autopilot setpoints
-n_d = 1525;                 % desired propeller revolution, max 1525 rpm
-z_step = 30;                % step change in depth, max 100 m
-psi_step = deg2rad(-60);    % step change in heading angle (rad)
-
-mustBeInRange(n_d,0,1525);
-mustBeInRange(z_step,0,100);
+% Waypoints
+wpt.pos.x = [0  -20 -100   0  200, 200  400];
+wpt.pos.y = [0  200  600 950 1300 1800 2200];
+wpt.pos.z = [0   10  100 100   50   50   50];
 
 % Initial states
-x = 0; y = 0; z = 10; phi = 0; theta = 0; psi = 0; 
-n = 0;                      % initial propeller revolution (rpm)
+xn = 0; yn = 0; zn = 0;         % initial NED positions
+phi = 0;                        % intial Euler angles
+theta = 0; 
+psi = atan2(wpt.pos.y(2)-wpt.pos.y(1),wpt.pos.x(2)-wpt.pos.x(1)); 
+U = 1;                          % initial speed 
+theta_d = 0; q_d = 0;           % initial pitch reference signals
+psi_d = psi; r_d = 0; a_d = 0;  % initial yaw reference signals
+
+
+% Intitial state vector
+if (KinematicsFlag == 1)  % x = [ u v w p q r x y z phi theta psi ]'   
+    x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
+else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
+    quat = euler2q(phi,theta,psi);
+    x = [U; zeros(5,1); xn; yn; zn; quat];
+end
+
+% Ocean current speed and direction expressed in NED
+Vc = 0.5;                   % horisontal speed (m/s)
+betaVc = deg2rad(150);      % horizontal direction (rad)
+uc = Vc .* cos(betaVc);
+vc = Vc .* sin(betaVc);
+wc = 0.1;                   % vertical speed (m/s)
+
+% Propeller initialization
+n = 1000;                   % initial propeller revolution (rpm)
+n_d = 1300;                 % desired propeller revolution, max 1525 rpm
+mustBeInRange(n_d,0,1525);
+
+%% HEADING AND DEPTH AUTOPILOTS PARAMETERS
+psi_step = deg2rad(-60);    % step change in heading angle (rad)
+z_step = 30;                % step change in depth, max 100 m
+mustBeInRange(z_step,0,100);
 
 % Autopilot integral states
 z_int = 0;                  % depth
 theta_int = 0;              % pitch angle
 psi_int = 0;                % heading angle
 
-% Intitial state vector
-if (KinematicsFlag == 1)    % x = [ u v w p q r x y z phi theta psi ]'   
-    x = [zeros(6,1); x; y; z; phi; theta; psi];
-else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
-    quat = euler2q(phi,theta,psi);
-    x = [zeros(6,1); x; y; z; quat];
-end
-
-% Ocean current speed and direction expressed in NED
-Vc = 0.5;                   % speed (m/s)
-betaVc = deg2rad(170);      % direction (rad)
-
 % Depth controller (suceessive-loop closure)
-z_d = z;                    % initial depth (m), reference model
+z_d = zn;                   % initial depth (m), reference model
 wn_d_z = 0.02;              % desired natural frequency, reference model
 Kp_z = 0.1;                 % proportional gain (heave)
 T_z = 100;                  % integral time constant (heave)
@@ -69,14 +101,11 @@ Kd_theta = 2.0;             % derivative gain (pitch)
 Ki_theta = 0.3;             % integral gain (pitch
 K_w = 5.0;                  % optional heave velocity feedback gain
 
-% Feed forward gains (Nomoto gain parameters)
+% Feedforward gains (Nomoto gain parameters)
 K_yaw = 5/20;               % K_yaw = r_max / delta_max
 T_yaw = 1;                  % Time constant in yaw
 
 % Heading autopilot reference model 
-psi_d = psi;                % initial heading angle (rad), reference model
-r_d = 0;                    % initial yaw rate (rad/s), reference model
-a_d = 0;                    % initial yaw acc. (rad/s^2), reference model
 zeta_d_psi = 1.0;           % desired relative damping factor, refence model
 wn_d_psi = 0.1;             % desired natural frequency, reference model 
 r_max = deg2rad(5.0);       % maximum turning rate (rad/s)
@@ -95,82 +124,124 @@ else                        % SMC controller
     K_sigma = 0.05;             
 end
 
+%% ALOS PATH-FOLLOWING PARAMETERS
+Delta_h = 20;               % horizontal look-ahead distance (m)
+Delta_v = 20;               % vertical look-ahead distance (m)
+gamma_h = 0.001;            % adaptive gain, horizontal plane 
+gamma_v = 0.001;            % adaptive gain, vertical plane 
+M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
+
+% Additional parameter for straigh-line path following
+R_switch = 5;               % radius of switching circle
+K_f = 0.5;                  % pitch and yaw rate observer gain
+
 %% MAIN LOOP
 simdata = zeros(N+1,length(x)+8); % allocate empty table for simulation data
+ALOSdata = zeros(N+1,4);          % allocate empty table for ALOS data
 
 for i = 1:N+1
     
-   t = (i-1)*h;                 % time
+   t = (i-1)*h;             % time
    
    % Measurements
-   w = x(3);                    % heave velocity
-   q = x(5);                    % pitch rate
-   r = x(6);                    % yaw rate
-   z = x(9);                    % z-position (depth)
-   Uv = sqrt(x(1)^2+x(3)^2);    % vertical speed
+   u = x(1);                % surge velocity (m/s)
+   v = x(2);                % sway veloicty (m/s)
+   w = x(3);                % heave veloicty (m/s)   
+   q = x(5);                % pitch rate (rad/s)
+   r = x(6);                % yaw rate (rad/s)
+   xn = x(7);               % North position (m)
+   yn = x(8);               % East position (m)   
+   zn = x(9);               % Down position, depth (m)
    
    if (KinematicsFlag == 1)
-         phi = x(10); theta = x(11); psi = x(12);   % Euler angles
+         phi = x(10); theta = x(11); psi = x(12); % Euler angles
    else
-         [phi,theta,psi] = q2euler(x(10:13));  % quaternion to Euler angles
+         [phi,theta,psi] = q2euler(x(10:13)); % quaternion to Euler angles
    end
    
-   % Depth command, z_ref  
-   if t > 200
-       z_ref = z_step;
-   else
-       z_ref = 10;
+   % Control systems
+   if ControlFlag == 1 || ControlFlag == 2
+
+       % Depth command, z_ref
+       if t > 200
+           z_ref = z_step;
+       else
+           z_ref = 10;
+       end
+
+       % LP filtering the depth command
+       Uv = sqrt(x(1)^2+x(3)^2);    % vertical speed
+       if Uv < 1.0                  % reduce bandwidth at low speed
+           wnz = wn_d_z / 2;
+       else
+           wnz = wn_d_z;
+       end
+       z_d = exp(-h*wnz) * z_d + (1 - exp(-h*wnz)) * z_ref;
+
+       % Depth autopilot using the stern planes (succesive-loop closure)
+       theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
+       delta_s = -Kp_theta * ssa( theta - theta_d )...        % PID
+           - Kd_theta * q - Ki_theta * theta_int - K_w * w;
+
+       % PID heading angle command, psi_ref
+       if t > 200
+           psi_ref = psi_step;
+       else
+           psi_ref = deg2rad(0);
+       end
+
+       % Heading autopilot using the tail rudder
+       delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
+           K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
+
+       % Third-order reference model for the heading angle
+       [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
+           zeta_d_psi, wn_d_psi, h, 1);
+
+   else % ControlFlag = 3
+
+       % Heading autopilot using the tail rudder (integral SMC)
+       delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
+           K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
+       
+       % Depth autopilot using the stern planes (PID)
+       delta_s = -Kp_theta * ssa( theta - theta_d )...             
+           - Kd_theta * q - Ki_theta * theta_int - K_w * w;
+
+       % ALOS guidance law
+       [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
+           ALOS3D(xn, yn, zn, Delta_h, Delta_v, gamma_h, gamma_v,...
+           M_theta, h, R_switch, wpt);
+
+       % ALOS observer
+       [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
+       [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+
+       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
+
    end
 
-   % LP filtering the depth command
-   if Uv < 1.0           % reduce bandwidth at low speed
-       wnz = wn_d_z / 2; 
-   else
-       wnz = wn_d_z;
-   end  
-   z_d = exp(-h*wnz) * z_d + (1 - exp(-h*wnz)) * z_ref; 
-
-   % Depth autopilot using the stern planes (succesive-loop closure)
-   theta_d = Kp_z * ( (z - z_d) + (1/T_z) * z_int );            % PI 
-   delta_s = -Kp_theta * ssa( theta - theta_d )...              % PID
-        - Kd_theta * q - Ki_theta * theta_int - K_w * w;                                        
-
-   % PID heading angle command, psi_ref
-   if t > 200
-      psi_ref = psi_step;
-   else
-      psi_ref = deg2rad(0);       
-   end   
-   
-   % Third-order reference model for the heading angle   
-   [psi_d,r_d,a_d] = refModel(psi_d,r_d,a_d,psi_ref,r_max,...
-        zeta_d_psi,wn_d_psi,h,1);
-  
-   % Heading autopilot using the tail rudder
-    delta_r = integralSMCheading(psi,r,psi_d,r_d,a_d,K_d,K_sigma,1,...
-          phi_b,K_yaw,T_yaw,h);
-   
    % Propeller revolution (rpm)
    if (n < n_d)
        n = n + 1;
    end
 
-    % Amplitude saturation of the control signals
-    n_max = 1525;                                % maximum propeller rpm
-    max_ui = [deg2rad(15) deg2rad(15) n_max]';   % deg, deg, rpm
+   % Amplitude saturation of the control signals
+   n_max = 1525;                                % maximum propeller rpm
+   max_ui = [deg2rad(15) deg2rad(15) n_max]';   % deg, deg, rpm
 
-    if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
-    if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
-    if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
+   if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
+   if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
+   if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
 
-    ui = [delta_r delta_s n]';                % Commanded control inputs 
+   ui = [delta_r delta_s n]';                % Commanded control inputs 
    
    % Store simulation data in a table 
    simdata(i,:) = [t z_d theta_d psi_d r_d ui' x'];   
    
    % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
    % x = x + h * xdot is replaced by forward and backward Euler integration
-   xdot = remus100(x,ui,Vc,betaVc);
+   xdot = remus100(x, ui, Vc, betaVc, wc);
 
    if (KinematicsFlag == 1)     
        Jmtrx = eulerang(x(10),x(11),x(12));
@@ -186,20 +257,25 @@ for i = 1:N+1
    end
    
    % Euler's integration method (k+1)
-   z_int = z_int + h * ( z - z_d );
+   z_int = z_int + h * ( zn - z_d );
    theta_int = theta_int + h * ssa( theta - theta_d );
    psi_int = psi_int + h * ssa( psi - psi_d );   
    
 end
 
 %% PLOTS
-t       = simdata(:,1);         % simdata = [t z_d theta_d psi_d ui' x']
+t       = simdata(:,1);  % simdata = [t z_d theta_d psi_d ui' x']
 z_d     = simdata(:,2); 
 theta_d = simdata(:,3); 
 psi_d   = simdata(:,4); 
 r_d     = simdata(:,5); 
 u       = simdata(:,6:8); 
 nu      = simdata(:,9:14);
+
+y_e = ALOSdata(:,1);
+z_e = ALOSdata(:,2);
+alpha_c_hat = ALOSdata(:,3);
+beta_c_hat = ALOSdata(:,4);
 
 if (KinematicsFlag == 1)        % Euler angle representation
     eta = simdata(:,15:20);
@@ -210,11 +286,16 @@ else                       % Transform the unit quaternions to Euler angles
     end
     eta = [simdata(:,15:17) phi theta psi];
     
-    figure(4)
-    plot(t,quaternion,'linewidth',2);
-    xlabel('time (s)'),title('Unit quaternion'),grid
-    legend('\eta','\epsilon_1','\epsilon_2','\epsilon_3')
 end
+
+alpha_c = atan( (nu(:,2).*sin(eta(:,4))+nu(:,3).*cos(eta(:,4))) ./ nu(:,1) );
+Uv = nu(:,1) .* sqrt( 1 + tan(alpha_c).^2 );
+beta_c = atan( ( nu(:,2).*cos(eta(:,4))-nu(:,3).*sin(eta(:,4)) ) ./ ... 
+    ( Uv .* cos(eta(:,5)-alpha_c) ) );
+
+alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
+beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
+chi = eta(:,6) + beta(:,1);                     % course angle (rad)
 
 %% Generalized velocity
 figure(1); 
@@ -224,16 +305,15 @@ subplot(612),plot(t,nu(:,2))
 xlabel('time (s)'),title('Sway velocity (m/s)'),grid
 subplot(613),plot(t,nu(:,3))
 xlabel('time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,rad2deg(nu(:,4)))
+subplot(614),plot(t,(180/pi)*nu(:,4))
 xlabel('time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,rad2deg(nu(:,5)))
+subplot(615),plot(t,(180/pi)*nu(:,5))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d))
-legend('true','desired')
+subplot(616),plot(t,(180/pi)*nu(:,6))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',16)
+set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Speed, heave position and Euler angles
 figure(2); 
@@ -266,32 +346,85 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
-%% 3-D position plot
-figure(4); 
-subplot(211)
-plot(eta(:,2),eta(:,1))
-title('North-East plot (m)')
-xlabel('E'); ylabel('N'); grid
-axis equal;
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
+%% Sideslip and angle of attack
+if ControlFlag == 3
+    figure(4);
+    subplot(311)
+    plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
+        t,rad2deg(alpha_c_hat),'r')
+    title('Angle of attack (deg)')
+    grid
+    legend('\alpha','\alpha_c','\alpha_c estimate','Location','best')
+    subplot(312)
+    plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
+        t,rad2deg(beta_c_hat),'r')
+    title('Sideslip angle (deg)')
+    xlabel('time (s)')
+    grid
+    legend('\beta','\beta_c','\beta_c estimate','Location','best')
+    subplot(313)
+    plot(t,y_e,t,z_e)
+    title('Tracking errors (m)'),grid
+    xlabel('time (s)')
+    legend('cross-track error y_e^p','vertical-track error z_e^p')
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+end
 
-subplot(212)
-plot3(eta(:,2),eta(:,1),eta(:,3))
-title('North-East-Down plot (m)')
-xlabel('E'); ylabel('N'); zlabel('D'); grid
-set(gca, 'ZDir', 'reverse');
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-view(-25, 30);  % view(AZ,EL) 
+%% 2-D position plots with waypoints
+if ControlFlag == 3
+    figure(5);
+    subplot(211)
+    plot(eta(:,2),eta(:,1))
+    hold on; 
+    plot(wpt.pos.y,wpt.pos.x,'rX','markersize',10); 
+    hold off
+    xlabel('East'), ylabel('North')
+    title('North-East plot (m)')
+    xlim([0,2500])
+    axis('equal')
+    grid
+    legend('actual path','waypoints','Location','best')
+    subplot(212)
+    plot(eta(:,2),eta(:,3))
+    hold on; 
+    plot(wpt.pos.y,wpt.pos.z,'rX','markersize',10); 
+    hold off
+    xlim([0,2500])
+    ylim([0,150])
+    xlabel('East'),ylabel('Down')
+    title('Down-East plot (m)')
+    grid
+    legend('actual path','waypoints','Location','best')
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+end
+
+%% 3-D position plot with waypoints
+if ControlFlag == 3
+    figure(6);
+    plot3(eta(:,2),eta(:,1),eta(:,3))
+    hold on; 
+    plot3(wpt.pos.y,wpt.pos.x,wpt.pos.z,'ro','markersize',15); 
+    hold off
+    title('North-East-Down plot (m)')
+    xlabel('East'); ylabel('North'); zlabel('Down');
+    legend('actual path','waypoints','Location','best'),grid
+    set(gca, 'ZDir', 'reverse');
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+    view(-25, 30);  % view(AZ,EL)
+end
+
 
 %% DISPLAY AND CHOOSE CONTROL METHOD
 function [ControlFlag, KinematicsFlag] = controlMethod()
 
     ControlFlag = 1;        % Default to 1 for "PID pole-placement control"
-    KinematicsFlag = 2;     % Default to 2 for "Unit quaternions"
+    KinematicsFlag = 1;     % Default to 1 for "Euler angles"
 
     f = figure('Position', [400, 400, 500, 300], 'Name', ...
         'Select Control Method and Kinematic Representation', ...
@@ -301,16 +434,20 @@ function [ControlFlag, KinematicsFlag] = controlMethod()
         'Position', [10 280 180 15], 'HorizontalAlignment', 'left');
 
     % Add button group for control methods
-    bg = uibuttongroup('Parent', f, 'Position', [0.02 0.7 0.96 0.2], ...
+    bg = uibuttongroup('Parent', f, 'Position', [0.02 0.6 0.96 0.3], ...
         'SelectionChangedFcn', @controlSelection);
     
     % Add radio buttons within the button group
     uicontrol(bg, 'Style', 'radiobutton', 'String', ...
         'Heading autopilot: PID pole-placement control', ...
-        'Position', [10 30 480 30], 'HandleVisibility', 'on', 'Tag', '1');
+        'Position', [10 55 480 30], 'HandleVisibility', 'on', 'Tag', '1');
     uicontrol(bg, 'Style', 'radiobutton', 'String', ...
         'Heading autopilot: Integral sliding mode control (SMC)', ...
-        'Position', [10 5 480 30], 'HandleVisibility', 'on', 'Tag', '2');
+        'Position', [10 30 480 30], 'HandleVisibility', 'on', 'Tag', '2');
+    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+        ['3-D path-following: Adaptive Line-Of-Sight (ALOS) guidance ' ...
+        'law for heading control'], 'Position', [10 5 480 30], ...
+        'HandleVisibility', 'on', 'Tag', '3');
 
     uicontrol('Style', 'text', 'String',...
         'Choose Euler angles or Unit quaternions to run the simulation:', ...
@@ -353,16 +490,18 @@ function [ControlFlag, KinematicsFlag] = controlMethod()
         else
             disp('Unit quaternion representation (13 states)');
         end
+        disp(' ')
         if (ControlFlag == 1)
             disp('Heading autopilot: PID poleplacement control');
+            disp('Depth autopilot:   Successive-loop closure');
+        elseif (ControlFlag == 2)
+            disp('Heading autopilot: Integral sliding mode control (SMC)');
+            disp('Depth autopilot:   Successive-loop closure');
         else
             disp('Heading autopilot: Integral sliding mode control (SMC)');
+            disp('Depth autopilot:   Successive-loop closure');
+            disp('Path-following:    ALOS guidance law for 3-D path following')
         end
-        disp('Depth autopilot:   Successive-loop closure');
         disp('-------------------------------------------------------------');
     end
 end
-
-
-
-
