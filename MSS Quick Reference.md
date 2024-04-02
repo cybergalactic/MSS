@@ -140,8 +140,7 @@ SIMotter        % Simulate otter.m under feedback control
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
 SIMcontainer    % Simulate container.m and Lcontainer.m under PD control
 SIMnavalvessel  % Simulate navalvessel.m under PD control
-SIMremus100     % Simulate remus100.m using autopilots for depth and heading control
-SIMremus100ALOS % Simulate remus100.m in a 3-D path-following scenario using adaptive LOS (ALOS)
+SIMremus100     % Simulate remus100.m with autopilots for depth and heading control, and 3-D straight-line path following using ALOS
 SIMrig          % Simulate the 6-DOF semisubmersible model under PID control
 SIMsupply       % Simulate the linear supply vessel model under DP control
 ```
