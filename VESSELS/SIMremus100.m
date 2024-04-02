@@ -1,9 +1,12 @@
-% SIMremus100 User-editable script for simulating the Remus 100 AUV
-% (remus100.m) under feedback control (simultaneously for depth and heading 
-% control) when exposed to ocean currents. Several methods for heading and 
-% depth control have been implemented, and switching between these methods 
-% is done by specifying the control flags. Both the Euler angle and unit 
-% quaternion representations of the Remus 100 model can be used. 
+% SIMremus100 
+% User-editable script for simulating the Remus 100 AUV ('remus100.m') 
+% under feedback control (simultaneously for depth and heading control 
+% when exposed to ocean currents. Both the Euler angle and unit quaternion 
+% representations of the Remus 100 model can be used. The following methods
+% are available for selection:
+%
+% 1: PID pole-placement algorithm
+% 2. Intergral slidng mode control (SMC)
 %
 % Calls:      remus100.m (Remus 100 equations of motion)
 %             integralSMCheading.m, refModel.m, q2euler.m, ssa.m
@@ -15,22 +18,16 @@
 % Revisions:  2022-02-01 Redesign of the autopilots
 %             2022-05-06 Retuning for new version of remus100.m
 %             2022-05-08 Added compability for unit quaternions
-%             2023-02-09 Added flags for multiple control laws
 %             2024-03-27 Using forward and backward Euler to integrate xdot
 
 clearvars;
-clear integralSMCheading    % reset integral state in integralSMCheading.m
+clear integralSMCheading             % reset integral state
 
 %% USER INPUTS
 h  = 0.02;                  % sample time (s)
 N  = 25000;                 % number of samples
 
-% Kinematic representation
-kinematicsFlag = 1;         % 0: Euler angles
-                            % 1: Unit quaternions
-% Heading autopilot                  
-headingControlFlag = 0;     % 0: PID pole placement algorithm
-                            % 1: Intergral slidng mode control (SMC)
+[ControlFlag, KinematicsFlag] = controlMethod(); % choose control method
 
 % Autopilot setpoints
 n_d = 1525;                 % desired propeller revolution, max 1525 rpm
@@ -50,7 +47,7 @@ theta_int = 0;              % pitch angle
 psi_int = 0;                % heading angle
 
 % Intitial state vector
-if (kinematicsFlag == 0)    % x = [ u v w p q r x y z phi theta psi ]'   
+if (KinematicsFlag == 1)    % x = [ u v w p q r x y z phi theta psi ]'   
     x = [zeros(6,1); x; y; z; phi; theta; psi];
 else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
     quat = euler2q(phi,theta,psi);
@@ -89,29 +86,13 @@ r_max = deg2rad(5.0);       % maximum turning rate (rad/s)
 lambda = 0.1;
 phi_b = 0.1;                % boundary layer thickness
 
-if headingControlFlag == 0  % PID controller
+if ControlFlag == 1         % PID controller
     K_d = 0.5; 
     K_sigma = 0; 
 else                        % SMC controller 
     K_d = 0;
     K_sigma = 0.05;             
 end
-   
-%% Display
-disp('-------------------------------------------------------------');
-disp('MSS toolbox: Remus 100 AUV (Length = 1.6 m, Diameter = 19 cm)')  
-if (kinematicsFlag == 0)
-    disp('Euler angle representation (12 states)')
-else
-    disp('Unit quaternion representation (13 states)') 
-end
-if (headingControlFlag == 0)
-    disp('Heading autopilot: PID poleplacement control')
-else
-    disp('Heading autopilot: Intergral slidng mode control (SMC) ')   
-end
-disp('Depth autopilot:   Succesive-loop closure')
-disp('-------------------------------------------------------------');
 
 %% MAIN LOOP
 simdata = zeros(N+1,length(x)+8); % allocate empty table for simulation data
@@ -123,11 +104,11 @@ for i = 1:N+1
    % Measurements
    w = x(3);                    % heave velocity
    q = x(5);                    % pitch rate
-   r = x(6);                     % yaw rate
+   r = x(6);                    % yaw rate
    z = x(9);                    % z-position (depth)
    Uv = sqrt(x(1)^2+x(3)^2);    % vertical speed
    
-   if (kinematicsFlag==0)
+   if (KinematicsFlag == 1)
          phi = x(10); theta = x(11); psi = x(12);   % Euler angles
    else
          [phi,theta,psi] = q2euler(x(10:13));  % quaternion to Euler angles
@@ -190,7 +171,7 @@ for i = 1:N+1
    % x = x + h * xdot is replaced by forward and backward Euler integration
    xdot = remus100(x,ui,Vc,betaVc);
 
-   if (kinematicsFlag == 0)     
+   if (KinematicsFlag == 1)     
        Jmtrx = eulerang(x(10),x(11),x(12));
        x(1:6) = x(1:6) + h * xdot(1:6);        % forward Euler 
        x(7:12) = x(7:12) + h * Jmtrx * x(1:6); % backward Euler 
@@ -219,7 +200,7 @@ r_d     = simdata(:,5);
 u       = simdata(:,6:8); 
 nu      = simdata(:,9:14);
 
-if (kinematicsFlag==0)         % Euler angle representation
+if (KinematicsFlag == 1)        % Euler angle representation
     eta = simdata(:,15:20);
 else                       % Transform the unit quaternions to Euler angles
     quaternion = simdata(:,18:21);
@@ -304,5 +285,83 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 view(-25, 30);  % view(AZ,EL) 
+
+%% DISPLAY AND CHOOSE CONTROL METHOD
+function [ControlFlag, KinematicsFlag] = controlMethod()
+
+    ControlFlag = 1;        % Default to 1 for "PID pole-placement control"
+    KinematicsFlag = 2;     % Default to 2 for "Unit quaternions"
+
+    f = figure('Position', [400, 400, 500, 300], 'Name', ...
+        'Select Control Method and Kinematic Representation', ...
+        'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
+
+    uicontrol('Style', 'text', 'String', 'Select Control Method:', ...
+        'Position', [10 280 180 15], 'HorizontalAlignment', 'left');
+
+    % Add button group for control methods
+    bg = uibuttongroup('Parent', f, 'Position', [0.02 0.7 0.96 0.2], ...
+        'SelectionChangedFcn', @controlSelection);
+    
+    % Add radio buttons within the button group
+    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+        'Heading autopilot: PID pole-placement control', ...
+        'Position', [10 30 480 30], 'HandleVisibility', 'on', 'Tag', '1');
+    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+        'Heading autopilot: Integral sliding mode control (SMC)', ...
+        'Position', [10 5 480 30], 'HandleVisibility', 'on', 'Tag', '2');
+
+    uicontrol('Style', 'text', 'String',...
+        'Choose Euler angles or Unit quaternions to run the simulation:', ...
+        'Position', [10 140 480 20], 'HorizontalAlignment', 'left');
+
+    % Add toggle buttons for Kinematics options
+    b1 = uicontrol('Style', 'togglebutton', 'String', 'Euler angles', ...
+        'Position', [50 100 150 30], 'Callback', @toggleButtonCallback, ...
+        'UserData', 1, 'Tag', '1');
+    b2 = uicontrol('Style', 'togglebutton', 'String', 'Unit quaternions', ...
+        'Position', [50 65 150 30], 'Callback', @toggleButtonCallback, ...
+        'UserData', 2, 'Tag', '2');
+
+    uiwait(f); % Wait for the user to make a selection and close the figure
+
+    % Callback function for toggle buttons
+    function toggleButtonCallback(src, ~)
+        % Ensure only one toggle button can be selected at a time
+        set([b1, b2], 'Value', 0); % Reset both buttons
+        src.Value = 1; % Set the clicked one to selected
+        KinematicsFlag = src.UserData; % Update KinematicsFlag based on selection
+        runSimulation(); % Run the simulation immediately after selection
+    end
+
+    % Selection change function for radio buttons
+    function controlSelection(~, event)
+        ControlFlag = str2double(event.NewValue.Tag);
+    end
+
+    % Function to run simulation and display choice
+    function runSimulation()
+        uiresume(f); % Resume execution (to return values) before closing
+        close(f); 
+        
+        % Display the selected configuration
+        disp('-------------------------------------------------------------');
+        disp('MSS toolbox: Remus 100 AUV (Length = 1.6 m, Diameter = 19 cm)');
+        if (KinematicsFlag == 1)
+            disp('Euler angle representation (12 states)');
+        else
+            disp('Unit quaternion representation (13 states)');
+        end
+        if (ControlFlag == 1)
+            disp('Heading autopilot: PID poleplacement control');
+        else
+            disp('Heading autopilot: Integral sliding mode control (SMC)');
+        end
+        disp('Depth autopilot:   Successive-loop closure');
+        disp('-------------------------------------------------------------');
+    end
+end
+
+
 
 
