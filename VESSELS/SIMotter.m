@@ -102,11 +102,14 @@ psi_d = eta(6);                 % reference model states
 r_d = 0;
 a_d = 0;
 
-%% MAIN LOOP
-ControlFlag = controlMethod(R_switch,Delta_h); % choose control method
-if isnan(ControlFlag); return; end             
+% Choose control method and display simulations options
+ControlFlag = controlMethod(R_switch,Delta_h); 
+if isnan(ControlFlag) 
+    return; 
+end 
 
-simdata = zeros(N+1,15);                       % table for simulation data
+%% MAIN LOOP
+simdata = zeros(N+1,15);                    % table for simulation data
 
 for i=1:N+1
 
