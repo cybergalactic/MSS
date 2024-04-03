@@ -1,6 +1,6 @@
 % SIMremus100 
 % User-editable script for simulating the Remus 100 AUV ('remus100.m') under
-% depth and heading control when exposed to ocean currents. The autpilots 
+% depth and heading control when exposed to ocean currents. The autopilots 
 % can also be combined with the 3-D Adaptive Line-Of-Sight (ALOS) guidance 
 % law by Fossen and Aguiar (2024) for path following. The ALOS algorithm
 % computes the desired heading and pitch angles when the path is a straight
