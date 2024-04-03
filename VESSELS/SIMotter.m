@@ -222,7 +222,8 @@ elseif ControlFlag == 1 || ControlFlag == 2 % Straigh lines and the circles
         plot(yCircle, xCircle, 'k'); 
     end
 
-    legend('Vehicle position','Straigh-line path','Circle of acceptance')
+    legend('Vehicle position','Straigh-line path','Circle of acceptance',...
+        'Location','best')
 
 else % ControlFlag == 3, Hermite splines
 
@@ -242,7 +243,7 @@ else % ControlFlag == 3, Hermite splines
     
     plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
     'MarkerFaceColor', 'g', 'MarkerSize', 15);
-    legend('Vehicle position','Hermite spline','Waypoints')
+    legend('Vehicle position','Hermite spline','Waypoints','Location','best')
 
 end
 
