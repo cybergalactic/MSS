@@ -182,14 +182,20 @@ end
 
 
 %% PLOTS
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3); 
+screenH = screenSize(4);
+
+% simdata(i,:) = [t eta' nu' r_d psi_d]
 t = simdata(:,1); 
 eta = simdata(:,2:7); 
 nu  = simdata(:,8:13); 
 r_d = simdata(:,14); 
 psi_d = simdata(:,15); 
 
-% Figure 1
-figure(1); clf; 
+%% Positions
+figure(1); 
+set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');  
 hold on;
 plot(eta(:,2),eta(:,1),'b');
 
@@ -240,50 +246,52 @@ else % ControlFlag == 3, Hermite splines
 
 end
 
-xlabel('East (m)', 'FontSize', 14);
-ylabel('North (m)', 'FontSize', 14);
-title('North-East positions', 'FontSize', 14);
+xlabel('East', 'FontSize', 14);
+ylabel('North', 'FontSize', 14);
+title('North-East positions (m)', 'FontSize', 14);
 axis equal; 
 hold off
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-% Figure 2
-figure(2); clf;
+%% Velocities
+figure(2);set(gcf, 'Position', [1, 1, screenW/2, screenH]);  
 subplot(611),plot(t,nu(:,1))
-xlabel('time (s)'),title('Surge velocity (m/s)'),grid
+xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
-xlabel('time (s)'),title('Sway velocity (m/s)'),grid
+xlabel('Time (s)'),title('Sway velocity (m/s)'),grid
 subplot(613),plot(t,nu(:,3))
-xlabel('time (s)'),title('Heave velocity (m/s)'),grid
+xlabel('Time (s)'),title('Heave velocity (m/s)'),grid
 subplot(614),plot(t,rad2deg(nu(:,4)))
-xlabel('time (s)'),title('Roll rate (deg/s)'),grid
+xlabel('Time (s)'),title('Roll rate (deg/s)'),grid
 subplot(615),plot(t,rad2deg(nu(:,5)))
-xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
+xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d))
-xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
+xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
 legend('r','r_d')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-% Figure 3
-figure(3); clf;
+%% Speed, heave position and Euler angles
+figure(3); set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
-xlabel('time (s)'),title('speed (m/s)'),grid
+title('Speed (m/s)'),grid
 subplot(512),plot(t,eta(:,3),'linewidt',2)
-xlabel('time (s)'),title('heave position (m)'),grid
+title('Heave position (m)'),grid
 subplot(513),plot(t,rad2deg(eta(:,4)))
-xlabel('time (s)'),title('roll angle (deg)'),grid
+title('Roll angle (deg)'),grid
 subplot(514),plot(t,rad2deg(eta(:,5)))
-xlabel('time (s)'),title('pitch angle (deg)'),grid
+title('Pitch angle (deg)'),grid
 subplot(515),plot(t,rad2deg(unwrap(eta(:,6))),t,rad2deg(unwrap(psi_d)))
-legend('\psi','\psi_d'),grid
+xlabel('Time (s)'),title('Yaw angle (deg)'),grid
+legend('\psi','\psi_d')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
+set(1,'Visible', 'on');     % show figure 1 on top of figures 2 qnd 3
 
 %% DISPLAY AND CHOOSE GUIDANCE/CONTROL LAW
 function ControlFlag= controlMethod(R_switch, Delta_h)
@@ -341,4 +349,3 @@ disp('--------------------------------------------------------------------');
 end
 
 end
-
