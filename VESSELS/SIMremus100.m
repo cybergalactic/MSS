@@ -346,7 +346,7 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
-%% Speed, heave position and Euler angles
+%% Heave position and Euler angles
 figure(2); set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
 if ControlFlag == 3; z_d = eta(:,3); end
 subplot(411),plot(t,eta(:,3),t,z_d)
