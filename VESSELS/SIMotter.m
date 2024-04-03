@@ -302,23 +302,18 @@ method = {'PID heading autopilot, no path following',...
 
 dlgtitle = 'Double click to choose control method:';
 
-[index, tf] = listdlg('PromptString',dlgtitle,...
-    'ListString', method,'SelectionMode', 'single', ...
-    'InitialValue', 2, 'ListSize', [400 80]);
+[index, tf] = listdlg('PromptString',dlgtitle,'ListString', method,...
+    'SelectionMode', 'single', 'InitialValue', 2, 'ListSize', [400 80]);
 
 if tf % check if the user made a selection
     switch index
         case 1
-            disp(method{index})
             ControlFlag = 0;
         case 2
-            disp(method{index})
             ControlFlag = 1;
         case 3
-            disp(method{index})
             ControlFlag = 2;  
         case 4
-            disp(method{index})
             ControlFlag = 3;       
     end
 else
