@@ -64,14 +64,14 @@ psi_d = psi; r_d = 0; a_d = 0;  % initial yaw reference signals
 % Intitial state vector
 if (KinematicsFlag == 1)  % x = [ u v w p q r x y z phi theta psi ]'   
     x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
-else                    % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
+else                      % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
     quat = euler2q(phi,theta,psi);
     x = [U; zeros(5,1); xn; yn; zn; quat];
 end
 
 % Ocean current speed and direction expressed in NED
 Vc = 0.5;                   % horisontal speed (m/s)
-betaVc = deg2rad(150);      % horizontal direction (rad)
+betaVc = deg2rad(30);      % horizontal direction (rad)
 wc = 0.1;                   % vertical speed (m/s)
 
 % Propeller initialization
@@ -134,8 +134,8 @@ R_switch = 5;               % radius of switching circle
 K_f = 0.5;                  % pitch and yaw rate observer gain
 
 %% MAIN LOOP
-simdata = zeros(N+1,length(x)+8); % allocate empty table for simulation data
-ALOSdata = zeros(N+1,6);          % allocate empty table for ALOS data
+simdata = zeros(N+1,length(x)+11); % allocate empty table for simulation data
+ALOSdata = zeros(N+1,4);           % allocate empty table for ALOS data
 
 for i = 1:N+1
     
@@ -236,7 +236,7 @@ for i = 1:N+1
        betaVc = betaVc + (pi/180) * randn / 20;
        Vc = Vc + 0.002 * randn;
 
-       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat Vc betaVc];
+       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
 
    end
 
@@ -256,7 +256,7 @@ for i = 1:N+1
    ui = [delta_r delta_s n]';                % Commanded control inputs 
    
    % Store simulation data in a table 
-   simdata(i,:) = [t z_d theta_d psi_d r_d ui' x'];   
+   simdata(i,:) = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x'];   
    
    % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
    % x = x + h * xdot is replaced by forward and backward Euler integration
@@ -283,31 +283,38 @@ for i = 1:N+1
 end
 
 %% PLOTS
-t       = simdata(:,1);  % simdata = [t z_d theta_d psi_d ui' x']
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3); 
+screenH = screenSize(4);
+
+% simdata = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x']
+t       = simdata(:,1);  
 z_d     = simdata(:,2);
 theta_d = simdata(:,3); 
 psi_d   = simdata(:,4); 
 r_d     = simdata(:,5); 
-u       = simdata(:,6:8); 
-nu      = simdata(:,9:14);
+Vc      = simdata(:,6);
+betaVc  = simdata(:,7);
+wc      = simdata(:,8);
+u       = simdata(:,9:11); 
+nu      = simdata(:,12:17);
 
+if (KinematicsFlag == 1) % Euler angle representation
+    eta = simdata(:,18:23);
+else % Transform the unit quaternions to Euler angles
+    quaternion = simdata(:,21:24);
+    for i = 1:N+1
+        [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
+    end
+    eta = [simdata(:,18:20) phi theta psi];
+    
+end
+
+% ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
 y_e = ALOSdata(:,1);
 z_e = ALOSdata(:,2);
 alpha_c_hat = ALOSdata(:,3);
 beta_c_hat = ALOSdata(:,4);
-Vc = ALOSdata(:,5);
-betaVc = ALOSdata(:,6);
-
-if (KinematicsFlag == 1)        % Euler angle representation
-    eta = simdata(:,15:20);
-else                       % Transform the unit quaternions to Euler angles
-    quaternion = simdata(:,18:21);
-    for i = 1:N+1
-        [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
-    end
-    eta = [simdata(:,15:17) phi theta psi];
-    
-end
 
 uc = Vc .* cos(betaVc);
 vc = Vc .* sin(betaVc);
@@ -319,96 +326,96 @@ alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
 beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
 
 
+
+
 %% Generalized velocity
-figure(1); 
+figure(1); set(gcf, 'Position', [1, 1, screenW/3, screenH]); 
 subplot(611),plot(t,nu(:,1))
-xlabel('time (s)'),title('Surge velocity (m/s)'),grid
+xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
-xlabel('time (s)'),title('Sway velocity (m/s)'),grid
+xlabel('Time (s)'),title('Sway velocity (m/s)'),grid
 subplot(613),plot(t,nu(:,3))
-xlabel('time (s)'),title('Heave velocity (m/s)'),grid
+xlabel('Time (s)'),title('Heave velocity (m/s)'),grid
 subplot(614),plot(t,(180/pi)*nu(:,4))
-xlabel('time (s)'),title('Roll rate (deg/s)'),grid
+xlabel('Time (s)'),title('Roll rate (deg/s)'),grid
 subplot(615),plot(t,(180/pi)*nu(:,5))
-xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
+xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,(180/pi)*nu(:,6))
-xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
+xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Speed, heave position and Euler angles
-figure(2); 
+figure(2); set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
 if ControlFlag == 3; z_d = eta(:,3); end
-subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2+nu(:,3).^2));
-xlabel('time (s)'),title('speed (m/s)'),grid
-subplot(512),plot(t,eta(:,3),t,z_d)
-xlabel('time (s)'),title('heave position (m)'),grid
-legend('true','desired')
-subplot(513),plot(t,rad2deg(eta(:,4)))
-xlabel('time (s)'),title('roll angle (deg)'),grid
-subplot(514),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d))
-xlabel('time (s)'),title('pitch angle (deg)'),grid
-legend('true','desired')
-subplot(515),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
-xlabel('time (s)'),title('yaw angle (deg)'),grid
-legend('true','desired')
+subplot(411),plot(t,eta(:,3),t,z_d)
+xlabel('Time (s)'),title('Heave position (m)'),grid
+legend('True','Desired')
+subplot(412),plot(t,rad2deg(eta(:,4)))
+xlabel('Time (s)'),title('Roll angle (deg)'),grid
+subplot(413),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d))
+xlabel('Time (s)'),title('Pitch angle (deg)'),grid
+legend('True','Desired')
+subplot(414),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
+xlabel('Time (s)'),title('Yaw angle (deg)'),grid
+legend('True','Desired')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
 %% Control signals
-figure(3); 
+figure(3); set(gcf,'Position',[2*screenW/3,screenH/2,screenW/3,screenH/2]);
 subplot(311),plot(t,rad2deg(u(:,1)))
-xlabel('time (s)'),title('Rudder command \delta_r (deg)'),grid
+xlabel('Time (s)'),title('Rudder command \delta_r (deg)'),grid
 subplot(312),plot(t,rad2deg(u(:,2)))
-xlabel('time (s)'),title('Stern-plane command \delta_s (deg)'),grid
+xlabel('Time (s)'),title('Stern-plane command \delta_s (deg)'),grid
 subplot(313),plot(t,u(:,3))
-xlabel('time (s)'),title('Propeller speed command n (rpm)'),grid
+xlabel('Time (s)'),title('Propeller speed command n (rpm)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
-%% Ocean current
-if ControlFlag == 3
-    figure(4);
-    subplot(311),plot(t,nu(:,1),t,nu(:,2))
-    ylim([0,2.2])
-    xlabel('time (s)'),grid
-    legend('surge veloicty (m/s)','sway velocity (m/s)','Location','east')
-    subplot(312),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
-    ylim([0,2.2])
-    xlabel('time (s)'),grid
-    legend('vehicle speed (m/s)','current speed (m/s)','Location','southeast')
-    subplot(313),plot(t,(180/pi)*betaVc)
-    xlabel('time (s)'),grid
-    legend('Current direction (deg)','Location','best')
-    set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
-    set(findall(gcf,'type','legend'),'FontSize',14)
-end
+%% Ocean currents and speed
+figure(4); set(gcf,'Position',[2*screenW/3,1,screenW/3,screenH/2]);
+subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
+xlabel('Time (s)'),grid
+legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
+    'Location','best')
+subplot(312),plot(t,nu(:,3),t,wc)
+xlabel('Time (s)'),grid
+legend('Vehicle heave velocity (m/s)','Ocean current heave velcoity (m/s)',...
+    'Location','best')
+subplot(313),plot(t,rad2deg(betaVc),'r')
+xlabel('Time (s)'),grid
+legend('Ocean current direction (deg)','Location','best')
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+
 
 %% Sideslip and angle of attack
 if ControlFlag == 3
-    figure(5);
+    figure(5); set(gcf,'Position',[100,100,screenW/3,screenH]);
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
     title('Angle of attack (deg)')
+    xlabel('Time (s)')
     grid
     legend('\alpha','\alpha_c','\alpha_c estimate','Location','best')
     subplot(312)
     plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
         t,rad2deg(beta_c_hat),'r')
     title('Sideslip angle (deg)')
-    xlabel('time (s)')
+    xlabel('Time (s)')
     grid
     legend('\beta','\beta_c','\beta_c estimate','Location','best')
     subplot(313)
     plot(t,y_e,t,z_e)
     title('Tracking errors (m)'),grid
-    xlabel('time (s)')
-    legend('cross-track error y_e^p','vertical-track error z_e^p')
+    xlabel('Time (s)')
+    legend('Cross-track error y_e^p','Vertical-track error z_e^p')
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
@@ -416,7 +423,7 @@ end
 
 %% 2-D position plots with waypoints
 if ControlFlag == 3
-    figure(6);
+    figure(6); set(gcf,'Position',[300,200,screenW/3,screenH/2]);
     subplot(211)
     plot(eta(:,2),eta(:,1))
     hold on; 
@@ -427,7 +434,7 @@ if ControlFlag == 3
     xlim([0,2500])
     axis('equal')
     grid
-    legend('actual path','waypoints','Location','best')
+    legend('Actual path','Waypoints','Location','best')
     subplot(212)
     plot(eta(:,2),eta(:,3))
     hold on; 
@@ -438,7 +445,7 @@ if ControlFlag == 3
     xlabel('East'),ylabel('Down')
     title('Down-East plot (m)')
     grid
-    legend('actual path','waypoints','Location','best')
+    legend('Actual path','Waypoints','Location','best')
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
@@ -446,14 +453,14 @@ end
 
 %% 3-D position plot with waypoints
 if ControlFlag == 3
-    figure(7);
+    figure(7); 
     plot3(eta(:,2),eta(:,1),eta(:,3))
     hold on; 
     plot3(wpt.pos.y,wpt.pos.x,wpt.pos.z,'ro','markersize',15); 
     hold off
     title('North-East-Down plot (m)')
     xlabel('East'); ylabel('North'); zlabel('Down');
-    legend('actual path','waypoints','Location','best'),grid
+    legend('Actual path','Waypoints','Location','best'),grid
     set(gca, 'ZDir', 'reverse');
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
@@ -468,40 +475,43 @@ function [ControlFlag, KinematicsFlag] = controlMethod()
     ControlFlag = 1;        % Default to 1 for "PID pole-placement control"
     KinematicsFlag = 1;     % Default to 1 for "Euler angles"
 
-    f = figure('Position', [400, 400, 500, 300], 'Name', ...
-        'Select Control Method and Kinematic Representation', ...
-        'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
+    fontSize = 13;
 
-    uicontrol('Style', 'text', 'String', 'Select Control Method:', ...
-        'Position', [10 280 180 15], 'HorizontalAlignment', 'left');
+    f = figure('Position', [400, 400, 570, 300], 'Name', ...
+        'Select Control Method and Kinematic Representation', ...
+        'MenuBar','none','NumberTitle','off','WindowStyle','modal');
+
+    uicontrol('Style', 'text', 'String','Control Method:', ...
+        'Position', [10 280 180 15],'HorizontalAlignment','left',...
+        'FontSize',fontSize,'FontWeight','bold');
 
     % Add button group for control methods
     bg = uibuttongroup('Parent', f, 'Position', [0.02 0.6 0.96 0.3], ...
         'SelectionChangedFcn', @controlSelection);
     
     % Add radio buttons within the button group
-    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+    uicontrol(bg, 'Style', 'radiobutton', 'FontSize', fontSize, 'String', ...
         'Heading autopilot: PID pole-placement control', ...
         'Position', [10 55 480 30], 'HandleVisibility', 'on', 'Tag', '1');
-    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+    uicontrol(bg, 'Style', 'radiobutton', 'FontSize', fontSize, 'String', ...
         'Heading autopilot: Integral sliding mode control (SMC)', ...
         'Position', [10 30 480 30], 'HandleVisibility', 'on', 'Tag', '2');
-    uicontrol(bg, 'Style', 'radiobutton', 'String', ...
+    uicontrol(bg, 'Style', 'radiobutton','FontSize', fontSize, 'String', ...
         ['3-D path-following: Adaptive Line-Of-Sight (ALOS) guidance ' ...
-        'law for heading control'], 'Position', [10 5 480 30], ...
+        'law for heading control'], 'Position', [10 5 560 30], ...
         'HandleVisibility', 'on', 'Tag', '3');
 
-    uicontrol('Style', 'text', 'String',...
-        'Choose Euler angles or Unit quaternions to run the simulation:', ...
-        'Position', [10 140 480 20], 'HorizontalAlignment', 'left');
+    uicontrol('Style','text','FontSize',fontSize,'FontWeight','bold','String',...
+        'Choose Euler Angles or Unit Quaternions to Run the Simulation:', ...
+        'Position',[10 140 480 20],'HorizontalAlignment','left');
 
     % Add toggle buttons for Kinematics options
-    b1 = uicontrol('Style', 'togglebutton', 'String', 'Euler angles', ...
-        'Position', [50 100 150 30], 'Callback', @toggleButtonCallback, ...
-        'UserData', 1, 'Tag', '1');
-    b2 = uicontrol('Style', 'togglebutton', 'String', 'Unit quaternions', ...
-        'Position', [50 65 150 30], 'Callback', @toggleButtonCallback, ...
-        'UserData', 2, 'Tag', '2');
+    b1 = uicontrol('Style', 'togglebutton','FontSize', fontSize,...
+        'String', 'Euler angles','Position', [50 100 150 30], ...
+        'Callback', @toggleButtonCallback,'UserData',1,'Tag','1');
+    b2 = uicontrol('Style', 'togglebutton','FontSize', fontSize, ...
+        'String', 'Unit quaternions','Position', [50 65 150 30], ...
+        'Callback', @toggleButtonCallback,'UserData',2,'Tag','2');
 
     uiwait(f); % Wait for the user to make a selection and close the figure
 
