@@ -71,7 +71,7 @@ end
 
 % Ocean current speed and direction expressed in NED
 Vc = 0.5;                   % horisontal speed (m/s)
-betaVc = deg2rad(30);      % horizontal direction (rad)
+betaVc = deg2rad(30);       % horizontal direction (rad)
 wc = 0.1;                   % vertical speed (m/s)
 
 % Propeller initialization
@@ -307,7 +307,6 @@ else % Transform the unit quaternions to Euler angles
         [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
     end
     eta = [simdata(:,18:20) phi theta psi];
-    
 end
 
 % ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
@@ -324,9 +323,6 @@ beta_c = atan( ( nu(:,2).*cos(eta(:,4))-nu(:,3).*sin(eta(:,4)) ) ./ ...
     ( Uv .* cos(eta(:,5)-alpha_c) ) );
 alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
 beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
-
-
-
 
 %% Generalized velocity
 figure(1); set(gcf, 'Position', [1, 1, screenW/3, screenH]); 
@@ -392,7 +388,6 @@ legend('Ocean current direction (deg)','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
-
 
 %% Sideslip and angle of attack
 if ControlFlag == 3
