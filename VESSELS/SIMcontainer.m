@@ -1,8 +1,9 @@
-% SIMcontainer - User editable script for simulating the dynamics of a 
-% container ship under feedback control. The script concurrently simulates 
-% the ship using both a linear model, defined in 'Lcontainer.m', and a 
-% nonlinear model, defined in 'container.m'. The outcomes of both 
-% simulations are then plotted side by side for comparative analysis.
+% SIMcontainer
+% User editable script for simulating the dynamics of a container ship 
+% under feedback control. The script concurrently simulates the ship using 
+% both a linear model, defined in 'Lcontainer.m', and a nonlinear model, 
+% defined in 'container.m'. The outcomes of both simulations are then 
+% plotted side by side for comparative analysis.
 %
 % Calls:       container.m
 %              Lcontainer.m
@@ -14,6 +15,7 @@
 
 clearvars;
 
+%% USER INPUTS
 t_f = 600;   % final simulation time (sec)
 h   = 0.1;   % sample time (sec)
 
@@ -36,26 +38,30 @@ for i=1:N+1
     r   = x1(3);
     psi = x1(6);
     
-    % control system
+    % Control system (constant thrust + PD heading controller)
     psi_ref = deg2rad(5);                           % desired heading
-    delta_c = -Kp * ( ssa(psi-psi_ref) + Td * r);   % PD controller
+    delta_c = -Kp * ( ssa(psi-psi_ref) + Td * r );  % PD controller
     n_c = 70;
     
-    % ship model
+    % Ship model
     [xdot1,U1] = container(x1,[delta_c n_c]);       % ship models
     [xdot2,U2] = Lcontainer(x2,delta_c);
    
-    % store data for presentation
-    simdata1(i,:) = [time,x1',U1]; 
-    simdata2(i,:) = [time,x2',U2]; 
+    % Store data for presentation
+    simdata1(i,:) = [time, x1', U1]; 
+    simdata2(i,:) = [time, x2', U2]; 
     
-    % numerical integration
-    x1 = euler2(xdot1,x1,h);                         % Euler's method
+    % Euler's integration method (k+1)
+    x1 = euler2(xdot1,x1,h);                         
     x2 = euler2(xdot2,x2,h);   
 
 end
 
 %% PLOTS
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3); 
+screenH = screenSize(4);
+
 t1     = simdata1(:,1);
 u1     = simdata1(:,2); 
 v1     = simdata1(:,3);          
@@ -81,23 +87,29 @@ phi2   = rad2deg(simdata2(:,9));
 delta2 = rad2deg(simdata2(:,10));
 U2     = simdata2(:,11);
 
-figure(1)
+% North-East positions
+figure(1); set(gcf, 'Position', [1, 1, screenW/2, screenH]); 
 plot(y1,x1,'r',y2,x2,'b')
-grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position')
-legend('nonlinear model','linear model','Location','best')
+grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
+legend('Nonlinear model','Linear model','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-figure(2)
-subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('time (s)'),title('yaw rate r (deg/s)'),grid
-legend('nonlinear model','linear model','Location','best')
-subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('time (s)'),title('roll angle \phi (deg/s)'),grid
-legend('nonlinear model','linear model','Location','best')
-subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
-legend('nonlinear model','linear model','Location','best')
-subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('time (s)'),title('rudder angle \delta (deg)'),grid
-legend('nonlinear model','linear model','Location','best')
+% Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
+figure(2); set(gcf, 'Position', [screenW/2, 1, screenW/2.5, screenH]);
+subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('time (s)')
+title('Yaw rate r (deg/s)'),grid
+legend('Nonlinear model','Linear model','Location','best')
+subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('time (s)')
+title('Roll angle \phi (deg/s)'),grid
+legend('Nonlinear model','Linear model','Location','best')
+subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('time (s)')
+title('Yaw angle \psi (deg)'),grid
+legend('Nonlinear model','Linear model','Location','best')
+subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('time (s)')
+title('Rudder angle \delta (deg)'),grid
+legend('Nonlinear model','Linear model','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
