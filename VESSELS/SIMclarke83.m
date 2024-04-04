@@ -15,6 +15,7 @@
 
 clear animateShip       % clear the persistent animation variables
 clearvars;
+close all;
 
 %% USER INPUTS
 h = 0.05;               % sampling time
