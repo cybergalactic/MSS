@@ -1,6 +1,7 @@
-% SIMsupply  User editable script for simulation of the linear supply
-% vessel model, [xdot, U] = supply(x,tau), which returns the speed and the 
-% time derivative xdot = A * x + B * tau of the state vector: 
+% SIMsupply  
+% User editable script for simulation of the linear supply vessel model, 
+% [xdot, U] = supply(x,tau), which returns the speed and the time 
+% derivative xdot = A * x + B * tau of the state vector: 
 % x = [ x y psi u v r ]' for a supply vessel length L = 76 m.
 %
 % Calls:      supply.m
@@ -12,6 +13,7 @@
 
 clear PIDnonlinearMIMO          % clear the persistent PID variables
 clearvars;
+close all;
 
 t_f = 500;                      % final simulation time (s)
 h   = 0.05;                     % sample time (s)
