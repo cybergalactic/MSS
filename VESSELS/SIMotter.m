@@ -35,8 +35,9 @@
 %             2024-04-01 - Added ALOS/ILOS path-following control algorithms 
 %                          for straight-line paths and Hermite splines
 
-clear ALOSpsi ILOSpsi crosstrackHermiteLOS % clear persistent variables
-clearvars;
+clearvars;                                   % clear variables from memory
+close all;                                   % closes all figure windows 
+clear ALOSpsi ILOSpsi crosstrackHermiteLOS   % clear persistent variables
 
 %% USER INPUTS
 h  = 0.05;        % sampling time [s]
@@ -109,9 +110,6 @@ a_d = 0;
 
 % Choose control method and display simulations options
 ControlFlag = controlMethod(R_switch,Delta_h); 
-if isnan(ControlFlag) 
-    return; 
-end 
 
 %% MAIN LOOP
 simdata = zeros(N+1,15);                    % table for simulation data
@@ -127,7 +125,7 @@ for i=1:N+1
     psi = eta(6) + 0.001 * randn;
 
     % Guidance and control system
-    if ControlFlag == 0 % heading autopilot with reference model
+    if ControlFlag == 1 % heading autopilot with reference model
 
         % Reference model, step input
         psi_ref = psi0;
@@ -138,12 +136,12 @@ for i=1:N+1
         [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
             zeta_d, wn_d, h, 1);
 
-    elseif ControlFlag == 1 % ALOS heading autopilot straight-line path following
+    elseif ControlFlag == 2 % ALOS heading autopilot straight-line path following
 
         psi_ref = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt);
         [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
-    elseif ControlFlag == 2 % ILOS heading autopilot straight-line path following
+    elseif ControlFlag == 3 % ILOS heading autopilot straight-line path following
 
         psi_ref = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt);
         [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
@@ -157,46 +155,53 @@ for i=1:N+1
 
     end
 
-   % PID heading (yaw moment) autopilot and forward thrust
-   tau_X = 100;
-   tau_N = (T/K) * a_d + (1/K) * r_d -...
-       Kp * (ssa( psi-psi_d) +...
-       Td * (r - r_d) + (1/Ti) * z_psi );
-   u = Binv * [tau_X tau_N]';                   % control allocation
-   n_c = sign(u) .* sqrt( abs(u) );
+    % PID heading (yaw moment) autopilot and forward thrust
+    tau_X = 100;
+    tau_N = (T/K) * a_d + (1/K) * r_d -...
+        Kp * (ssa( psi-psi_d) +...
+        Td * (r - r_d) + (1/Ti) * z_psi );
 
-   % Store simulation data in a table   
-   simdata(i,:) = [t eta' nu' r_d psi_d];    
-   
-   % USV dynamics
-   xdot = otter([nu; eta],n,mp,rp,V_c,beta_c);
+    % Control allocation
+    u = Binv * [tau_X tau_N]';                   
+    n_c = sign(u) .* sqrt( abs(u) );
 
-   % Euler's integration method (k+1)
-   nu = nu + h * xdot(1:6);               
-   eta = eta + h * xdot(7:12); 
-   n = n + h/T_n * (n_c - n);              
-   z_psi = z_psi + h * ssa( psi-psi_d );  
+    % Store simulation data in a table
+    simdata(i,:) = [t eta' nu' r_d psi_d];
+
+    % USV dynamics
+    xdot = otter([nu; eta],n,mp,rp,V_c,beta_c);
+
+    % Euler's integration method (k+1)
+    nu = nu + h * xdot(1:6);
+    eta = eta + h * xdot(7:12);
+    n = n + h/T_n * (n_c - n);
+    z_psi = z_psi + h * ssa( psi-psi_d );
 
 end
 
-
 %% PLOTS
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3); 
+screenH = screenSize(4);
+
+% simdata(i,:) = [t eta' nu' r_d psi_d]
 t = simdata(:,1); 
 eta = simdata(:,2:7); 
 nu  = simdata(:,8:13); 
 r_d = simdata(:,14); 
 psi_d = simdata(:,15); 
 
-% Figure 1
-figure(1); clf; 
+%% Positions
+figure(1); 
+set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');  
 hold on;
 plot(eta(:,2),eta(:,1),'b');
 
-if ControlFlag == 0 % Vehicle position
+if ControlFlag == 1 % Vehicle position
 
     legend('Vehicle position')
 
-elseif ControlFlag == 1 || ControlFlag == 2 % Straigh lines and the circles
+elseif ControlFlag == 2 || ControlFlag == 3 % Straigh lines and the circles
 
     for idx = 1:length(wayPoints(:,1))-1
         if idx == 1
@@ -215,9 +220,10 @@ elseif ControlFlag == 1 || ControlFlag == 2 % Straigh lines and the circles
         plot(yCircle, xCircle, 'k'); 
     end
 
-    legend('Vehicle position','Straigh-line path','Circle of acceptance')
+    legend('Vehicle position','Straigh-line path','Circle of acceptance',...
+        'Location','best')
 
-else % ControlFlag == 3, Hermite splines
+else % ControlFlag == 4, Hermite splines
 
     k = linspace(0, 1, 200);
     for i = 1:size(wayPoints, 1)-1
@@ -235,109 +241,115 @@ else % ControlFlag == 3, Hermite splines
     
     plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
     'MarkerFaceColor', 'g', 'MarkerSize', 15);
-    legend('Vehicle position','Hermite spline','Waypoints')
+    legend('Vehicle position','Hermite spline','Waypoints','Location','best')
 
 end
 
-xlabel('East (m)', 'FontSize', 14);
-ylabel('North (m)', 'FontSize', 14);
-title('North-East positions', 'FontSize', 14);
+xlabel('East', 'FontSize', 14);
+ylabel('North', 'FontSize', 14);
+title('North-East positions (m)', 'FontSize', 14);
 axis equal; 
 hold off
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-% Figure 2
-figure(2); clf;
+%% Velocities
+figure(2);set(gcf, 'Position', [1, 1, screenW/2, screenH]);  
 subplot(611),plot(t,nu(:,1))
-xlabel('time (s)'),title('Surge velocity (m/s)'),grid
+xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
-xlabel('time (s)'),title('Sway velocity (m/s)'),grid
+xlabel('Time (s)'),title('Sway velocity (m/s)'),grid
 subplot(613),plot(t,nu(:,3))
-xlabel('time (s)'),title('Heave velocity (m/s)'),grid
+xlabel('Time (s)'),title('Heave velocity (m/s)'),grid
 subplot(614),plot(t,rad2deg(nu(:,4)))
-xlabel('time (s)'),title('Roll rate (deg/s)'),grid
+xlabel('Time (s)'),title('Roll rate (deg/s)'),grid
 subplot(615),plot(t,rad2deg(nu(:,5)))
-xlabel('time (s)'),title('Pitch rate (deg/s)'),grid
+xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d))
-xlabel('time (s)'),title('Yaw rate (deg/s)'),grid
+xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
 legend('r','r_d')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-% Figure 3
-figure(3); clf;
+%% Speed, heave position and Euler angles
+figure(3); set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
-xlabel('time (s)'),title('speed (m/s)'),grid
+title('Speed (m/s)'),grid
 subplot(512),plot(t,eta(:,3),'linewidt',2)
-xlabel('time (s)'),title('heave position (m)'),grid
+title('Heave position (m)'),grid
 subplot(513),plot(t,rad2deg(eta(:,4)))
-xlabel('time (s)'),title('roll angle (deg)'),grid
+title('Roll angle (deg)'),grid
 subplot(514),plot(t,rad2deg(eta(:,5)))
-xlabel('time (s)'),title('pitch angle (deg)'),grid
+title('Pitch angle (deg)'),grid
 subplot(515),plot(t,rad2deg(unwrap(eta(:,6))),t,rad2deg(unwrap(psi_d)))
-legend('\psi','\psi_d'),grid
+xlabel('Time (s)'),title('Yaw angle (deg)'),grid
+legend('\psi','\psi_d')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
+set(1,'Visible', 'on');     % show figure 1 on top of figures 2 qnd 3
 
-%% DISPLAY AND CHOOSE GUIDANCE/CONTROL LAW
-function ControlFlag= controlMethod(R_switch, Delta_h)
-method = {'PID heading autopilot, no path following',...
-'ALOS path-following control using straight lines and waypoint switching',...
-'ILOS path-following control using straight lines and waypoint switching',...                   
-'ALOS path-following control using Hermite splines'};
 
-dlgtitle = 'Double click to choose control method:';
+%% CHOOSE GUIDANCE/CONTROL LAW AND DISPLAY RESULTS
+function ControlFlag = controlMethod(R_switch, Delta_h)
+    methods = {'PID heading autopilot, no path following',...
+        'ALOS path-following control using straight lines and waypoint switching',...
+        'ILOS path-following control using straight lines and waypoint switching',...
+        'ALOS path-following control using Hermite splines'};
 
-[index, tf] = listdlg('PromptString',dlgtitle,...
-    'ListString', method,'SelectionMode', 'single', ...
-    'InitialValue', 2, 'ListSize', [400 80]);
+    fig = figure('Name', 'Choose Control Method','Position',...
+        [200, 300, 500, 250],'MenuBar', 'none', 'NumberTitle', 'off', ...
+        'Resize', 'off', 'CloseRequestFcn', @closeDialog);
+    
+    fig.UserData = NaN;  % initialize UserData to store ControlFlag
 
-if tf % check if the user made a selection
-    switch index
-        case 1
-            disp(method{index})
-            ControlFlag = 0;
-        case 2
-            disp(method{index})
-            ControlFlag = 1;
-        case 3
-            disp(method{index})
-            ControlFlag = 2;  
-        case 4
-            disp(method{index})
-            ControlFlag = 3;       
+    % Create push buttons for each method
+    for i = 1:length(methods)
+        uicontrol('Style', 'pushbutton', 'String', methods{i}, ...
+            'FontSize',13,'Position',[10, 200 - 50 * (i - 1), 450, 40],...
+            'Callback', {@buttonCallback, i});
     end
-else
-    ControlFlag = NaN; % Handle the case where no selection is made.
+
+    uiwait(fig);                    % wait for figure to close
+    ControlFlag = fig.UserData;     % retrieve ControlFlag
+    delete(fig);                    % delete figure to clean up
+
+    % Callback function for push buttons
+    function buttonCallback(~, ~, index)
+        fig.UserData = index;       % store selection in figure's UserData
+        uiresume(fig);              % resume execution of uiwait
+    end
+
+    % Close Request Function to handle user closing the figure window
+    function closeDialog(src, ~)
+        uiresume(src); % allow uiwait to return even if the window is closed
+    end
+
+    displayControlMethod(ControlFlag, R_switch, Delta_h);
 end
 
-% Display
-if ~isnan(ControlFlag)
+function displayControlMethod(ControlFlag, R_switch, Delta_h)
 disp('--------------------------------------------------------------------');
-disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)')  
-if (ControlFlag == 0)
-    disp('PID heading autopilot with reference feeforward')
-elseif ControlFlag == 1
-    disp(['ALOS path-following control using straight lines and ' ...
-        'waypoint switching']) 
-    disp(['Cirlce of acceptance: R = ',num2str(R_switch), ' m'])
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
-elseif ControlFlag == 2
-    disp(['ILOS path-following control using straight lines and ' ...
-        'waypoint switching'])  
-    disp(['Cirlce of acceptance: R =  ',num2str(R_switch), ' m'])
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
-else
-    disp('ALOS path-following control using Hermite splines') 
-    disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m'])
+disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)');
+switch ControlFlag
+    case 1
+        disp('PID heading autopilot with reference feeforward');
+    case 2
+        disp(['ALOS path-following control using straight lines and ' ...
+            'waypoint switching']);
+        disp(['Cirlce of acceptance: R = ',num2str(R_switch), ' m']);
+        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
+    case 3
+        disp(['ILOS path-following control using straight lines and ' ...
+            'waypoint switching']);
+        disp(['Cirlce of acceptance: R =  ',num2str(R_switch), ' m']);
+        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
+    case 4
+        disp('ALOS path-following control using Hermite splines');
+        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
 end
 disp('--------------------------------------------------------------------');
 end
-
-end
-

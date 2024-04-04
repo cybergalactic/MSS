@@ -1,9 +1,10 @@
-% SIMclarke83 User editable script for simulation of a ship with main
-% dimensions L, B, and T. The hydrodynamic data is based on:
+% SIMclarke83 
+% User editable script for simulation of a ship with main dimensions L, B, 
+% and T. The hydrodynamic data is based on:
 %
-% Reference: CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
-% manoeuvring criteria in hull design using linear thory. Trans.  
-% R. lnsm nav. Archit.  125, 45-68. 
+% CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
+% manoeuvring criteria in hull design using linear thory. Trans.  R. lnsm 
+% nav. Archit.  125, 45-68. 
 %
 % Calls:     clarke83.m
 %
@@ -12,9 +13,10 @@
 %            2024-03-27 Using forward and backward Euler to integrate xdot
 %                       Added animation of the ship North-East positions
 
-clear animateShip  % clear the persistent animation variables
+clear animateShip       % clear the persistent animation variables
 clearvars;
 
+%% USER INPUTS
 h = 0.05;               % sampling time
 N = 10000;              % number of samples
 
@@ -35,12 +37,12 @@ Cb = 0.8;     % block coefficient, Cb = V / (L*B*T) where V is the displaced vol
 R66 = 0.27*L; % radius of gyration (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
 xg = -3;      % x-coordinate of the CG   
      
-% MAIN LOOP
+%% MAIN LOOP
 simdata = zeros(N+1,7);                   % table for simulation data
 
 for i=1:N+1
 
-    t = (i-1)*h;                   % simulation time in seconds
+    t = (i-1) * h;                        % simulation time in seconds
 
     % Linear maneuvering model
     U = sqrt(nu(1)^2 + nu(2)^2);
@@ -66,6 +68,11 @@ for i=1:N+1
 end
 
 %% PLOTS
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3); 
+screenH = screenSize(4);
+
+% Simdata(i,:) = [t, eta', nu']
 t     = simdata(:,1);
 x     = simdata(:,2); 
 y     = simdata(:,3);            
@@ -75,20 +82,19 @@ v     = simdata(:,6);
 r     = rad2deg(simdata(:,7)); 
 U     = sqrt(u.^2 + v.^2);
 
-figNo = 1;
-shipSize = 0.6;
-animateShip(x,y,shipSize,'b-',figNo); % animation of the North-East positions
+% Animation of the North-East positions
+figNo = 1; set(gcf, 'Position', [1, 1, screenW/2, screenH]); 
+shipSize = 0.5;
+animateShip(x,y,shipSize,'b-',figNo); 
 
-figure(2)
+% Ship speed and yaw angle
+figure(2); set(gcf, 'Position', [screenW/2, 1, screenW/3, screenH]);  
 subplot(211)
 plot(t,U)
 xlabel('time (s)'),title('Ship speed (m/s)'),grid
 subplot(212)
 plot(t,psi)
-xlabel('time (s)'),title('yaw angle \psi (deg)'),grid
+xlabel('time (s)'),title('Yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
-
-
-     

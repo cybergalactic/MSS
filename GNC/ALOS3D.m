@@ -6,7 +6,7 @@ function [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 % the path is a straight line segment going through the waypoints 
 % (wpt.pos.x,wpt.pos.y,wpt.pos.z). The desired heading and pitch angles are
 % computed using the adaptive LOS (ALOS) guidance law by Fossen and Aguiar
-% (2023) where
+% (2024) where
 %
 %   theta_ref[k] = pi_v + alpha_hat[k] + atan( z_e[k] / Delta_v )
 %   psi_ref[k]   = pi_h - beta_hat[k]  - atan( y_e[k] / Delta_h )
