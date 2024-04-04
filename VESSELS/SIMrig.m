@@ -16,6 +16,7 @@
 %             2024-03-27 DP control law replaced by PIDnonlinearMIMO.m 
 
 clearvars;
+close all;
 clear PIDnonlinearMIMO;         % clear persistent integrator state
 
 f = 20;                         % sampling frequency
