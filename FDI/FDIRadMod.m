@@ -245,8 +245,8 @@ if FDIopt.AinfFlag==0,
          Kw_hatFD=freqresp(Ks,W);
          Kw_hatFD=reshape(Kw_hatFD,length(W),1);
          Brecfd = real(Kw_hatFD);
-         Arecfd = imag(Kw_hatFD)./W+Ainf*ones(size(W));
-
+         %Arecfd = imag(Kw_hatFD)./W+Ainf*ones(size(W));
+         Arecfd = imag(Kw_hatFD)./W+Ainf_hat*ones(size(W));
          SSEB = (B-Brecfd)'*(B-Brecfd);
          SSTB =(B-mean(B)*ones(size(B)))'*(B-mean(B)*ones(size(B)));
          R2B = 1 - SSEB/SSTB;
