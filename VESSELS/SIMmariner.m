@@ -9,6 +9,7 @@
 % Date:       2018-07-21
 % Revisions:  2024-03-27 Added animation of the ship North-East positions
 
+close all;
 clear animateShip  % clear the persistent animation variables
 
 t_f = 600;   % final simulation time (sec)
