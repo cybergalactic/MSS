@@ -40,7 +40,7 @@ Basic libraries and system examples for GNC. The library contains:
 
 - M-file functions (kinematics and kinetics) and examples for time-domain GNC applications.
 - M-file library with vessel models, maneuvering trials, and dynamic simulation.
-- User-editable m-files for simulation and control of marine craft, including ships, semisubmersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs), and unmanned surface vehicles (USVs).
+- User-editable m-files for simulating and controlling marine craft, including ships, semisubmersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs), and uncrewed surface vehicles (USVs).
 - User-editable m-files for error-state Kalman filters for inertial navigation systems.
 
  Hydro Library
@@ -55,7 +55,7 @@ The processed data can be used in the real-time simulation of marine vessels in 
 
 FDI Toolbox
 -
-This is a stand-alone toolbox for identification of radiation-force models and fluid-memory effects of marine structures such as marine craft and wave energy converters. Please include the following reference when you use the MSS FDI toolbox:
+This is a stand-alone toolbox for identifying radiation-force models and fluid-memory effects of marine structures such as marine craft and wave energy converters. Please include the following reference when you use the MSS FDI toolbox:
  
     T. Perez and T. I. Fossen (2009). A Matlab Tool for Parametric Identification of Radiation-Force Models of Ships and Offshore Structures. 
-    Modelling, Identification and Control, MIC-30(1):1-15. DOI: https://doi.org/10.4173/mic.2009.1.1 
+    Modeling, Identification and Control, MIC-30(1):1-15. DOI: https://doi.org/10.4173/mic.2009.1.1 
