@@ -145,34 +145,40 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(3)
 subplot(321)
-plot(t,n(:,1),t,n_c(:,1),[0 t(end)],...
+plot(t,n_c(:,1),'r',t,n(:,1),'b',[0 t(end)],...
     [n_max(1) n_max(1)],'k',[0 t(end)],-[n_max(1) n_max(1)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Bow tunnel thruster n_1 (RPM)'); grid
 subplot(322)
-plot(t,n(:,2),t,n_c(:,2),[0 t(end)],...
+plot(t,n_c(:,2),'r',t,n(:,2),'b',[0 t(end)],...
     [n_max(2) n_max(2)],'k',[0 t(end)],-[n_max(2) n_max(2)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Bow tunnel thruster n_2 (RPM)'); grid
 subplot(323)
-plot(t,n(:,3),t,n_c(:,3),[0 t(end)],...
+plot(t,n_c(:,3),'r',t,n(:,3),'b',[0 t(end)],...
     [n_max(3) n_max(3)],'k',[0 t(end)],-[n_max(3) n_max(3)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Stern tunnel thruster n_3 (RPM)'); grid
 subplot(324)
-plot(t,n(:,4),t,n_c(:,4),[0 t(end)],...
+plot(t,n_c(:,4),'r',t,n(:,4),'b',[0 t(end)],...
     [n_max(4) n_max(4)],'k',[0 t(end)],-[n_max(4) n_max(4)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Stern tunnel thruster n_4 (RPM)'); grid
 subplot(325)
-plot(t,n(:,5),t,n_c(:,5),[0 t(end)],...
+plot(t,n_c(:,5),'r',t,n(:,5),'b',[0 t(end)],...
     [n_max(5) n_max(5)],'k',[0 t(end)],-[n_max(5) n_max(5)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Main propeller n_5 (RPM)'); grid
 subplot(326)
-plot(t,n(:,6),t,n_c(:,6),[0 t(end)],...
+plot(t,n_c(:,6),'r',t,n(:,6),'b',[0 t(end)],...
     [n_max(6) n_max(6)],'k',[0 t(end)],-[n_max(6) n_max(6)],'k')
 xlabel('time (s)')
+legend('Commanded','Actual','Maximum')
 title('Main propeller n_6 (RPM)'); grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
