@@ -1,10 +1,10 @@
 function [LOSangle_hat, LOSrate_hat] = ...
     LOSobserver(LOSangle_hat, LOSrate_hat, LOSangle, h, K_f, T_f)
 % The LOSobserver function estimates the desired Line-Of-Sight (LOS) angle 
-% and rate from a discrte-time LOS guidance law command, LOSangle[k], which 
-% can be computed using the methods in LOSchi.m, LOSpsi.m, ILOSpsi.m, 
-% ALOSpsi.m, etc. The observer propagates the estimate, LOSangle_hat[k],
-% according to
+% and rate from a discerte-time LOS guidance law command, LOSangle[k], which 
+% can be computed using the functions LOSchi.m, LOSpsi.m, ILOSpsi.m, 
+% ALOSpsi.m, etc. The observer propagates the estimate of the LOS angle, 
+% LOSangle_hat[k], according to
 %
 %  LOSangle_hat[k+1] = LOSangle_hat[k] + h * ( LOSrate_hat[k] + ...
 %    K_f * ssa( LOSangle[k] - LOSangle_hat[k]) )
