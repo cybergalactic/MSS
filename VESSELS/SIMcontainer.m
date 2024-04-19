@@ -103,16 +103,16 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 % Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
 figure(2); 
 if ~isoctave(); set(gcf,'Position', [screenW/2,1,screenW/2.5,screenH]);end
-subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('time (s)')
+subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('Time (s)')
 title('Yaw rate r (deg/s)'),grid
 legend('Nonlinear model','Linear model','Location','best')
-subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('time (s)')
+subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('Time (s)')
 title('Roll angle \phi (deg/s)'),grid
 legend('Nonlinear model','Linear model','Location','best')
-subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('time (s)')
+subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('Time (s)')
 title('Yaw angle \psi (deg)'),grid
 legend('Nonlinear model','Linear model','Location','best')
-subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('time (s)')
+subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('Time (s)')
 title('Rudder angle \delta (deg)'),grid
 legend('Nonlinear model','Linear model','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
