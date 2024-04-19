@@ -1,4 +1,5 @@
-% SIMclarke83 - Compatibel with MATLAB and GNU Octave (www.octave.org)
+function SIMclarke83()
+% SIMclarke83 is compatibel with MATLAB and GNU Octave (www.octave.org)
 %
 % This script simulates a ship with the main dimensions: length (L),
 % breadth (B), and draft (T). It uses hydrodynamic data based on:
@@ -9,12 +10,14 @@
 %   Institution of Naval Architects, Vol. 125, pp. 45-68.
 %
 % Calls:
-%   clarke83.m - Function implementing Clarke's linear maneuvering model.
+%   clarke83.m : Function implementing Clarke's linear maneuvering model.
 %
 % Author: Thor I. Fossen
 % Date:   2020-10-22
-%         2024-03-27 Using forward and backward Euler to integrate xdot.
-%                    Added animation of the ship North-East positions.
+% Revisions: 
+%  v2024-03-27 : Using forward and backward Euler to integrate xdot.
+%                Added animation of the ship North-East positions.
+%   2024-04-19 : Added compability to GNU Octave.
 
 clear animateShip       % clear the persistent animation variables
 clearvars;
@@ -110,3 +113,6 @@ plot(t,psi)
 xlabel('time (s)'),title('Yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
+
+end
+
