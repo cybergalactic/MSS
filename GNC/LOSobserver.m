@@ -1,28 +1,31 @@
 function [LOSangle_hat, LOSrate_hat] = ...
     LOSobserver(LOSangle_hat, LOSrate_hat, LOSangle, h, K_f, T_f)
-% LOSobserver estimates the desired Line-Of-Sight (LOS) angle and rate 
-% from a LOS guidance law command, LOSangle[k]. The observer is
+% The LOSobserver function estimates the desired Line-Of-Sight (LOS) angle 
+% and rate from a discerte-time LOS guidance law command, LOSangle[k], which 
+% can be computed using the functions LOSchi.m, LOSpsi.m, ILOSpsi.m, 
+% ALOSpsi.m, etc. The observer propagates the estimate of the LOS angle, 
+% LOSangle_hat[k], according to
 %
 %  LOSangle_hat[k+1] = LOSangle_hat[k] + h * ( LOSrate_hat[k] + ...
 %    K_f * ssa( LOSangle[k] - LOSangle_hat[k]) )
 %
-% where the LOS yaw rate is computedusing numerical differentiation, 
-% LOSrate = T_f*s / (T_f*s + 1) * LOSangle. Exact discretization gives
-% (Fossen 2021, Eqs. B.46-B.47) 
+% where the LOS yaw rate estimate, LOSrate_hat[k], is computed using 
+% numerical differentiation, LOSrate = T_f*s / (T_f*s + 1) * LOSangle. 
+% Exact discretization gives (Fossen 2021, Eqs. B.46-B.47) 
 %
 %  LOSrate_hat[k] = LOSangle_hat[k][k] - xi[k]
 %  xi[k+1] = exp(-h/T_f) * xi[k] + (1 - exp(-h/T_f)) * LOSangle_hat[k]
 %
 % Inputs:
-%   LOSangle_hat: estimate of the LOS angle at time k
-%   LOSrate_hat:  estimate of the LOS angular rate t time k
-%   LOSangle:     measured LOS angle t time k
-%   h:            sampling time (s)
-%   K_f:          observer gain, LOSangle (typically 0.1-0.5)
+%   LOSangle_hat: Estimate of the LOS angle at time k
+%   LOSrate_hat:  Estimate of the LOS angular rate t time k
+%   LOSangle:     Measured LOS angle t time k
+%   h:            Sampling time (s)
+%   K_f:          Observer gain, LOSangle (typically 0.1-0.5)
 %   T_f:          (OPTIONALLY) differentiator time constant, 
 %                     LOSrate = T_f*s / (T_f*s + 1) * LOSangle
 %                 If omitted, the LOSrate loop is chosen 5 x faster than 
-%                 the LOSangle loop, 1/T_f = 5 * K_f 
+%                 the LOSangle loop corresponding to: 1/T_f = 5 * K_f 
 %
 % Outputs:
 %   LOSangle_hat: Updated estimate of the LOS angle at time k+1
