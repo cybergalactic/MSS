@@ -1,4 +1,6 @@
 function [xdot,U] = mariner(x,ui,U0)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = mariner(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta ]'  for
 % the Mariner class vessel L = 160.93 m, where
@@ -22,11 +24,13 @@ function [xdot,U] = mariner(x,ui,U0)
 % 
 % Author:    Trygve Lauvdal
 % Date:      12th May 1994
-% Revisions: 19th July 2001: added input/ouput U0 and U, changed order of x-vector
-%            20th July 2001: replaced inertia matrix with correct values
-%            11th July 2003: max rudder is changed from 30 deg to 40
-%                            deg to satisfy IMO regulations for 35 deg rudder execute
-%            21 Apr 2021:    corrected several typos in the function description
+% Revisions: 
+%   2001-07-19 : Added input/ouput U0 and U, changed order of x-vector.
+%   2001-07-20 : Replaced inertia matrix with correct values.
+%   2003-07-11 : Max rudder is changed from 30 deg to 40 deg to satisfy 
+%                the IMO regulations for 35 deg rudder execute.
+%   2021-04-21 : Corrected several typos in the function description.
+%   2024-04-19 : Added compability to GNU Octave.
 
 % Check of input and state dimensions
 if (length(x)  ~= 7),error('x-vector must have dimension 7 !'); end
@@ -37,7 +41,7 @@ if nargin==2, U0 = 7.7175; end
 L = 160.93;
 U = sqrt((U0 + x(1))^2 + x(2)^2);
 
-% Non-dimensional states and inputs
+% Nondimensional states and inputs
 delta_c = -ui;   % delta_c = -ui such that positive delta_c -> positive r
 
 u     = x(1)/U;   
@@ -46,7 +50,7 @@ r     = x(3)*L/U;
 psi   = x(6); 
 delta = x(7); 
 
-% Parameters, hydrodynamic derivatives and main dimensions
+% Parameters, hydrodynamic derivatives, and main dimensions
 delta_max  = 40;           % max rudder angle      (deg)
 Ddelta_max = 5;            % max rudder derivative (deg/s)
 
@@ -110,3 +114,5 @@ xdot = [           X*(U^2/L)/m11
            (sin(psi)*(U0/U+u)+cos(psi)*v)*U   
                     r*(U/L)
                     delta_dot                  ];
+
+end
