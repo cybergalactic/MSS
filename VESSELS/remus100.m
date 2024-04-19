@@ -1,4 +1,6 @@
 function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
