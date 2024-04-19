@@ -15,7 +15,7 @@ function SIMclarke83()
 % Author: Thor I. Fossen
 % Date:   2020-10-22
 % Revisions: 
-%  v2024-03-27 : Using forward and backward Euler to integrate xdot.
+%   2024-03-27 : Using forward and backward Euler to integrate xdot.
 %                Added animation of the ship North-East positions.
 %   2024-04-19 : Added compability to GNU Octave.
 
