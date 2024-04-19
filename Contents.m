@@ -1,6 +1,6 @@
 % The m-files of the MSS (Marine Systems Simulator) toolbox are fully 
-% compatible with MATLAB (www.mathworks.com) and the free software 
-% GNU Octave (www.octave.org), facilitating broad accessibility and 
+% compatible with MATLAB (https://www.mathworks.com) and the free software 
+% GNU Octave (https://www.octave.org), facilitating broad accessibility and 
 % application in marine systems simulation. It includes models for ships, 
 % underwater vehicles, uncrewed surface vehicles, and floating structures. 
 % The library also contains guidance, navigation, and control (GNC) blocks 
