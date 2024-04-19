@@ -1,4 +1,5 @@
-% SIMrig  - Compatibel with MATLAB and GNU Octave (www.octave.org)
+function SIMrig()
+% SIMrig is compatibel with MATLAB and GNU Octave (www.octave.org)
 %
 % User editable script for simulation of a semisubmersible with
 % two pontoons and four columns. The model matrices MRB, MA, D and G are
@@ -13,9 +14,11 @@
 %
 % Author:     Thor I. Fossen
 % Date:       2019-03-12
-% Revisions:  2020-10-22 Retuning of the PID controller
-%             2020-08-04 Major updates
-%             2024-03-27 DP control law replaced by PIDnonlinearMIMO.m 
+% Revisions:  
+%   2020-10-22 : Retuning of the PID controller.
+%   2020-08-04 : Major updates.
+%   2024-03-27 : DP control law replaced by PIDnonlinearMIMO.m. 
+%   2024-04-19 : Added compability to GNU Octave.
 
 clearvars;
 close all;
@@ -160,5 +163,7 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend','Location','best'),'FontSize',14)
+
+end
 
 
