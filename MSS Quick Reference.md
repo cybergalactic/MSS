@@ -1,10 +1,6 @@
 # MSS Quick Reference
 
-The m-files of the MSS (Marine Systems Simulator) toolbox are fully compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To begin using the MSS toolbox, ensure it is installed and properly set up in your MATLAB/Octave environment. 
-
-
-
-A quick reference guide for the MATLAB MSS toolbox:
+The m-files of the MSS (Marine Systems Simulator) toolbox are fully compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To begin using the MSS toolbox, ensure it is installed and properly set up in your MATLAB/Octave environment. Copy the directory MSS/... to your computer and "add the path with subfolders" to Matlab/Octave. Then test the MSS help functions:
 
 ```matlab
 >> mssHelp            % List MSS commands
