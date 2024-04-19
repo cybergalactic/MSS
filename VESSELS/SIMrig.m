@@ -1,4 +1,6 @@
-% SIMrig   User editable script for simulation of a semisubmersible with
+% SIMrig  - Compatibel with MATLAB and GNU Octave (www.octave.org)
+%
+% User editable script for simulation of a semisubmersible with
 % two pontoons and four columns. The model matrices MRB, MA, D and G are
 % generated using the script 'rig.m', which calls the data file 'data_rig.m'. 
 %
