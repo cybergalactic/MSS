@@ -93,7 +93,8 @@ U     = sqrt(u.^2 + v.^2);
 figure(1)
 if isoctave() % Octave NE-plot
     plot(y,x,'b')
-    xlabel('North'),ylabel('East');title('North-East plot (m)'),grid
+    xlabel('East'); ylabel('North');title('North-East plot (m)')
+    grid,axis('equal')
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
 else % Matlab animation
@@ -107,10 +108,10 @@ figure(2);
 if ~isoctave(); set(gcf, 'Position', [screenW/2, 1, screenW/3, screenH]);end
 subplot(211)
 plot(t,U)
-xlabel('time (s)'),title('Ship speed (m/s)'),grid
+xlabel('Time (s)'),title('Ship speed (m/s)'),grid
 subplot(212)
 plot(t,psi)
-xlabel('time (s)'),title('Yaw angle \psi (deg)'),grid
+xlabel('Time (s)'),title('Yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
