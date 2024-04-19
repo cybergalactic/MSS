@@ -1,6 +1,6 @@
 # MSS (Marine Systems Simulator)
 
-The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems (https://se.mathworks.com/matlabcentral/fileexchange/86393-marine-systems-simulator-mss). The m-files are compatible with the free software GNU Octave (www.octave.org). MSS includes models for ships, underwater vehicles, uncrewed surface vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. The algorithms are described in:
+The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems (www.mathworks.com). The m-files are compatible with the free software GNU Octave (www.octave.org). MSS includes models for ships, underwater vehicles, uncrewed surface vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) blocks for real-time simulation. The algorithms are described in:
 
     T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. ISBN-13: 978-1119575054
 
