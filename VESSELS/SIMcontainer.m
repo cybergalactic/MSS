@@ -1,5 +1,7 @@
-% SIMcontainer
-% User editable script for simulating the dynamics of a container ship 
+function SIMcontainer()
+% SIMcontainer is compatibel with MATLAB and GNU Octave (www.octave.org)
+%
+% User-editable script for simulating the dynamics of a container ship 
 % under feedback control. The script concurrently simulates the ship using 
 % both a linear model, defined in 'Lcontainer.m', and a nonlinear model, 
 % defined in 'container.m'. The outcomes of both simulations are then 
@@ -12,6 +14,7 @@
 % Author:      Thor I. Fossen
 % Date:        2018-07-21
 % Revisions:
+%   2024-04-19 : Added compability to GNU Octave.
 
 clearvars;
 
@@ -88,7 +91,8 @@ delta2 = rad2deg(simdata2(:,10));
 U2     = simdata2(:,11);
 
 % North-East positions
-figure(1); set(gcf, 'Position', [1, 1, screenW/2, screenH]); 
+figure(1); 
+if ~isoctave(); set(gcf, 'Position', [1, 1, screenW/2, screenH]); end
 plot(y1,x1,'r',y2,x2,'b')
 grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
 legend('Nonlinear model','Linear model','Location','best')
@@ -97,7 +101,8 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 % Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
-figure(2); set(gcf, 'Position', [screenW/2, 1, screenW/2.5, screenH]);
+figure(2); 
+if ~isoctave(); set(gcf,'Position', [screenW/2,1,screenW/2.5,screenH]);end
 subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('time (s)')
 title('Yaw rate r (deg/s)'),grid
 legend('Nonlinear model','Linear model','Location','best')
@@ -113,3 +118,5 @@ legend('Nonlinear model','Linear model','Location','best')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
+
+end
