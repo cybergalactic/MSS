@@ -1,4 +1,6 @@
 function [xdot,U] = tanker(x,ui)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = tanker(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta n ]'  for
 % a large tanker L = 304.8 m where
@@ -26,10 +28,12 @@ function [xdot,U] = tanker(x,ui)
 %
 % Author:    Trygve Lauvdal
 % Date:      1994-05-12
-% Revisions: 2001-07-20 - Added speed output U, changed order of x-vector
-%            2005-05-02 - Changed the incorrect expression 
-%                         c = sqrt(cun^2*u*n + cnn^2*n^2) to 
-%                         c = sqrt(cun*u*n + cnn*n^2)
+% Revisions: 
+%   2001-07-20 : Added speed output U, changed order of x-vector.
+%   2005-05-02 : Changed the incorrect expression 
+%                c = sqrt(cun^2*u*n + cnn^2*n^2) to 
+%                c = sqrt(cun*u*n + cnn*n^2)
+%   2024-04-19 : Added compability to GNU Octave.
 
 if (length(x)  ~= 8),error('x-vector must have dimension 8!'); end
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
