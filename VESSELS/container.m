@@ -1,4 +1,6 @@
 function [xdot,U] = container(x,ui)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = container(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi p phi delta n ]'
 % for a container ship L = 175 m, where
@@ -26,13 +28,15 @@ function [xdot,U] = container(x,ui)
 %             Ocean Engineering 20:73-83. FromJ.S.N.A., Japan, Vol. 150, 1981.
 % 
 % Author:    Trygve Lauvdal
-% Date:      12 May 1994
-% Revisions: 18 July 2001 added output U, changed order of x-vector
-%            20 July 2001 changed my = 0.000238 to my = 0.007049
-%            27 July 2022 corrected the equation for up = u * (...
+% Date:      1994-05-12
+% Revisions: 
+%   2001-07-18 : Added output U, changed order of x-vector.
+%   2001-07-20 : Changed my = 0.000238 to my = 0.007049.
+%   2022-07-22 : Corrected the equation for up = u * (...
+%   2024-04-19 : Added compability to GNU Octave.
 
-if (length(x) ~= 10),error('x-vector must have dimension 10 !');end
-if (length(ui) ~= 2),error('u-vector must have dimension  2 !');end
+if (length(x) ~= 10), error('x-vector must have dimension 10 !'); end
+if (length(ui) ~= 2), error('u-vector must have dimension  2 !'); end
 
 % Normalization variables
 L = 175;                     % length of ship (m)
