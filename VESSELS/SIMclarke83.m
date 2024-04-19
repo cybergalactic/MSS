@@ -1,17 +1,20 @@
-% SIMclarke83 
-% User editable script for simulation of a ship with main dimensions L, B, 
-% and T. The hydrodynamic data is based on:
+% SIMclarke83 - Compatibel with MATLAB and GNU Octave (www.octave.org)
 %
-% CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
-% manoeuvring criteria in hull design using linear thory. Trans.  R. lnsm 
-% nav. Archit.  125, 45-68. 
+% This script simulates a ship with the main dimensions: length (L),
+% breadth (B), and draft (T). It uses hydrodynamic data based on:
 %
-% Calls:     clarke83.m
+% Reference:
+%   D. Clarke, P. Gedling, and G. Hine (1983). The application of manoeuvring
+%   criteria in hull design using linear theory. Transactions of the Royal
+%   Institution of Naval Architects, Vol. 125, pp. 45-68.
 %
-% Author:    Thor I. Fossen
-% Date:      2020-10-22
-%            2024-03-27 Using forward and backward Euler to integrate xdot
-%                       Added animation of the ship North-East positions
+% Calls:
+%   clarke83.m - Function implementing Clarke's linear maneuvering model.
+%
+% Author: Thor I. Fossen
+% Date:   2020-10-22
+%         2024-03-27 Using forward and backward Euler to integrate xdot.
+%                    Added animation of the ship North-East positions.
 
 clear animateShip       % clear the persistent animation variables
 clearvars;
@@ -23,8 +26,8 @@ N = 10000;              % number of samples
 
 psi_ref = deg2rad(10);  % heading angle setpoint
 w_n = 0.1;              % closed-loop natural frequency
-Kp = w_n^2;             % proportional gain 
-Kd = 2 * w_n;           % derivative  gain 
+Kp = w_n^2;             % proportional gain
+Kd = 2 * w_n;           % derivative  gain
 
 % Initial values
 eta = zeros(3,1);       % x, y, psi
@@ -36,8 +39,8 @@ B = 20;       % beam (m)
 T = 10;       % draft (m)
 Cb = 0.8;     % block coefficient, Cb = V / (L*B*T) where V is the displaced volume
 R66 = 0.27*L; % radius of gyration (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
-xg = -3;      % x-coordinate of the CG   
-     
+xg = -3;      % x-coordinate of the CG
+
 %% MAIN LOOP
 simdata = zeros(N+1,7);                   % table for simulation data
 
@@ -70,26 +73,35 @@ end
 
 %% PLOTS
 screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3); 
+screenW = screenSize(3);
 screenH = screenSize(4);
 
 % Simdata(i,:) = [t, eta', nu']
 t     = simdata(:,1);
-x     = simdata(:,2); 
-y     = simdata(:,3);            
+x     = simdata(:,2);
+y     = simdata(:,3);
 psi   = rad2deg(simdata(:,4));
 u     = simdata(:,5);
 v     = simdata(:,6);
-r     = rad2deg(simdata(:,7)); 
+r     = rad2deg(simdata(:,7));
 U     = sqrt(u.^2 + v.^2);
 
-% Animation of the North-East positions
-figNo = 1; set(gcf, 'Position', [1, 1, screenW/2, screenH]); 
-shipSize = 0.5;
-animateShip(x,y,shipSize,'b-',figNo); 
+% Plot and animation of the North-East positions
+figure(1)
+if isoctave() % Octave NE-plot
+    plot(y,x,'b')
+    xlabel('North'),ylabel('East');title('North-East plot (m)'),grid
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+else % Matlab animation
+    shipSize = 0.5;
+    set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+    animateShip(x,y,shipSize,'b-',1);
+end
 
 % Ship speed and yaw angle
-figure(2); set(gcf, 'Position', [screenW/2, 1, screenW/3, screenH]);  
+figure(2);
+if ~isoctave(); set(gcf, 'Position', [screenW/2, 1, screenW/3, screenH]);end
 subplot(211)
 plot(t,U)
 xlabel('time (s)'),title('Ship speed (m/s)'),grid
@@ -98,4 +110,3 @@ plot(t,psi)
 xlabel('time (s)'),title('Yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
