@@ -66,7 +66,7 @@ undulation_factor = 0.5;        % positive, reduce to avoid undulation
 
 % Additional parameter for straigh-line path following
 R_switch = 5;                   % radius of switching circle
-K_f = 0.5;                      % yaw rate observer gain
+K_f = 0.3;                      % yaw rate observer gain
 
 % PID heading autopilot (Nomoto gains)
 T = 1;
