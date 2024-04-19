@@ -4,7 +4,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are fully compatible w
 
 ```matlab
 >> mssHelp            % List MSS commands
->> mssSimulink        % Simulink Library
+>> mssSimulink        % Simulink Library (not available for GNU Octave)
 >> help mssDemos      % MSS demonstrations
 >> help mssExamples   % Book examples (T. I. Fossen. Handbook of Marine Craft Hydrodynamics and Motion Control, Wiley 2021)
 ```
