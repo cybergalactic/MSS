@@ -47,8 +47,10 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 % 
 % Author:    Thor I. Fossen
 % Date:      22 Oct 2020
-% Revisions: 14 Jun 2021 Removed the C matrix and introduced N(U)
-%            17 Dec 2021 Xudot is computed by Xudot = -addedMassSurge(m,L)
+% Revisions: 
+%   2021-06-14 : Removed the C matrix and introduced N(U).
+%   2021-12-17 : Xudot is computed by Xudot = -addedMassSurge(m,L).
+%   2024-04-19 : Added compability to GNU Octave.
 
 % Rigid-body parameters
 rho = 1025;                     % density of water
