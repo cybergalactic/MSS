@@ -1,4 +1,6 @@
 function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge) computes the system matrices 
 % of a linear maneuvering model based on Clarke et al. (1983). The  
 % hydrodynamic derivatives are based on multiple  linear regression from two 
@@ -6,9 +8,12 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 % rotating arm model experiments, while the second data set 
 % (Yvdot, Yrdot, Nvdot, Nrdot, Yv, Yr, Nv, Nr) was obtained from a PMM model.
 % Added mass in surge is approximated by Sodings formula: 
+%
 %   Xudot = -addedMassSurge(m,L)
+%
 % The time constant in surge is optionally with default value T_surge = L 
 % such that:
+%
 %   Xu = -(m - Xudot) / T_surge
 %
 % Outputs: 3x3 model matrices M and N in surge, sway and yaw
@@ -35,16 +40,17 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 %  xg:  x-coordinate of the CG
 %  T_surge: (optionally) time constant in surge (default: T_surge = L)
 %
-% Reference:  CLARKE, D., GEDLING, P. and HINE. G. (1983). The application of 
-% manoeuvring criteria in hull design using linear thory. Trans.  R. lnsm nav. 
-% Archit.  125, 45-68. 
+% Reference:
+%   D. Clarke, P. Gedling, and G. Hine (1983). The application of manoeuvring
+%   criteria in hull design using linear theory. Transactions of the Royal
+%   Institution of Naval Architects, Vol. 125, pp. 45-68.
 % 
 % Author:    Thor I. Fossen
 % Date:      22 Oct 2020
 % Revisions: 14 Jun 2021 Removed the C matrix and introduced N(U)
 %            17 Dec 2021 Xudot is computed by Xudot = -addedMassSurge(m,L)
 
-% Rigid body parameters
+% Rigid-body parameters
 rho = 1025;                     % density of water
 V = Cb * L * B * T;             % volume displacment
 m = rho * V;                    % mass
