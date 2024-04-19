@@ -1,22 +1,24 @@
 function [M,D,G,MRB,MA,rCG,rCB,T_z,T_phi,T_theta] = rig
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [M,D,G,MRB,MA,rCG,rCB,T_z,T_phi,T_theta] = rig
 % Computes the 6-DOF model parameters of a semi-submersible including the
 % natural periods in heave, roll and pitch (T_z, T_phi, T_theta). 
 %
-%          Inputs: none   
+% Inputs: none   
 %
-%          Outputs: 6x6 model matrices M, D and G
-%                    .
-%                  M v + D v + G n = tau   
+% Outputs: 6x6 model matrices M, D and G
+%     .
+%   M v + D v + G n = tau   
 %
-%          as well as MRB and MA. Center of gravivty (rCG) and center of 
-%          buoynacy (rCB) are given with respect to CO.        
+%   as well as MRB and MA. Center of gravivty (rCG) and center of 
+%   buoynacy (rCB) are given with respect to CO.        
 % 
-% Author:  2000-03-12 Thor I. Fossen
+% Author: 2000-03-12 Thor I. Fossen
 
 data_rig
 
-T_draft = abs(draft);                    % draft
+T_draft = abs(draft);         % draft
 
 N_l = DATCONF.N_l;
 
@@ -34,44 +36,44 @@ B_p  = DATCONF.B_p;            % pontoon width
 L_p  = DATCONF.L_p;            % pontoon length
 CB_p = DATCONF.CB_p;           % pontoon block coefficient
 
-% volume centers in COO
+% Volume centers in COO
 R_p(1,1:3) = [DATCONF.R_p(1,1) DATCONF.R_p(1,2) -H_p/2 ];
 R_p(2,1:3) = [DATCONF.R_p(2,1) DATCONF.R_p(2,2) -H_p/2 ];
 
-% deplasement of pontoons
+% Deplasement of pontoons
 nabla_p = 2*CB_p*(L_p*B_p*H_p);
 m_p = rho*nabla_p;
 
-% added mass in surge
+% Added mass in surge
 
 alpha_p = 0.10;   % ratio: added mass/mass in surge
 
-% strip theory 
-% 2D box shaped data pp. 56-57, Trinatafyllou & Amzallag, MITSG 85-30TN
-ratio1   = [0 0.5  1.0  2.0  3.0  4.0  5.0 ];                 % data Figure 2.2
+% Strip theory 
+% 2-D box shaped data pp. 56-57, Trinatafyllou & Amzallag, MITSG 85-30TN
+ratio1   = [0 0.5  1.0  2.0  3.0  4.0  5.0 ];            % data Figure 2.2
 Cm_tab   = [1 1.32 1.51 1.69 1.82 1.91 2.00];
 
-ratio2   = [0 0.125 0.25 0.375 0.50 0.625 0.75 0.875 1.00 ];  % data Figure 2.3
+ratio2   = [0 0.125 0.25 0.375 0.50 0.625 0.75 0.875 1.00 ]; % data Figure 2.3
 Cr_tab   = [1.0 1.20  1.20 1.20  1.20 1.20  1.26 1.47  1.86 ];
 
-% sway: Cm(Bp/Hp) 
+% Sway: Cm(Bp/Hp) 
 BpdivHp = B_p/H_p;
 if BpdivHp>5.0, BpdivHp=5.0; disp('WARNING: Cm22max is used for Cm22'); end
 Cm22   = interp1( ratio1, Cm_tab, BpdivHp );
 A22_2D = Cm22*rho*pi*(H_p/2)^2;
 
-% heave: Cm(Hp/Bp)
+% Heave: Cm(Hp/Bp)
 HpdivBp = H_p/B_p;
 if HpdivBp>5.0, HpdivBp=5.0; disp('WARNING: Cm33max is used for Cm33'); end
 Cm33   = interp1( ratio1, Cm_tab, HpdivBp );
 A33_2D = Cm33*rho*pi*(B_p/2)^2;
 
-% roll: Cr(Hp/Bp) 
+% Roll: Cr(Hp/Bp) 
 HpdivBp = H_p/B_p;
 if HpdivBp>1.0, HpdivBp=1.0; disp('WARNING: Crmax is used for Cr'); end
 Cr =  interp1(ratio2,Cr_tab,HpdivBp);
 
-% show interpolations graphically
+% Show interpolations graphically
 subplot(311)
 x  = 0:0.1:5;
 y  = interp1(ratio1,Cm_tab,x);
@@ -87,10 +89,10 @@ x  = 0:0.05:1.25;
 y  = interp1(ratio2,Cr_tab,x);
 plot(ratio2,Cr_tab,'o',x,y,'g',H_p/B_p,Cr,'sr'),grid,title('C_r')
 
-% reduction of added mass in heave due to legs on the top of the pontoons: A33_cyl = 0
+% Reduction of added mass in heave due to legs on the top of the pontoons: A33_cyl = 0
 k33     = 0.7;    
 
-% added mass with respect to pontoon volume centers
+% Added mass with respect to pontoon volume centers
 A11 = alpha_p*m_p;
 A22 = A22_2D*L_p;
 A33 = k33*A33_2D*L_p;
@@ -100,24 +102,20 @@ A66 = A22_2D*(2/3)*(L_p/2)^3;
 
 A = diag([A11 A22 A33 A44 A55 A66]);
 
-% transform added mass from pontoon volume centers to COO
+% Transform added mass from pontoon volume centers to COO
 A_p1 = Hmtrx(R_p(1,:))'*A*Hmtrx(R_p(1,:));
 A_p2 = Hmtrx(R_p(2,:))'*A*Hmtrx(R_p(2,:));
 
 A_p = A_p1 + A_p2;
 
+%% Data for legs
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Data for legs
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% volume centers
-
+% Volume centers
 for i=1:N_l
    R_l(i,:) = [DATCONF.R_l(i,1) DATCONF.R_l(i,2) -T_draft/2 ];   
 end
 
-% main dimensions
+% Main dimensions
 
 H_l = T_draft-H_p;                   % heigh of submerged part of legs
 CB_l = DATCONF.CB_l;                 % leg block coefficient
@@ -134,21 +132,21 @@ for i=1:N_l
    end
 end
 
-% volume centers in COO
+% Volume centers in COO
 for i=1:N_l
    R_l(i,:) = [DATCONF.R_l(i,1) DATCONF.R_l(i,2) -(H_p+H_l/2) ];
 end
 
-% added mass for N_l legs
+% Added mass for N_l legs
 A_l = zeros(6,6);
 
 for i=1:N_l
    if DATCONF.legs == 'box'
-      % sway: Cm(Bp/Lp) 
+      % Sway: Cm(Bp/Lp) 
       Cm22   = interp1( ratio1, Cm_tab, B_l(i)/L_l(i) );
       A22_2D = Cm22*rho*pi*(L_l(i)/2)^2;
 
-      % surge: Cm(Lp/Bp)
+      % Surge: Cm(Lp/Bp)
       Cm11   = interp1( ratio1, Cm_tab, L_l(i)/B_l(i) );
       A11_2D = Cm11*rho*pi*(B_l(i)/2)^2;
 
@@ -159,7 +157,7 @@ for i=1:N_l
       A55 = A22_2D*(2/3)*(H_l/2)^3;
       A66 = 0;
    else 
-      % smooth cylinder Morrisons equation
+      % Smooth cylinder Morrisons equation
       Cm = 2.0;                 
 
       A11 = Cm*rho*(diameter(i)/2)^2;
@@ -170,21 +168,19 @@ for i=1:N_l
       A66 = 0;   
    end
 
-   % added mass for leg i with respect to volume center
+   % Added mass for leg i with respect to volume center
    A = diag([A11 A22 A33 A44 A55 A66]);
 
-   % transform added mass from volume center to COO
+   % Transform added mass from volume center to COO
    A_l = A_l + Hmtrx(R_l(i,:))'*A*Hmtrx(R_l(i,:));
    
 end
 
-% total deplacement
+% Total deplacement
 nabla_l = sum(nabla_li);
    
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Data for bracings
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Data for bracings
 
 D_b = DATCONF.D_b;      % average bracing diameter
 L_b = DATCONF.L_b;      % total length of bracing
@@ -202,22 +198,20 @@ A_b = diag([A11 A22 A33 0 0 0]);
 % transform added mass from volume center to COO
 A_b = Hmtrx(R_b)'*A_b*Hmtrx(R_b);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Check equilibrium
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Check equilibrium
 
 % Rigid-body mass/deplasement
 nabla  = nabla_p + nabla_l + nabla_b;  % total deplasement
 m_disp = rho*nabla;                    % mass of displaced water
 
-disp(sprintf('\n \n \n'))
-disp(sprintf('%s %4.1f %s','Draft (COO) =',-T_draft,'m'))
-disp(sprintf('%s %4.0f %s','Mass of the vessel =',m,'kg'))
-disp(sprintf('%s %4.0f %s \n','Mass of displaced water =',m_disp,'kg'))
+fprintf('\n \n \n\n')
+fprintf('%s %4.1f %s\n','Draft (COO) =',-T_draft,'m')
+fprintf('%s %4.0f %s\n','Mass of the vessel =',m,'kg')
+fprintf('%s %4.0f %s \n\n','Mass of displaced water =',m_disp,'kg')
 
 Delta_nabla = (m-m_disp)/(rho);
-disp(sprintf('%s %4.0f %s','Mass error =',m-m_disp,'kg')) 
-disp(sprintf('%s %4.0f %s \n','Deplasement error =',Delta_nabla,'m^3')) 
+fprintf('%s %4.0f %s\n','Mass error =',m-m_disp,'kg') 
+fprintf('%s %4.0f %s \n\n','Deplasement error =',Delta_nabla,'m^3') 
 
 Delta_Db = 2*sqrt( (nabla_b+Delta_nabla) / (L_b*pi))-D_b;
 Delta_Lb = Delta_nabla/( pi*(D_b/2)^2 );
@@ -225,15 +219,12 @@ Delta_Lb = Delta_nabla/( pi*(D_b/2)^2 );
 A_legs = sum(B_l.*L_l);
 Delta_draft = Delta_nabla/(CB_l*A_legs); 
 
-disp(sprintf('%s %4.3f %s','Alt. 1: change bracing diameter with =',Delta_Db,'m'))
-disp(sprintf('%s %4.3f %s','Alt. 2: change length of bracings with =',Delta_Lb,'m'))
-disp(sprintf('%s %4.3f %s','Alt. 3: change draft with =',Delta_draft,'m'))
-disp(sprintf('%s %4.0f %s \n\n','Alt. 4: change mass with =',m_disp-m,'kg'))
+fprintf('%s %4.3f %s\n','Alt. 1: change bracing diameter with =',Delta_Db,'m')
+fprintf('%s %4.3f %s\n','Alt. 2: change length of bracings with =',Delta_Lb,'m')
+fprintf('%s %4.3f %s\n','Alt. 3: change draft with =',Delta_draft,'m')
+fprintf('%s %4.0f %s \n\n\n','Alt. 4: change mass with =',m_disp-m,'kg')
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Rigid Body Data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%% Rigid Body Data
 Ix    = m*DATCONF.r_x^2;                 % moments of inertia
 Iy    = m*DATCONF.r_y^2;                 
 Iz    = m*DATCONF.r_z^2;                 
@@ -291,22 +282,20 @@ G55 = rho*g*nabla*GM_L;
 % G-matrix with respect to water plane area
 G_WP = diag([0 0 G33 G44 G55 0]);
 
-% transform G_Wp to COO
+% Transform G_Wp to COO
 G = Hmtrx(rWP)'*G_WP*Hmtrx(rWP);
 
-% transform G_COO to CG
+% Transform G_COO to CG
 G_CG = Hmtrx(-rCG)'*G*Hmtrx(-rCG);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Computation of M_COS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Computation of M_COS
 MA = A_p + A_l + A_b;
 
-% transform from COO to CG
+% Transform from COO to CG
 MA_CG  = Hmtrx(-rCG)'*MA*Hmtrx(-rCG);
 
-% rigid body mass
+% Rigid-body mass
 MRB_CG = [ m*eye(3)     zeros(3,3)
            zeros(3,3)  diag([Ix Iy Iz]) ];
 
@@ -316,10 +305,8 @@ MRB = Hmtrx(rCG)'*MRB_CG*Hmtrx(rCG);
 M = MA + MRB;
 M_CG = MA_CG + MRB_CG;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Damping D_COS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Damping D_COS
 beta_z     = 0.995;    % w_damped = beta * w_undamped 
 beta_phi   = 0.995;    % where beta = reduction factor
 beta_theta = 0.995;
@@ -328,7 +315,7 @@ v_z     = 2*sqrt(1-beta_z^2);
 v_phi   = 2*sqrt(1-beta_phi^2);
 v_theta = 2*sqrt(1-beta_theta^2);
 
-% damping (diagonal structure at CG)
+% Damping (diagonal structure at CG)
 D_CG11 = M_CG(1,1)/DATCONF.T_x;
 D_CG22 = M_CG(2,2)/DATCONF.T_y;
 D_CG66 = M_CG(6,6)/DATCONF.T_n;
@@ -339,13 +326,11 @@ D_CG55 = v_theta*sqrt(M_CG(5,5)*G_CG(5,5));
 
 D_CG = diag([D_CG11 D_CG22 D_CG33 D_CG44 D_CG55 D_CG66]);
 
-% transform D_CG to COO
+% Transform D_CG to COO
 D = Hmtrx(rCG)'*D_CG*Hmtrx(rCG);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% compute some useful parameters
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Compute some useful parameters
 A_syst = [ zeros(6,6)      eye(6)
           -inv(M)*G   -inv(M)*D ];
        
