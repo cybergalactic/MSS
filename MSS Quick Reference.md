@@ -134,6 +134,7 @@ tanker          % Nonlinear course unstable maneuvering model of a tanker, L = 3
 ```matlab
 SIMclarke83     % Simulate clarke83.m under PD control
 SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure
+SIMfrigate      % Simulate frigate.m using a PID heading autopilot.
 SIMmariner      % Simulate mariner.m under PD control
 SIMotter        % Simulate otter.m under feedback control
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
