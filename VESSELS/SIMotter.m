@@ -1,8 +1,10 @@
-% SIMotter
-% User editable script for simulation of the Otter USV('otter.m'),
-% length 2.0 m, beam 1.08 m, and mass 55 kg under feedback control when 
-% exposed to ocean currents; see 'otter.m'. The following methods are 
-% available for selection:
+function SIMotter()
+% SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org)
+%
+% User-editable script for simulation of the Otter USV, length 2.0 m,
+% beam 1.08 m, and mass 55 kg under feedback control when exposed to ocean
+% currents; see 'otter.m'. The following control methodsare available for
+% selection:
 %
 % 1. PID heading autopilot, no path following
 % 2. ALOS path-following control using straight lines and waypoint switching
@@ -15,28 +17,31 @@
 %             ILOSpsi.m
 %             crosstrackHermiteLOS
 %             LOSobserver.m
+%             controlMethods.m
 %
-% References: Fossen, T. I. and A. P. Aguiar (2024). A Uniform Semiglobal 
-%             Exponential Stable Adaptive Line-of-Sight (ALOS) Guidance Law 
-%             for 3-D Path Following. Automatica 163, 111556.
-%             https://doi.org/10.1016/j.automatica.2024.111556
+% References:
+%   T. I. Fossen and A. P. Aguiar (2024). A Uniform Semiglobal Exponential
+%   Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
+%   Automatica 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
 %
-%             Fossen, T. I. (2023). An Adaptive Line-of-sight (ALOS) 
-%             Guidance Law for Path Following of Aircraft and Marine Craft. 
-%             IEEE Transactions on Control Systems Techn. 31(6), 2887-2894.
-%             https://doi.org/10.1109/TCST.2023.3259819
+%  T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law for
+%  Path Following of Aircraft and Marine Craft. EEE Transactions on Control
+%  Systems Techn. 31(6), 2887-2894. https://doi.org/10.1109/TCST.2023.3259819
 %
-% Simulink:   demoOtterUSVPathFollowingHeadingControl.slx
-%             demoOtterUSVPathFollowingCourseControl.slx
+% Simulink:
+%   demoOtterUSVPathFollowingHeadingControl.slx
+%   demoOtterUSVPathFollowingCourseControl.slx
 %
 % Author:     Thor I. Fossen
 % Date:       2021-04-25
-% Revisions:  2023-10-14 - Added a heading autopilot and reference model
-%             2024-04-01 - Added ALOS/ILOS path-following control algorithms 
-%                          for straight-line paths and Hermite splines
+% Revisions:
+%   2023-10-14 : Added a heading autopilot and reference model.
+%   2024-04-01 : Added ALOS/ILOS path-following control algorithms for
+%                straight-line paths and Hermite splines.
+%   2024-04-20 : Added compability to GNU Octave.
 
 clearvars;                                   % clear variables from memory
-close all;                                   % closes all figure windows 
+close all;                                   % closes all figure windows
 clear ALOSpsi ILOSpsi crosstrackHermiteLOS   % clear persistent variables
 
 %% USER INPUTS
@@ -61,7 +66,7 @@ Delta_h = 10;                   % look-ahead distance
 gamma_h = 0.001;                % ALOS adaptive gain
 kappa = 0.001;                  % ILOS integral gain
 
-% Hermite spline 
+% Hermite spline
 undulation_factor = 0.5;        % positive, reduce to avoid undulation
 
 % Additional parameter for straigh-line path following
@@ -78,7 +83,7 @@ zeta = 1.0;                     % closed loop relative damping factor (-)
 
 Kp = m * wn^2;                  % PID gains
 Kd = m * (2 * zeta * wn - 1/T);
-Td = Kd / Kp; 
+Td = Kd / Kp;
 Ti = 10 / wn;
 
 % Reference model parameters
@@ -88,28 +93,33 @@ r_max = deg2rad(10.0);          % maximum turning rate (rad/s)
 
 % Otter USV input matrix
 y_prop = 0.395;                 % distance from centerline to propeller (m)
-k_pos = 0.0111;                 % positive Bollard, one propeller 
+k_pos = 0.0111;                 % positive Bollard, one propeller
 B = k_pos * [ 1 1               % input matrix
              y_prop  -y_prop  ];
 Binv = inv(B);
 
 % Propeller dynamics
-T_n = 0.1;                      % propeller time constant (s)      
+T_n = 0.1;                      % propeller time constant (s)
 n = [0 0]';                     % intital speed n = [ n_left n_right ]'
 
 % Inital heading, vehicle points towards next waypoint
 psi0 = atan2(wpt.pos.y(2)-wpt.pos.y(1),wpt.pos.x(2)-wpt.pos.x(1));
 
 % Initial states
-eta = [0 0 0 0 0 psi0]';        % eta = [x y z phi theta psi]' 
-nu  = [0 0 0 0 0 0]';           % nu  = [u v w p q r]'	 
+eta = [0 0 0 0 0 psi0]';        % eta = [x y z phi theta psi]'
+nu  = [0 0 0 0 0 0]';           % nu  = [u v w p q r]'
 z_psi = 0;                      % integral state
 psi_d = eta(6);                 % reference model states
 r_d = 0;
 a_d = 0;
 
 % Choose control method and display simulations options
-ControlFlag = controlMethod(R_switch,Delta_h); 
+methods = {'PID heading autopilot, no path following',...
+    'ALOS path-following control using straight lines and waypoint switching',...
+    'ILOS path-following control using straight lines and waypoint switching',...
+    'ALOS path-following control using Hermite splines'};
+ControlFlag = controlMethod(methods);
+displayControlMethod(ControlFlag, R_switch, Delta_h)
 
 %% MAIN LOOP
 simdata = zeros(N+1,15);                    % table for simulation data
@@ -162,7 +172,7 @@ for i=1:N+1
         Td * (r - r_d) + (1/Ti) * z_psi );
 
     % Control allocation
-    u = Binv * [tau_X tau_N]';                   
+    u = Binv * [tau_X tau_N]';
     n_c = sign(u) .* sqrt( abs(u) );
 
     % Store simulation data in a table
@@ -181,19 +191,21 @@ end
 
 %% PLOTS
 screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3); 
+screenW = screenSize(3);
 screenH = screenSize(4);
 
 % simdata(i,:) = [t eta' nu' r_d psi_d]
-t = simdata(:,1); 
-eta = simdata(:,2:7); 
-nu  = simdata(:,8:13); 
-r_d = simdata(:,14); 
-psi_d = simdata(:,15); 
+t = simdata(:,1);
+eta = simdata(:,2:7);
+nu  = simdata(:,8:13);
+r_d = simdata(:,14);
+psi_d = simdata(:,15);
 
 %% Positions
-figure(1); 
-set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');  
+figure(1);
+if ~isoctave;
+  set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');
+end
 hold on;
 plot(eta(:,2),eta(:,1),'b');
 
@@ -212,12 +224,12 @@ elseif ControlFlag == 2 || ControlFlag == 3 % Straigh lines and the circles
                 wayPoints(idx+1,1)], 'r--','HandleVisibility', 'off');
         end
     end
-   
-    theta = linspace(0, 2*pi, 100); 
+
+    theta = linspace(0, 2*pi, 100);
     for idx = 1:length(wayPoints(:,1))
         xCircle = R_switch * cos(theta) + wayPoints(idx,1);
         yCircle = R_switch * sin(theta) + wayPoints(idx,2);
-        plot(yCircle, xCircle, 'k'); 
+        plot(yCircle, xCircle, 'k');
     end
 
     legend('Vehicle position','Straigh-line path','Circle of acceptance',...
@@ -238,7 +250,7 @@ else % ControlFlag == 4, Hermite splines
                 'HandleVisibility', 'off');
         end
     end
-    
+
     plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
     'MarkerFaceColor', 'g', 'MarkerSize', 15);
     legend('Vehicle position','Hermite spline','Waypoints','Location','best')
@@ -248,14 +260,17 @@ end
 xlabel('East', 'FontSize', 14);
 ylabel('North', 'FontSize', 14);
 title('North-East positions (m)', 'FontSize', 14);
-axis equal; 
+axis equal;
 hold off
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 %% Velocities
-figure(2);set(gcf, 'Position', [1, 1, screenW/2, screenH]);  
+figure(2);
+if ~isoctave;
+  set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+end
 subplot(611),plot(t,nu(:,1))
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
@@ -274,7 +289,10 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 %% Speed, heave position and Euler angles
-figure(3); set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
+figure(3);
+if ~isoctave;
+  set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
+end
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
 title('Speed (m/s)'),grid
 subplot(512),plot(t,eta(:,3),'linewidt',2)
@@ -290,47 +308,11 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-set(1,'Visible', 'on');     % show figure 1 on top of figures 2 qnd 3
+set(1,'Visible', 'on');     % show figure 1 on top of figures 2 and 3
 
-
-%% CHOOSE GUIDANCE/CONTROL LAW AND DISPLAY RESULTS
-function ControlFlag = controlMethod(R_switch, Delta_h)
-    methods = {'PID heading autopilot, no path following',...
-        'ALOS path-following control using straight lines and waypoint switching',...
-        'ILOS path-following control using straight lines and waypoint switching',...
-        'ALOS path-following control using Hermite splines'};
-
-    fig = figure('Name', 'Choose Control Method','Position',...
-        [200, 300, 500, 250],'MenuBar', 'none', 'NumberTitle', 'off', ...
-        'Resize', 'off', 'CloseRequestFcn', @closeDialog);
-    
-    fig.UserData = NaN;  % initialize UserData to store ControlFlag
-
-    % Create push buttons for each method
-    for i = 1:length(methods)
-        uicontrol('Style', 'pushbutton', 'String', methods{i}, ...
-            'FontSize',13,'Position',[10, 200 - 50 * (i - 1), 450, 40],...
-            'Callback', {@buttonCallback, i});
-    end
-
-    uiwait(fig);                    % wait for figure to close
-    ControlFlag = fig.UserData;     % retrieve ControlFlag
-    delete(fig);                    % delete figure to clean up
-
-    % Callback function for push buttons
-    function buttonCallback(~, ~, index)
-        fig.UserData = index;       % store selection in figure's UserData
-        uiresume(fig);              % resume execution of uiwait
-    end
-
-    % Close Request Function to handle user closing the figure window
-    function closeDialog(src, ~)
-        uiresume(src); % allow uiwait to return even if the window is closed
-    end
-
-    displayControlMethod(ControlFlag, R_switch, Delta_h);
 end
 
+%% DISPLAY RESULTS
 function displayControlMethod(ControlFlag, R_switch, Delta_h)
 disp('--------------------------------------------------------------------');
 disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)');
@@ -352,4 +334,6 @@ switch ControlFlag
         disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
 end
 disp('--------------------------------------------------------------------');
+disp('Simulating...');
+
 end
