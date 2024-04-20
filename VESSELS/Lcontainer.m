@@ -1,4 +1,6 @@
 function [xdot,U] = Lcontainer(x,ui,U0)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = Lcontainer(x,ui,U0) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi p phi delta ]' using the
 % the LINEARIZED model corresponding to the nonlinear model 'container.m'. 
@@ -26,6 +28,7 @@ function [xdot,U] = Lcontainer(x,ui,U0)
 % Author:    Thor I. Fossen
 % Date:      2001-07-23
 % Revisions: 
+%   2024-04-19 : Added compability to GNU Octave.
 
 % Check of input and state dimensions
 if (length(x) ~= 9), error('x-vector must have dimension 9!'); end
