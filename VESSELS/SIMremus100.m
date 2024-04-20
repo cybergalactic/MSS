@@ -189,7 +189,7 @@ for i = 1:N+1
 
        % Heading autopilot using the tail rudder
        delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
-           K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
+           K_d, K_sigma, lambda, phi_b, K_yaw, T_yaw, h);
 
        % Third-order reference model for the heading angle
        [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
