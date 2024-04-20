@@ -67,7 +67,7 @@ for i = 1:N+1
     theta_d = Kp_z * ( (z - z_d) + (1/T_z) * z_int );    
     delta_PID = -Kp_theta * ssa( theta - theta_d ) - Ki_theta * theta_int;
     delta_c = -delta_PID;
-    delta_c = sat(delta_c, delta_max);
+    delta_c = sat(delta_c, delta_max);   % amplitude saturation
 
     % DSRV dynamics
     xdot = DSRV(x, delta_s);
