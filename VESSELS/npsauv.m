@@ -1,50 +1,55 @@
 function [xdot,U] = npsauv(x,ui)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = npsauv(x,ui) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = [ u v w p q r x y z phi theta psi ]' for
-% an Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate School, Monterrey.
-% The length of the AUV is L = 5.3 m, while the state vector is defined as:
+% time derivative of the state vector: x = [ u v w p q r x y z phi theta psi ]' 
+% for an Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate
+% School, Monterrey. The length of the AUV is L = 5.3 m, while the state 
+% vector is defined by:
 %
-% u     = surge velocity          (m/s)
-% v     = sway velocity           (m/s)
-% w     = heave velocity          (m/s)
-% p     = roll velocity           (rad/s)
-% q     = pitch velocity          (rad/s)
-% r     = yaw velocity            (rad/s)
-% xpos  = position in x-direction (m)
-% ypos  = position in y-direction (m)
-% zpos  = position in z-direction (m)
-% phi   = roll angle              (rad)
-% theta = pitch angle             (rad)
-% psi   = yaw angle               (rad)
+%   u:      Surge velocity              (m/s)
+%   v:      Sway velocity               (m/s)
+%   w:      Heave velocity              (m/s)
+%   p:      Roll rate                   (rad/s)
+%   q:      Pitch rate                  (rad/s)
+%   r:      Yaw rate                    (rad/s)
+%   xpos:   Position in x-direction     (m)
+%   ypos:   Position in y-direction     (m)
+%   zpos:   Position in z-direction     (m)
+%   phi:    Roll angle                  (rad)
+%   theta:  Pitch angle                 (rad)
+%   psi:    Yaw angle                   (rad)
 %
-% The input vector is :
+% Input vector:
 %
-% ui       = [ delta_r delta_s delta_b delta_bp delta_bs n ]'  where
+%   ui = [ delta_r delta_s delta_b delta_bp delta_bs n ]'  
 %
-% delta_r  = rudder angle                    (rad)
-% delta_s  = port and starboard stern planes (rad)
-% delta_b  = top and bottom bow planes       (rad)
-% delta_bp = port bow plane                  (rad)
-% delta_bs = starboard bow plane             (rad)
-% n        = propeller shaft speed           (rpm)  
+%   delta_r:    Rudder angle                    (rad)
+%   delta_s:    Port and starboard stern planes (rad)
+%   delta_b:    Top and bottom bow planes       (rad)
+%   delta_bp:   Port bow plane                  (rad)
+%   delta_bs:   Starboard bow plane             (rad)
+%   n:          Propeller shaft speed           (rpm)  
 %
-% Reference : Healey, A.J. and Lienard, D. (1993). Multivariable Sliding Mode Control 
-%             for Autonomous Diving and Steering of Unmanned Underwater Vehicles,
-%             IEEE Journal of Ocean Engineering, JOE-18(3):327-339
+% Reference: 
+%   A. J. Healey and Lienard, D. (1993). Multivariable Sliding Mode Control 
+%   for Autonomous Diving and Steering of Unmanned Underwater Vehicles,
+%   IEEE Journal of Ocean Engineering 18(3):327-339.
 %
 % Author:    Trygve Lauvdal
-% Date:      15-May-1994
-% Revisions: 21-Jul-2001, Thor I. Fossen: minor change of notation, including speed U in call
-%            24-Mar-2003, Gianluca Antonelli/Thor I. Fossen: corrected the integrals for 
-%                         Cy, Cz, Cn and Cm by introducing a new variable temp.
-%            24-Mar-2003, Gianluca Antonelli/Thor I. Fossen: corrected an error in the restoring 
-%                         force Z, that is (W-B)*cos(theta)*cos(phi).
-%            13-Nov-2014, Anand Sundaresan, Mwn*w*n was corrected to Mwn*w*u
-%            01-Aug-2019, David Hansch, corrected bugs in the cross-flow drag formulae
+% Date:      1994-05-15
+% Revisions: 
+%    2001-07-21 : Minor change of notation, including speed U in call
+%    2003-03-24 : Corrected the integrals for Cy, Cz, Cn and Cm by introducing 
+%                 a new variable temp. Also corrected an error in the 
+%                 restoring force Z, that is (W-B) * cos(theta) * cos(phi).
+%   2014-11-13 : Mwn * w * n was corrected to Mwn * w * u 
+%   2019-08-01 : Corrected bugs in the cross-flow drag formulas
+%   2024-04-20 : Added compability to GNU Octave.
 
 % Check of input and state dimensions
-if (length(x) ~= 12),error('x-vector must have dimension 12!');end
-if (length(ui) ~= 6),error('u-vector must have dimension 6!');end
+if (length(x) ~= 12), error('x-vector must have dimension 12!'); end
+if (length(ui) ~= 6), error('u-vector must have dimension 6!'); end
 
 % Dimensional states
 u   = x(1);  v     = x(2);  w   = x(3);
