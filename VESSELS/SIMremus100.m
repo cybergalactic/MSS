@@ -59,7 +59,6 @@ U = 1;                          % initial speed
 theta_d = 0; q_d = 0;           % initial pitch reference signals
 psi_d = psi; r_d = 0; a_d = 0;  % initial yaw reference signals
 
-
 % Intitial state vector
 if (KinematicsFlag == 1)  % x = [ u v w p q r x y z phi theta psi ]'
     x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
@@ -324,7 +323,10 @@ alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
 beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
 
 %% Generalized velocity
-figure(1); set(gcf, 'Position', [1, 1, screenW/3, screenH]);
+figure(1);
+if ~isoctave;
+  set(gcf, 'Position', [1, 1, screenW/3, screenH]);
+end
 subplot(611),plot(t,nu(:,1))
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
@@ -342,7 +344,10 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Heave position and Euler angles
-figure(2); set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
+figure(2);
+if ~isoctave;
+  set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
+end
 if ControlFlag == 3; z_d = eta(:,3); end
 subplot(411),plot(t,eta(:,3),t,z_d)
 xlabel('Time (s)'),title('Heave position (m)'),grid
@@ -360,7 +365,10 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',16)
 
 %% Control signals
-figure(3); set(gcf,'Position',[2*screenW/3,screenH/2,screenW/3,screenH/2]);
+figure(3);
+if ~isoctave;
+  set(gcf,'Position',[2*screenW/3,screenH/2,screenW/3,screenH/2]);
+end
 subplot(311),plot(t,rad2deg(u(:,1)))
 xlabel('Time (s)'),title('Rudder command \delta_r (deg)'),grid
 subplot(312),plot(t,rad2deg(u(:,2)))
@@ -371,7 +379,10 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
 %% Ocean currents and speed
-figure(4); set(gcf,'Position',[2*screenW/3,1,screenW/3,screenH/2]);
+figure(4);
+if ~isoctave;
+  set(gcf,'Position',[2*screenW/3,1,screenW/3,screenH/2]);
+end
 subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
 xlabel('Time (s)'),grid
 legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
@@ -389,7 +400,10 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 
 %% Sideslip and angle of attack
 if ControlFlag == 3
-    figure(5); set(gcf,'Position',[100,100,screenW/3,screenH]);
+    figure(5);
+    if ~isoctave;
+      set(gcf,'Position',[100,100,screenW/3,screenH]);
+    end
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
@@ -417,7 +431,9 @@ end
 %% 2-D position plots with waypoints
 if ControlFlag == 3
     figure(6);
-    set(gcf, 'Position', [300, 200, screenW/3, screenH/2]);
+    if ~isoctave;
+      set(gcf, 'Position', [300, 200, screenW/3, screenH/2]);
+    end
     subplot(211);
     plot(eta(:,2), eta(:,1));
     hold on;
@@ -528,6 +544,6 @@ else
     disp('Path-following:    ALOS guidance law for 3-D path following')
 end
 disp('-------------------------------------------------------------');
-disp('Simulating...'); 
+disp('Simulating...');
 
 end
