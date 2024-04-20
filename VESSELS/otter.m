@@ -1,4 +1,6 @@
 function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s (optionally) 
 % and the time derivative of the state vector: 
 %    x = [ u v w p q r x y z phi theta psi ]' 
@@ -35,17 +37,19 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Adding a non-zero payload mp will change the steady-state z value since 
 % the payload is added as an external force g_0 in the code.
 %
-% See, ExOtter.m and demoOtterUSVHeadingControl.slx
+% See ExOtter.m and demoOtterUSVHeadingControl.slx
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
-% Revisions: 2021-04-25 Added call to new function crossFlowDrag.m
-%            2021-07-22 Added a new state for the trim moment
-%            2021-12-17 New method Xudot = -addedMassSurge(m,L,rho) 
-%            2023-03-28 Trim state is replaced by payload mp and rp
-%            2023-10-14 Added ocean current acceleration terms
-%            2024-02-03 Recalibration of damping terms
-%            2024-02-28 Corrected the trim condition for eta
+% Revisions: 
+%   2021-04-25 : Added call to new function crossFlowDrag.m..
+%   2021-07-22 : Added a new state for the trim moment.
+%   2021-12-17 : New method Xudot = -addedMassSurge(m,L,rho). 
+%   2023-03-28 : Trim state is replaced by payload mp and rp.
+%   2023-10-14 : Added ocean current acceleration terms.
+%   2024-02-03 : Recalibration of damping terms.
+%   2024-02-28 : Corrected the trim condition for eta.
+%   2024-04-20 : Added compability to GNU Octave.
 
 % Check of input and state dimensions
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -70,8 +74,6 @@ B_pont  = 0.25;     % beam of one pontoon (m)
 y_pont  = 0.395;    % distance from centerline to waterline area center (m)
 Cw_pont = 0.75;     % waterline area coefficient (-)
 Cb_pont = 0.4;      % block coefficient, computed from m = 55 kg
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % State and current variables
 nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % velocity vectors
