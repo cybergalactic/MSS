@@ -71,7 +71,6 @@ demoWaypointGuidance.slx                % Waypoint guidance system
 ExEKF           % For-loop implementation (predictor-corrector representation)  of a discrete-time extended Kalman filter (EKF) 
 ExFeedback      % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
 ExFFT           % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
-ExHermiteLOS    % Computation of cross-track error and LOS course angle/course rate for a cubic Hermite spline through given waypoints 
 ExHybrid        % Computation of a hybrid continuous path parametrized by waypoints
 ExINS_AHRS      % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 ExINS_Euler     % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
