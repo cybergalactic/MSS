@@ -1,22 +1,22 @@
 function SIMotter()
 % SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org)
 %
-% SIMotter simulates the Otter Unmanned Surface Vehicle (USV) under various 
-% control strategies to handle path following in the presence of ocean 
-% currents. This script allows the user to select from several control 
-% methods and simulatesthe USV's performance using a cubic Hermite spline 
+% SIMotter simulates the Otter Unmanned Surface Vehicle (USV) under various
+% control strategies to handle path following in the presence of ocean
+% currents. This script allows the user to select from several control
+% methods and simulatesthe USV's performance using a cubic Hermite spline
 % or straight-line paths.
 %
 % The simulation covers:
 % 1. PID heading autopilot without path following.
-% 2. Adaptive Line-of-Sight (ALOS) control for path following using 
+% 2. Adaptive Line-of-Sight (ALOS) control for path following using
 %    straight lines and waypoint switching.
-% 3. Integral Line-of-Sight (ILOS) control for path following using 
+% 3. Integral Line-of-Sight (ILOS) control for path following using
 %    straight lines and waypoint switching.
 % 4. ALOS control for path following using Hermite spline interpolation.
 %
-% Dependencies: 
-% Calls: otter.m, refModel.m, ALOSpsi.m, ILOSpsi.m, LOSobserver.m, 
+% Dependencies:
+% Calls: otter.m, refModel.m, ALOSpsi.m, ILOSpsi.m, LOSobserver.m,
 %       controlMethods.m, hermiteSpline.m, crosstrackHermiteLOS.m
 %
 % Simulink Models:
@@ -27,7 +27,7 @@ function SIMotter()
 %   T. I. Fossen and A. P. Aguiar (2024). A Uniform Semiglobal Exponential
 %   Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
 %   Automatica, 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
-% 
+%
 %   T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law for
 %   Path Following of Aircraft and Marine Craft. IEEE Transactions on Control
 %   Systems Technology, 31(6), 2887-2894. https://doi.org/10.1109/TCST.2023.3259819
@@ -100,7 +100,7 @@ r_max = deg2rad(10.0);           % Maximum turning rate (rad/s)
 % Otter USV input matrix
 y_prop = 0.395;                  % Distance from centerline to propeller (m)
 k_pos = 0.0111;                  % Positive Bollard, one propeller
-B = k_pos * [1 1;                % Input matrix
+B = k_pos * [1 1                 % Input matrix
              y_prop -y_prop];
 Binv = inv(B);                   % Invert input matrix for control allocation
 
@@ -182,7 +182,7 @@ for i = 1:N+1
     nu = nu + h * xdot(1:6);                % Update velocity states
     eta = eta + h * xdot(7:12);             % Update position states
     n = n + h/T_n * (n_c - n);              % Update propeller speeds
-    z_psi = z_psi + h * ssa(psi - psi_d);   % Update integral state 
+    z_psi = z_psi + h * ssa(psi - psi_d);   % Update integral state
 end
 
 %% PLOTS
