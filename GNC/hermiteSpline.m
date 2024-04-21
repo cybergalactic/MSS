@@ -1,103 +1,85 @@
-function [P, T] = hermiteSpline(t,segmentIndex,wayPoints,undulation_factor)
-% [P, T] = hermiteSpline(t,segmentIndex,wayPoints,undulation_factor)) 
-% computes the cubic Hermite spline P and the tangents T to the spline for 
-% n > 3 waypoints. The tangents at the waypoints are computed using finite 
-% differences, ensuring a smooth and continuous spline that is customizable 
-% through the choice of waypoints.
+function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
+    pp_x, pp_y, N_horizon] = hermiteSpline(wpt, Umax, h)
+% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 %
-% Inputs:    
-%  t: parameter (or a vector of parameters) that represents the normalized 
-%    position(s) within a segment of the spline. It varies from 0 to 1, where 
-%    0 corresponds to the start of the segment and 1 corresponds to the end 
-%    the segment. t is used to evaluate the spline and its derivative at 
-%    specific points along the segment.
-%  segmentIndex: integer that specifies the index of the segment for which 
-%    the spline and its tangents are to be computed. The segments are 
-%    defined by the waypoints, with each segment spanning from one waypoint 
-%    to the next. For n waypoints, there are n-1 segments, and segmentIndex 
-%    should be in the range of 1 to n-1.
-%  wayPoints: matrix where each row represents a waypoint in 2-D space, 
-%    with the first column corresponding to the x-coordinate and the second 
-%    column to the y-coordinate. These waypoints define the path along which
-%    the Hermite spline is interpolated. The spline will be smooth and 
-%    continuous, passing through each waypoint and oriented according to 
-%    the computed tangents.
-%  undulation_factor: (OPTIONALLY): A parameter larger than 0 (typically 1)
-%    that controls influences the smoothness of the spline's transition 
-%    between waypoints by scaling the tangents. The undulation_factor 
-%    directly affects the spline's curvature, helping to achieve smoother 
-%    transitions and reduce undulation, which again minimize the turning rate.
+% hermiteSpline computes paths and path tangents using Hermite spline 
+% interpolation. The function calculates a Hermite spline path through a 
+% set of waypoints, estimating the numer of intervals (moving horizon) needed
+% to find the crosstrack error for a vehicle moving at speed Umax. It 
+% provides the path variables, the x and y coordinates along the path, 
+% their derivatives, and the angle of the path tangent relative to North.
 %
-% Outputs:  
-%  P: matrix or vector (depending on the size of t) that represents the 
-%    points on the cubic Hermite spline at the parameter(s) t for the 
-%    specified segment. Each row of P corresponds to a point in 2-D space, 
-%    with the first column representing the x-coordinate and the second 
-%    column the y-coordinate. These points are computed based on the 
-%    Hermite basis functions and the positions and tangents of the waypoints 
-%    defining the segment.  
-%  T: matrix or vector that represents the tangents to the cubic Hermite 
-%    spline at the parameter(s) t for the specified segment. Like P, each 
-%    row of T corresponds to a tangent vector in 2-D space, with the first
-%    column representing the x-component and the second column the
-%    y-component. These tangents are derived from the derivatives of the
-%    Hermite basis functions and provide information about the direction 
-%    and speed of the spline at each point P.
+% Inputs:
+%   wpt    - A struct containing fields `pos.x` and `pos.y` that are vectors 
+%            of x and y coordinates of waypoints.
+%   Umax   - Maximum speed along the path (m/s).
+%   h      - Sampling interval for calculating path intervals (s).
 %
-% See: [y_e, pi_h, chi, U_max, closestPoint, closestTangent] = ...
-%    crosstrackHermiteLOS(wayPoints, vehiclePos, Delta_h, omega_chi_max)
+% Outputs:
+%   w_path  - A vector of path parameter values.
+%   x_path  - X coordinates evaluated along the path.
+%   y_path  - Y coordinates evaluated along the path.
+%   dx_path - Derivatives of x coordinates along the path.
+%   dy_path - Derivatives of y coordinates along the path.
+%   pi_h    - Heading angles along the path relative to North (radians).
+%   pp_x    - Piecewise polynomial for x coordinates.
+%   pp_y    - Piecewise polynomial for y coordinates.
+%   N_horizon - Number of intervals corresponding to a horizon of 1 second,
+%               calculated based on maximum speed and path interval length.
+%
+% Example:
+%   wpt.pos.x = [0, 100, 200];
+%   wpt.pos.y = [0, 50, 100];
+%   [w_path, x_path, y_path, dx_path, dy_path, pi_h, pp_x, pp_y, N_horizon] = 
+%       hermiteSpline(wpt, 5, 0.1);
 %
 % Author:    Thor I. Fossen
-% Date:      2024-02-28
-% Revisions: 2012-04-01 - Added a tangent scale factor to reduce undulation
+% Date:      2024-04-21
+% Revisions: 
+%   None
 
-if nargin == 3
-    undulation_factor = 0.5;
+% Calculate path length from waypoints
+pathLength = 0;
+for i = 2:length(wpt.pos.x)
+    deltaLength = sqrt((wpt.pos.x(i) - wpt.pos.x(i-1))^2 + ...
+        (wpt.pos.y(i) - wpt.pos.y(i-1))^2);
+    pathLength = pathLength + deltaLength;
 end
 
-n = size(wayPoints, 1);     % number of waypoints
-tangents = zeros(n, 2);     % initialize tangents array
+% Calculate the time to traverse the path at maximum speed
+time = pathLength / Umax;
 
-% Exclude the last dummy waypoint before finding the maximum absolute value
-maxVal = max(abs(wayPoints(1:n-1, :)), [], 'all');
+% Determine the number of intervals based on the time and sampling interval
+N_interval = floor(time / h) + 1;
+deltaPath = pathLength / N_interval;
+N_horizon = round(Umax / deltaPath);
 
-% By scaling the tangents, the influence of each waypoint's direction on 
-% the spline's curvature is reduced, which can help in achieving a 
-% smoother transition between waypoints, thus reducing undulation.
-scale_factor = undulation_factor / (1 + log10(maxVal + 1));
+% Parameterize path using the calculated intervals
+w_path = linspace(0, N_interval, N_interval + 1);
+wpt.idx = linspace(0, N_interval, length(wpt.pos.x));
 
-% Compute and scale tangents using finite differences
-for i = 1:n
-    if i == 1
-        tangents(i, :) = (wayPoints(i+1, :) - wayPoints(i, :)) * scale_factor;
-    elseif i == n
-        tangents(i, :) = (wayPoints(i, :) - wayPoints(i-1, :)) * scale_factor;
-    else
-        tangents(i, :) = ((wayPoints(i+1, :) - wayPoints(i-1, :)) / 2) * scale_factor;
-    end
+% Interpolate waypoints using PCHIP
+pp_x = pchip(wpt.idx, wpt.pos.x);
+pp_y = pchip(wpt.idx, wpt.pos.y);
+
+% Calculate derivatives of the path using the custom derivative function
+pp_dx = ppDerivative(pp_x);
+pp_dy = ppDerivative(pp_y);
+
+% Calculate the heading angles relative to North
+dx_path = ppval(pp_dx, w_path);
+dy_path = ppval(pp_dy, w_path);
+pi_h = atan2(dy_path, dx_path); % Heading angles in radians
+
+% Evaluate the x and y coordinates at each path point
+x_path = ppval(pp_x, w_path);
+y_path = ppval(pp_y, w_path);
+
 end
 
-% Hermite spline interpolation for the given segment
-P0 = wayPoints(segmentIndex, :);
-P1 = wayPoints(segmentIndex + 1, :);
-T0 = tangents(segmentIndex, :);
-T1 = tangents(segmentIndex + 1, :);
-
-% Hermite basis functions
-h00 = 2*t.^3 - 3*t.^2 + 1;
-h10 = t.^3 - 2*t.^2 + t;
-h01 = -2*t.^3 + 3*t.^2;
-h11 = t.^3 - t.^2;
-
-% Compute the spline points
-P = h00.*P0 + h10.*T0 + h01.*P1 + h11.*T1;
-
-% Compute the derivatives for the tangent vectors, if needed
-dh00 = 6*t.^2 - 6*t;
-dh10 = 3*t.^2 - 4*t + 1;
-dh01 = -6*t.^2 + 6*t;
-dh11 = 3*t.^2 - 2*t;
-
-T = dh00.*P0 + dh10.*T0 + dh01.*P1 + dh11.*T1;
-
+function dpp = ppDerivative(pp)
+% Calculate the derivative of a piecewise polynomial
+    [breaks, coefs, ~, k, ~] = unmkpp(pp);
+    dcoefs = coefs(:, 1:k-1) .* (k-1:-1:1);
+    dpp = mkpp(breaks, dcoefs);
 end
