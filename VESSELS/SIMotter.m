@@ -1,60 +1,60 @@
 function SIMotter()
 % SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org)
 %
-% User-editable script for simulation of the Otter USV, length 2.0 m,
-% beam 1.08 m, and mass 55 kg under feedback control when exposed to ocean
-% currents; see 'otter.m'. The following control methodsare available for
-% selection:
+% SIMotter simulates the Otter Unmanned Surface Vehicle (USV) under various 
+% control strategies to handle path following in the presence of ocean 
+% currents. This script allows the user to select from several control 
+% methods and simulatesthe USV's performance using a cubic Hermite spline 
+% or straight-line paths.
 %
-% 1. PID heading autopilot, no path following
-% 2. ALOS path-following control using straight lines and waypoint switching
-% 3. ILOS path-following control using straight lines and waypoint switching
-% 4. ALOS path-following control using Hermite spline interpolation
+% The simulation covers:
+% 1. PID heading autopilot without path following.
+% 2. Adaptive Line-of-Sight (ALOS) control for path following using 
+%    straight lines and waypoint switching.
+% 3. Integral Line-of-Sight (ILOS) control for path following using 
+%    straight lines and waypoint switching.
+% 4. ALOS control for path following using Hermite spline interpolation.
 %
-% Calls:      otter.m
-%             refModel.m
-%             ALOSpsi.m
-%             ILOSpsi.m
-%             crosstrackHermiteLOS
-%             LOSobserver.m
-%             controlMethods.m
+% Dependencies: 
+% Calls: otter.m, refModel.m, ALOSpsi.m, ILOSpsi.m, LOSobserver.m, 
+%       controlMethods.m, hermiteSpline.m, crosstrackHermiteLOS.m
+%
+% Simulink Models:
+%   demoOtterUSVPathFollowingHeadingControl.slx
+%   demoOtterUSVPathFollowingCourseControl.slx
 %
 % References:
 %   T. I. Fossen and A. P. Aguiar (2024). A Uniform Semiglobal Exponential
 %   Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
-%   Automatica 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
+%   Automatica, 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
+% 
+%   T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law for
+%   Path Following of Aircraft and Marine Craft. IEEE Transactions on Control
+%   Systems Technology, 31(6), 2887-2894. https://doi.org/10.1109/TCST.2023.3259819
 %
-%  T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law for
-%  Path Following of Aircraft and Marine Craft. EEE Transactions on Control
-%  Systems Techn. 31(6), 2887-2894. https://doi.org/10.1109/TCST.2023.3259819
-%
-% Simulink:
-%   demoOtterUSVPathFollowingHeadingControl.slx
-%   demoOtterUSVPathFollowingCourseControl.slx
-%
-% Author:     Thor I. Fossen
-% Date:       2021-04-25
+% Author: Thor I. Fossen
+% Date: 2021-04-25
 % Revisions:
-%   2023-10-14 : Added a heading autopilot and reference model.
-%   2024-04-01 : Added ALOS/ILOS path-following control algorithms for
-%                straight-line paths and Hermite splines.
-%   2024-04-20 : Added compability to GNU Octave.
+%   2023-10-14: Added heading autopilot and reference model.
+%   2024-04-01: Integrated ALOS/ILOS path-following control algorithms for
+%               straight-line paths and Hermite splines.
+%   2024-04-21: Enhanced compatibility with GNU Octave.
 
-clearvars;                                   % clear variables from memory
-close all;                                   % closes all figure windows
-clear ALOSpsi ILOSpsi crosstrackHermiteLOS   % clear persistent variables
+clearvars;                                  % Clear variables from memory
+close all;                                  % Close all figure windows
+clear ALOSpsi ILOSpsi crosstrackHermiteLOS  % Clear persistent variables
 
 %% USER INPUTS
-h  = 0.05;        % sampling time [s]
-N  = 20000;		  % number of samples
+h  = 0.05;                       % Sampling time [s]
+N  = 20000;                      % Number of samples
 
 % Load condition
-mp = 25;                        % payload mass (kg), max value 45 kg
-rp = [0.05 0 -0.35]';           % location of payload (m)
+mp = 25;                         % Payload mass (kg), maximum value 45 kg
+rp = [0.05 0 -0.35]';            % Location of payload (m)
 
 % Ocean current
-V_c = 0.3;                      % ocean current speed (m/s)
-beta_c = deg2rad(30);           % ocean current direction (rad)
+V_c = 0.3;                       % Ocean current speed (m/s)
+beta_c = deg2rad(30);            % Ocean current direction (rad)
 
 % Waypoints
 wpt.pos.x = [0 0   150 150 -100 -100 200]';
@@ -62,159 +62,214 @@ wpt.pos.y = [0 200 200 -50  -50  250 250]';
 wayPoints = [wpt.pos.x wpt.pos.y];
 
 % ALOS and ILOS parameters
-Delta_h = 10;                   % look-ahead distance
-gamma_h = 0.001;                % ALOS adaptive gain
-kappa = 0.001;                  % ILOS integral gain
+Delta_h = 10;                    % Look-ahead distance
+gamma_h = 0.001;                 % ALOS adaptive gain
+kappa = 0.001;                   % ILOS integral gain
 
-% Hermite spline
-undulation_factor = 0.5;        % positive, reduce to avoid undulation
+% Additional parameter for straight-line path following
+R_switch = 5;                    % Radius of switching circle
+K_f = 0.3;                       % Yaw rate observer gain
 
-% Additional parameter for straigh-line path following
-R_switch = 5;                   % radius of switching circle
-K_f = 0.3;                      % yaw rate observer gain
+% Initial heading, vehicle points towards next waypoint
+psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
 
-% PID heading autopilot (Nomoto gains)
-T = 1;
-m = 41.4;                       % m = T/K
-K = T / m;
+% Additional parameters for Hermite spline path following
+Umax = 2;                        % Maximum speed for Hermite spline interpolation
+idx_start = 1;                   % Initial index for Hermite spline
+[w_path, x_path, y_path, dx, dy, pi_h, pp_x, pp_y, N_horizon] = ...
+    hermiteSpline(wpt, Umax, h); % Compute Hermite spline for path following
 
-wn = 1.5;                       % closed-loop natural frequency (rad/s)
-zeta = 1.0;                     % closed loop relative damping factor (-)
+% PID heading autopilot parameters (Nomoto model gains)
+T = 1;                           % Time constant
+m = 41.4;                        % m = T/K
+K = T / m;                       % Nomoto gain
 
-Kp = m * wn^2;                  % PID gains
-Kd = m * (2 * zeta * wn - 1/T);
-Td = Kd / Kp;
-Ti = 10 / wn;
+wn = 1.5;                        % Closed-loop natural frequency (rad/s)
+zeta = 1.0;                      % Closed-loop relative damping factor (-)
+
+Kp = m * wn^2;                   % Proportional gain
+Kd = m * (2 * zeta * wn - 1/T);  % Derivative gain
+Td = Kd / Kp;                    % Derivative time constant
+Ti = 10 / wn;                    % Integral time constant
 
 % Reference model parameters
-wn_d = 1.0;                     % natural frequency (rad/s)
-zeta_d = 1.0;                   % relative damping factor (-)
-r_max = deg2rad(10.0);          % maximum turning rate (rad/s)
+wn_d = 1.0;                      % Natural frequency (rad/s)
+zeta_d = 1.0;                    % Relative damping factor (-)
+r_max = deg2rad(10.0);           % Maximum turning rate (rad/s)
 
 % Otter USV input matrix
-y_prop = 0.395;                 % distance from centerline to propeller (m)
-k_pos = 0.0111;                 % positive Bollard, one propeller
-B = k_pos * [ 1 1               % input matrix
-             y_prop  -y_prop  ];
-Binv = inv(B);
+y_prop = 0.395;                  % Distance from centerline to propeller (m)
+k_pos = 0.0111;                  % Positive Bollard, one propeller
+B = k_pos * [1 1;                % Input matrix
+             y_prop -y_prop];
+Binv = inv(B);                   % Invert input matrix for control allocation
 
 % Propeller dynamics
-T_n = 0.1;                      % propeller time constant (s)
-n = [0 0]';                     % intital speed n = [ n_left n_right ]'
-
-% Inital heading, vehicle points towards next waypoint
-psi0 = atan2(wpt.pos.y(2)-wpt.pos.y(1),wpt.pos.x(2)-wpt.pos.x(1));
+T_n = 0.1;                       % Propeller time constant (s)
+n = [0 0]';                      % Initial propeller speed, [n_left n_right]'
 
 % Initial states
-eta = [0 0 0 0 0 psi0]';        % eta = [x y z phi theta psi]'
-nu  = [0 0 0 0 0 0]';           % nu  = [u v w p q r]'
-z_psi = 0;                      % integral state
-psi_d = eta(6);                 % reference model states
-r_d = 0;
-a_d = 0;
+eta = [0 0 0 0 0 psi0]';         % State vector, eta = [x y z phi theta psi]'
+nu  = [0 0 0 0 0 0]';            % Velocity vector, nu  = [u v w p q r]'
+z_psi = 0;                       % Integral state for heading control
+psi_d = eta(6);                  % Initial desired heading
+r_d = 0;                         % Initial desired rate of turn
+a_d = 0;                         % Initial desired acceleration
 
-% Choose control method and display simulations options
+% Choose control method and display simulation options
 methods = {'PID heading autopilot, no path following',...
-    'ALOS path-following control using straight lines and waypoint switching',...
-    'ILOS path-following control using straight lines and waypoint switching',...
-    'ALOS path-following control using Hermite splines'};
+           'ALOS path-following control using straight lines and waypoint switching',...
+           'ILOS path-following control using straight lines and waypoint switching',...
+           'ALOS path-following control using Hermite splines'};
 ControlFlag = controlMethod(methods);
-displayControlMethod(ControlFlag, R_switch, Delta_h)
+displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
-simdata = zeros(N+1,15);                    % table for simulation data
+simdata = zeros(N+1, 15);        % Preallocate table for simulation data
 
-for i=1:N+1
-
-    t = (i-1) * h;                          % time (s)
-
-    % Measurements
-    x = eta(1) + 0.01 * randn;
-    y = eta(2) + 0.01 * randn;
-    r = nu(6) + 0.001 * randn;
-    psi = eta(6) + 0.001 * randn;
+for i = 1:N+1
+    t = (i-1) * h;                  % Time (s)
+    % Measurements with noise
+    x = eta(1) + 0.01 * randn;      % Noisy x measurement
+    y = eta(2) + 0.01 * randn;      % Noisy y measurement
+    r = nu(6) + 0.001 * randn;      % Noisy rate of turn
+    psi = eta(6) + 0.001 * randn;   % Noisy heading
 
     % Guidance and control system
-    if ControlFlag == 1 % heading autopilot with reference model
+    switch ControlFlag
+        case 1  % PID heading autopilot with reference model
+            % Reference model, step input adjustments
+            psi_ref = psi0;
+            if t > 100; psi_ref = deg2rad(0); end
+            if t > 500; psi_ref = deg2rad(-90); end
 
-        % Reference model, step input
-        psi_ref = psi0;
-        if t > 100; psi_ref = deg2rad(0);end
-        if t > 500; psi_ref = deg2rad(-90);end
+            % Reference model propagation
+            [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max, ...
+                                         zeta_d, wn_d, h, 1);
 
-        % Reference model propagation
-        [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
-            zeta_d, wn_d, h, 1);
+        case 2  % ALOS heading autopilot straight-line path following
+            psi_ref = ALOSpsi(x, y, Delta_h, gamma_h, h, R_switch, wpt);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
-    elseif ControlFlag == 2 % ALOS heading autopilot straight-line path following
+        case 3  % ILOS heading autopilot straight-line path following
+            psi_ref = ILOSpsi(x, y, Delta_h, kappa, h, R_switch, wpt);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
-        psi_ref = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt);
-        [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
-
-    elseif ControlFlag == 3 % ILOS heading autopilot straight-line path following
-
-        psi_ref = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt);
-        [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
-
-    else % ALOS heading autopilot, Hermite spline interpolation
-
-        [psi_ref, y_e, pi_h, closestPoint, closestTangent] = ...
-            crosstrackHermiteLOS(wayPoints, [x y], h,...
-            undulation_factor, Delta_h, gamma_h);
-        [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
-
+        case 4  % ALOS heading autopilot, cubic Hermite spline interpolation
+            [psi_ref, idx_start] = crosstrackHermiteLOS(w_path, x_path, ...
+                y_path, dx, dy, pi_h, x, y, h, Delta_h, pp_x, pp_y, ...
+                idx_start, N_horizon, gamma_h);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
     end
 
     % PID heading (yaw moment) autopilot and forward thrust
-    tau_X = 100;
-    tau_N = (T/K) * a_d + (1/K) * r_d -...
-        Kp * (ssa( psi-psi_d) +...
-        Td * (r - r_d) + (1/Ti) * z_psi );
+    tau_X = 100;                              % Constant forward thrust
+    tau_N = (T/K) * a_d + (1/K) * r_d - ...   % Yaw moment control
+            Kp * (ssa(psi - psi_d) + ...      % Proportional term
+            Td * (r - r_d) + (1/Ti) * z_psi); % Derivative and integral terms
 
     % Control allocation
-    u = Binv * [tau_X tau_N]';
-    n_c = sign(u) .* sqrt( abs(u) );
+    u = Binv * [tau_X; tau_N];      % Compute control inputs for propellers
+    n_c = sign(u) .* sqrt(abs(u));  % Convert to required propeller speeds
 
-    % Store simulation data in a table
-    simdata(i,:) = [t eta' nu' r_d psi_d];
+    % Store simulation data
+    simdata(i, :) = [t, eta', nu', r_d, psi_d];
 
     % USV dynamics
-    xdot = otter([nu; eta],n,mp,rp,V_c,beta_c);
+    xdot = otter([nu; eta], n, mp, rp, V_c, beta_c);  % State derivatives
 
     % Euler's integration method (k+1)
-    nu = nu + h * xdot(1:6);
-    eta = eta + h * xdot(7:12);
-    n = n + h/T_n * (n_c - n);
-    z_psi = z_psi + h * ssa( psi-psi_d );
-
+    nu = nu + h * xdot(1:6);                % Update velocity states
+    eta = eta + h * xdot(7:12);             % Update position states
+    n = n + h/T_n * (n_c - n);              % Update propeller speeds
+    z_psi = z_psi + h * ssa(psi - psi_d);   % Update integral state 
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenSize = get(0, 'ScreenSize'); % Get screen dimensions
 screenW = screenSize(3);
 screenH = screenSize(4);
 
-% simdata(i,:) = [t eta' nu' r_d psi_d]
-t = simdata(:,1);
-eta = simdata(:,2:7);
-nu  = simdata(:,8:13);
-r_d = simdata(:,14);
-psi_d = simdata(:,15);
+% Simulation data structure
+t = simdata(:,1);        % Time vector
+eta = simdata(:,2:7);    % State vectors
+nu  = simdata(:,8:13);   % Velocity vectors
+r_d = simdata(:,14);     % Desired rate of turn
+psi_d = simdata(:,15);   % Desired heading
 
-%% Positions
+% Plot positions
 figure(1);
-if ~isoctave;
+if ~isoctave
   set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');
 end
 hold on;
-plot(eta(:,2),eta(:,1),'b');
+plot(eta(:,2),eta(:,1),'b');  % Plot vehicle position
 
-if ControlFlag == 1 % Vehicle position
+% Control method specific plots
+if ControlFlag == 1  % Heading autopilot
+    legend('Vehicle position');
+elseif any(ControlFlag == [2, 3])  % Straight line and circles
+    plotStraightLinesAndCircles(wayPoints, R_switch);
+else  % Hermite splines
+    plotHermiteSplines(y_path, x_path, wayPoints);
+end
 
-    legend('Vehicle position')
+xlabel('East (m)', 'FontSize', 14);
+ylabel('North (m)', 'FontSize', 14);
+title('North-East Positions (m)', 'FontSize', 14);
+axis equal;
+grid on;
+set(findall(gcf,'type','line'),'linewidth',2);
+set(findall(gcf,'type','legend'),'FontSize',14);
+set(1,'Visible', 'on');  % Show figure
 
-elseif ControlFlag == 2 || ControlFlag == 3 % Straigh lines and the circles
+% Plot velocities
+figure(2);
+if ~isoctave
+  set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+end
+subplot(611),plot(t,nu(:,1));
+xlabel('Time (s)'),title('Surge velocity (m/s)'),grid on;
+subplot(612),plot(t,nu(:,2));
+xlabel('Time (s)'),title('Sway velocity (m/s)'),grid on;
+subplot(613),plot(t,nu(:,3));
+xlabel('Time (s)'),title('Heave velocity (m/s)'),grid on;
+subplot(614),plot(t,rad2deg(nu(:,4)));
+xlabel('Time (s)'),title('Roll rate (deg/s)'),grid on;
+subplot(615),plot(t,rad2deg(nu(:,5)));
+xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid on;
+subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d));
+xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid on;
+legend('r','r_d');
+set(findall(gcf,'type','line'),'linewidth',2);
+set(findall(gcf,'type','text'),'FontSize',14);
+set(findall(gcf,'type','legend'),'FontSize',14);
 
+% Plot speed, heave position and Euler angles
+figure(3);
+if ~isoctave
+  set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
+end
+subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
+title('Speed (m/s)'),grid on;
+subplot(512),plot(t,eta(:,3),'linewidth',2);
+title('Heave position (m)'),grid on;
+subplot(513),plot(t,rad2deg(eta(:,4)));
+title('Roll angle (deg)'),grid on;
+subplot(514),plot(t,rad2deg(eta(:,5)));
+title('Pitch angle (deg)'),grid on;
+subplot(515),plot(t,rad2deg(unwrap(eta(:,6))),t,rad2deg(unwrap(psi_d)));
+xlabel('Time (s)'),title('Yaw angle (deg)'),grid on;
+legend('\psi','\psi_d');
+set(findall(gcf,'type','line'),'linewidth',2);
+set(findall(gcf,'type','text'),'FontSize',14);
+set(findall(gcf,'type','legend'),'FontSize',14);
+
+end
+
+%% HELPER FUCNTIONS FOR PLOTTING
+function plotStraightLinesAndCircles(wayPoints, R_switch)
+    % Plot straight lines and circles for straight-line path following
     for idx = 1:length(wayPoints(:,1))-1
         if idx == 1
             plot([wayPoints(idx,2),wayPoints(idx+1,2)],[wayPoints(idx,1),...
@@ -232,108 +287,39 @@ elseif ControlFlag == 2 || ControlFlag == 3 % Straigh lines and the circles
         plot(yCircle, xCircle, 'k');
     end
 
-    legend('Vehicle position','Straigh-line path','Circle of acceptance',...
-        'Location','best')
-
-else % ControlFlag == 4, Hermite splines
-
-    k = linspace(0, 1, 200);
-    for i = 1:size(wayPoints, 1)-1
-        P = zeros(length(k), 2);
-        for j = 1:length(k)
-            [P(j, :), ~] = hermiteSpline(k(j), i, wayPoints,undulation_factor);
-        end
-        if i == 1
-            plot(P(:, 2), P(:, 1), 'r--', 'LineWidth', 3);
-        else
-            plot(P(:, 2), P(:, 1), 'r--', 'LineWidth', 3,...
-                'HandleVisibility', 'off');
-        end
-    end
-
-    plot(wayPoints(:, 2), wayPoints(:, 1), 'ko', ...
-    'MarkerFaceColor', 'g', 'MarkerSize', 15);
-    legend('Vehicle position','Hermite spline','Waypoints','Location','best')
-
+    legend('Vehicle position','Straight-line path','Circle of acceptance',...
+        'Location','best');
 end
 
-xlabel('East', 'FontSize', 14);
-ylabel('North', 'FontSize', 14);
-title('North-East positions (m)', 'FontSize', 14);
-axis equal;
-hold off
-grid
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','legend'),'FontSize',14)
-
-%% Velocities
-figure(2);
-if ~isoctave;
-  set(gcf, 'Position', [1, 1, screenW/2, screenH]);
-end
-subplot(611),plot(t,nu(:,1))
-xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
-subplot(612),plot(t,nu(:,2))
-xlabel('Time (s)'),title('Sway velocity (m/s)'),grid
-subplot(613),plot(t,nu(:,3))
-xlabel('Time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,rad2deg(nu(:,4)))
-xlabel('Time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,rad2deg(nu(:,5)))
-xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,rad2deg(nu(:,6)),t,rad2deg(r_d))
-xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
-legend('r','r_d')
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-
-%% Speed, heave position and Euler angles
-figure(3);
-if ~isoctave;
-  set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
-end
-subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
-title('Speed (m/s)'),grid
-subplot(512),plot(t,eta(:,3),'linewidt',2)
-title('Heave position (m)'),grid
-subplot(513),plot(t,rad2deg(eta(:,4)))
-title('Roll angle (deg)'),grid
-subplot(514),plot(t,rad2deg(eta(:,5)))
-title('Pitch angle (deg)'),grid
-subplot(515),plot(t,rad2deg(unwrap(eta(:,6))),t,rad2deg(unwrap(psi_d)))
-xlabel('Time (s)'),title('Yaw angle (deg)'),grid
-legend('\psi','\psi_d')
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-
-set(1,'Visible', 'on');     % show figure 1 on top of figures 2 and 3
-
+function plotHermiteSplines(y_path, x_path, wayPoints)
+    % Plot Hermite spline paths for spline path following
+    plot(y_path, x_path, 'r');
+    plot(wayPoints(:, 2), wayPoints(:, 1), 'ko',...
+        'MarkerFaceColor', 'g', 'MarkerSize',10);
+    legend('Vehicle position','Hermite spline','Waypoints','Location','best');
 end
 
-%% DISPLAY RESULTS
+%% DISPLAY CONTROL METHOD
 function displayControlMethod(ControlFlag, R_switch, Delta_h)
-disp('--------------------------------------------------------------------');
-disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)');
-switch ControlFlag
-    case 1
-        disp('PID heading autopilot with reference feeforward');
-    case 2
-        disp(['ALOS path-following control using straight lines and ' ...
-            'waypoint switching']);
-        disp(['Cirlce of acceptance: R = ',num2str(R_switch), ' m']);
-        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
-    case 3
-        disp(['ILOS path-following control using straight lines and ' ...
-            'waypoint switching']);
-        disp(['Cirlce of acceptance: R =  ',num2str(R_switch), ' m']);
-        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
-    case 4
-        disp('ALOS path-following control using Hermite splines');
-        disp(['Look-ahead distance: Delta_h = ',num2str(Delta_h), ' m']);
-end
-disp('--------------------------------------------------------------------');
-disp('Simulating...');
-
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Otter USV (Length = 2.0 m, Beam = 1.08 m)');
+    switch ControlFlag
+        case 1
+            disp('PID heading autopilot with reference feedforward');
+        case 2
+            disp(['ALOS path-following control using straight lines and ' ...
+                'waypoint switching']);
+            disp(['Circle of acceptance: R = ', num2str(R_switch), ' m']);
+            disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
+        case 3
+            disp(['ILOS path-following control using straight lines and ' ...
+                'waypoint switching']);
+            disp(['Circle of acceptance: R =  ', num2str(R_switch), ' m']);
+            disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
+        case 4
+            disp('ALOS path-following control using Hermite splines');
+            disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
+    end
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
