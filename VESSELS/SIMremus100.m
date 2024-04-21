@@ -1,110 +1,115 @@
 function SIMremus100()
 % SIMremus100 is compatibel with MATLAB and GNU Octave (www.octave.org)
 %
-% User-editable script for simulating the Remus 100 AUV under depth and heading
-% control when exposed to ocean currents. The script supports both Euler angle
-% and unit quaternion representations of the Remus 100 model. Features include
-% PID pole-placement and integral sliding mode controlfor heading, and ALOS
-% guidance law for 3-D path following through designated waypoints.
+% SIMremus100 simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
+% under depth and heading control, exposed to ocean currents. The simulation 
+% supports both Euler angle and unit quaternion kinematics representations 
+% and features advanced control strategies such as PID pole-placement, 
+% integral sliding mode control for heading, and Adaptive Line-of-Sight 
+% (ALOS) guidance for 3-D path following.
 %
-% Calls:
-%   remus100.m            : Computes Remus 100 equations of motion
-%   integralSMCheading.m  : Implements integral sliding mode control for heading
+% Dependencies:
+%   remus100.m            : Dynamics of Remus 100 AUV
+%   integralSMCheading.m  : Integral sliding mode control for heading
 %   refModel.m            : Reference model for autopilot systems
-%   ALOS.m                : Adaptive LOS guidance algorithm for path following
-%   LOSobserver.m         : Line-of-Sight observer for adaptive control
-%   q2euler.m, ssa.m      : Utility functions for quaternion to Euler conversion
+%   ALOS.m                : ALOS guidance algorithm for path following
+%   LOSobserver.m         : LOS observer for adaptive control
+%   q2euler.m, ssa.m      : Utilities for quaternion to Euler conversion 
 %                           and angle wrapping
 %
-% Simulink:
-%   demoAUVdepthHeadingControl.slx : Simulink model for depth and heading control
+% Simulink Models:
+%   demoAUVdepthHeadingControl.slx : Simulink model demonstrating depth 
+%                                    and heading control
 %
 % Reference:
-%   T. I. Fossen and P. Aguiar (2024). A Uniform Semiglobal Exponential
-%   Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
-%   Automatica 163, 111556. doi:10.1016/j.automatica.2024.111556
-%
-% Author:     Thor I. Fossen
-% Date:       2021-06-28
-% Revisions:
-%   2022-02-01 : Redesign of the autopilots.
-%   2022-05-06 : Retuning for updated version of remus100.m.
-%   2022-05-08 : Added compatibility for unit quaternion representations.
-%   2024-03-27 : Integration using forward and backward Euler methods.
-%   2024-04-02 : Added simulation menu for ALOS path following options.
-%   2024-04-19 : Added compability to GNU Octave.
+%   T. I. Fossen & Aguiar, P. (2024). A Uniform Semiglobal Exponential Stable 
+%   Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
+%   Automatica, 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
 
-clearvars;                  % clear variables from memory
-clear integralSMCheading    % clear the integral state in integralSMCheading
-clear ALOS3D                % clear the static variables used by ALOS3D
-close all;                  % closes all figure windows
+% Author: Thor I. Fossen
+% Date: 2021-06-28
+% Revisions:
+%   2022-02-01: Autopilots redesign.
+%   2022-05-06: Tuning update for remus100 dynamics.
+%   2022-05-08: Support for quaternion kinematics.
+%   2024-03-27: Introduction of Euler integration methods.
+%   2024-04-02: Simulation options for ALOS path following.
+%   2024-04-21: Extended compatibility with GNU Octave.
+
+clearvars;                          % Clear all variables from memory
+clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
+close all;                          % Close all open figure windows
 
 %% USER INPUTS
-h  = 0.05;                  % sample time (s)
-N  = 28000;                 % number of samples
+%% USER INPUTS
+h = 0.05;                           % Sampling time [s]
+N = 28000;                          % Number of samples to simulate
 
 [ControlFlag, KinematicsFlag] = controlMethod();
 
-% Waypoints
+% Define waypoints for 3D path following
 wpt.pos.x = [0  -20 -100   0  200, 200  400];
 wpt.pos.y = [0  200  600 950 1300 1800 2200];
 wpt.pos.z = [0   10  100 100   50   50   50];
 
-% Initial states
-xn = 0; yn = 0; zn = 0;         % initial NED positions
-phi = 0;                        % intial Euler angles
-theta = 0;
-psi = atan2(wpt.pos.y(2)-wpt.pos.y(1),wpt.pos.x(2)-wpt.pos.x(1));
-U = 1;                          % initial speed
-theta_d = 0; q_d = 0;           % initial pitch reference signals
-psi_d = psi; r_d = 0; a_d = 0;  % initial yaw reference signals
+% Initialize position and orientation
+xn = 0; yn = 0; zn = 0;             % Initial North-East-Down positions (m)
+phi = 0; theta = 0;                 % Initial Euler angles (radians)
+psi = atan2(wpt.pos.y(2) - wpt.pos.y(1), ...
+    wpt.pos.x(2) - wpt.pos.x(1));   % Yaw angle towards next waypoint
+U = 1;                              % Initial speed (m/s)
 
-% Intitial state vector
-if (KinematicsFlag == 1)  % x = [ u v w p q r x y z phi theta psi ]'
+% Initial control and state setup
+theta_d = 0; q_d = 0;               % Initial pitch references
+psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
+
+% State vector initialization
+if KinematicsFlag == 1 
+    % Using Euler angles
     x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
-else                      % x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
-    quat = euler2q(phi,theta,psi);
+else
+    % Using quaternion representation
+    quat = euler2q(phi, theta, psi);
     x = [U; zeros(5,1); xn; yn; zn; quat];
 end
 
-% Ocean current speed and direction expressed in NED
-Vc = 0.5;                   % horisontal speed (m/s)
-betaVc = deg2rad(30);       % horizontal direction (rad)
-wc = 0.1;                   % vertical speed (m/s)
+% Initialize ocean current parameters
+Vc = 0.5;                      % Horizontal speed (m/s)
+betaVc = deg2rad(30);          % Horizontal direction (radians)
+wc = 0.1;                      % Vertical speed (m/s)
 
-% Propeller initialization
-n = 1000;                   % initial propeller revolution (rpm)
-n_d = 1300;                 % desired propeller revolution, max 1525 rpm
-rangeCheck(n_d,0,1525);
+% Initialize propeller dynamics
+n = 1000;                      % Initial propeller speed (rpm)
+n_d = 1300;                    % Desired propeller speed (rpm)
+rangeCheck(n_d, 0, 1525);      % Check if within operational limits
 
-%% HEADING AND DEPTH AUTOPILOTS PARAMETERS
-psi_step = deg2rad(-60);    % step change in heading angle (rad)
-z_step = 30;                % step change in depth, max 100 m
+%% CONTROL SYSTEM CONFIGURATION
+% Setup for depth and heading control
+psi_step = deg2rad(-60);       % step change in heading angle (rad)
+z_step = 30;                   % step change in depth, max 100 m
 rangeCheck(z_step,0,100);
 
-% Autopilot integral states
-z_int = 0;                  % depth
-theta_int = 0;              % pitch angle
-psi_int = 0;                % heading angle
+% Integral states for autopilots
+z_int = 0;                     % Integral state for depth control
+theta_int = 0;                 % Integral state for pitch control
+psi_int = 0;                   % Integral state for yaw control
 
 % Depth controller (suceessive-loop closure)
-z_d = zn;                   % initial depth (m), reference model
-wn_d_z = 0.02;              % desired natural frequency, reference model
-Kp_z = 0.1;                 % proportional gain (heave)
-T_z = 100;                  % integral time constant (heave)
-Kp_theta = 5.0;             % proportional gain (pitch)
-Kd_theta = 2.0;             % derivative gain (pitch)
-Ki_theta = 0.3;             % integral gain (pitch
-K_w = 5.0;                  % optional heave velocity feedback gain
+z_d = zn;                      % Initial depth target (m)
+wn_d_z = 0.02;                 % Natural frequency for depth control
+Kp_z = 0.1;                    % Proportional gain for depth
+T_z = 100;                     % Time constant for integral action in depth control
+Kp_theta = 5.0;                % Proportional gain for pitch control
+Kd_theta = 2.0;                % Derivative gain for pitch control
+Ki_theta = 0.3;                % Integral gain for pitch control
+K_w = 5.0;                     % Feedback gain for heave velocity
 
-% Feedforward gains (Nomoto gain parameters)
-K_yaw = 5/20;               % K_yaw = r_max / delta_max
-T_yaw = 1;                  % Time constant in yaw
-
-% Heading autopilot reference model
-zeta_d_psi = 1.0;           % desired relative damping factor, refence model
-wn_d_psi = 0.1;             % desired natural frequency, reference model
-r_max = deg2rad(5.0);       % maximum turning rate (rad/s)
+% Heading control parameters (using Nomoto model)
+K_yaw = 5 / 20;                % Gain, max rate of turn over max. rudder angle
+T_yaw = 1;                     % Time constant for yaw dynamics
+zeta_d_psi = 1.0;              % Desired damping ratio for yaw control
+wn_d_psi = 0.1;                % Natural frequency for yaw control
+r_max = deg2rad(5.0);          % Maximum allowable rate of turn (rad/s)
 
 % Heading autopilot (Equation 16.479 in Fossen 2021)
 % sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
@@ -112,12 +117,13 @@ r_max = deg2rad(5.0);       % maximum turning rate (rad/s)
 lambda = 0.1;
 phi_b = 0.1;                % boundary layer thickness
 
-if ControlFlag == 1         % PID controller
-    K_d = 0.5;
-    K_sigma = 0;
-else                        % SMC controller
-    K_d = 0;
-    K_sigma = 0.05;
+if ControlFlag == 1% PID control parameters
+    K_d = 0.5;                 % Derivative gain for PID controller
+    K_sigma = 0;               % Gain for SMC component in PID (inactive in PID mode)
+else                        
+    % SMC control parameters
+    K_d = 0;                   % Derivative gain inactive in SMC mode
+    K_sigma = 0.05;            % Sliding mode control gain
 end
 
 %% ALOS PATH-FOLLOWING PARAMETERS
@@ -131,32 +137,31 @@ M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 R_switch = 5;               % radius of switching circle
 K_f = 0.5;                  % pitch and yaw rate observer gain
 
-%% MAIN LOOP
-simdata = zeros(N+1,length(x)+11); % allocate empty table for simulation data
-ALOSdata = zeros(N+1,4);           % allocate empty table for ALOS data
+%% MAIN SIMULATION LOOP
+simdata = zeros(N+1, length(x) + 11);  % Preallocate table for simulation data
+ALOSdata = zeros(N+1, 4);              % Preallocate table for ALOS guidance data
 
 for i = 1:N+1
+    t = (i-1) * h;             % Current simulation time
 
-   t = (i-1)*h;             % time
-
-   % Measurements
-   u = x(1);                % surge velocity (m/s)
-   v = x(2);                % sway veloicty (m/s)
-   w = x(3);                % heave veloicty (m/s)
-   q = x(5);                % pitch rate (rad/s)
-   r = x(6);                % yaw rate (rad/s)
-   xn = x(7);               % North position (m)
-   yn = x(8);               % East position (m)
-   zn = x(9);               % Down position, depth (m)
+    % Measurement updates
+    u = x(1);                  % Surge velocity (m/s)
+    v = x(2);                  % Sway velocity (m/s)
+    w = x(3);                  % Heave velocity (m/s)
+    q = x(5);                  % Pitch rate (rad/s)
+    r = x(6);                  % Yaw rate (rad/s)
+    xn = x(7);                 % North position (m)
+    yn = x(8);                 % East position (m)
+    zn = x(9);                 % Down position (m), depth
 
    if (KinematicsFlag == 1)
          phi = x(10); theta = x(11); psi = x(12); % Euler angles
    else
-         [phi,theta,psi] = q2euler(x(10:13)); % quaternion to Euler angles
+         [phi,theta,psi] = q2euler(x(10:13)); % Convert quaternion to Euler angles
    end
 
-   % Control systems
-   if ControlFlag == 1 || ControlFlag == 2
+    % Control system updates based on selected mode
+   if ControlFlag == 1 || ControlFlag == 2   % Depth control 
 
        % Depth command, z_ref
        if t > 200
@@ -166,8 +171,8 @@ for i = 1:N+1
        end
 
        % LP filtering the depth command
-       Uv = sqrt(x(1)^2+x(3)^2);    % vertical speed
-       if Uv < 1.0                  % reduce bandwidth at low speed
+       Uv = sqrt(x(1)^2+x(3)^2);    % Vertical speed
+       if Uv < 1.0                  % Reduce bandwidth at low speed
            wnz = wn_d_z / 2;
        else
            wnz = wn_d_z;
@@ -194,7 +199,7 @@ for i = 1:N+1
        [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
            zeta_d_psi, wn_d_psi, h, 1);
 
-   else % ControlFlag = 3
+   else % ControlFlag == 3, ALOS path-following
 
        % Heading autopilot using the tail rudder (integral SMC)
        delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
@@ -238,7 +243,7 @@ for i = 1:N+1
 
    end
 
-   % Propeller revolution (rpm)
+   % Propeller control (rpm)
    if (n < n_d)
        n = n + 1;
    end
@@ -324,7 +329,7 @@ beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
 
 %% Generalized velocity
 figure(1);
-if ~isoctave;
+if ~isoctave
   set(gcf, 'Position', [1, 1, screenW/3, screenH]);
 end
 subplot(611),plot(t,nu(:,1))
@@ -345,7 +350,7 @@ set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Heave position and Euler angles
 figure(2);
-if ~isoctave;
+if ~isoctave
   set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
 end
 if ControlFlag == 3; z_d = eta(:,3); end
@@ -366,7 +371,7 @@ set(findall(gcf,'type','legend'),'FontSize',16)
 
 %% Control signals
 figure(3);
-if ~isoctave;
+if ~isoctave
   set(gcf,'Position',[2*screenW/3,screenH/2,screenW/3,screenH/2]);
 end
 subplot(311),plot(t,rad2deg(u(:,1)))
@@ -380,7 +385,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 
 %% Ocean currents and speed
 figure(4);
-if ~isoctave;
+if ~isoctave
   set(gcf,'Position',[2*screenW/3,1,screenW/3,screenH/2]);
 end
 subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
@@ -401,7 +406,7 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 %% Sideslip and angle of attack
 if ControlFlag == 3
     figure(5);
-    if ~isoctave;
+    if ~isoctave
       set(gcf,'Position',[100,100,screenW/3,screenH]);
     end
     subplot(311)
@@ -431,7 +436,7 @@ end
 %% 2-D position plots with waypoints
 if ControlFlag == 3
     figure(6);
-    if ~isoctave;
+    if ~isoctave
       set(gcf, 'Position', [300, 200, screenW/3, screenH/2]);
     end
     subplot(211);
@@ -467,7 +472,7 @@ if ControlFlag == 3
     figure(7);
     plot3(eta(:,2),eta(:,1),eta(:,3))
     hold on;
-    plot3(wpt.pos.y,wpt.pos.x,wpt.pos.z,'ro','markersize',15);
+    plot3(wpt.pos.y, wpt.pos.x, wpt.pos.z, 'ro', 'MarkerSize', 15);
     hold off
     title('North-East-Down plot (m)')
     xlabel('East'); ylabel('North'); zlabel('Down');
