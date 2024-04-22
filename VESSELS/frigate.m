@@ -1,6 +1,5 @@
 function [psi_dot, r_dot, delta_dot] = frigate(r, U, delta, delta_c, d_r)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [rdot] = frigate(r,U,delta,delta_c,d_r) returns the yaw acceleration, 
 % yaw rate and rudder angle of the Norrbin (1963) nonlinear autopilot model
 %
