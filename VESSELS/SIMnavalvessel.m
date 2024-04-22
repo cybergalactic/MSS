@@ -1,14 +1,23 @@
-% SIMnavalvessel User editable script for simulation of the naval vessel 
-% under PD heading control.
+function SIMnavalvessel()
+% SIMnavalvessel is compatibel with MATLAB and GNU Octave (www.octave.org). 
+% Thisscript simulates a naval vessel under PD heading control.
 %
-% Calls:       navalvessel.m
-%              euler2.m
+% Dependencies:  
+%   navalvessel.m   - Naval vessel dynamics (Blanke and Christensen, 1993).
+%   euler2.m        - Euler's integration method.
+%
+% Reference: 
+%   M. Blanke and A. Christensen (1993). Rudder-roll damping autopilot 
+%   robustness to sway-yaw-roll couplings. 10th Ship Control 
+%   Systems Symposium, Ottawa, Canada.
 %
 % Author:      Thor I. Fossen
 % Date:        2019-05-27
-% Revisions:   2024-03-27 Added animation of the ship North-East positions
+% Revisions:
+%   2024-03-27 : Added animation of the ship North-East positions.
+%   2024-04-22 : Enhanced compatibility with GNU Octave.
 
-clear animateShip  % clear the persistent animation variables
+clear animateShip   % clear the persistent animation variables
 
 t_f = 600;          % final simulation time (sec)
 h   = 0.05;         % sample time (sec)
@@ -50,6 +59,10 @@ for i=1:N+1
 end
 
 %% PLOTS
+screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
+screenW = screenSize(3);
+screenH = screenSize(4);
+
 t     = simdata(:,1);
 u     = simdata(:,2); 
 v     = simdata(:,3);          
@@ -62,9 +75,19 @@ U     = simdata(:,9);
 x     = simdata(:,10);
 y     = simdata(:,11);
 
-figNo = 1;
-shipSize = 0.5;
-animateShip(x,y,shipSize,'b-',figNo); % animation of the North-East positions
+% Plot and animation of the North-East positions
+figure(1)
+if isoctave() % Octave NE-plot
+    plot(y,x,'b')
+    xlabel('East'); ylabel('North');title('North-East plot (m)')
+    grid,axis('equal')
+    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','text'),'FontSize',14)
+else % Matlab animation
+    shipSize = 0.2;
+    set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+    animateShip(x,y,shipSize,'b-',1);
+end
 
 figure(2)
 plot(t,U,'b')
@@ -86,3 +109,5 @@ plot(t,tauN,'b'),xlabel('time (s)'),title('Yaw control moment (Nm)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
+
+end
