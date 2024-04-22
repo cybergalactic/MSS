@@ -6,13 +6,13 @@ function [A11, ratio] = addedMassSurge(m, L, rho)
 %   A11 = -Xudot = 2.7 * rho * nabla^(5/3) / L^2
 %
 % Inputs:
-%   m   : mass of the ship or vehicle (kg)
-%   L   : length of the ship or vehicle (m)
-%   rho : density of water (kg/m3), default value is 1025 kg/m3
+%   m:     mass of the ship or vehicle (kg)
+%   L:     length of the ship or vehicle (m)
+%   rho:   density of water (kg/m3), default value is 1025 kg/m3
 %
 % Outputs:
-%   A11   : added mass in surge (kg)
-%   ratio : optional output, ratio of added mass to actual mass (A11/m)
+%   A11:   added mass in surge (kg)
+%   ratio: optional output, ratio of added mass to actual mass (A11/m)
 %
 % Example usage:
 %   A11 = addedMassSurge(m, L)         - use default rho = 1025 (kg/m3)
