@@ -1,17 +1,20 @@
 function SIMmariner()
-% SIMmariner is compatibel with MATLAB and GNU Octave (www.octave.org)
+% SIMmariner is compatible with MATLAB and GNU Octave (www.octave.org). 
+% This script simulates the dynamic behavior of a mariner class vessel 
+% under PID heading control. This simulation utilizes PID control 
+% strategies to maintain heading and demonstrates the vessel’s  response 
+% visually through an animation of its trajectory in the North-East 
+% coordinate plane.
 %
-% User-editable script for simulation of the mariner class vessel under 
-% PID heading control.
-%
-% Calls:      mariner.m
-%             euler2.m
+% Dependencies:
+%   mariner.m - Vessel dynamics.  
+%   euler2.m  - Euler's integrations method.
 %
 % Author:     Thor I. Fossen
 % Date:       2018-07-21
-% Revisions:  
-%   2024-03-27 : Added animation of the ship North-East positions.
-%   2024-04-19 : Added compability to GNU Octave.
+% Revisions:
+%   2024-03-27 : Added animation of the ship's North-East positions.
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 close all;
 clear animateShip  % clear the persistent animation variables
