@@ -121,7 +121,13 @@ nu = [0, 0, 0, 0, 0, 0]';                       % Velocity vector.
 % Allocate memory for simulation data storage:
 simdata = zeros(N+1, 19);  % Pre-allocate matrix for efficiency.
 
-% Create a progress indicator:
+% Octave can only use ALLOC = 0
+if isoctave
+    ALLOC = 0;
+    disp('Control allocation in Octave works only for constant azimuth angles')
+end
+
+% Create a progress indicator
 h_waitbar = waitbar(0, 'Processing...');    % Display a wait bar 
 tic;  % Start a timer to measure the simulation's execution time.
 
