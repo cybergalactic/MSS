@@ -1,17 +1,19 @@
 function SIMfrigate()
-% SIMfrigate is compatibel with MATLAB and GNU Octave (www.octave.org)
+% SIMfrigate is compatible with MATLAB and GNU Octave (www.octave.org).
+% This script simulates a heading-controlled frigate with a length of 
+% 100 meters,employing a PID control strategy with reference feedforward. 
+% The frigate's dynamics are modeled using the Norrbin (1963) nonlinear 
+% model, providing realistic simulationof naval vessel behavior under 
+% various control scenarios.
 %
-% User-editable script for simulation of a heading controlled frigate
-% (Length 100 m) using PID control with reference feedforward. The frigate 
-% is modelled by the Norrbin (1963) nonlinear model.
-%
-% Calls:      
-%   frigate.m   : Frigate dynamics
-%   refModel.m  : Reference model dynamics
+% Dependencies:      
+%   frigate.m   - Frigate dynamics
+%   refModel.m  - Reference model for autopilot systems
 %
 % Author:     Thor I. Fossen
 % Date:       2024-04-20
-% Revisions:  
+% Revisions:
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 close all;
 
