@@ -1,13 +1,12 @@
 function SIMosv()
-% SIMosv simulates an Offshore Supply Vessel (OSV) utilizing a Dynamic 
-% Positioning (DP) system for stationkeeping and low-speed maneuvering 
-% under the influence of ocean currents. This simulation is compatible with 
-% MATLAB and incorporates dynamic and static optimization techniques for 
-% control allocation, though dynamic optimization is not supported in 
-% GNU Octaveas of version 9.1.0.
-%
-% The OSV's behavior is modeled by nonlinear equations of motion as
-% specified in Fossen (2021), which includes the following equations:
+% SIMosv is compatibel with MATLAB and incorporates dynamic and static 
+% optimization techniques for control allocation, though dynamic 
+% optimization is not supported in GNU Octave of version 9.1.0
+% (www.octave.org). The script simulates an Offshore Supply Vessel (OSV) 
+% utilizing a Dynamic Positioning (DP) system for stationkeeping and 
+% low-speed maneuvering under the influence of ocean currents. The OSV's 
+% behavior is modeled by nonlinear equations of motion as specified in 
+% Fossen (2021), which includes the following equations:
 %
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * (tau_thr + tau_drag + tau_crossflow ...
@@ -32,10 +31,11 @@ function SIMosv()
 %
 % Dependency:
 %   This script requires the MATLAB optimization toolbox for dynamic 
-%   optimization features due to the use of fmincon for sequential 
-%   quadratic programming (SQP). In Octave, set ALLOC = 0 for static 
-%   optimization using constant azimuth angles to minimize the condition 
-%   number of the thruster configuration matrix T(alpha).
+%     optimization features due to the use of fmincon for sequential 
+%     quadratic programming (SQP). 
+%   In Octave, set ALLOC = 0 for static optimization using constant 
+%     azimuth angles to minimize the condition number of the thruster 
+%     configuration matrix T(alpha).
 %
 % Main Functions Called:
 %   fmincon.m            - For dynamic optimization using SQP.
@@ -44,7 +44,6 @@ function SIMosv()
 %   allocPseudoinverse.m - Performs unconstrained control allocation.
 %   optimalAlloc.m       - Conducts constrained control allocation within 
 %                          this script.
-%
 % Example Usage:
 %   Set ALLOC = 0 to run without MATLAB's optimization toolbox.
 %   For dynamic optimization, ensure ALLOC = 1 and MATLAB is used.
