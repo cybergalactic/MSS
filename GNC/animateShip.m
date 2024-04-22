@@ -1,12 +1,14 @@
 function animateShip(xPath, yPath, shipSize, lineColor, figNo)
-% animateShip(xPath, yPath, shipSize, lineColor, figNo) animates a viking
-% ship moving along a specified path on a North-East (y-x) plot. The 
-% function takes a path defined by North (yPath) and East (xPath) coordinates,
-% animates a viking ship image moving along this path, and scales the ship 
-% size based on the specified proportion of the plot width. The path and 
-% ship are plotted on a figure identified by figNo, allowing for 
-% visualization of navigational paths. It is recommended to remove the 
-% persistent variables by adding 'clear animateShip' on top of your script.
+% animateShip is compatibel with MATLAB but not supported in GNU Octave.
+% The function animateShip(xPath, yPath, shipSize, lineColor, figNo) 
+% animates a viking ship moving along a specified path on a North-East 
+% (y-x) plot. The function takes a path defined by North (yPath) and East 
+% (xPath) coordinates,animates a viking ship image moving along this path, 
+% and scales the ship size based on the specified proportion of the plot 
+% width. The path and ship are plotted on a figure identified by figNo, 
+% allowing for visualization of navigational paths. It is recommended to 
+% remove the persistent variables by adding 'clear animateShip' on top of 
+% your script.
 %
 % Inputs:
 %   xPath     - x coordinates of the path (1xN vector)
