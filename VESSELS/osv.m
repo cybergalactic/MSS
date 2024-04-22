@@ -1,6 +1,5 @@
 function [xdot,U] = osv(x,ui,Vc,betaVc)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
 % [xdot,U] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
 % and the time derivative xdot of the state vector: 
 %    x = [ u v w p q r x y z phi theta psi ]' 
