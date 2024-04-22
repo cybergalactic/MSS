@@ -1,35 +1,36 @@
 function [xdot,U] = navalvessel(x, tau)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % Noninear maneuvering model in surge, sway, roll and yaw for a multipurpose
 % naval vessel. The surge equation is decoupled except a centripetal term.
 %
-% [xdot,U] = navalvessel(x, tau)
+%   [xdot,U] = navalvessel(x, tau)
 % 
 % Inputs:
-% x = [u v p r phi psi]'
-% tau = [Xe Ye Ke Ne]' 
+%   x = [u v p r phi psi]'
+%   tau = [Xe Ye Ke Ne]' 
 %
 % where
-% u     = surge velocity          (m/s)
-% v     = sway velocity           (m/s)
-% p     = roll velocity           (rad/s)
-% r     = yaw velocity            (rad/s)
-% phi   = roll angle              (rad)
-% psi   = yaw angle               (rad)
+%   u     = surge velocity          (m/s)
+%   v     = sway velocity           (m/s)
+%   p     = roll velocity           (rad/s)
+%   r     = yaw velocity            (rad/s)
+%   phi   = roll angle              (rad)
+%   psi   = yaw angle               (rad)
 %
-% Xe is the surge external force (e.g. rudder and fin forces)
-% Ye is the sway external force  
-% Ke is the sway external force  
-% Ne is the sway external force   
+%   Xe is the surge external force (e.g. rudder and fin forces)
+%   Ye is the sway external force  
+%   Ke is the sway external force  
+%   Ne is the sway external force   
 %
-% Reference: Blanke M. and Christensen A. (1993) "Rudder-roll 
-% damping autopilot robustness to sway-yaw-roll couplings." 
-% 10th Ship Control Systems Symposium, Ottawa, Canada.
+% Reference: 
+%   M. Blanke and A. Christensen (1993). Rudder-roll damping autopilot 
+%   robustness to sway-yaw-roll couplings. 10th Ship Control 
+%   Systems Symposium, Ottawa, Canada.
 %  
-% Notes: 1 - The model does not include rudder Machinery.
-%        2 - The parameters of the model should be defined 
-%            in the structures h and const before using the function.  
+% Notes: 
+%   1 - The model does not include rudder Machinery.
+%   2 - The parameters of the model should be defined 
+%       in the structures h and const before using the function.  
 %
 % Author:     Tristan Perez
 % Revisions:
@@ -50,7 +51,7 @@ const.rad2deg 		=	180/pi;	        %	rad to degrees
 const.ms2kt			=	3600/1852;	    % 	m/s to kt 			
 const.kt2ms 		=	1852/3600;	    %	kt to m/s			
 const.RPM2rads		=	2*pi/60;	    %	RPM to rad/s		
-const.rads2RPM		=   60/[2*pi];	    %	rad/s to RPM		
+const.rads2RPM		=   60/(2*pi);	    %	rad/s to RPM		
 const.HP2W			=	745.700;	    %	HP to Watt			
 
 % Struct rudder  (Modified by T.Perez)
