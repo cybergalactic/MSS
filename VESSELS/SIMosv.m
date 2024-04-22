@@ -1,12 +1,11 @@
 function SIMosv()
 % SIMosv is compatibel with MATLAB and incorporates dynamic and static 
 % optimization techniques for control allocation, though dynamic 
-% optimization is not supported in GNU Octave of version 9.1.0
-% (www.octave.org). The script simulates an Offshore Supply Vessel (OSV) 
-% utilizing a Dynamic Positioning (DP) system for stationkeeping and 
-% low-speed maneuvering under the influence of ocean currents. The OSV's 
-% behavior is modeled by nonlinear equations of motion as specified in 
-% Fossen (2021), which includes the following equations:
+% optimization is not supported in GNU Octave. The script simulates an 
+% Offshore Supply Vessel (OSV)  utilizing a Dynamic Positioning (DP) system 
+% for stationkeeping and low-speed maneuvering under the influence of ocean 
+% currents. The OSV's behavior is modeled by nonlinear equations of motion 
+% as specified in Fossen (2021), which includes the following equations:
 %
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * (tau_thr + tau_drag + tau_crossflow ...
