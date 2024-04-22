@@ -1,107 +1,109 @@
 function SIMosv()
-% SIMosv is compatibel with MATLAB but the dynamic optimization algorithm 
-% is not available in GNU Octave version 9.1.0 (www.octave.org)
+% SIMosv simulates an Offshore Supply Vessel (OSV) utilizing a dynamic 
+% positioning (DP) system for stationkeeping and low-speed maneuvering 
+% under the influence of ocean currents. This simulation is compatible with 
+% MATLAB and incorporates dynamic and static optimization techniques for 
+% control allocation, though dynamic optimization is not supported in 
+% GNU Octaveas of version 9.1.0.
 %
-% SIMosv simulates an Offshore Supply Vessel using a dynamic positioing (DP)
-% system to handle stationkeeping and low-speed maneuvering in the presence
-% of ocean currents.The OSV is expressed by the nonlinear equations of 
-% motion based on Fossen (2021, Eqs. 6.111-6.116):
-%   
+% The OSV's behavior is modeled by nonlinear equations of motion as
+% specified in Fossen (2021), which includes the following equations:
+%
 %   eta_dot = J(eta) * nu
-%   nu_dot = nu_c_dot + Minv * (tau_thr +  tau_drag + tau_crossflow...
-%          - (CRB + CA + D) * nu_r - G * eta )
+%   nu_dot = nu_c_dot + Minv * (tau_thr + tau_drag + tau_crossflow ...
+%            - (CRB + CA + D) * nu_r - G * eta)
 %
-% where Minv = inv(MRB + MA) and nu_r = nu - nu_c is the relative velocity
-% vector. The generalized thrust, tau_thr = T(alpha) * K_thr * u_thr, is 
-% defined by 
+% where:
+%   - Minv = inv(MRB + MA) is the inverse of the system mass matrix.
+%   - nu_r = nu - nu_c represents the relative velocity vector.
+%   - tau_thr = T(alpha) * K_thr * u_thr describes the generalized thrust,
+%     with alpha representing azimuth angles and u_thr the propeller speeds.
 %
-%   alpha = [alpha1, alpha2]'  - azimuth angles
-%   u_thr = [bowThruster 1, bowThruster 2, sternAzimuth 1, sternAzimuth 2]
+% The DP control strategy employs a MIMO nonlinear PID controller for 
+% setpoint regulation, based on Fossen (2021, Algorithm 15.2). The control 
+% laws include:
 %
-% where u_thr(i) = abs(n(i)) * n(i) for i = 1,...,4 is the squared propeller 
-% speed. The DP control law is chosen as a MIMO nonlinear PID controller 
-% for setpoint regulation using the function PIDnonlinearMIMO.m based on 
-% Fossen (2021, Algorithm 15.2) where
-%   
-%   z_int = z_int + h * (eta - eta_d) 
-%   tau_thr = -R(psi)' * ( Kp * (eta - eta_d) + Kd * nu + Ki * z_int )
-% 
-% Both unconstrained control alloction (pseduoinverse) and constrained
-% control allocation (dynamic optimization) are implemented using Fossen
-% (2021, Sections 11.2.2-11.2.3).
+%   z_int = z_int + h * (eta - eta_d)
+%   tau_thr = -R(psi)' * (Kp * (eta - eta_d) + Kd * nu + Ki * z_int)
 %
-% Calls: 
-%   fmincon.m            - Sequential Quadratic Programming (SQP).
-%                          Requires the MATLAB optimization toolbox.
-%   osv.m                - OSV equations of motion.
-%   PIDnonlinearMIMO.m   - MIMO nonlinear PID controller.
-%   allocPseudoinverse.m - Unconstrained control allocation. 
-%   optimalAlloc.m       - Custom function for constrained control 
-%                          allocation, defined within the 'SIMosv.m' script.
+% Control allocation is implemented both as unconstrained (using 
+% pseudoinverse methods) and constrained (via dynamic optimization) 
+% techniques, detailed in Fossen (2021, Sections 11.2.2-11.2.3).
 %
-% It is possible to run SIMosv without the MATLAB optimization toolbox 
-% by choosing ALLOC = 0. Then the control allocation problem is solved with
-% two constant azimuth angles: alpha0 = deg2rad([-28 28])', which
-% corresponds to the minimum condition number of the thruster configuration
-% matrix T(alpha). The constrained control allocation problem (ALLOC = 1) 
-% is a nonlinear dynamic optimization problem, which requires the Matlab 
-% optimization toolbox.
+% Dependency:
+%   This script requires the MATLAB optimization toolbox for dynamic 
+%   optimization features due to the use of fmincon for sequential 
+%   quadratic programming (SQP). In Octave, set ALLOC = 0 for static 
+%   optimization using constant azimuth angles to minimize the condition 
+%   number of the thruster configuration matrix T(alpha).
+%
+% Main Functions Called:
+%   fmincon.m            - For dynamic optimization using SQP.
+%   osv.m                - Calculates the OSV's equations of motion.
+%   PIDnonlinearMIMO.m   - Implements the MIMO nonlinear PID controller.
+%   allocPseudoinverse.m - Performs unconstrained control allocation.
+%   optimalAlloc.m       - Conducts constrained control allocation within 
+%                          this script.
+%
+% Example Usage:
+%   Set ALLOC = 0 to run without MATLAB's optimization toolbox.
+%   For dynamic optimization, ensure ALLOC = 1 and MATLAB is used.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
 % Revisions:
+%   None
 
-clear PIDnonlinearMIMO;      % clear persitent variables
-clearvars;                   % clear other variables
-osv;                         % display the OSV main data
+clear PIDnonlinearMIMO; % Clear persistent variables from previous sessions.
+clearvars;              % Clear all other variables.
+close all;              % Close all windows.
+osv;                    % Initialize or display the OSV's main data.
 
-% Control allocation 
-ALLOC = 1;                   % 0 = constant azimuth, 1 = dynamic optimization
-alpha0 = deg2rad([-28 28])'; % constant azimuth, minimizing cond(T_thr)
+% Define control allocation mode:
+ALLOC = 1;                   % 0 = Use constant azimuths 
+                             % 1 = Use dynamic optimization (MATLAB only)
 
-% Simulation parameters
-h = 0.1;                     % sampling time (s)
-N = 2000;                    % number of samples
+% Constant azimuth angles minimizing the condition number of T_thr                             
+alpha0 = deg2rad([-28; 28]); 
 
-% DP setpoints at initial time     
-x_ref = 0;                                 % North position (m)
-y_ref = 0;                                 % East position (m)
-psi_ref = deg2rad(0);                      % yaw angle (rad)
-eta_ref = [x_ref y_ref psi_ref]'; 
+% Define simulation parameters:
+h = 0.1;                     % Sampling time in seconds.
+N = 2000;                    % Number of simulation samples.
 
-% Ship model parameters
-L = 83;                      % length (m)
-B = 18;                      % beam (m)
-T = 5;                       % draft (m)
+% Define DP setpoints:
+x_ref = 0;                   % Reference North position in meters.
+y_ref = 0;                   % Reference East position in meters.
+psi_ref = deg2rad(0);        % Reference yaw angle in radians.
+eta_ref = [x_ref, y_ref, psi_ref]';  % Reference positions and heading.
 
-% Ocean current
-Vc = 1;                      % current speed (m/s)
-betaVc = deg2rad(-140);      % current direction (rad)
+% Vessel and environmental parameters:
+L = 83;                      % Vessel length in meters.
+B = 18;                      % Vessel beam in meters.
+T = 5;                       % Vessel draft in meters.
+Vc = 1;                      % Ocean current speed in meters/second.
+betaVc = deg2rad(-140);      % Ocean current direction in radians.
 
-% Thrust: T = K_max * abs(n/n_max) * (n/n_max) = K_thr * abs(n) * n
-K_max = diag([300e3 300e3 655e3 655e3]);   % max propeller thrust (N)
-n_max = [140 140 150 150]';                % max propeller speed (rpm)
-K_thr = K_max./n_max.^2;                   % thruster coefficient matrix
-l_x = [37, 35, -L/2, -L/2];                % thruster x-coordinates
-l_y = [0, 0, 7, -7];                       % thruster y-coordinates
+% Thruster configuration parameters:
+K_max = diag([300e3, 300e3, 655e3, 655e3]);  % Max thrust for each propeller in Newtons.
+n_max = [140, 140, 150, 150]';               % Max propeller speeds in RPM.
+K_thr = K_max ./ n_max.^2;                   % Thrust coefficient matrix.
+l_x = [37, 35, -L/2, -L/2];                  % X-coordinates of thrusters.
+l_y = [0, 0, 7, -7];                         % Y-coordinates of thrusters.
 
-% Unconstrained control allocation: Constant azimuth angles, alpha_0   
-T_thr = thrConfig( {'T', 'T', alpha0(1),alpha0(2)}, l_x, l_y);
+% Thruster configuration matrix
+T_thr = thrConfig({'T', 'T', alpha0(1), alpha0(2)}, l_x, l_y);  
 
-% Constrained control allocation: Dynamic optimization
-az_max = deg2rad(60);  % maximum azimuth angles
+% Dynamic optimization setup (if applicable):
+az_max = deg2rad(60);  % Max azimuth rotation angle in radians.
 
-% Lower and upper bounds: x = [az1 az2 u1 u2 u3 u4 s1 s2 s3] 
-% 2 azimuths, 4 quadratic propeller speeds: u = abs(n/n_max) * (n/n_max), 
-% and 3 slack variables
-lb = [-az_max -az_max -1 -1 -1 -1 -inf -inf -inf];
-ub = [ az_max  az_max  1  1  1  1  inf  inf  inf];
+% Bounds for control variables:
+lb = [-az_max, -az_max, -1, -1, -1, -1, -inf, -inf, -inf];  % Lower bounds.
+ub = [az_max, az_max, 1, 1, 1, 1, inf, inf, inf];           % Upper bounds.
 
-alpha_old = alpha0;  % initial vales for dynamic optimization
-u_old = [0 0 0 0]';
+alpha_old = alpha0;    % Initial values for dynamic optimization.
+u_old = [0, 0, 0, 0]'; % Initial propeller speeds.
 
-% MIMO nonlinear PID controller:
-% tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
+% Initialize the nonlinear MIMO PID controller:
 M = 1e9 * ...  % computed in osv.m
     [ 0.0060         0         0         0   -0.0060         0
           0    0.0080         0    0.0100         0   -0.0284
@@ -109,79 +111,74 @@ M = 1e9 * ...  % computed in osv.m
           0    0.0100         0    0.3067         0   -0.1299
     -0.0060         0    0.2554         0    6.4508         0
           0   -0.0284         0   -0.1299         0    3.3996 ];
-wn = 0.1 * diag([1 1 3]);         % closed-loop natural frequencies (rad/s)
-zeta = 1.0 * diag([1 1 1]);       % closed-loop relative damping ratios (-)
-T_f = 50;                         % LP-filter time constant (s)
+wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning.
+zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning.
+T_f = 50;                    % Time constant for the low-pass filter in seconds.
 
-% Initial states
-eta = [0 0 0 deg2rad(5) deg2rad(1.3) 0]';  % eta = [x y z phi theta psi]' 
-nu  = [0 0 0 0 0 0]';                      % nu  = [u v w p q r]'
+% Initialize state vectors for the simulation:
+eta = [0, 0, 0, deg2rad(5), deg2rad(1.3), 0]';  % Euler angles and positions.
+nu = [0, 0, 0, 0, 0, 0]';                       % Velocity vector.
 
-% Allocate empty table for simulation data
-simdata = zeros(N+1,19); 
+% Allocate memory for simulation data storage:
+simdata = zeros(N+1, 19);  % Pre-allocate matrix for efficiency.
 
-% Create a waitbar
-h_waitbar = waitbar(0, 'Processing...');
-tic;
+% Create a progress indicator:
+h_waitbar = waitbar(0, 'Processing...');    % Display a wait bar 
+tic;  % Start a timer to measure the simulation's execution time.
 
-%% MAIN LOOP
+%% Main simulation loop:
 for i = 1:N+1
    
-   t = (i-1) * h;                   % time (s)  
+   t = (i-1) * h;  % Current simulation time.
 
-   % Update the waitbar
-    if mod(i, 10) == 0
-        waitbar(i/N, h_waitbar, sprintf('Progress: %3.0f%%', i/N*100));
-    end
-
-   % Measurements with white-noise
-   eta(1) = eta(1) + 0.06 * randn;     
-   eta(2) = eta(2) + 0.06 * randn;
-   eta(6) = eta(6) + 0.001 * randn;    
-
-   % MIMO nonlinear PID controller
-   if t > 50 
-       eta_ref = [0 0 deg2rad(40)]'; 
+   % Update the progress bar every 10 iterations:
+   if mod(i, 10) == 0
+       waitbar(i/N, h_waitbar, sprintf('Progress: %3.0f%%', i/N*100));
    end
 
-   tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h); 
+   % Simulate sensor noise and disturbances:
+   eta(1) = eta(1) + 0.06 * randn;   % Simulate noise in the North position.
+   eta(2) = eta(2) + 0.06 * randn;   % Simulate noise in the East position.
+   eta(6) = eta(6) + 0.001 * randn;  % Simulate noise in the yaw angle.
 
-   % Thrust: T = K_max * abs(n/n_max) * (n/n_max) = K_thr * abs(n) * n
-   % Normalized squared propeller speed: u_c = abs(n_c/n_max) * (n_c/n_max)
-   if ALLOC == 0    % Unconstrained control allocation: pseduoinverse
-   
-       alpha_c = alpha0;  % constant azimuth angles
-       u_c = allocPseudoinverse( K_max,T_thr,eye(4),tau([1:2,6]) );
+   % Control logic based on the elapsed simulation time:
+   if t > 50 
+       eta_ref = [0, 0, deg2rad(40)]';  % Change setpoint after 50 seconds.
+   end
 
-   else  % Constrained control allocation: dynamic optimization 
+   % Calculate control forces using the nonlinear MIMO PID controller:
+   tau = PIDnonlinearMIMO(eta, nu, eta_ref, M, wn, zeta, T_f, h); 
 
-       [alpha_c, u_c, slack] = optimalAlloc(tau([1:2,6]), lb, ub, ...
-           alpha_old, u_old, l_x, l_y, K_max, h);
-       alpha_old = alpha_c;
-       u_old = u_c;
-
+   % Determine thrust settings based on the selected allocation method:
+   if ALLOC == 0  % Unconstrained control allocation using pseudoinverse method.
+       alpha_c = alpha0 ; % Use constant azimuth angles.
+       u_c = allocPseudoinverse(K_max, T_thr, eye(4), tau([1:2, 6]));  
+   else  % Constrained control allocation using dynamic optimization.
+       [alpha_c, u_c, ~] = optimalAlloc(tau([1:2, 6]), lb, ub, alpha_old, ...
+           u_old, l_x, l_y, K_max, h);
+       alpha_old = alpha_c;  % Update for next iteration.
+       u_old = u_c;          % Update for next iteration.
    end
 
    % Controls: ui = [ n_c(1) n_c(2) n_c(3) n_c(4) alpha_c(1) alpha_c(2) ]'
-   u_c = n_max.^2 .* u_c;                   
-   n_c = sign(u_c) .* sqrt( abs(u_c) );
-   ui = [n_c; alpha_c];
+   u_c = n_max.^2 .* u_c;  % Scale control efforts to actual propeller speeds.
+   n_c = sign(u_c) .* sqrt(abs(u_c));  % Calculate each propeller's speed.
+   ui = [n_c; alpha_c];  
 
-   % Store simulation data in a table   
-   simdata(i,:) = [t eta' nu' ui']; 
+   % Store simulation results:
+   simdata(i, :) = [t, eta', nu', ui'];  % Log data for later analysis.
 
-   % Offshore supply vessel dynamics
-   xdot = osv([nu; eta],ui,Vc,betaVc);
-   Jmtrx = eulerang(eta(4),eta(5),eta(6));
+   % Calculate the OSV's dynamics for the next timestep:
+   xdot = osv([nu; eta], ui, Vc, betaVc);    
+   Jmtrx = eulerang(eta(4), eta(5), eta(6));  
 
-   % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
-   % x = x + h * xdot is replaced by forward and backward Euler integration
-   nu = nu + h * xdot(1:6);        % Forward Euler, velocity
-   eta = eta + h * Jmtrx * nu;     % Backward Euler, position
+   % Integrate to find the next state:
+   nu = nu + h * xdot(1:6);     % Update velocity using forward Euler method.
+   eta = eta + h * Jmtrx * nu;  % Update position using backward Euler method.
    
 end
 
-close(h_waitbar);                   % close the waitbar after the loop
+close(h_waitbar);  % Close the progress indicator.
 
 %% PLOTS
 t     = simdata(:,1);  
@@ -367,7 +364,7 @@ alpha = x(1:2)';     % azimuth angles
 u = x(3:6)';         % quadratic controls
 s = x(7:9)';         % slack variables: tau = T(alpha) * K_thr * u + s
 
-% mMximum azimuth angle and pitch rates
+% Maximum azimuth angle and pitch rates
 max_rate_alpha = 0.3;           % 0.3 rad/s = 17.2 deg/s
 max_rate_u = 0.3;               
 
@@ -385,8 +382,3 @@ T_alpha = thrConfig( {'T', 'T', alpha(1), alpha(2)}, l_x, l_y);
 ceq = T_alpha * K_thr * u - tau + s;
 
 end
-
-
-
-
-
