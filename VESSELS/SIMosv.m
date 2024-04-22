@@ -1,7 +1,11 @@
-% SIMosv 
-% User editable script for simulation of an Offshore Supply Vessel ('osv.m'). 
-% The OSV is expressed by the nonlinear equations of motion based on
-% Fossen (2021, Eqs. 6.111-6.116):
+function SIMosv()
+% SIMosv is compatibel with MATLAB but the dynamic optimization algorithm 
+% is not available in GNU Octave version 9.1.0 (www.octave.org)
+%
+% SIMosv simulates an Offshore Supply Vessel using a dynamic positioing (DP)
+% system to handle stationkeeping and low-speed maneuvering in the presence
+% of ocean currents.The OSV is expressed by the nonlinear equations of 
+% motion based on Fossen (2021, Eqs. 6.111-6.116):
 %   
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * (tau_thr +  tau_drag + tau_crossflow...
@@ -280,6 +284,7 @@ legend('\alpha_1','\alpha_2','Location','best')
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
+end
 
 %% FUNCTIONS FOR DYNAMIC OPTIMIZATION
 function [alpha_opt, u_opt, slack] = ...
@@ -380,6 +385,7 @@ T_alpha = thrConfig( {'T', 'T', alpha(1), alpha(2)}, l_x, l_y);
 ceq = T_alpha * K_thr * u - tau + s;
 
 end
+
 
 
 
