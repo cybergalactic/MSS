@@ -1,6 +1,5 @@
 function [xdot,U] = DSRV(x,u)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U] = DSRV(in), with in=[x,u] returns returns the speed U in m/s
 % (optionally) and the time derivative of the state vector 
 % x = [ w q x z theta ]' for a deep submergence rescue vehicle (DSRV) 
