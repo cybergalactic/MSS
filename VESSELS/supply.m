@@ -1,6 +1,7 @@
 function [xdot, U] = supply(x,tau)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U] = supply(x,tau) returns the speed and the time derivative 
-%  xdot = A*x + B*tau of the state vector: x = [ x y psi u v r ]'  for a 
+% xdot = A*x + B*tau of the state vector: x = [ x y psi u v r ]'  for a 
 % supply vessel length L = 76 m.
 %
 % The model is only valid for staionkeeping (dynamic positioning) and 
