@@ -1,20 +1,20 @@
 function SIMcontainer()
-% SIMcontainer is compatibel with MATLAB and GNU Octave (www.octave.org)
+% SIMcontainer is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script simulates the dynamics of a container ship under feedback 
+% control. The script concurrently simulates the ship using both a linear 
+% model, defined in 'Lcontainer.m', and a nonlinear model, defined in 
+% 'container.m'. The outcomes of both simulations are then plotted side by 
+% side for comparative analysis.
 %
-% User-editable script for simulating the dynamics of a container ship 
-% under feedback control. The script concurrently simulates the ship using 
-% both a linear model, defined in 'Lcontainer.m', and a nonlinear model, 
-% defined in 'container.m'. The outcomes of both simulations are then 
-% plotted side by side for comparative analysis.
+% Dependencies:
+%   container.m     - Nonlinear container ship model
+%   Lcontainer.m    - Linearized container ship model
+%   euler2.m        - Euler's integrations method
 %
-% Calls:       container.m
-%              Lcontainer.m
-%              euler2.m
-%
-% Author:      Thor I. Fossen
-% Date:        2018-07-21
+% Author:    Thor I. Fossen
+% Date:      2018-07-21
 % Revisions:
-%   2024-04-19 : Added compability to GNU Octave.
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 clearvars;
 
