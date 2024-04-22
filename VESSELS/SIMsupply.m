@@ -1,15 +1,18 @@
-% SIMsupply  
-% User editable script for simulation of the linear supply vessel model, 
-% [xdot, U] = supply(x,tau), which returns the speed and the time 
-% derivative xdot = A * x + B * tau of the state vector: 
-% x = [ x y psi u v r ]' for a supply vessel length L = 76 m.
+function SIMsupply()
+% SIMsupply is compatibel with MATLAB and GNU Octave (www.octave.org). This
+% script simulates a linear supply vessel model, [xdot, U] = supply(x,tau), 
+% which returns the speed and the time  derivative xdot = A * x + B * tau 
+% of the state vector: x = [ x y psi u v r ]' for a supply vessel of length
+% L = 76 m.
 %
-% Calls:      supply.m
-%             PIDnonlinearMIMO.m
+% Dependencies:  
+%   supply.m             - Supply vessel dynamics.
+%   PIDnonlinearMIMO.m   - Implements the MIMO nonlinear PID controller.
 %
 % Author:     Thor I. Fossen
 % Date:       2024-03-28
-% Revisions:  
+% Revisions:
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 clear PIDnonlinearMIMO          % clear the persistent PID variables
 clearvars;
@@ -182,5 +185,8 @@ legend('Commanded','Actual','Maximum')
 title('Main propeller n_6 (RPM)'); grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
+
+end
+
 
 
