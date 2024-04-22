@@ -1,8 +1,7 @@
 function [xdot,U] = npsauv(x,ui)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot,U] = npsauv(x,ui) returns the speed U in m/s (optionally) and the 
-% time derivative of the state vector: x = [ u v w p q r x y z phi theta psi ]' 
+% time derivative of the state vector: x = [u v w p q r x y z phi theta psi]' 
 % for an Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate
 % School, Monterrey. The length of the AUV is L = 5.3 m, while the state 
 % vector is defined by:
