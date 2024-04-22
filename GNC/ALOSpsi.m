@@ -1,5 +1,6 @@
 function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
-% [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt) 
+% ALOS3psi is compatible with MATLAB and GNU Octave (www.octave.org). The
+% function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt) 
 % ALOSpsi computes the desired heading angle, psi_ref, and cross-track
 % error, y_e, for paths that consist of straight lines connecting waypoints 
 % (wpt.pos.x, wpt.pos.y). The desired heading angle is computed using the 
@@ -44,7 +45,7 @@ function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
 %    y_e:     cross-track error (m)
 %
 % Reference:
-%   Fossen, T. I. (2023). An Adaptive Line-of-sight (ALOS) Guidance Law 
+%   T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law 
 %   for Path Following of Aircraft and Marine Craft. IEEE Transactions on 
 %   Control Systems Technology 31(6),2887-2894. 
 %   https://doi.org/10.1109/TCST.2023.3259819
