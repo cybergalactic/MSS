@@ -1,14 +1,18 @@
 function u = allocPseudoinverse(K,T,W,tau)
-% u = allocPseudoinverse(K,T,W,tau) unconstrained control allocation. The 
-% generalized force vector tau = T * K * u (dim n) is distributed to the 
-% input vector u (dim r) where r >= n by minimizing the force f = K * u.
+% allocPseudoinverse is compatible with MATLAB and GNU Octave (www.octave.org). 
+% The function u = allocPseudoinverse(K,T,W,tau) performs unconstrained 
+% control allocation by distributing a generalized force vector to inputs 
+% while minimizing force.
 %
-% An unconstrained solution (Fossen 2021, Section 11.2.2)
+% The relationship tau = T * K * u, where 'tau' is a generalized force vector
+% (dimension n), is used to distribute these forces to the input vector 'u'
+% (dimension r, where r >= n). The function minimizes the force f = K * u.
+% The unconstrained solution is (Fossen 2021, Section 11.2.2)
 % 
 %   u = inv(K) * inv(W) * T' * inv(T * inv(W) * T')
 % 
-% exists if the matrix product T * T' is non-singular. The control inputs
-% can also be quadratic function u = abs(n) * n.
+% The optimal solution exists if the matrix product T * T' is non-singular. 
+% The control inputs can also be quadratic function u = abs(n) * n.
 %
 % Inputs:
 %   K: rxr diagonal matrix of force coeffisients 
@@ -19,14 +23,14 @@ function u = allocPseudoinverse(K,T,W,tau)
 % Outputs:
 %   u: control inputs
 %
-% The thruster configuration matrix T can be computed using thrConfig.m. For
-% instance a ship with one tunnel thruster and one main propller with
+% The thruster configuration matrix T can be computed using thrConfig.m. 
+% For instance, a ship with one tunnel thruster and one main propller with
 % thruster locations l_x = [lx_1, lx_2] and l_y = [ly_1, ly_2] gives
 %
 %    T = thrConfig( {'T', 'M'}, l_x, l_y)
 %
 % Author:    Thor I. Fossen
-% Date:      3 Nov 2001
+% Date:      2001-11-03
 % Revisions: 
 
 if det(T * T') == 0
@@ -50,6 +54,3 @@ else
 end
 
 end
-
-
-
