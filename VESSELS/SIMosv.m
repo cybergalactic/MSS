@@ -1,6 +1,6 @@
 function SIMosv()
-% SIMosv simulates an Offshore Supply Vessel (OSV) utilizing a dynamic 
-% positioning (DP) system for stationkeeping and low-speed maneuvering 
+% SIMosv simulates an Offshore Supply Vessel (OSV) utilizing a Dynamic 
+% Positioning (DP) system for stationkeeping and low-speed maneuvering 
 % under the influence of ocean currents. This simulation is compatible with 
 % MATLAB and incorporates dynamic and static optimization techniques for 
 % control allocation, though dynamic optimization is not supported in 
