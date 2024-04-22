@@ -1,5 +1,5 @@
 function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
-% ALOS3psi is compatible with MATLAB and GNU Octave (www.octave.org). The
+% ALOSpsi is compatible with MATLAB and GNU Octave (www.octave.org). The
 % function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt) 
 % ALOSpsi computes the desired heading angle, psi_ref, and cross-track
 % error, y_e, for paths that consist of straight lines connecting waypoints 
