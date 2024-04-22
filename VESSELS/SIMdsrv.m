@@ -1,14 +1,15 @@
 function SIMdsrv()
-% SIMdsrv is compatibel with MATLAB and GNU Octave (www.octave.org)
+% SIMdsrv is compatibel with MATLAB and GNU Octave (www.octave.org). This
+% script simulates the Naval Postraduate School's Deep Submergence Rescue 
+% vehicle (DSRV) under PID heading control.
 %
-% User-editable script for simulation of the deep submergence rescue 
-% vehicle (DSRV)  under PID heading control.
-%
-% Calls:      DSRV.m
+% Dependencies:
+%   DSRV.m    - DSRV dynamics. 
 %
 % Author:     Thor I. Fossen
 % Date:       2024-04-20
-% Revisions:  
+% Revisions:
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 close all;
 
