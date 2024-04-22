@@ -1,20 +1,19 @@
 function SIMremus100()
-% SIMremus100 is compatibel with MATLAB and GNU Octave (www.octave.org)
-%
-% SIMremus100 simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
-% under depth and heading control, exposed to ocean currents. The simulation 
+% SIMremus100 is compatible with MATLAB and GNU Octave (www.octave.org). 
+% This script simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
+% under depth and heading control while exposed to ocean currents. It 
 % supports both Euler angle and unit quaternion kinematics representations 
-% and features advanced control strategies such as PID pole-placement, 
+% and features advanced control strategies including PID pole-placement, 
 % integral sliding mode control for heading, and Adaptive Line-of-Sight 
 % (ALOS) guidance for 3-D path following.
 %
 % Dependencies:
-%   remus100.m            : Dynamics of Remus 100 AUV
-%   integralSMCheading.m  : Integral sliding mode control for heading
-%   refModel.m            : Reference model for autopilot systems
-%   ALOS.m                : ALOS guidance algorithm for path following
-%   LOSobserver.m         : LOS observer for adaptive control
-%   q2euler.m, ssa.m      : Utilities for quaternion to Euler conversion 
+%   remus100.m            - Dynamics of the Remus 100 AUV
+%   integralSMCheading.m  - Integral sliding mode control for heading
+%   refModel.m            - Reference model for autopilot systems
+%   ALOS.m                - ALOS guidance algorithm for path following
+%   LOSobserver.m         - Observer for LOS guidance 
+%   q2euler.m, ssa.m      - Utilities for quaternion to Euler conversion 
 %                           and angle wrapping
 %
 % Simulink Models:
