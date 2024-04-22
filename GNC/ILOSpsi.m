@@ -1,7 +1,8 @@
 function [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
-% [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
-% ILOSpsi computes the desired heading angle, psi_ref, and cross-track 
-% error, y_e, for paths that consist of straight lines connecting waypoints 
+% ILOSpsi is compatible with MATLAB and GNU Octave (www.octave.org). The
+% function [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
+% computes the desired heading angle, psi_ref, and cross-track error y_e,
+% for paths that consist of straight lines connecting waypoints 
 % (wpt.pos.x, wpt.pos.y). The desired heading angle computed using the 
 % classical ILOS guidance law by Børhaug et al. (2008),
 %
