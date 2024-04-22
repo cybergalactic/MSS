@@ -1,8 +1,7 @@
 function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-%
-% [xdot,U] = otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s (optionally) 
-% and the time derivative of the state vector: 
+% [xdot,U] = otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s 
+% (optionally) and the time derivative of the state vector: 
 %    x = [ u v w p q r x y z phi theta psi ]' 
 % for the Maritime Robotics Otter USV, see www.maritimerobotics.com. 
 % The length of the USV is L = 2.0 m, while the state vector is defined as:
