@@ -1,23 +1,23 @@
 function SIMclarke83()
-% SIMclarke83 is compatibel with MATLAB and GNU Octave (www.octave.org)
-%
-% This script simulates a ship with the main dimensions: length (L),
-% breadth (B), and draft (T). It uses hydrodynamic data based on:
+% SIMclarke83 is compatible with MATLAB and GNU Octave (www.octave.org). 
+% This script simulates a ship, characterizing its dynamics based on 
+% specified main dimensions: length (L), breadth (B), and draft (T). It 
+% uses hydrodynamic data based on:
 %
 % Reference:
 %   D. Clarke, P. Gedling, and G. Hine (1983). The application of manoeuvring
 %   criteria in hull design using linear theory. Transactions of the Royal
 %   Institution of Naval Architects, Vol. 125, pp. 45-68.
 %
-% Calls:
-%   clarke83.m : Function implementing Clarke's linear maneuvering model.
+% Dependencies:
+%   clarke83.m - Function implementing Clarke's linear maneuvering model.
 %
 % Author: Thor I. Fossen
 % Date:   2020-10-22
 % Revisions: 
 %   2024-03-27 : Using forward and backward Euler to integrate xdot.
 %                Added animation of the ship North-East positions.
-%   2024-04-19 : Added compability to GNU Octave.
+%   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 clear animateShip       % clear the persistent animation variables
 clearvars;
@@ -61,7 +61,6 @@ for i=1:N+1
         M(3,3) * ( Kp * ssa(psi_ref-eta(3)) - Kd * nu(3) ) ];
 
     % Differential equations
-    etadot = Rzyx(0,0,eta(3)) * nu;
     nudot = M \ (tau - N * nu);
 
     % Store data for presentation
@@ -91,13 +90,15 @@ U     = sqrt(u.^2 + v.^2);
 
 % Plot and animation of the North-East positions
 figure(1)
-if isoctave() % Octave NE-plot
+if isoctave() 
+    % Octave NE-plot
     plot(y,x,'b')
     xlabel('East'); ylabel('North');title('North-East plot (m)')
     grid,axis('equal')
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
-else % Matlab animation
+else 
+    % Matlab animation
     shipSize = 0.5;
     set(gcf, 'Position', [1, 1, screenW/2, screenH]);
     animateShip(x,y,shipSize,'b-',1);
