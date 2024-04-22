@@ -1,9 +1,8 @@
 function SIMotter()
-% SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org)
-%
-% SIMotter simulates the Otter Unmanned Surface Vehicle (USV) under various
-% control strategies to handle path following in the presence of ocean
-% currents. This script allows the user to select from several control
+% SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script simulates the Otter Unmanned Surface Vehicle (USV) under 
+% various control strategies to handle path following in the presence of 
+% ocean currents. This script allows the user to select from several control
 % methods and simulatesthe USV's performance using a cubic Hermite spline
 % or straight-line paths.
 %
@@ -16,8 +15,15 @@ function SIMotter()
 % 4. ALOS control for path following using Hermite spline interpolation.
 %
 % Dependencies:
-% Calls: otter.m, refModel.m, ALOSpsi.m, ILOSpsi.m, LOSobserver.m,
-%       controlMethods.m, hermiteSpline.m, crosstrackHermiteLOS.m
+%   otter.m                 - Dynamics of the Otter USV
+%   refModel.m              - Reference model for autopilot systems
+%   ALOSpsi.m               - ALOS guidance algorithm for path following
+%   ILOSpsi.m               - ILOS guidance algorithm for path following
+%   hermiteSpline.m         - Cubic Hermite spline computations
+%   crosstrackHermiteLOS.m  - Cross-track error and LOS guidance law for
+%                             cubic Hermite splines
+%   LOSobserver.m           - Observer for LOS guidance 
+%   controlMethods.m        - Menu for choosing control law. 
 %
 % Simulink Models:
 %   demoOtterUSVPathFollowingHeadingControl.slx
