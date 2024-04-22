@@ -1,4 +1,6 @@
 function [xdot,U] = osv(x,ui,Vc,betaVc)
+% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
+%
 % [xdot,U] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
 % and the time derivative xdot of the state vector: 
 %    x = [ u v w p q r x y z phi theta psi ]' 
@@ -47,6 +49,7 @@ function [xdot,U] = osv(x,ui,Vc,betaVc)
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
 % Revisions:
+%   2024-04-22: Enhanced compatibility with GNU Octave.
 
 % Flag for plotting of the surge resitance, linear + quadratic damping
 if nargin > 0
