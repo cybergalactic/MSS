@@ -80,7 +80,7 @@ K_f = 0.3;                       % Yaw rate observer gain
 psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
 
 % Additional parameters for Hermite spline path following
-Umax = 2;                        % Maximum speed for Hermite spline interpolation
+Umax = 2;                        % Maximum speed for Hermite spline LOS
 idx_start = 1;                   % Initial index for Hermite spline
 [w_path, x_path, y_path, dx, dy, pi_h, pp_x, pp_y, N_horizon] = ...
     hermiteSpline(wpt, Umax, h); % Compute Hermite spline for path following
