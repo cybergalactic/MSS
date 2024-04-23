@@ -1,20 +1,22 @@
-% ExEKF Discrete-time extended Kalman filter (EKF) implementation demonstrating
-% how the "predictor-corrector representation" can be applied to the
-% nonlinear model:
+% ExEKF is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script simulates a discrete-time Extended Kalman filter (EKF), which 
+% demonstrates how the "predictor-corrector representation" can be 
+% applied to the nonlinear model:
 % 
 %   dx1/dt = x2
 %   dx2/dt = a * x2 * abs(x2) + b * u + white noise
 %        y = x1 + white noise
 %
-% The GNSS position measurement frequency f_gnss [Hz] can be chosen smaller or
-% equal to the  sampling frequency f_s [Hz]. The ratio between the 
+% The GNSS position measurement frequency f_gnss [Hz] can be chosen smaller 
+% or equal to the  sampling frequency f_s [Hz]. The ratio between the 
 % frequencies must be an integer:
 %
 %     Integer:  Z = f_s/f_gnss >= 1 
 %
 % Author:    Thor I. Fossen
-% Date:      17 Oct, 2018
-% Revisions: 28 Feb. 2020, minor updates of notation
+% Date:      2018-10-17
+% Revisions: 
+%   2020-02-28 - Minor updates of notation
 
 %% USER INPUTS
 f_s    = 10;    % sampling frequency [Hz]
@@ -26,24 +28,24 @@ if ( mod(Z,1) ~= 0 || Z < 1 )
 end
 
 
-% simulation parameters
+% Simulation parameters
 N  = 1000;		  % no. of iterations
 
 h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
 h_gnss = 1/f_gnss;      
 
-% model parameters 
+% Model parameters 
 %   dx1/dt = x2
 %   dx2/dt = a * x2 * abs(x2) + b * u + white noise
 a  = -1;              
 b  = 1;
 e  = 1;
 
-% initial values for x and u
+% Initial values for x and u
 x = [0 0]';	        
 u = 0;
 
-% initialization of Kalman filter
+% Initialization of the Kalman filter
 x_prd = [0 0]';        
 P_prd = diag([1 1]);
 Qd = 1;
@@ -81,16 +83,16 @@ for i=1:N+1
    % KF gain      
    K = P_prd * Cd' * inv( Cd * P_prd * Cd' + Rd );
         
-   % corrector   
+   % Corrector   
    IKC = eye(2) - K*Cd;
    P_hat = IKC * P_prd * IKC' + K * Rd * K';
    eps = y - Cd * x_prd;
    x_hat = x_prd + K * eps;   
    
-   % store simulation data in a table   
+   % Store simulation data in a table   
    simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
 
-   % discrete-time extended KF-model
+   % Discrete-time EKF model
    f_hat = [ x_hat(2)
              a * x_hat(2) * abs(x_hat(2)) + b * u ];
    f_d   = x_hat + h * f_hat;
@@ -105,7 +107,7 @@ for i=1:N+1
    x_prd = f_d;
    P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
    
-   % Euler integration (k+1)
+   % Euler's method (k+1)
    x = x + h * x_dot;
 end
 
@@ -130,3 +132,7 @@ subplot(212),plot(t,x(:,2),'b',t,x_hat(:,2),'r')
 xlabel('time (s)'),title('Velocity x_2'),grid
 legend(['True veloicty x_2 at ', num2str(f_s), ' Hz'],...
     ['Estimate x_2hat at ', num2str(f_s), ' Hz']);
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
