@@ -19,7 +19,7 @@ Download the MSS Directory:
 Set Up MATLAB Path:
 1. Open MATLAB.
 2. From the MATLAB menu, choose "Set Path."
-3. Select "Add with Subfolders…" and navigate to the unzipped MSS directory. Alternatively, if you are already in the main directory (the top-level folder of the MSS) in MATLAB, you can set the path directly by executing the following command in the MATLAB command window:
+3. Select "Add with Subfolders" and navigate to the unzipped MSS directory. Alternatively, if you are already in the main directory (the top-level folder of the MSS) in MATLAB, you can set the path directly by executing the following command in the MATLAB command window:
 
     addpath(genpath(pwd))
 
