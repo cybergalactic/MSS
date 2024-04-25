@@ -114,6 +114,8 @@ for i=1:N+1
 end
 
 %% PLOTS
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+
 t     = simdata(:,1);
 u     = simdata(:,2); 
 v     = simdata(:,3);          
@@ -125,6 +127,7 @@ n     = simdata(:,8:13);
 n_c   = simdata(:,14:19);
 
 figure(1); 
+if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
 plot(y,x)
 title('North-East plot (m)')
 xlabel('E'); ylabel('N'); grid
@@ -134,6 +137,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(2)
+if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/4, scrSz(4)/2]); end
 subplot(211)
 plot(t,r)
 xlabel('time (s)')
@@ -147,6 +151,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(3)
+if ~isoctave; set(gcf,'Position',[scrSz(3)/2, 1, scrSz(3)/4, scrSz(4)/2]); end
 subplot(321)
 plot(t,n_c(:,1),'r',t,n(:,1),'b',[0 t(end)],...
     [n_max(1) n_max(1)],'k',[0 t(end)],-[n_max(1) n_max(1)],'k')
