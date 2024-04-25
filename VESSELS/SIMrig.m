@@ -112,6 +112,8 @@ for i=1:N+1
 end
 
 %% PLOTS
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+
 t     = simdata(:,1);
 x     = simdata(:,2); 
 y     = simdata(:,3);          
@@ -126,7 +128,8 @@ p     = rad2deg(simdata(:,11));
 q     = rad2deg(simdata(:,12));
 r     = rad2deg(simdata(:,13)); 
 
-figure(1); figure(gcf)
+figure(1); 
+if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
 subplot(211)
 plot(y,x,'linewidth',2)
 grid,axis('equal')
