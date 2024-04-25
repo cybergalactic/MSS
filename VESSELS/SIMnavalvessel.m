@@ -59,7 +59,7 @@ for i=1:N+1
 end
 
 %% PLOTS
-scSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
 t     = simdata(:,1);
 u     = simdata(:,2); 
@@ -73,7 +73,7 @@ U     = simdata(:,9);
 x     = simdata(:,10);
 y     = simdata(:,11);
 
-% Plot and animation of the North-East positions
+%Plot and animation of the North-East positions
 figure(1)
 if isoctave() % Octave NE-plot
     plot(y,x,'b')
@@ -83,11 +83,12 @@ if isoctave() % Octave NE-plot
     set(findall(gcf,'type','text'),'FontSize',14)
 else % Matlab animation
     shipSize = 0.2;
-    set(gcf, 'Position', [1, 1, 0.5*scSz(3), scSz(4)]);
+    set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
     animateShip(x,y,shipSize,'b-',1);
 end
 
 figure(2)
+if ~isoctave(); set(gcf,'Position',[0.3*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 plot(t,U,'b')
 xlabel('time (s)'),title('Speed U (m/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
@@ -95,6 +96,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(3)
+if ~isoctave(); set(gcf,'Position',[0.6*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 subplot(221)
 plot(t,r,'b'),xlabel('time (s)'),title('Yaw rate r (deg/s)'),grid
 subplot(222)
