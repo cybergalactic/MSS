@@ -285,9 +285,7 @@ for i = 1:N+1
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3);
-screenH = screenSize(4);
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
 % simdata = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x']
 t       = simdata(:,1);
@@ -328,9 +326,7 @@ beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
 
 %% Generalized velocity
 figure(1);
-if ~isoctave
-  set(gcf, 'Position', [1, 1, screenW/3, screenH]);
-end
+if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
 subplot(611),plot(t,nu(:,1))
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
 subplot(612),plot(t,nu(:,2))
@@ -349,9 +345,7 @@ set(findall(gcf,'type','legend'),'FontSize',12)
 
 %% Heave position and Euler angles
 figure(2);
-if ~isoctave
-  set(gcf, 'Position', [screenW/3, 1, screenW/3, screenH]);
-end
+if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/3, scrSz(4)]); end
 if ControlFlag == 3; z_d = eta(:,3); end
 subplot(411),plot(t,eta(:,3),t,z_d)
 xlabel('Time (s)'),title('Heave position (m)'),grid
@@ -370,9 +364,7 @@ set(findall(gcf,'type','legend'),'FontSize',16)
 
 %% Control signals
 figure(3);
-if ~isoctave
-  set(gcf,'Position',[2*screenW/3,screenH/2,screenW/3,screenH/2]);
-end
+if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,scrSz(4)/2,scrSz(3)/3,scrSz(4)/2]);end
 subplot(311),plot(t,rad2deg(u(:,1)))
 xlabel('Time (s)'),title('Rudder command \delta_r (deg)'),grid
 subplot(312),plot(t,rad2deg(u(:,2)))
@@ -384,9 +376,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 
 %% Ocean currents and speed
 figure(4);
-if ~isoctave
-  set(gcf,'Position',[2*screenW/3,1,screenW/3,screenH/2]);
-end
+if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,1,scrSz(3)/3,scrSz(4)/2]);end
 subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
 xlabel('Time (s)'),grid
 legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
@@ -405,9 +395,7 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 %% Sideslip and angle of attack
 if ControlFlag == 3
     figure(5);
-    if ~isoctave
-      set(gcf,'Position',[100,100,screenW/3,screenH]);
-    end
+    if ~isoctave; set(gcf,'Position',[100,scrSz(4)/2,scrSz(3)/3,scrSz(4)]); end
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
@@ -435,9 +423,7 @@ end
 %% 2-D position plots with waypoints
 if ControlFlag == 3
     figure(6);
-    if ~isoctave
-      set(gcf, 'Position', [300, 200, screenW/3, screenH/2]);
-    end
+    if ~isoctave;set(gcf,'Position',[300,200,scrSz(3)/3,scrSz(4)/2]);end
     subplot(211);
     plot(eta(:,2), eta(:,1));
     hold on;
