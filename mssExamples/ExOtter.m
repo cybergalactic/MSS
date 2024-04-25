@@ -1,12 +1,14 @@
-% ExOtter   Simulates the Otter USV, whcih is controlled by two propellers.
-%           SOG, COG and course rate is estimated using an EKF and the
-%           course autopilot is based on a PID pole placement algrorithm.
+% ExOtter is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script simulates the Maritime Robotics Otter Uncrewed Surface 
+% Vehicle (USV), whcih is controlled by two propellers. SOG, COG and 
+% course rate are estimated using an EKF and the course autopilot is based 
+% on a PID pole-placement algrorithm.
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-18
-% Revisions: 2021-05-25 Added EKF for COG/SOG/course rate and course autopilot
+% Revisions: 
+%   2021-05-25 Added EKF for COG/SOG/course rate and course autopilot
 
-%% Clear states and variables
 clearvars;
 clear('EKF_5states');   % clear persistent states in EKF_5states.m
 
@@ -16,7 +18,7 @@ h  = 1/fHz;       % sampling time [s]
 Z = 10;           % GNSS measurement frequency (10 times slower)
 N  = 2000;		  % number of samples
 
-% initial values for x = [ u v w p q r x y z phi theta psi ]'
+% Initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1); x(1) = 1;	   
 
 % EKF covariance matrices and initial states
@@ -59,7 +61,7 @@ n = [0 0]';            % n = [ n_left n_right ]'
 mp = 25;               % payload mass (kg), max value 45 kg
 rp = [0 0 -0.35]';     % location of payload (m)
 
-% Current
+% Ocean current
 V_c = 0;               % current speed (m/s)
 beta_c = 30 * pi/180;  % current direction (rad)
 
@@ -69,7 +71,7 @@ simdata = zeros(N+1,20);                   % table for simulation data
 for i=1:N+1
    t = (i-1) * h;                          % time (s)   
    
-   % course angle setpoints
+   % Course angle setpoints
    if ( t < 20 )
        chi_ref = 20 * pi / 180;
    else
@@ -90,14 +92,14 @@ for i=1:N+1
    j_d = wn_d^3 * ssa(chi_ref - chi_d) - (2*zeta_d+1) * wn_d^2 * omega_d...
        - (2*zeta_d+1) * wn_d * a_d;
    
-   % store simulation data in a table   
+   % Store simulation data in a table   
    simdata(i,:) = [t x' x_hat' n'];    
    
    % 5-states EKF:  x_hat[k+1] = [x_N, v_N, U, chi, omega]'
    x_N = x(7); y_E = x(8);      % GNSS measurements
    x_hat = EKF_5states(x_N,y_E,h,Z,'NED',Qd,Rd);  
       
-   % Euler integration (k+1)
+   % Euler's method (k+1)
    x = x + h * otter(x,n,mp,rp,V_c,beta_c);
    z = z + h * ssa( x_hat(4)-chi_d );
    n = n - h/Tn * (n - n_c);  
@@ -129,42 +131,51 @@ n2 = simdata(:,20);
 
 clf
 figure(1)
-subplot(611),plot(t,nu(:,1),'linewidt',2)
+subplot(611),plot(t,nu(:,1))
 xlabel('time (s)'),title('Surge velocity (m/s)'),legend('True'),grid
-subplot(612),plot(t,nu(:,2),'linewidt',2)
+subplot(612),plot(t,nu(:,2))
 xlabel('time (s)'),title('Sway velocity (m/s)'),legend('True'),grid
-subplot(613),plot(t,nu(:,3),'linewidt',2)
+subplot(613),plot(t,nu(:,3))
 xlabel('time (s)'),title('Heave velocity (m/s)'),legend('True'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4),'linewidt',2)
+subplot(614),plot(t,(180/pi)*nu(:,4))
 xlabel('time (s)'),title('Roll rate (deg/s)'),legend('True'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5),'linewidt',2)
+subplot(615),plot(t,(180/pi)*nu(:,5))
 xlabel('time (s)'),title('Pitch rate (deg/s)'),legend('True'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6),'linewidt',2)
+subplot(616),plot(t,(180/pi)*nu(:,6))
 xlabel('time (s)'),title('Yaw rate (deg/s)'),legend('True'),grid
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
 
 figure(2)
-subplot(611),plot(eta(:,2),eta(:,1),y_hat,x_hat,'linewidt',2); 
+subplot(611),plot(eta(:,2),eta(:,1),y_hat,x_hat); 
 title('xy plot (m)'),legend('True','Estimate'),grid
-subplot(612),plot(t,U,t,U_hat,'linewidt',2);
+subplot(612),plot(t,U,t,U_hat);
 xlabel('time (s)'),title('speed (m/s)'),legend('True','Estimate'),grid
-subplot(613),plot(t,eta(:,3),'linewidt',2)
+subplot(613),plot(t,eta(:,3))
 xlabel('time (s)'),title('heave z position (m)'),legend('True'),grid
-subplot(614),plot(t,(180/pi)*eta(:,4),'linewidt',2)
+subplot(614),plot(t,(180/pi)*eta(:,4))
 xlabel('time (s)'),title('roll angle (deg)'),legend('True'),grid
-subplot(615),plot(t,(180/pi)*eta(:,5),'linewidt',2)
+subplot(615),plot(t,(180/pi)*eta(:,5))
 xlabel('time (s)'),title('pitch angle (deg)'),legend('True'),grid
-subplot(616),plot(t,(180/pi)*psi,'linewidt',2)
+subplot(616),plot(t,(180/pi)*psi)
 xlabel('time (s)'),title('yaw angle (deg)'),
 legend('True'),grid
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
 
 figure(3)
-subplot(311),plot(t,(180/pi)*chi,t,(180/pi)*chi_hat,'linewidt',2)
+subplot(311),plot(t,(180/pi)*chi,t,(180/pi)*chi_hat)
 xlabel('time (s)'),title('course angle (deg)')
 legend('True','Estimate'),grid
-subplot(312),plot(t,(180/pi)*omega_hat,'r','linewidt',2)
+subplot(312),plot(t,(180/pi)*omega_hat,'r')
 xlabel('time (s)'),title('course rate (deg(/s)')
 legend('Estimate'),grid
-subplot(313),plot(t,n1,'g',t,n2,'k','linewidt',2),grid
+subplot(313),plot(t,n1,'g',t,n2,'k'),grid
 xlabel('time (s)')
 legend('n_1 left propeller','n_2 right propeller')
 title('Propeller revolutions (rad/s)')
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)

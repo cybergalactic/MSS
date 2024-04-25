@@ -9,7 +9,22 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
     URL: https://github.com/cybergalactic/MSS
 
-Copy the directory MSS/... to your computer and "add the path with subfolders" to Matlab. Then type:
+ Installation
+-
+Download the MSS Directory:
+1. Navigate to the GitHub MSS repository and click on the green "Code" button.
+2. Select "Download ZIP" from the dropdown menu.
+3. Unzip the file to a desired location on your computer once the download is complete.
+
+Set Up MATLAB Path:
+1. Open MATLAB.
+2. From the MATLAB menu, choose "Set Path."
+3. Select "Add with Subfolders" and navigate to the unzipped MSS directory. Alternatively, if you are already in the main directory (the top-level folder of the MSS) in MATLAB, you can set the path directly by executing the following command in the MATLAB command window:
+
+       addpath(genpath(pwd))
+       savepath
+
+To get started and find help on using the MSS, type the following command in the MATLAB command window:
 
     mssHelp
 
