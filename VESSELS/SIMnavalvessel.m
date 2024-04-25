@@ -59,9 +59,7 @@ for i=1:N+1
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3);
-screenH = screenSize(4);
+scSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
 t     = simdata(:,1);
 u     = simdata(:,2); 
@@ -85,7 +83,7 @@ if isoctave() % Octave NE-plot
     set(findall(gcf,'type','text'),'FontSize',14)
 else % Matlab animation
     shipSize = 0.2;
-    set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+    set(gcf, 'Position', [1, 1, 0.5*scSz(3), scSz(4)]);
     animateShip(x,y,shipSize,'b-',1);
 end
 
