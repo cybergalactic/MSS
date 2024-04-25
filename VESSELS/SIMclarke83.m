@@ -74,9 +74,7 @@ for i=1:N+1
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3);
-screenH = screenSize(4);
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
 % Simdata(i,:) = [t, eta', nu']
 t     = simdata(:,1);
@@ -100,13 +98,13 @@ if isoctave()
 else 
     % Matlab animation
     shipSize = 0.5;
-    set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+    set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
     animateShip(x,y,shipSize,'b-',1);
 end
 
 % Ship speed and yaw angle
 figure(2);
-if ~isoctave(); set(gcf, 'Position', [screenW/2, 1, screenW/3, screenH]);end
+if ~isoctave(); set(gcf,'Position',[0.4*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 subplot(211)
 plot(t,U)
 xlabel('Time (s)'),title('Ship speed (m/s)'),grid
