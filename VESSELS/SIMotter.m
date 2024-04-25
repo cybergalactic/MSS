@@ -36,7 +36,8 @@ function SIMotter()
 %
 %   T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law for
 %   Path Following of Aircraft and Marine Craft. IEEE Transactions on Control
-%   Systems Technology, 31(6), 2887-2894. https://doi.org/10.1109/TCST.2023.3259819
+%   Systems Technology, 31(6), 2887-2894. 
+%   https://doi.org/10.1109/TCST.2023.3259819
 %
 % Author: Thor I. Fossen
 % Date: 2021-04-25
@@ -192,9 +193,7 @@ for i = 1:N+1
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Get screen dimensions
-screenW = screenSize(3);
-screenH = screenSize(4);
+scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 
 % Simulation data structure
 t = simdata(:,1);        % Time vector
@@ -206,7 +205,8 @@ psi_d = simdata(:,15);   % Desired heading
 % Plot positions
 figure(1);
 if ~isoctave
-  set(gcf,'Position',[screenW/3,100,0.6*screenH,0.6*screenH],'Visible','off');
+    set(gcf,'Position',[0.6*scrSz(3),0.2*scrSz(4), ...
+        0.5*scrSz(4),0.6*scrSz(4)],'Visible','off');
 end
 hold on;
 plot(eta(:,2),eta(:,1),'b');  % Plot vehicle position
@@ -232,7 +232,7 @@ set(1,'Visible', 'on');  % Show figure
 % Plot velocities
 figure(2);
 if ~isoctave
-  set(gcf, 'Position', [1, 1, screenW/2, screenH]);
+  set(gcf, 'Position', [1, 1, 0.3*scrSz(3), scrSz(4)]);
 end
 subplot(611),plot(t,nu(:,1));
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid on;
@@ -254,7 +254,7 @@ set(findall(gcf,'type','legend'),'FontSize',14);
 % Plot speed, heave position and Euler angles
 figure(3);
 if ~isoctave
-  set(gcf, 'Position', [screenW/2, 1, screenW/2, screenH]);
+  set(gcf, 'Position', [0.3*scrSz(3), 1, 0.3*scrSz(3), scrSz(4)]);
 end
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
 title('Speed (m/s)'),grid on;
