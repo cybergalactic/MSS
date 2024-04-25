@@ -61,9 +61,7 @@ for i=1:N+1
 end
 
 %% PLOTS
-screenSize = get(0, 'ScreenSize'); % Returns [left bottom width height]
-screenW = screenSize(3); 
-screenH = screenSize(4);
+scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
 t1     = simdata1(:,1);
 u1     = simdata1(:,2); 
@@ -92,7 +90,7 @@ U2     = simdata2(:,11);
 
 % North-East positions
 figure(1); 
-if ~isoctave(); set(gcf, 'Position', [1, 1, screenW/2, screenH]); end
+    set(gcf, 'Position', [1, 1, 0.5*scrSz(3), scrSz(4)]);
 plot(y1,x1,'r',y2,x2,'b')
 grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
 legend('Nonlinear model','Linear model','Location','best')
@@ -102,7 +100,7 @@ set(findall(gcf,'type','legend'),'FontSize',14)
 
 % Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
 figure(2); 
-if ~isoctave(); set(gcf,'Position', [screenW/2,1,screenW/2.5,screenH]);end
+if ~isoctave(); set(gcf,'Position',[scrSz(3)/2,1,scrSz(3)/2.5,scrSz(4)]);end
 subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('Time (s)')
 title('Yaw rate r (deg/s)'),grid
 legend('Nonlinear model','Linear model','Location','best')
