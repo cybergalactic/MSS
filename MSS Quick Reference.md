@@ -269,6 +269,8 @@ ins_euler            % Error-state Kalman filter (ESKF) for INS aided by positio
 ins_mekf             % Error-state Kalman filter (ESKF) for INS aided by position and magnetic field measurements
 ins_mekf_psi         % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
 insSignal            % Basic INS signal generator
+SIMaidedINSeuler     % Simulate the ESKF for aided INS using Euler angles
+SIMaidedINSquat      % Simulate the ESKF for aided INS using unit quaternions (MEKF representation)
 ```
 
 ## Control
