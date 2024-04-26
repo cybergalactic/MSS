@@ -60,7 +60,12 @@ Basic libraries and system examples for GNC. The library contains:
 - M-file functions (kinematics and kinetics) and examples for time-domain GNC applications.
 - M-file library with vessel models, maneuvering trials, and dynamic simulation.
 - User-editable m-files for simulating and controlling marine craft, including ships, semisubmersibles, autonomous underwater vehicles (AUVs), remotely operated vehicles (ROVs), and uncrewed surface vehicles (USVs).
-- User-editable m-files for error-state Kalman filters for inertial navigation systems.
+
+ INS Library
+ -
+ Functions and scripts for time-domain inertial navigation systems (INS) using unit quaternions and Euler angles. The library contains:
+- User-editable m-files for implementation of error-state Kalman filters (ESKF).
+- M-file library with aided INS functions.
 
  Hydro Library
 -
