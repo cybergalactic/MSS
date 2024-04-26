@@ -26,7 +26,7 @@ function SIMaidedINSquat()
 %    Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
-% Date: 2021-04-26
+% Date: 2024-04-26
 % Revisions:
 
 %% USER INPUTS
