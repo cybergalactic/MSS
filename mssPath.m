@@ -39,14 +39,9 @@ else
     fprintf('MSS directory found at: %s\n', basePath);
 end
 
-
-% MATLAB specific re-enabling of warnings
-warning('on', 'MATLAB:rmpath:DirNotFound');
-
 % Remove old MSS paths to clean up any outdated links
+warning('off', 'MATLAB:rmpath:DirNotFound');
 rmpath(genpath(basePath));
-
-% Re-enable the previously suppressed warnings
 warning('on', 'MATLAB:rmpath:DirNotFound');
 
 % Re-add the MSS directory and all its subdirectories to MATLAB's path
