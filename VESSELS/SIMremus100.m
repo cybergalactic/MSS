@@ -40,7 +40,6 @@ clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
 close all;                          % Close all open figure windows
 
 %% USER INPUTS
-%% USER INPUTS
 h = 0.05;                           % Sampling time [s]
 N = 28000;                          % Number of samples to simulate
 
