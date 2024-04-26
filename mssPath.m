@@ -16,8 +16,8 @@
 % Revisions:
 
 if isoctave
-    disp('Add the MSS path with subfolders by starting "octave --gui", then click, edit - set path")');
-    return
+    disp('Add the MSS path with subfolders by starting "octave --gui", then click, edit - set path');
+    return;
 end
 
 % MATLAB specific warning suppression
