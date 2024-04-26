@@ -37,7 +37,7 @@ f_gnss = 1;     % GNSS measurement frequency [Hz]
 
 % Flag
 vel = 0;          % 0 = no velocity meaurement, 1 = velocity aiding
-compass = 1;      % 0 = AHRS, 1 = compass and [phi, theta] = acc2roll(f_imu)
+compass = 0;      % 0 = AHRS, 1 = compass and [phi, theta] = acc2roll(f_imu)
 
 % Parameters
 Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
@@ -105,11 +105,11 @@ for i=1:N+1
     t = (i-1) * h;                      % time (s)   
     [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t);
     
-    if (compass == 0)   % AHRS measurements
+    if (compass == 0)      % AHRS measurements
        
-       y_ahrs = x(10:12);               % true roll, pitch, yaw                  %
+       y_ahrs = x(10:12);  % True roll, pitch, yaw                  %
        
-    else                % use specific force and compass instead of an AHRS
+    else                % Use specific force and compass instead of an AHRS
         
        [phi, theta] = acc2rollpitch( f_imu );
         y_ahrs = [ phi, theta, x(12) ]';
