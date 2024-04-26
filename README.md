@@ -24,6 +24,10 @@ Set Up MATLAB Path:
        addpath(genpath(pwd))
        savepath
 
+Later, you can update an existing path automatically, and remove dead links by using the command
+
+    mssPath
+
 To get started and find help on using the MSS, type the following command in the MATLAB command window:
 
     mssHelp
