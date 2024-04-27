@@ -23,32 +23,32 @@ function [x_ins, P_prd] = ...
 % including position, velocity, biases, and attitude errors. 
 %
 % Inputs:
-%   x_ins[k] - INS state vector at step k, includes position, velocity, 
+%   x_ins[k] : INS state vector at step k, includes position, velocity, 
 %              accelerometer biases, attitude (Euler angles), and gyro biases.
-%   P_prd[k] - 15x15 covariance matrix of the prediction step.
-%   mu       - Latitude in radians, used to calculate Earth's gravity vector.
-%   h        - Sampling time in seconds.
-%   Qd, Rd   - Process and measurement noise covariance matrices for the 
+%   P_prd[k] : 15x15 covariance matrix of the prediction step.
+%   mu       : Latitude in radians, used to calculate Earth's gravity vector.
+%   h        : Sampling time in seconds.
+%   Qd, Rd   : Process and measurement noise covariance matrices for the 
 %              Kalman filter.
-%   f_imu[k] - Specific force measurements from the IMU.
-%   w_imu[k] - Angular rate measurements from the gyroscopes.
-%   y_ahrs[k]- Attitude measurements (roll, pitch, yaw) from the AHRS.
-%   y_pos[k] - Slow position measurements aids the filter.
-%   y_vel[k] - (Optionally) Slow velocity measurements aids the filter.
+%   f_imu[k] : Specific force measurements from the IMU.
+%   w_imu[k] : Angular rate measurements from the gyroscopes.
+%   y_ahrs[k]: Attitude measurements (roll, pitch, yaw) from the AHRS.
+%   y_pos[k] : Slow position measurements aids the filter.
+%   y_vel[k] : (Optionally) Slow velocity measurements aids the filter.
 %
 % Outputs:
-%   x_ins[k+1] - Updated INS state vector after propagation.
-%   P_prd[k+1] - Updated prediction covariance matrix after propagation.
+%   x_ins[k+1] : Updated INS state vector after propagation.
+%   P_prd[k+1] : Updated prediction covariance matrix after propagation.
 %
 % References:
-%   T. I. Fossen (2021). "Handbook of Marine Craft Hydrodynamics and Motion Control," 2nd edition,
-%   John Wiley & Sons, Ltd., Chichester, UK.
+%   T. I. Fossen (2021). "Handbook of Marine Craft Hydrodynamics and Motion 
+%   Control," 2nd edition, John Wiley & Sons, Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
 % Date: 2020-03-21
 % Revisions: 
-%   2021-12-21: Improved numerical stability by replacing Euler's method with exact discretization
-%               in the INS state propagation.
+%   2021-12-21: Improved numerical stability by replacing Euler's method 
+%               with exact discretization in the INS state propagation.
 
 % Bias time constants (user specified)
 T_acc = 1000; 
