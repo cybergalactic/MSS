@@ -3,7 +3,10 @@ function [x_ins, P_prd] = ins_euler(...
 % ins_euler is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) specifically for Inertial Navigation Systems (INS) that are 
-% aided by compass and positional data.
+% aided by compass and positional data. Attitude is parametrized using the 
+% 3-parameter Euler angle representation, which is singular for 
+% theta = +- 90 deg. To avoid the singularity, use ins_mekf or ins_mekf_psi
+% instead.
 %
 % Usage scenarios are detailed in examples SIMaidedINSeuler and ExINS_Euler, 
 % demonstrating the implementation of the Kalman filter loop using the 
@@ -11,16 +14,19 @@ function [x_ins, P_prd] = ins_euler(...
 %
 %   - With new slow measurements:
 %       [x_ins,P_prd] = ins_euler(...
-%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, psi, y_pos)
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos)
 %       [x_ins,P_prd] = ins_euler(...
-%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, psi, y_pos, y_vel)
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos, y_vel)
 %
-%   - Without new measurements:
+%   - Without new measurements (no aiding):
 %       [x_ins,P_prd] = ins_euler(...
-%          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, psi)
+%          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi)
 %
 % This function models the INS errors in a 15-dimensional state space, 
-% including position, velocity, biases, and attitude errors. 
+% including position, velocity, biases, and attitude errors:
+%
+%   delta_x[k+1] = f(delta_x[k], u[k], w[k])
+%     delta_y[k] = h(delta_x[k], u[k]) + varepsilon[k]
 %
 % Inputs:
 %   x_ins[k] : INS state vector at step k, includes position, velocity, 
@@ -31,8 +37,8 @@ function [x_ins, P_prd] = ins_euler(...
 %   Qd, Rd   : Process and measurement noise covariance matrices for the 
 %              Kalman filter.
 %   f_imu[k] : Specific force measurements from the IMU.
-%   w_imu[k] : Angular rate measurements from the gyroscopes.
-%   psi[k]   : Compass measurement (yaw).
+%   w_imu[k] : Angular rate measurements from the IMU.
+%   y_psi[k] : Fast compass measurement (yaw angle).
 %   y_pos[k] : Slow position measurements aids the filter.
 %   y_vel[k] : (Optionally) Slow velocity measurements aids the filter.
 %
