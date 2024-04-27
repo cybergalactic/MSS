@@ -1,10 +1,11 @@
-function [x_ins, P_prd] = ...
-    ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
+function [x_ins, P_prd] = ins_ahrs( ...
+    x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
 % ins_ahrs is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) specifically for Inertial Navigation Systems (INS) that are 
 % augmented by an attitude heading reference systems (AHRS) and aided by 
-% positional data.
+% positional data. Attitude is parametrized using the 3-parameter Euler 
+% angle representation, which is singular for theta = +- 90 deg.
 %
 % Usage scenarios are detailed in examples SIMaidedINSeuler and ExINS_AHRS, 
 % demonstrating the implementation of the Kalman filter loop using the 
@@ -16,11 +17,14 @@ function [x_ins, P_prd] = ...
 %       [x_ins,P_prd] = ins_ahrs(...
 %           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
 %
-%   - Without new measurements:
+%   - Without new measurements (no aiding):
 %       [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs)
 %
 % This function models the INS errors in a 15-dimensional state space, 
-% including position, velocity, biases, and attitude errors. 
+% including position, velocity, biases, and attitude errors:
+%
+%   delta_x[k+1] = f(delta_x[k], u[k], w[k])
+%     delta_y[k] = h(delta_x[k], u[k]) + varepsilon[k]
 %
 % Inputs:
 %   x_ins[k] : INS state vector at step k, includes position, velocity, 
@@ -31,7 +35,7 @@ function [x_ins, P_prd] = ...
 %   Qd, Rd   : Process and measurement noise covariance matrices for the 
 %              Kalman filter.
 %   f_imu[k] : Specific force measurements from the IMU.
-%   w_imu[k] : Angular rate measurements from the gyroscopes.
+%   w_imu[k] : Angular rate measurements from the IMU.
 %   y_ahrs[k]: Attitude measurements (roll, pitch, yaw) from the AHRS.
 %   y_pos[k] : Slow position measurements aids the filter.
 %   y_vel[k] : (Optionally) Slow velocity measurements aids the filter.
