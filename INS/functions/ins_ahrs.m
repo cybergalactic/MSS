@@ -1,47 +1,60 @@
 function [x_ins, P_prd] = ...
     ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
-% Error-state (indirect) feedback Kalman filter for INS aided by position
-% measurements y_pos. The velocity aiding signal y_vel is optionally. 
-% The KF is implemented as a feedback filter using reset. 
-% Attitude is assumed measured using an AHRS. 
+% ins_ahrs is compatible with MATLAB and GNU Octave (www.octave.org).
+% The function implements an error-state (indirect) feedback Kalman filter 
+% (ESKF) specifically for Inertial Navigation Systems (INS) that are 
+% augmented by an attitude heading reference systems (AHRS) and aided by 
+% positional data.
 %
-% See ExINS_AHRS for how to implement the Kalman filter loop:
+% Usage scenarios are detailed in examples SIMaidedINSeuler and ExINS_AHRS, 
+% demonstrating the implementation of the Kalman filter loop using the 
+% corrector-predictor representation:
 %
-% if (new slow measurement)
-%    ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos) 
-%    ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
-% else (no measurement)
-%    ins_ahrs(x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs)
-% end
+%   - With new slow measurements:
+%       [x_ins,P_prd] = ins_ahrs(...
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos)
+%       [x_ins,P_prd] = ins_ahrs(...
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
 %
-% Error-state-space model (15 states):
-%   delta_x[k+1] = Ad delta_x[k] + Ed w[k]
-%     delta_y[k] = Cd delta_x[k] + varepsilon[k]
+%   - Without new measurements:
+%       [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs)
 %
-% Inputs: 
-%    x_ins[k], INS state vector [p_ins; v_ins, b_acc_ins, theta_ins, b_ars_ins] 
-%    P_prd[k],  15 x 15 covariance matrix
-%    mu, lattitude [rad]
-%    h sampling time [s]
-%    Qd, Rd, Kalman filter process and measurement covariance matrices
-%    f_imu[k], w_imu[k], fast IMU specific force and ARS measurements
-%    y_ahrs[k], fast attitude measurement (phi, theta, psi)
-%    y_pos[k], slow position measurement (x, y, z) used for aiding
-%    y_vel[k], slow (optionally) velocity measurement used for aiding
+% This function models the INS errors in a 15-dimensional state space, 
+% including position, velocity, biases, and attitude errors. 
 %
-% Outputs: 
-%    x_ins[k+1] propagated INS state vector (15 states)
-%    P_prd[k+1] propoagated Kalman fiter covariance matrix (15 x 15)
+% Inputs:
+%   x_ins[k] - INS state vector at step k, includes position, velocity, 
+%              accelerometer biases, attitude (Euler angles), and gyro biases.
+%   P_prd[k] - 15x15 covariance matrix of the prediction step.
+%   mu       - Latitude in radians, used to calculate Earth's gravity vector.
+%   h        - Sampling time in seconds.
+%   Qd, Rd   - Process and measurement noise covariance matrices for the 
+%              Kalman filter.
+%   f_imu[k] - Specific force measurements from the IMU.
+%   w_imu[k] - Angular rate measurements from the gyroscopes.
+%   y_ahrs[k]- Attitude measurements (roll, pitch, yaw) from the AHRS.
+%   y_pos[k] - Slow position measurements aids the filter.
+%   y_vel[k] - (Optionally) Slow velocity measurements aids the filter.
 %
-% Author:    Thor I. Fossen
-% Date:      21 March 2020
-% Revisions: 12 Dec 2021 - replaced Euler's method with exact discretization
+% Outputs:
+%   x_ins[k+1] - Updated INS state vector after propagation.
+%   P_prd[k+1] - Updated prediction covariance matrix after propagation.
+%
+% References:
+%   T. I. Fossen (2021). "Handbook of Marine Craft Hydrodynamics and Motion Control," 2nd edition,
+%   John Wiley & Sons, Ltd., Chichester, UK.
+%
+% Author: Thor I. Fossen
+% Date: 2020-03-21
+% Revisions: 
+%   2021-12-21: Improved numerical stability by replacing Euler's method with exact discretization
+%               in the INS state propagation.
 
 % Bias time constants (user specified)
 T_acc = 1000; 
 T_ars = 500; 
 
-%% KF states and matrices
+%% ESKF states and matrices
 p_ins = x_ins(1:3);          % INS states
 v_ins = x_ins(4:6);
 b_acc_ins = x_ins(7:9);
@@ -59,7 +72,7 @@ I3 = eye(3);
 R = Rzyx(y_ahrs(1), y_ahrs(2), y_ahrs(3));
 T = Tzyx(y_ahrs(1), y_ahrs(2));
 
-% Discrte-time KF matrices
+% Discrte-time ESKF matrices
 A = [ O3 I3  O3           O3  O3
       O3 O3 -R            O3  O3
       O3 O3 -(1/T_acc)*I3 O3  O3
@@ -84,13 +97,13 @@ Ed = h *[  O3 O3    O3 O3
            O3 O3    O3 I3  ];
 
 %% Kalman filter algorithm       
-if (nargin == 9)             % no aiding
+if (nargin == 9)             % No aiding
     
     P_hat = P_prd;
     
 else                         % INS aiding 
     
-    % KF gain: K[k]
+    % ESKF gain: K[k]
     K = P_prd * Cd' * inv(Cd * P_prd * Cd' + Rd);
     IKC = eye(15) - K * Cd;
     
@@ -110,11 +123,11 @@ else                         % INS aiding
     P_hat = IKC * P_prd * IKC' + K * Rd * K';
     
     % INS reset: x_ins[k]
-	p_ins = p_ins + delta_x_hat(1:3);           % reset INS position
-	v_ins = v_ins + delta_x_hat(4:6);           % reset INS velocity
-	b_acc_ins = b_acc_ins + delta_x_hat(7:9);   % reset INS acc bias
-	theta_ins = theta_ins + delta_x_hat(10:12); % reset INS attitude
-	b_ars_ins = b_ars_ins + delta_x_hat(13:15); % reset INS ars bias   
+	p_ins = p_ins + delta_x_hat(1:3);           % Reset INS position
+	v_ins = v_ins + delta_x_hat(4:6);           % Reset INS velocity
+	b_acc_ins = b_acc_ins + delta_x_hat(7:9);   % Reset INS ACC bias
+	theta_ins = theta_ins + delta_x_hat(10:12); % Reset INS attitude
+	b_ars_ins = b_ars_ins + delta_x_hat(13:15); % Reset INS ARS bias   
     
 end
 
@@ -122,9 +135,9 @@ end
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % INS propagation: x_ins[k+1]
-a_ins = R * (f_imu - b_acc_ins) + g_n;               % linear acceleration
-p_ins = p_ins + h * v_ins + h^2/2 * a_ins;           % exact discretization
-v_ins = v_ins + h * a_ins;                           % exact discretization
+a_ins = R * (f_imu - b_acc_ins) + g_n;               % Linear acceleration
+p_ins = p_ins + h * v_ins + h^2/2 * a_ins;           % Exact discretization
+v_ins = v_ins + h * a_ins;                           % Exact discretization
 theta_ins = theta_ins + h * T * (w_imu - b_ars_ins); % Euler's method
 
 x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
