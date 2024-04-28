@@ -1,6 +1,6 @@
 function [x_ins, P_prd] = ins_mekf(...
    x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos, y_vel)
-% ins_mekf_psi is compatible with MATLAB and GNU Octave (www.octave.org).
+% ins_mekf is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) specifically for Inertial Navigation Systems (INS) that are 
 % aided by magnetometer and positional data. Attitude is parametrized using 
@@ -19,7 +19,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos, y_vel)
 %
 %   - Without new measurements (no aiding):
-%      [x_ins,P_prd] = ins_mekf_psi(...
+%      [x_ins,P_prd] = ins_mekf(...
 %         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref)
 %
 % This function models the INS errors in a 15-dimensional state space, 
