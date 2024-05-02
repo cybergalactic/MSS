@@ -1,35 +1,45 @@
-function [tau_w,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M)
-% [tau_w,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M) returns the the wind 
-% force/moment vector w_wind = [tauX,tauY,tauN] and the optionally wind coeffisients
-% cx,cy and cn for merchant ships using the formulas of Isherwood (1972). 
+function [tau_w, CX, CY, CN] = isherwood72(...
+    gamma_r, V_r, Loa, B, ALw, AFw, A_SS, S, C, M)
+% [tau_w,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M) 
+% returns the the wind force/moment vector tau_w = [tauX, tauY, tauN] 
+% and the optionally wind coeffisients CX, CY, and CN for merchant ships 
+% using the formulas of Isherwood (1972). 
 %
 % INPUTS:
-% gamma_r = relative wind angle (rad)
-% V_r     = relative wind speed (m/s)
-% Loa     = length overall (m)
-% B	      = beam (m)
-% ALw     = lateral projected area (m^2)
-% AFw     = frontal projected area (m^2)
-% A_SS    = lateral projected area of superstructure (m^2)
-% S	      = length of perimeter of lateral projection of model (m)
-% 		    excluding waterline and slender bodies such as masts and ventilators (m)
-% C	      = distance from bow of centroid of lateral projected area (m)
-% M	      = number of distinct groups of masts or king posts seen in lateral
-% 		    projection; king posts close against the bridge front are not included
+% gamma_r : Relative wind angle (rad)
+% V_r     : Relative wind speed (m/s)
+% Loa     : Length overall (m)
+% B	      : Beam (m)
+% ALw     : Lateral projected area (m^2)
+% AFw     : Frontal projected area (m^2)
+% A_SS    : Lateral projected area of superstructure (m^2)
+% S	      : Length of perimeter of lateral projection of model (m) excluding
+% 		    waterline and slender bodies such as masts and ventilators (m)
+% C	      : Distance from bow of centroid of lateral projected area (m)
+% M	      : Number of distinct groups of masts or king posts seen in lateral
+% 		    projection; king posts close against the bridge front are not
+%           included
+%
+% References:
+%
+%   R. M. Isherwood (1972). Wind Resistance of Merchant Ships. 
+%    RINA Transcripts 115, 327–338.
+%
+% See also: blendermann94 and ExWindForce
 %
 % Author:    Thor I. Fossen
-% Date:      10th September 2001
-% Revisions: 19.04.2004, changed velocity from knots to m/s. This was a bug
-%            20.11.2008, changed name from windcoef to isherwood72, updated
-%                        signs and notation to comply with Blendermann (1994).
+% Date:      2001-09-10
+% Revisions: 2004-04.19 - Bugfix. Changed velocity from knots to m/s. 
+%            2008-11-20 - Changed name from windcoef to isherwood72, updated
+%                         signs and notation to comply with Blendermann (1994).
 
 if nargin~=10, error('the number of inputs must be 10');end
 
-% conversions and constants
-rho_a = 1.224;             % density of air at 20 C
-gamma_r = gamma_r*180/pi;  % rad2deg
+% Conversions and constants
+rho_a = 1.224;                          % Density of air at 20 C
+gamma_r = rad2deg(gamma_r);  
 
-% CX_data = [gamma_r 	A0	A1	A2	A3	A4	A5	A6	]
+% CX_data = [gamma_r(deg) A0 A1	A2	A3	A4	A5	A6	] 
 CX_data= [...  
 0	2.152	-5.00	0.243	-0.164	0	    0       0	
 10	1.714	-3.33	0.145	-0.121	0 	    0	    0	
@@ -51,7 +61,7 @@ CX_data= [...
 170	-2.707	3.97	-0.175	0.126	0	    1.81	0	
 180	-2.529	3.76	-0.174	0.128	0    	1.55	0	      ];
 
-% CY_data = [gamma_r B0	B1	B2	B3	B4	B5	B6]
+% CY_data = [gamma_r(deg) B0 B1	B2	B3	B4	B5	B6]
 CY_data = [...
 0   0       0       0       0       0       0       0       
 10	0.096	0.22	0	    0	    0   	0       0   	
@@ -73,7 +83,7 @@ CY_data = [...
 170	0.125	0	    0.046	-0.012	0	    0	    0	    
 180 0       0       0       0       0       0       0     ];
 
-% CN_data = [gamma_r C0	C1	C2	C3	C4	C5]
+% CN_data = [gamma_r(deg) C0 C1	C2	C3	C4	C5]
 CN_data = [...
 0   0       0       0       0       0       0       
 10	0.0596	0.061	0	    0	    0	    -0.074	
@@ -96,7 +106,7 @@ CN_data = [...
 180 0       0       0       0       0       0       ];
 
                         
-% interpolate in the tables		
+% Interpolate in the tables		
 A0 = interp1(CX_data(:,1),CX_data(:,2),gamma_r);
 A1 = interp1(CX_data(:,1),CX_data(:,3),gamma_r);
 A2 = interp1(CX_data(:,1),CX_data(:,4),gamma_r);
@@ -120,14 +130,14 @@ C3 = interp1(CN_data(:,1),CN_data(:,5),gamma_r);
 C4 = interp1(CN_data(:,1),CN_data(:,6),gamma_r);
 C5 = interp1(CN_data(:,1),CN_data(:,7),gamma_r);
 
-% wind coeffisients
+% Wind coeffisients
 CX =  -(A0 + A1*2*ALw/Loa^2 + A2*2*AFw/B^2 + A3*(Loa/B) + A4*(S/Loa) + A5*(C/Loa) + A6*M);
 CY =    B0 + B1*2*ALw/Loa^2 + B2*2*AFw/B^2 + B3*(Loa/B) + B4*(S/Loa) + B5*(C/Loa) + B6*A_SS/ALw;
 CN =    C0 + C1*2*ALw/Loa^2 + C2*2*AFw/B^2 + C3*(Loa/B) + C4*(S/Loa) + C5*(C/Loa);
 
-% wind forces and moment
-tauX = 0.5*CX*rho_a*V_r^2*AFw;
-tauY = 0.5*CY*rho_a*V_r^2*ALw;
-tauN = 0.5*CN*rho_a*V_r^2*ALw*Loa;
+% Wind forces and moment
+tauX = 0.5 * CX * rho_a * V_r^2 * AFw;
+tauY = 0.5 * CY * rho_a * V_r^2 * ALw;
+tauN = 0.5 * CN * rho_a * V_r^2 * ALw * Loa;
 
-tau_w = [tauX,tauY,tauN]';
+tau_w = [tauX, tauY, tauN]';
