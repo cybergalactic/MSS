@@ -83,7 +83,7 @@ grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
-% Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
+% Ship speed, yaw rate, yaw angle, rudder angle, and propeller speed
 figure(2); 
 if ~isoctave(); set(gcf,'Position',[scrSz(3)/2,1,scrSz(3)/2.5,scrSz(4)]);end
 subplot(221),plot(t,r),xlabel('Time (s)')
