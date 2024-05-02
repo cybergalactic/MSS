@@ -46,3 +46,4 @@
 % SIMrig          - Simulate the 6-DOF semisubmersible model under PID 
 %                   control.
 % SIMsupply       - Simulate the linear supply vessel model under DP control.
+% SIMtanker       - Simulate the tanker model under DP control.
