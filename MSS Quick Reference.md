@@ -142,6 +142,7 @@ SIMnavalvessel  % Simulate navalvessel.m under PD control
 SIMremus100     % Simulate remus100.m with autopilots for depth and heading control, and 3-D straight-line path following using ALOS
 SIMrig          % Simulate the 6-DOF semisubmersible model under PID control
 SIMsupply       % Simulate the linear supply vessel model under DP control
+SIMtanker       % Simulate tanker.m under PD control
 ```
 
 ### Utils (m-files)
