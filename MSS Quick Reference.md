@@ -9,7 +9,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 
 ## Table of Contents
 - [Simulink demos](#simulink-demos)
-- [GNC demos (m-files)](#GNC-demos-m-files)
+- [MSS demos (m-files)](#mss-demos-m-files)
 - [Examples (m-files)](#examples-m-files)
 - [Marine craft simulator (m-files)](#marine-craft-simulator-m-files)
   - [Marine craft models](#marine-craft-models)
@@ -18,7 +18,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Modelling](#modelling)
   - [Kinematics](#kinematics)
   - [Environment](#environment)
-  - [Ship maneuvers](#ship-maneuvers)
+  - [Ship maneuvers and visualization](#ship-maneuvers-and-visualization)
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
@@ -51,7 +51,7 @@ demoOtterUSVPathFollowingCourseControl  % Otter USV LOS path-following control u
 demoOtterUSVPathFollowingHeadingControl % Otter USV ILOS and ALOS path-following control using a heading autopilot
 demoPanamaxContainerShip.slx            % Panama container ship simulator
 demoPassiveWavefilterAutopilot1.slx     % Passive wave filter and heading autopilot design using compass measurements only
-demoPassiveWavefilterAutopilot2.slx     % Passive wave filter and heading autopilot design using compass and yaw rate measurements
+demoPassiveWavefilterAutopilot2.slx     % Passive wave filter and heading autopilot design using a compass and yaw rate measurements
 demoS175WindCurrentAutopilot.slx        % S175 heading autopilot with wind and current loads
 demoSemisubDPsystem.slx                 % Semisubmersible DP system
 demoWaveElevation.slx                   % Computation of wave elevation from wave spectra
@@ -152,8 +152,8 @@ SIMtanker       % Simulate tanker.m under PD control
 ```matlab
 addedMassSurge      % Hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
 coeffLiftDrag       % Hydrodynamic lift and drag coefficients as a function of angle of attack of a submerged "wing profile"
-forceLiftDrag       % Hydrodynamic lift and drag forces as a function of angle of attack of a submerged "wing profile" 
-forceSurgeDamping   % Linear and quadratic damping forces in surge
+forceLiftDrag       % Hydrodynamic lift and drag forces as a function of the angle of attack of a submerged "wing profile" 
+forceSurgeDamping   % Linear and quadratic damping forces in the surge direction
 crossFlowDrag 	    % Crossflow drag computed from strip theory integrals
 Dmtrx               % 6x6 linear damping matrix for marine craft (submerged and floating)
 Gmtrx               % 6x6 system spring stiffness matrix G
@@ -163,7 +163,7 @@ imlay61             % 6x6 hydrodynamic added mass and Coriolis-centripetal matri
 m2c                 % 6x6 Coriolis-centripetal matrix C(nu) from system inertia matrix M
 rbody               % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
 spheroid            % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
-thrConfig           % 3xr thruster configuration matrix for main propellers, tunnel thrusters and azimuth thrusters
+thrConfig           % 3xr thruster configuration matrix for main propellers, tunnel thrusters, and azimuth thrusters
 wageningen          % Thrust and torque coefficients of the Wageningen B-series propellers 
 ```
 
@@ -206,7 +206,7 @@ ww2we               % Function used to transform a vector of wave frequencies to
 ## Ship maneuvers and visualization
 
 ```matlab
-animateShip         % Animates a viking ship moving along a specified path on a North-East (y-x) plot
+animateShip         % Animates a Viking ship moving along a specified path on a North-East (y-x) plot
 pullout             % Ship pullout maneuver
 turncircle          % Ship turning circle
 zigzag              % Zigzag maneuver for 3-DOF models
@@ -247,9 +247,9 @@ ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
 ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
 crosstrack           % Computes the path-tangential origin and cross-track error for a target
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
-crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite splines defined by waypoints
+crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
-hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoints
+hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
 LOSchi               % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
 LOSobserver          % Estimates the desired LOS angle and LOS rate from a LOS guidance law command
@@ -265,11 +265,19 @@ refModel             % Third-order reference model for position, velocity and ac
 acc2rollpitch        % Static roll and pitch angles from the specific force
 EKF_5states          % Estimation of SOG, COG, and course rate from NED positions or latitude-longitude
 gravity              % Acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
+insSignal            % Basic INS signal generator
+```
+
+INS error-state Kalman filters (ESKF)
+```matlab
 ins_ahrs             % Error-state Kalman filter (ESKF) for INS aided by position and AHRS measurements 
 ins_euler            % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
 ins_mekf             % Error-state Kalman filter (ESKF) for INS aided by position and magnetic field measurements
 ins_mekf_psi         % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
-insSignal            % Basic INS signal generator
+```
+
+INS time-series simulation
+```matlab
 SIMaidedINSeuler     % Simulate the ESKF for aided INS using Euler angles
 SIMaidedINSquat      % Simulate the ESKF for aided INS using unit quaternions (MEKF representation)
 ```
@@ -328,8 +336,8 @@ After loading the data files to the workspace using the Matlab command load, the
 |     motionRAO: [1×1 struct]      | k66: radius of gyration | r_g: [x_g y_g z_g] | 
 |      forceRAO: [1×1 struct]      | g: acceleration of gravity | 
 |      driftfrc: [1×1 struct]      | nabla: volume displacement | 
-|            Bv: [6×6×60 double]   | CB: center of buyoancy |
-|                                  | GM_T: tranverse metacentric height |
+|            Bv: [6×6×60 double]   | CB: center of buoyancy |
+|                                  | GM_T: transverse metacentric height |
 |                                  | GM_L: longitudinal metacentric height |
 |                                  | CG: center of gravity | |
 
@@ -351,12 +359,12 @@ plotWD              % Plots the wave drift amplitudes
 ### Demos
 ```matlab
 Demo_FDIRadMod_NA     % FDI using hydrodynamic data without infinite-frequency added mass
-Demo_FDIRadMod_WA     % FDI using hydrodynamic data including infinite-frequency added mass
+Demo_FDIRadMod_WA     % FDI using hydrodynamic data, including infinite-frequency added mass
 ```
 
 ### Utils
 ```matlab
-EditAB                 % Function preparing the data for identification, select frequency range and remove wild-points
+EditAB                 % Function preparing the data for identification, selecting frequency range, and removing wild-points
 FDIRadMod              % Identify the SISO transfer function corresponding to the coupling specified
 fit_siso_fresp         % Fit a continuous SISO transfer function to the frequency response data
 ident_retardation_FD   % Identification of a parametric radiation convolution model K(s) = P(s)/Q(s)
