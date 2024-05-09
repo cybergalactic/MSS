@@ -141,6 +141,7 @@ end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
+legendSize = 12;
 
 t     = simdata(:,1);           
 x     = simdata(:,2:16); 
@@ -156,7 +157,7 @@ t_m = ydata(:,1);              % Slow position measurements
 y_m = ydata(:,2:4);
 
 figure(1); 
-if ~isoctave;set(gcf,'Position',[1,1,0.4*scrSz(3),scrSz(4)]);end
+if ~isoctave; set(gcf,'Position',[1,1,0.4*scrSz(3),scrSz(4)]); end
 
 subplot(311)
 h1 = plot(t_m,y_m,'xr'); hold on;
@@ -181,7 +182,7 @@ legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 figure(2); 
 if ~isoctave;set(gcf,'Position',[0.4*scrSz(3),1,0.4*scrSz(3),scrSz(4)]);end
@@ -202,7 +203,7 @@ legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 
 %% DISPLAY METHOD AND FLAGS
