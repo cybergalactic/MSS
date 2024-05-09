@@ -77,7 +77,7 @@ U     = simdata(:,10);
 
 % North-East positions
 figure(1); 
-    set(gcf, 'Position', [1, 1, 0.5*scrSz(3), scrSz(4)]);
+set(gcf, 'Position', [1, 1, 0.5*scrSz(3), scrSz(4)]);
 plot(y,x)
 grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
 set(findall(gcf,'type','line'),'linewidth',2)
@@ -85,7 +85,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 
 % Ship speed, yaw rate, yaw angle, rudder angle, and propeller speed
 figure(2); 
-if ~isoctave(); set(gcf,'Position',[scrSz(3)/2,1,scrSz(3)/2.5,scrSz(4)]);end
+if ~isoctave; set(gcf,'Position',[scrSz(3)/2,1,scrSz(3)/2.5,scrSz(4)]); end
 subplot(221),plot(t,r),xlabel('Time (s)')
 title('Yaw rate r (deg/s)'),grid
 subplot(222),plot(t,U),xlabel('Time (s)')
