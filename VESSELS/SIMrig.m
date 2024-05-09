@@ -113,6 +113,8 @@ end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+legendLocation = 'best';
+if isoctave; legendLocation = 'northeast'; end
 
 t     = simdata(:,1);
 x     = simdata(:,2); 
@@ -131,30 +133,31 @@ r     = rad2deg(simdata(:,13));
 figure(1); 
 if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
 subplot(211)
-plot(y,x,'linewidth',2)
-grid,axis('equal')
+plot(y,x)
+axis('equal')
+grid
 xlabel('East')
 ylabel('North')
 title('Semisub xy-plot (m)')
 subplot(212)
-plot(t,x,t,y,'linewidth',2),title('Semisub positions (m)'),
-legend('x position','y position','Location','best')
+plot(t,x,t,y),title('Semisub positions (m)'),
+legend('x position','y position','Location',legendLocation)
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend','Location','best'),'FontSize',14)
+set(findall(gcf,'type','legend','Location',legendLocation),'FontSize',14)
 
 figure(2); figure(gcf)
 subplot(311)
-plot(t,phi,'linewidth',2),xlabel('time (s)')
+plot(t,phi),xlabel('time (s)')
 title('Roll angle \phi (deg)')
 grid
 subplot(312)
-plot(t,theta,'linewidth',2),xlabel('time (s)')
+plot(t,theta),xlabel('time (s)')
 title('Pitch angle \theta (deg)')
 grid
 subplot(313)
-plot(t,psi,'linewidth',2)
+plot(t,psi)
 hold on
 plot( [0, t(end)],-rad2deg([psi_d, psi_d]),'c')
 plot( [0, t(end)], rad2deg([psi_d, psi_d]),'c')
@@ -164,7 +167,7 @@ title('Yaw angle \psi (deg)')
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend','Location','best'),'FontSize',14)
+set(findall(gcf,'type','legend','Location',legendLocation),'FontSize',14)
 
 end
 
