@@ -24,11 +24,13 @@ function animateShip(xPath, yPath, shipSize, lineColor, figNo)
 %   path colored blue and the ship's width being 5% of the plot's width.
 %
 % Dependencies:
-%   Requires the image file 'viking.png' located in the MSS/GNC/utils directory. 
+%   Requires the image file 'viking.png' located in the MSS/GNC/utils 
+%   directory. 
 %
 % Author:    Thor I. Fossen
-% Date:      27 Mar 2024
+% Date:      2024-03-27
 % Revisions: 
+%   2024-05-09 : Use which('viking.png') to find the path in Matlab and Octave.
 %
 % Note: Downsampling is applied if the path contains more than 200 points 
 % to improve performance. The ship is automatically scaled and oriented to 
@@ -37,12 +39,18 @@ function animateShip(xPath, yPath, shipSize, lineColor, figNo)
 persistent shipImgRotated shipAlphaRotated shipHandle
 
 if isempty(shipImgRotated)
-    [shipImg, ~, shipAlpha] = imread('viking.png');  % MSS/GNC/utils/..
-    shipImgRotated = rot90(shipImg, 2); % Rotate if necessary
-    if ~isempty(shipAlpha)
-        shipAlphaRotated = rot90(shipAlpha, 2);
+
+    filePath = which('viking.png');
+    if isempty(filePath)
+        error('The file viking.png not found on the MSS path.');
     else
-        shipAlphaRotated = [];
+        [shipImg, ~, shipAlpha] = imread(filePath);  % MSS/GNC/utils/..
+        shipImgRotated = rot90(shipImg, 2); % Rotate if necessary
+        if ~isempty(shipAlpha)
+            shipAlphaRotated = rot90(shipAlpha, 2);
+        else
+            shipAlphaRotated = [];
+        end
     end
 end
 
