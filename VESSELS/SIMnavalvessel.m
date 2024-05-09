@@ -41,7 +41,7 @@ for i=1:N+1
     psi = x(6) + 0.01 * randn;
     
     % Control system
-    psi_ref = deg2rad(20);                          % desired heading
+    psi_ref = deg2rad(20);                         % desired heading
     tauX = 1e5;                                    % surge command 
     tauN = -Kp * ( ssa(psi - psi_ref) + Td * r );  % PD heading controller
     
@@ -75,20 +75,11 @@ y     = simdata(:,11);
 
 %Plot and animation of the North-East positions
 figure(1)
-if isoctave() % Octave NE-plot
-    plot(y,x,'b')
-    xlabel('East'); ylabel('North');title('North-East plot (m)')
-    grid,axis('equal')
-    set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
-else % Matlab animation
-    shipSize = 0.2;
-    set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
-    animateShip(x,y,shipSize,'b-',1);
-end
+shipSize = 0.2;
+set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
+animateShip(x,y,shipSize,'b-',1);
 
 figure(2)
-if ~isoctave(); set(gcf,'Position',[0.3*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 plot(t,U,'b')
 xlabel('time (s)'),title('Speed U (m/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
@@ -96,7 +87,6 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(3)
-if ~isoctave(); set(gcf,'Position',[0.6*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 subplot(221)
 plot(t,r,'b'),xlabel('time (s)'),title('Yaw rate r (deg/s)'),grid
 subplot(222)
