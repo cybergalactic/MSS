@@ -194,6 +194,7 @@ end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
+legendSize = 12;
 
 % Simulation data structure
 t = simdata(:,1);        % Time vector
@@ -204,10 +205,8 @@ psi_d = simdata(:,15);   % Desired heading
 
 % Plot positions
 figure(1);
-if ~isoctave
-    set(gcf,'Position',[0.6*scrSz(3),0.2*scrSz(4), ...
-        0.5*scrSz(4),0.6*scrSz(4)],'Visible','off');
-end
+set(gcf,'Position',[0.6*scrSz(3),0.2*scrSz(4), ...
+    0.5*scrSz(4),0.6*scrSz(4)],'Visible','off');
 hold on;
 plot(eta(:,2),eta(:,1),'b');  % Plot vehicle position
 
@@ -226,14 +225,12 @@ title('North-East Positions (m)', 'FontSize', 14);
 axis equal;
 grid on;
 set(findall(gcf,'type','line'),'linewidth',2);
-set(findall(gcf,'type','legend'),'FontSize',14);
+set(findall(gcf,'type','legend'),'FontSize',legendSize);
 set(1,'Visible', 'on');  % Show figure
 
 % Plot velocities
 figure(2);
-if ~isoctave
-  set(gcf, 'Position', [1, 1, 0.3*scrSz(3), scrSz(4)]);
-end
+if ~isoctave; set(gcf, 'Position', [1, 1, 0.3*scrSz(3), scrSz(4)]); end
 subplot(611),plot(t,nu(:,1));
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid on;
 subplot(612),plot(t,nu(:,2));
@@ -249,12 +246,12 @@ xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid on;
 legend('r','r_d');
 set(findall(gcf,'type','line'),'linewidth',2);
 set(findall(gcf,'type','text'),'FontSize',14);
-set(findall(gcf,'type','legend'),'FontSize',14);
+set(findall(gcf,'type','legend'),'FontSize',legendSize);
 
 % Plot speed, heave position and Euler angles
 figure(3);
 if ~isoctave
-  set(gcf, 'Position', [0.3*scrSz(3), 1, 0.3*scrSz(3), scrSz(4)]);
+    set(gcf, 'Position', [0.3*scrSz(3), 1, 0.3*scrSz(3), scrSz(4)]); 
 end
 subplot(511),plot(t, sqrt(nu(:,1).^2+nu(:,2).^2));
 title('Speed (m/s)'),grid on;
@@ -269,12 +266,15 @@ xlabel('Time (s)'),title('Yaw angle (deg)'),grid on;
 legend('\psi','\psi_d');
 set(findall(gcf,'type','line'),'linewidth',2);
 set(findall(gcf,'type','text'),'FontSize',14);
-set(findall(gcf,'type','legend'),'FontSize',14);
+set(findall(gcf,'type','legend'),'FontSize',legendSize);
 
 end
 
-%% HELPER FUCNTIONS FOR PLOTTING
+%% HELPER FUNCTIONS FOR PLOTTING
 function plotStraightLinesAndCircles(wayPoints, R_switch)
+    legendLocation = 'best';
+    if isoctave; legendLocation = 'northeast'; end
+    
     % Plot straight lines and circles for straight-line path following
     for idx = 1:length(wayPoints(:,1))-1
         if idx == 1
@@ -294,15 +294,19 @@ function plotStraightLinesAndCircles(wayPoints, R_switch)
     end
 
     legend('Vehicle position','Straight-line path','Circle of acceptance',...
-        'Location','best');
+        'Location',legendLocation);
 end
 
 function plotHermiteSplines(y_path, x_path, wayPoints)
+    legendLocation = 'best';
+    if isoctave; legendLocation = 'northeast'; end
+
     % Plot Hermite spline paths for spline path following
     plot(y_path, x_path, 'r');
     plot(wayPoints(:, 2), wayPoints(:, 1), 'ko',...
         'MarkerFaceColor', 'g', 'MarkerSize',10);
-    legend('Vehicle position','Hermite spline','Waypoints','Location','best');
+    legend('Vehicle position','Hermite spline','Waypoints', ...
+        'Location',legendLocation);
 end
 
 %% DISPLAY CONTROL METHOD
