@@ -151,7 +151,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 figure(3)
-if ~isoctave; set(gcf,'Position',[scrSz(3)/2, 1, scrSz(3)/4, scrSz(4)/2]); end
+if ~isoctave; set(gcf,'Position',[scrSz(3)/2, 1, scrSz(3)/2, scrSz(4)/2]); end
 subplot(321)
 plot(t,n_c(:,1),'r',t,n(:,1),'b',[0 t(end)],...
     [n_max(1) n_max(1)],'k',[0 t(end)],-[n_max(1) n_max(1)],'k')
