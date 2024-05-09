@@ -62,6 +62,8 @@ end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+legendLocation = 'best';
+if isoctave; legendLocation = 'northeast'; end
 
 t1     = simdata1(:,1);
 u1     = simdata1(:,2); 
@@ -90,29 +92,28 @@ U2     = simdata2(:,11);
 
 % North-East positions
 figure(1); 
-    set(gcf, 'Position', [1, 1, 0.5*scrSz(3), scrSz(4)]);
+set(gcf, 'Position', [1, 1, 0.5*scrSz(3), scrSz(4)]);
 plot(y1,x1,'r',y2,x2,'b')
 grid,axis('equal'),xlabel('East'),ylabel('North'),title('Ship position (m)')
-legend('Nonlinear model','Linear model','Location','best')
+legend('Nonlinear model','Linear model','Location',legendLocation)
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
 % Ship speed, yaw rate, yaw angle, roll angle, and rudder angle
 figure(2); 
-if ~isoctave(); set(gcf,'Position',[scrSz(3)/2,1,scrSz(3)/2.5,scrSz(4)]);end
 subplot(221),plot(t1,r1,'r',t2,r2,'b'),xlabel('Time (s)')
 title('Yaw rate r (deg/s)'),grid
-legend('Nonlinear model','Linear model','Location','best')
+legend('Nonlinear model','Linear model','Location',legendLocation)
 subplot(222),plot(t1,phi1,'r',t2,phi2,'b'),xlabel('Time (s)')
 title('Roll angle \phi (deg/s)'),grid
-legend('Nonlinear model','Linear model','Location','best')
+legend('Nonlinear model','Linear model','Location',legendLocation)
 subplot(223),plot(t1,psi1,'r',t2,psi2,'b'),xlabel('Time (s)')
 title('Yaw angle \psi (deg)'),grid
-legend('Nonlinear model','Linear model','Location','best')
+legend('Nonlinear model','Linear model','Location',legendLocation)
 subplot(224),plot(t1,delta1,'r',t2,delta2,'b'),xlabel('Time (s)')
 title('Rudder angle \delta (deg)'),grid
-legend('Nonlinear model','Linear model','Location','best')
+legend('Nonlinear model','Linear model','Location',legendLocation)
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
