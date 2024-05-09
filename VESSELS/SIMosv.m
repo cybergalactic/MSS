@@ -211,6 +211,9 @@ n4 = simdata(:,17);
 a1 = simdata(:,18);             % propeller azimuth angles (rad)
 a2 = simdata(:,19); 
 
+legendLocation = 'best';
+if isoctave; legendLocation = 'northeast'; end
+
 %% Position and Euler angle plots
 figure(2); clf;
 figure(gcf)
@@ -225,7 +228,7 @@ xlabel('time (s)'),title('Roll and pitch angles (deg)'),grid
 legend('Roll angle (deg)','Pitch angle (deg)')
 subplot(313),plot(t,rad2deg(psi))
 xlabel('time (s)'),title('Heading angle (deg)'),grid
-legend('Yaw angle (deg)','Location','best')
+legend('Yaw angle (deg)','Location',legendLocation)
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
@@ -240,7 +243,7 @@ xlabel('time (s)'),title('Linear velocities (m/s)'),grid
 legend('u (m/s)','v (m/s)','w (m/s)')
 subplot(313),plot(t,rad2deg(p),t,rad2deg(q),t,rad2deg(r))
 xlabel('time (s)'),title('Angular velocities (deg/s)'),grid
-legend('p (deg/s)','q (deg/s)','r (deg/s)','Location','best')
+legend('p (deg/s)','q (deg/s)','r (deg/s)','Location',legendLocation)
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
@@ -258,7 +261,7 @@ plot([0,t(end)],[n_max(2),n_max(2)],'k','linewidth',1)
 plot([0,t(end)],[-n_max(2),-n_max(2)],'k','linewidth',1)
 hold off;
 xlabel('time (s)'),title('Bow thrusters (rpm)'),grid
-legend('n_1','n_2','Location','best')
+legend('n_1','n_2','Location',legendLocation)
 
 subplot(312)
 hold on;
@@ -270,7 +273,7 @@ plot([0,t(end)],[n_max(4),n_max(4)],'k','linewidth',1)
 plot([0,t(end)],[-n_max(4),-n_max(4)],'k','linewidth',1)
 hold off;
 xlabel('time (s)'),title('Stern azimuth thrusters (rpm)'),grid
-legend('n_3','n_4','Location','best')
+legend('n_3','n_4','Location',legendLocation)
 
 subplot(313)
 hold on;
@@ -280,7 +283,7 @@ plot([0,t(end)],rad2deg([az_max,az_max]),'k','linewidth',1)
 plot([0,t(end)],rad2deg([-az_max,-az_max]),'k','linewidth',1)
 hold off;
 xlabel('time (s)'),title('Azimuuth angles (deg)'),grid
-legend('\alpha_1','\alpha_2','Location','best')
+legend('\alpha_1','\alpha_2','Location',legendLocation)
 
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
