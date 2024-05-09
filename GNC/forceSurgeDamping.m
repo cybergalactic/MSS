@@ -84,6 +84,9 @@ sigma = exp( -alpha * u_r^2 );
 X = sigma * Xu * u_r + (1 - sigma) * Xuu * abs(u_r) * u_r;
 
 % Plot damping terms when flag = 1
+legendLocation = 'best';
+if isoctave; legendLocation = 'northeast'; end
+
 if (flag == 1)
     u = 0:0.1:u_max+1;
     sigma = exp( -alpha * u.^2 );
@@ -96,7 +99,7 @@ if (flag == 1)
     xlabel('Speed (m(s)')
     ylabel('Force (N)')
     legend('Linear + quadratic damping force (N)',...
-        'Max speed/thrust','Location','best');
+        'Max speed/thrust','Location',legendLocation);
     title('X = sigma * Xu * u + (1 - sigma) * Xuu * abs(u) * u')
     subplot(212)
     u = 0:0.1:3;
@@ -104,7 +107,7 @@ if (flag == 1)
     plot(u,-sigma * Xu,u,-(1 - sigma) .* Xuu .* abs(u),'linewidth',2), grid;
     xlabel('Speed (m(s)')
     legend('Linear damping coefficient: -Xu',...
-        'Quadratic damping term: -Xuu * |u|','Location','best');
+        'Quadratic damping term: -Xuu * |u|','Location',legendLocation);
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
