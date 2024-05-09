@@ -285,6 +285,8 @@ end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
+legendLocation = 'best'; legendSize = 12;
+if isoctave; legendLocation = 'northeast'; end
 
 % simdata = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x']
 t       = simdata(:,1);
@@ -340,7 +342,7 @@ subplot(616),plot(t,(180/pi)*nu(:,6))
 xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 %% Heave position and Euler angles
 figure(2);
@@ -359,7 +361,7 @@ xlabel('Time (s)'),title('Yaw angle (deg)'),grid
 legend('True','Desired')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',16)
+set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 %% Control signals
 figure(3);
@@ -379,17 +381,17 @@ if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,1,scrSz(3)/3,scrSz(4)/2]);end
 subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
 xlabel('Time (s)'),grid
 legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
-    'Location','best')
+    'Location',legendLocation)
 subplot(312),plot(t,nu(:,3),t,wc)
 xlabel('Time (s)'),grid
 legend('Vehicle heave velocity (m/s)','Ocean current heave velcoity (m/s)',...
-    'Location','best')
+    'Location',legendLocation)
 subplot(313),plot(t,rad2deg(betaVc),'r')
 xlabel('Time (s)'),grid
-legend('Ocean current direction (deg)','Location','best')
+legend('Ocean current direction (deg)','Location',legendLocation)
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 %% Sideslip and angle of attack
 if ControlFlag == 3
@@ -401,14 +403,14 @@ if ControlFlag == 3
     title('Angle of attack (deg)')
     xlabel('Time (s)')
     grid
-    legend('\alpha','\alpha_c','\alpha_c estimate','Location','best')
+    legend('\alpha','\alpha_c','\alpha_c estimate','Location',legendLocation)
     subplot(312)
     plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
         t,rad2deg(beta_c_hat),'r')
     title('Sideslip angle (deg)')
     xlabel('Time (s)')
     grid
-    legend('\beta','\beta_c','\beta_c estimate','Location','best')
+    legend('\beta','\beta_c','\beta_c estimate','Location',legendLocation)
     subplot(313)
     plot(t,y_e,t,z_e)
     title('Tracking errors (m)'),grid
@@ -416,7 +418,7 @@ if ControlFlag == 3
     legend('Cross-track error y_e^p','Vertical-track error z_e^p')
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
-    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',legendSize)
 end
 
 %% 2-D position plots with waypoints
@@ -445,10 +447,10 @@ if ControlFlag == 3
     ylabel('Down');
     title('Down-East plot (m)');
     grid on;
-    legend('Actual path', 'Waypoints', 'Location', 'best');
+    legend('Actual path', 'Waypoints', 'Location', legendLocation);
     set(findall(gcf, 'type', 'line'), 'LineWidth', 2);
     set(findall(gcf, 'type', 'text'), 'FontSize', 14);
-    set(findall(gcf, 'type', 'legend'), 'FontSize', 14);
+    set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
 end
 
 %% 3-D position plot with waypoints
@@ -460,11 +462,11 @@ if ControlFlag == 3
     hold off
     title('North-East-Down plot (m)')
     xlabel('East'); ylabel('North'); zlabel('Down');
-    legend('Actual path','Waypoints','Location','best'),grid
+    legend('Actual path','Waypoints','Location',legendLocation),grid
     set(gca, 'ZDir', 'reverse');
     set(findall(gcf,'type','line'),'linewidth',2)
     set(findall(gcf,'type','text'),'FontSize',14)
-    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',legendSize)
     view(-25, 30);  % view(AZ,EL)
 end
 
@@ -522,7 +524,7 @@ else
 end
 disp(' ')
 if (ControlFlag == 1)
-    disp('Heading autopilot: PID poleplacement control');
+    disp('Heading autopilot: PID pole-placement control');
     disp('Depth autopilot:   Successive-loop closure');
 elseif (ControlFlag == 2)
     disp('Heading autopilot: Integral sliding mode control (SMC)');
