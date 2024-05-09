@@ -88,23 +88,12 @@ U     = sqrt(u.^2 + v.^2);
 
 % Plot and animation of the North-East positions
 figure(1)
-if isoctave() 
-    % Octave NE-plot
-    plot(y,x,'b')
-    xlabel('East'); ylabel('North');title('North-East plot (m)')
-    grid,axis('equal')
-    set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
-else 
-    % Matlab animation
-    shipSize = 0.5;
-    set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
-    animateShip(x,y,shipSize,'b-',1);
-end
+shipSize = 0.5;
+set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
+animateShip(x,y,shipSize,'b-',1);
 
 % Ship speed and yaw angle
 figure(2);
-if ~isoctave(); set(gcf,'Position',[0.4*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 subplot(211)
 plot(t,U)
 xlabel('Time (s)'),title('Ship speed (m/s)'),grid
