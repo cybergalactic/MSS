@@ -475,45 +475,41 @@ end
 %% FUNCTIONS
 function [ControlFlag, KinematicsFlag] = controlMethod()
 
-if isoctave()  % Octave command line inputs
+f = figure('Position', [400, 400, 400, 400], 'Name', 'Control Method and Kinematic Representation', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
 
-    disp('Select Control Method:');
-    disp('  1. PID pole-placement control');
-    disp('  2. Integral sliding mode control (SMC)');
-    disp('  3. ALOS guidance law for 3-D path following');
-    ControlFlag = input('Enter choice (1-3): ');
-    disp(' ');
-    disp('Select Kinematics Representation:');
-    disp('  1. Euler angles');
-    disp('  2. Unit quaternions');
-    KinematicsFlag = input('Enter choice (1-2): ');
+% Add button group for control methods
+bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.6 0.96 0.3], 'Title', 'Control Methods','FontSize',14,'FontWeight','bold');
+radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'PID pole-placement control', 'Position', [10 70 500 30], 'Tag', '1');
+radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Integral sliding mode control (SMC)', 'Position', [10 40 500 30], 'Tag', '2');
+radio3 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'ALOS guidance law for 3-D path following', 'Position', [10 10 500 30], 'Tag', '3');
 
-else % Matlab GUI
+% Add button group for kinematics options
+bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.3 0.96 0.25], 'Title', 'Kinematics Representation','FontSize',14,'FontWeight','bold');
+radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Euler angles', 'Position', [10 45 500 30], 'Tag', '1');
+radio5 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Unit quaternions', 'Position', [10 15 500 30], 'Tag', '2');
 
-    f = figure('Position', [400, 400, 400, 400], 'Name', 'Control Method and Kinematic Representation', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
+% Add OK button to confirm selections
+uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 13, 'Position', [20 50 100 40], 'Callback', @(src, evt) uiresume(f));
 
-    % Add button group for control methods
-    bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.6 0.96 0.3], 'Title', 'Control Methods','FontSize',14,'FontWeight','bold');
-    uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'PID pole-placement control', 'Position', [10 70 500 30], 'Tag', '1');
-    uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Integral sliding mode control (SMC)', 'Position', [10 40 500 30], 'Tag', '2');
-    uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'ALOS guidance law for 3-D path following', 'Position', [10 10 500 30], 'Tag', '3');
+uiwait(f); % wait for uiresume to be called on figure handle
 
-    % Add button group for kinematics options
-    bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.3 0.96 0.25], 'Title', 'Kinematics Representation','FontSize',14,'FontWeight','bold');
-    uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Euler angles', 'Position', [10 45 500 30], 'Tag', '1');
-    uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Unit quaternions', 'Position', [10 15 500 30], 'Tag', '2');
-
-    % Add OK button to confirm selections
-    uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 13, 'Position', [20 50 100 40], 'Callback', @(src, evt) uiresume(f));
-
-    uiwait(f); % wait for uiresume to be called on figure handle
-
-    ControlFlag = str2double(bg1.SelectedObject.Tag);
-    KinematicsFlag = str2double(bg2.SelectedObject.Tag);
-
-    close(f);  % close the figure after obtaining the selections
-
+% Determine which control method was selected
+if get(radio1, 'Value') == 1
+    ControlFlag = str2double(get(radio1, 'Tag'));
+elseif get(radio2, 'Value') == 1
+    ControlFlag = str2double(get(radio2, 'Tag'));
+else
+    ControlFlag = str2double(get(radio3, 'Tag'));
 end
+
+% Determine which kinematics option was selected
+if get(radio4, 'Value') == 1
+    KinematicsFlag = str2double(get(radio4, 'Tag'));
+else
+    KinematicsFlag = str2double(get(radio5, 'Tag'));
+end
+
+close(f);  % close the figure after obtaining the selections
 
 disp('-------------------------------------------------------------');
 disp('MSS toolbox: Remus 100 AUV (Length = 1.6 m, Diameter = 19 cm)');
