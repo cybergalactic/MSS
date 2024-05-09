@@ -209,43 +209,38 @@ set(findall(gcf,'type','legend'),'FontSize',legendSize)
 %% DISPLAY METHOD AND FLAGS
 function [attitudeFlag, velFlag] = displayMethod()
 
-if isoctave()  % Octave command line inputs
-
-    disp('Compass Aiding:');
-    disp('  1. Compass');
-    disp('  2. Magnetometer');
-    attitudeFlag = input('Enter choice (1-2): ');
-    disp(' ');
-    disp('Velocity Aiding:');
-    disp('  1. No velocity aiding');
-    disp('  2. Velocity aiding');
-    velFlag = input('Enter choice (1-2): ');
-
-else % Matlab GUI
-
     f = figure('Position', [400, 400, 400, 300], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
 
     % Add button group for control methods
     bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.65 0.96 0.3], 'Title', 'Compass Aiding','FontSize',14,'FontWeight','bold');
-    uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Compass', 'Position', [10 40 500 30], 'Tag', '1');
-    uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Magnetometer', 'Position', [10 10 500 30], 'Tag', '2');
+    radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Compass', 'Position', [10 40 500 30], 'Tag', '1');
+    radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Magnetometer', 'Position', [10 10 500 30], 'Tag', '2');
 
     % Add button group for velocity aiding options
     bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.35 0.96 0.3], 'Title', 'Velocity Aiding','FontSize',14,'FontWeight','bold');
-    uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'No Velocity Aiding', 'Position', [10 35 500 30], 'Tag', '1');
-    uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Velocity Aiding', 'Position', [10 5 500 30], 'Tag', '2');
+    radio3 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'No Velocity Aiding', 'Position', [10 35 500 30], 'Tag', '1');
+    radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Velocity Aiding', 'Position', [10 5 500 30], 'Tag', '2');
 
     % Add OK button to confirm selections
     uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 13, 'Position', [20 30 100 40], 'Callback', @(src, evt) uiresume(f));
 
     uiwait(f); % wait for uiresume to be called on figure handle
 
-    attitudeFlag = str2double(bg1.SelectedObject.Tag);
-    velFlag = str2double(bg2.SelectedObject.Tag);
+    % Determine which attitude method was selected
+    if get(radio1, 'Value') == 1
+        attitudeFlag = str2double(get(radio1, 'Tag'));
+    else
+        attitudeFlag = str2double(get(radio2, 'Tag'));
+    end
+
+    % Determine if velocity aiding was selected
+    if get(radio3, 'Value') == 1
+        velFlag  = str2double(get(radio3, 'Tag'));
+    else
+        velFlag  = str2double(get(radio4, 'Tag'));
+    end
 
     close(f);  % close the figure after obtaining the selections
-
-end
 
 end
 
