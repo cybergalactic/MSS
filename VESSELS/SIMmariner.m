@@ -74,20 +74,11 @@ U     = simdata(:,9);
 
 % Plot and animation of the North-East positions
 figure(1)
-if isoctave() % Octave NE-plot
-    plot(y,x,'b')
-    xlabel('East'); ylabel('North');title('North-East plot (m)')
-    grid,axis('equal')
-    set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
-else % Matlab animation
-    shipSize = 1.0;
-    set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
-    animateShip(x,y,shipSize,'b-',1);
-end
+shipSize = 1.0;
+set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
+animateShip(x,y,shipSize,'b-',1);
 
 figure(2)
-if ~isoctave(); set(gcf,'Position',[0.4*scrSz(3),1,0.3*scrSz(3),scrSz(4)]);end
 subplot(221)
 plot(t,r)
 xlabel('Time (s)')
