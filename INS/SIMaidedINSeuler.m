@@ -145,7 +145,6 @@ for i=1:N+1
 
 end
 
-
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 12;
@@ -206,7 +205,7 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% DISPLAY METHOD AND FLAGS
+%% RADIO BUTTONS, FLAGS AND DISPLAY
 function [attitudeFlag, velFlag] = displayMethod()
 
     f = figure('Position', [400, 400, 400, 300], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
@@ -242,23 +241,24 @@ function [attitudeFlag, velFlag] = displayMethod()
 
     close(f);  % close the figure after obtaining the selections
 
-end
-
-%% DISPLAY
-disp('-------------------------------------------------------------------');
-disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
-disp('Attitude parametrization: Euler angles');
-if (velFlag == 1)
-    disp(['INS aided by position at ',num2str(f_pos), ' Hz']);
-else
-    disp(['INS aided by position and velocity at ',num2str(f_pos),' Hz']);
-end
-disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
-if (attitudeFlag == 1)
-    disp(['COMPASS measurements at ',num2str(f_s), ' Hz']);
-else
-    disp(['Three-axis AHRS measurements at ',num2str(f_s), ' Hz']);
-end
-disp('-------------------------------------------------------------------');
+    disp('-------------------------------------------------------------------');
+    disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
+    disp('Attitude parametrization: Euler angles');
+    if (velFlag == 1)
+        disp(['INS aided by position at ',num2str(f_pos), ' Hz']);
+    else
+        disp(['INS aided by position and velocity at ',num2str(f_pos),' Hz']);
+    end
+    disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
+    if (attitudeFlag == 1)
+        disp(['COMPASS measurements at ',num2str(f_s), ' Hz']);
+    else
+        disp(['Three-axis AHRS measurements at ',num2str(f_s), ' Hz']);
+    end
+    disp('-------------------------------------------------------------------');
+    disp('Simulating...');
 
 end
+
+end
+
