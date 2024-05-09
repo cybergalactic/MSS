@@ -95,7 +95,7 @@ r       = rad2deg(simdata(:,3));
 delta   = rad2deg(simdata(:,4));   
 delta_c = rad2deg(simdata(:,5));
 psi_d   = rad2deg(simdata(:,6));
-r_d   = rad2deg(simdata(:,7));
+r_d     = rad2deg(simdata(:,7));
 
 figure(1)
 
