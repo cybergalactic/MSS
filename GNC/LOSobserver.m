@@ -1,21 +1,25 @@
 function [LOSangle, LOSrate] = ...
     LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f, alpha)
-% The LOSobserver function estimates the desired Line-Of-Sight (LOS) angle 
-% and rate from a discerte-time LOS guidance law command, LOScommand[k], 
-% which can be computed using the functions LOSchi.m, LOSpsi.m, ILOSpsi.m, 
-% ALOSpsi.m, etc. The observer propagates the estimate of the LOS angle, 
-% LOSangle_hat[k], according to
+% LOSobserver is compatible with MATLAB and GNU Octave (www.octave.org).
+% This function estimates the desired Line-Of-Sight (LOS) angle and
+% rate from a discrete-time LOS guidance law command, LOScommand[k], which
+% can be computed using the guidance laws LOSchi.m, LOSpsi.m, ILOSpsi.m, 
+% ALOSpsi.m, etc. The observer propagates the estimate of the LOS angle 
+% according to
 %
-%  LOSangle[k+1] = LOSangle[k] + h * ( LOSrate[k] + ...
-%    K_f * ssa( LOScommand[k] - LOSangle[k]) )
+%   LOSangle[k+1] = LOSangle[k] + h * ( LOSrate[k] + ...
+%     K_f * ssa( LOScommand[k] - LOSangle[k]) )
 %
-% where the LOS yaw rate estimate, LOSrate[k], is computed using 
-% numerical differentiation, LOSrate = T_f * s / (T_f * s + 1) * LOSangle
+% where the LOS yaw rate estimate, LOSrate[k], is computed using numerical
+% differentiation, 
+% 
+%   LOSrate = T_f * s / (T_f * s + 1) * LOSangle
+%
 % where T_f is the differentiator time constant. Exact discretization gives 
-% (Fossen 2021, Eqs. B.46-B.47) 
+% the discrete-time model (Fossen 2021, Eqs. B.46-B.47) 
 %
-%  LOSrate[k] = LOSangle[k][k] - xi[k]
-%  xi[k+1] = exp(-h/T_f) * xi[k] + (1 - exp(-h/T_f)) * LOSangle[k]
+%   LOSrate[k] = LOSangle[k][k] - xi[k]
+%   xi[k+1] = exp(-h/T_f) * xi[k] + (1 - exp(-h/T_f)) * LOSangle[k]
 %
 % Inputs:
 %   LOSangle:    Estimate of the desired LOS angle at time k
