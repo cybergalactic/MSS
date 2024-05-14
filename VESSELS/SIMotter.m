@@ -75,7 +75,7 @@ kappa = 0.001;                   % ILOS integral gain
 
 % Additional parameter for straight-line path following
 R_switch = 5;                    % Radius of switching circle
-K_f = 0.3;                       % Yaw rate observer gain
+K_f = 0.3;                       % LOS observer gain
 
 % Initial heading, vehicle points towards next waypoint
 psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
