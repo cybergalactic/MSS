@@ -133,7 +133,7 @@ M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 
 % Additional parameter for straigh-line path following
 R_switch = 5;               % radius of switching circle
-K_f = 0.5;                  % pitch and yaw rate observer gain
+K_f = 0.5;                  % LOS observer gain
 
 %% MAIN SIMULATION LOOP
 simdata = zeros(N+1, length(x) + 11);  % Preallocate table for simulation data
