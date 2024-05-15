@@ -67,6 +67,8 @@ if isempty(k)
     k = 1;              % set first waypoint as the active waypoint
     xk = wpt.pos.x(k);
     yk = wpt.pos.y(k);  
+    fprintf('Active waypoints:\n')
+    fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
 
 end
 
@@ -82,10 +84,6 @@ else                            % else, continue with last bearing
     yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
 
-%% Print active waypoint 
-fprintf('Active waypoint:\n')
-fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
-
 %% Compute the desired course angle w.r.t. North
 pi_h = atan2( (yk_next-yk), (xk_next-xk) );  
 
@@ -99,6 +97,7 @@ if ( (d - x_e < R_switch) && (k < n) )
     k = k + 1;
     xk = xk_next;       % update active waypoint
     yk = yk_next; 
+    fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
 end
 
 % LOS guidance law
