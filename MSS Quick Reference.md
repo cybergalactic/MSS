@@ -39,23 +39,24 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 ## Simulink demos
 
 ```matlab
-demoAUVdepthHeadingControl.slx          % Simultaneously heading and depth control of the Remus 100 AUV
-demoCS2passiveObserverDP.slx            % Passive observer with wave filtering and nonlinear PID control for the CyberShip2 model ship
-demoDPThrusterModels.slx                % Supply vessel with azimuth thrusters
-demoDSRVdepthControl.slx                % Depth control of DSRV
-demoKalmanWavefilterAutop.slx           % Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
-demoNavalVesselMano.slx                 % Zigzag test for the naval ship Mano  
-demoNPSAUV.slx                          % NPS AUV heading control system
-demoOtterUSVHeadingControl.slx	        % Otter USV heading control system
-demoOtterUSVPathFollowingCourseControl  % Otter USV LOS path-following control using a course autopilot
-demoOtterUSVPathFollowingHeadingControl % Otter USV ILOS and ALOS path-following control using a heading autopilot
-demoPanamaxContainerShip.slx            % Panama container ship simulator
-demoPassiveWavefilterAutopilot1.slx     % Passive wave filter and heading autopilot design using compass measurements only
-demoPassiveWavefilterAutopilot2.slx     % Passive wave filter and heading autopilot design using a compass and yaw rate measurements
-demoS175WindCurrentAutopilot.slx        % S175 heading autopilot with wind and current loads
-demoSemisubDPsystem.slx                 % Semisubmersible DP system
-demoWaveElevation.slx                   % Computation of wave elevation from wave spectra
-demoWaypointGuidance.slx                % Waypoint guidance system
+demoAUVdepthHeadingControl.slx            % Simultaneously heading and depth control of the Remus 100 AUV
+demoCS2passiveObserverDP.slx              % Passive observer with wave filtering and nonlinear PID control for the CyberShip2 model ship
+demoDPThrusterModels.slx                  % Supply vessel with azimuth thrusters
+demoDSRVdepthControl.slx                  % DSRV depth control system
+demoKalmanWavefilterAutop.slx             % Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
+demoMarinerPathFollowingCourseControl.slx % Mariner class vessel LOS path-following control using a course autopilot
+demoNavalVesselMano.slx                   % Zigzag test for the naval ship Mano  
+demoNPSAUV.slx                            % NPS AUV heading control system
+demoOtterUSVHeadingControl.slx	          % Otter USV heading control system
+demoOtterUSVPathFollowingCourseControl    % Otter USV LOS path-following control using a course autopilot
+demoOtterUSVPathFollowingHeadingControl   % Otter USV ILOS and ALOS path-following control using a heading autopilot
+demoPanamaxContainerShip.slx              % Panama container ship simulator
+demoPassiveWavefilterAutopilot1.slx       % Passive wave filter and heading autopilot design using compass measurements only
+demoPassiveWavefilterAutopilot2.slx       % Passive wave filter and heading autopilot design using a compass and yaw rate measurements
+demoS175WindCurrentAutopilot.slx          % S175 heading autopilot with wind and current loads
+demoSemisubDPsystem.slx                   % Semisubmersible DP system
+demoWaveElevation.slx                     % Computation of wave elevation from wave spectra
+demoWaypointGuidance.slx                  % Waypoint guidance system
 ```
 
 ## MSS demos (m-files)
