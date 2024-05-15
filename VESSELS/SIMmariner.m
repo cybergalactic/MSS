@@ -5,7 +5,7 @@ function SIMmariner()
 % strategy to maintain heading and demonstrates the vessel’s  response 
 % visually through an animation of its trajectory in the North-East 
 % coordinate plane. An extension to waypoint path-following control using 
-% a course autopilot fpr turning is included in Simulink demo library.
+% a course autopilot for turning is included in Simulink demo library.
 %
 % Dependencies:
 %   mariner.m - Vessel dynamics.  
