@@ -1,14 +1,17 @@
 function SIMmariner()
 % SIMmariner is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the dynamic behavior of a mariner class vessel 
-% under PID heading control. This simulation utilizes PID control 
-% strategies to maintain heading and demonstrates the vessel’s  response 
+% under PID heading control. This simulation utilizes a PID control 
+% strategy to maintain heading and demonstrates the vessel’s  response 
 % visually through an animation of its trajectory in the North-East 
-% coordinate plane.
+% coordinate plane. An extension to waypoint path-following control using 
+% a course autopilot fpr turning is included in Simulink demo library.
 %
 % Dependencies:
 %   mariner.m - Vessel dynamics.  
-%   euler2.m  - Euler's integrations method.
+%
+% Simulink Models:
+%   demoMarinerPathFollowingCourseControl.slx
 %
 % Author:     Thor I. Fossen
 % Date:       2018-07-21
@@ -53,7 +56,7 @@ for i=1:N+1
     simdata(i,:) = [time,x',U]; 
     
     % Numerical integration
-    x = euler2(xdot,x,h);                           % Euler's method
+    x = x + h * xdot;                             % Euler's method
     z_psi = z_psi + h * ssa(psi  - psi_ref);
 
 end
