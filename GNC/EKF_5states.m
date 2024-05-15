@@ -4,10 +4,20 @@ function x_hat = EKF_5states(position1, position2,...
 % This function estimates the Speed Over Ground (SOG), Course Over Ground 
 % (COG), and course rate from GNSS positions measurements (xn[k], yn[k]) 
 % expressed in NED or latitude-longitude (mu[k], l[k]) using the 5-state 
-% discrete-time extended Kalamn filter (EKF) of Fossen and Fossen (2021). 
-% The output is the predicted state vector x_hat[k+1], which includes 
-% the positions (x, y), SOG (U), COG (chi), and course rate (omega_chi).
+% discrete-time extended Kalamn filter (EKF). The output is the predicted 
+% state vector x_hat[k+1], which includes the positions (x, y), SOG (U), 
+% COG (chi), and course rate (omega_chi). The EKF discrete-time state-space 
+% model is (Fossen and Fossen 2021)
 %
+%   x[k+1] = x[k] + h * U[k] * cos(chi[k])
+%   y[k+1] = y[k] + h * U[k] * sin(chi[k])
+%   U[k+1] = U[k] + h * ( -alpha_1 * U[k] + w_1[k] )  
+%   chi[k+1] = chi[k] + h * omega_chi[k]
+%   omega_chi[k+1] = omega_chi[k] + h * ( -alpha_2 * omega_chi[k] + w_2[k] ) 
+%
+%   y_1[k] = x[k] + v_1[k]
+%   y_2[k] = y[k] + v_2[k]
+% 
 % Examples:
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd) 
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd, alpha_1, alpha_2) 
@@ -21,7 +31,7 @@ function x_hat = EKF_5states(position1, position2,...
 %  position1, position2: North-East positions (m) or Latitude-Longitude (rad)
 %  h_samp:    EKF sampling time (s), h_samp = 1 / measurement frequency
 %  Z:         h_samp * position measurement frequency (Hz) (must be integer)
-%  frame:     'NED' (North-East) or 'LL' (Latitude-Longitude)
+%  frame:     'NED' (North-East-Down) or 'LL' (Latitude-Longitude)
 %  Qd:        EKF 2x2 process covariance matrix for speed and course rate
 %  Rd:        EKF 2x2 position measurement covariance matrix
 %  alpha_1:   (Optionally), Singer constant, speed
