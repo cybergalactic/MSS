@@ -1,10 +1,10 @@
 function x_hat = EKF_5states(position1, position2,...
-    h_samp, Z, frame, Qd, Rd, alpha_1, alpha_2) 
+    h, Z, frame, Qd, Rd, alpha_1, alpha_2) 
 % EKF_5states is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function estimates the Speed Over Ground (SOG), Course Over Ground 
 % (COG), and course rate from GNSS positions measurements (xn[k], yn[k]) 
 % expressed in NED or latitude-longitude (mu[k], l[k]) using the 5-state 
-% discrete-time extended Kalamn filter (EKF). The output is the predicted 
+% discrete-time extended Kalman filter (EKF). The output is the predicted 
 % state vector x_hat[k+1], which includes the positions (x, y), SOG (U), 
 % COG (chi), and course rate (omega_chi). The EKF discrete-time state-space 
 % model is (Fossen and Fossen 2021)
@@ -29,8 +29,8 @@ function x_hat = EKF_5states(position1, position2,...
 %
 % Inputs:
 %  position1, position2: North-East positions (m) or Latitude-Longitude (rad)
-%  h_samp:    EKF sampling time (s), h_samp = 1 / measurement frequency
-%  Z:         h_samp * position measurement frequency (Hz) (must be integer)
+%  h:         Sampling time (s)
+%  Z:         Position measurement frequency (Z times slower) must be integer
 %  frame:     'NED' (North-East-Down) or 'LL' (Latitude-Longitude)
 %  Qd:        EKF 2x2 process covariance matrix for speed and course rate
 %  Rd:        EKF 2x2 position measurement covariance matrix
@@ -78,7 +78,7 @@ end
 
 Cd  = [1 0 0 0 0            
        0 1 0 0 0 ];                                    
-Ed = h_samp * [ 0 0; 0 0; 1 0; 0 0; 0 1 ]; 
+Ed = h * [ 0 0; 0 0; 1 0; 0 0; 0 1 ]; 
 
 if (count == 1)        % update if new measurement
     y  = [ position1        % y1 = x^n    or   y1 = latitude
@@ -105,7 +105,7 @@ if strcmp(frame,'NED')  % x = [ x^n y^n U chi omega_chi ]'
           x_hat(5)
          -alpha_2 * x_hat(5) ];
   
-    Ad = I5 + h_samp * ...
+    Ad = I5 + h * ...
         [ 0 0 cos(x_hat(4)) -x_hat(3)*sin(x_hat(4)) 0 
           0 0 sin(x_hat(4))  x_hat(3)*cos(x_hat(4)) 0 
           0 0 -alpha_1 0 0
@@ -123,7 +123,7 @@ elseif strcmp(frame,'LL')  % x = [ mu l U chi omega_chi ]'
           x_hat(5)
          -alpha_2 * x_hat(5) ];
     
-    Ad = I5 + h_samp * ...
+    Ad = I5 + h * ...
         [ 0 0 (1/Rm)*cos(x_hat(4)) -(1/Rm)*x_hat(3)*sin(x_hat(4)) 0 
           tan(x_hat(1)) / (Rn * cos(x_hat(1))) * x_hat(3) * sin(x_hat(4))...
                 0 (1/(Rn*cos(x_hat(1))))*sin(x_hat(4))...
@@ -134,7 +134,7 @@ elseif strcmp(frame,'LL')  % x = [ mu l U chi omega_chi ]'
 end   
 
 % Predictor (k+1)   
-x_prd = x_hat + h_samp * f;
+x_prd = x_hat + h * f;
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 end
