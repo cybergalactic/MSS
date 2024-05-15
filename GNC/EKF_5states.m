@@ -3,9 +3,10 @@ function x_hat = EKF_5states(position1, position2,...
 % EKF_5states is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function estimates the Speed Over Ground (SOG), Course Over Ground 
 % (COG), and course rate from GNSS positions measurements (xn[k], yn[k]) 
-% expressed in NED or latitude-longitude (mu[k], l[k]) using a 5-states 
-% discrete-time extended Kalamn filter (EKF). The output is the predicted 
-% state vector x_hat[k+1] as defined below.
+% expressed in NED or latitude-longitude (mu[k], l[k]) using the 5-state 
+% discrete-time extended Kalamn filter (EKF) of Fossen and Fossen (2021). 
+% The output is the predicted state vector x_hat[k+1], which includes 
+% the positions (x, y), SOG (U), COG (chi), and course rate (omega_chi).
 %
 % Examples:
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd) 
