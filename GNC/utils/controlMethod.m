@@ -20,7 +20,7 @@ buttonHeight = 40;
 buttonSpacing = 10;
 totalHeight = numMethods * (buttonHeight + buttonSpacing) + buttonSpacing;
 figureWidth = 500;
-figureHeight = max(250, totalHeight);  % Ensure minimum height is 250
+figureHeight = max(150, totalHeight);  % Ensure minimum height is 150
 
 % Create the figure window
 f = figure('Name', 'Choose Control Method', 'Position', ...
