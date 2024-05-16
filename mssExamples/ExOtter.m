@@ -1,8 +1,8 @@
 % ExOtter is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the Maritime Robotics Otter Uncrewed Surface 
 % Vehicle (USV), whcih is controlled by two propellers. SOG, COG and 
-% course rate are estimated using an EKF and the course autopilot is based 
-% on a PID pole-placement algrorithm.
+% course rate are estimated using an EKF and the course autopilot is 
+% utilizing a PID pole-placement algrorithm.
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-18
@@ -10,13 +10,13 @@
 %   2021-05-25 Added EKF for COG/SOG/course rate and course autopilot
 
 clearvars;
-clear('EKF_5states');   % clear persistent states in EKF_5states.m
+clear EKF_5states   % clear persistent states in EKF_5states.m
 
 %% Simulation data
 fHz = 50;
-h  = 1/fHz;       % sampling time [s]
-Z = 10;           % GNSS measurement frequency (10 times slower)
-N  = 2000;		  % number of samples
+h  = 1/fHz;         % sampling time [s]
+Z = 10;             % GNSS measurement frequency (10 times slower)
+N  = 2000;		    % number of samples
 
 % Initial values for x = [ u v w p q r x y z phi theta psi ]'
 x = zeros(12,1); x(1) = 1;	   
@@ -31,7 +31,7 @@ T = 1;
 m = 41.4;        % m = T/K
 K = T / m;
 
-wn = 1.5;        % pole placement parameters
+wn = 1.5;        % Pole-placement parameters
 zeta = 1;
 
 Kp = m * wn^2;
@@ -39,15 +39,15 @@ Kd = m * (2*zeta*wn - 1/T);
 Td = Kd/Kp; 
 Ti = 10/wn;
 
-B = 0.0111 * [1 1                   % input matrix
+B = 0.0111 * [1 1                   % Input matrix
               0.395 -0.395 ];
 Binv = inv(B);
 
-z = 0;                              % integral state
+z = 0;                              % Integral state
 
-% Reference model
-wn_d = 0.5;         % natural frequency
-zeta_d = 1.0;       % relative damping factor
+% Reference model specifying the closed-loop dynamics
+wn_d = 0.5;         % Desired natural frequency
+zeta_d = 1.0;       % Desired relative damping factor
 
 chi_d = 0;
 omega_d = 0;
@@ -58,18 +58,18 @@ Tn = 1;                % Propeller time constant
 n = [0 0]';            % n = [ n_left n_right ]'
 
 % Load condition
-mp = 25;               % payload mass (kg), max value 45 kg
-rp = [0 0 -0.35]';     % location of payload (m)
+mp = 25;               % Payload mass (kg), max value 45 kg
+rp = [0 0 -0.35]';     % Location of payload (m)
 
 % Ocean current
-V_c = 0;               % current speed (m/s)
-beta_c = 30 * pi/180;  % current direction (rad)
+V_c = 0;               % Current speed (m/s)
+beta_c = 30 * pi/180;  % Current direction (rad)
 
 %% MAIN LOOP
-simdata = zeros(N+1,20);                   % table for simulation data
+simdata = zeros(N+1,20);                   % Table for simulation data
 
 for i=1:N+1
-   t = (i-1) * h;                          % time (s)   
+   t = (i-1) * h;                          % Time (s)   
    
    % Course angle setpoints
    if ( t < 20 )
@@ -95,7 +95,7 @@ for i=1:N+1
    % Store simulation data in a table   
    simdata(i,:) = [t x' x_hat' n'];    
    
-   % 5-states EKF:  x_hat[k+1] = [x_N, v_N, U, chi, omega]'
+   % 5-state EKF:  x_hat[k+1] = [x_N, v_N, U, chi, omega]'
    x_N = x(7); y_E = x(8);      % GNSS measurements
    x_hat = EKF_5states(x_N,y_E,h,Z,'NED',Qd,Rd);  
       
@@ -115,10 +115,10 @@ eta  = simdata(:,8:13);
 
 u = nu(:,1);
 v = nu(:,2);
-U = sqrt(u.^2 + v.^2);           % speed
-psi = eta(:,6);                  % heading angle
-beta_c = ssa( atan2(v,u) );      % crab angle
-chi = psi + beta_c;              % course angle
+U = sqrt(u.^2 + v.^2);           % Speed
+psi = eta(:,6);                  % Heading angle
+beta_c = ssa( atan2(v,u) );      % Crab angle
+chi = psi + beta_c;              % Course angle
 
 x_hat = simdata(:,14);
 y_hat = simdata(:,15);
