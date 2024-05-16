@@ -18,6 +18,12 @@ function x_hat = EKF_5states(position1, position2,...
 %   y_1[k] = x[k] + v_1[k]
 %   y_2[k] = y[k] + v_2[k]
 % 
+% The script calling EKF_5states.m should include the command: 
+% 
+%   clear LOSchi EKF_5states  
+% 
+% to clear the persistent variables x_prd, P_prd, and count.
+%
 % Examples:
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd) 
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd, alpha_1, alpha_2) 
@@ -30,7 +36,7 @@ function x_hat = EKF_5states(position1, position2,...
 % Inputs:
 %  position1, position2: North-East positions (m) or Latitude-Longitude (rad)
 %  h:         Sampling time (s)
-%  Z:         Position measurement frequency (Z times slower) must be integer
+%  Z:         Position measurement frequency (Z times slower). Must be integer
 %  frame:     'NED' (North-East-Down) or 'LL' (Latitude-Longitude)
 %  Qd:        EKF 2x2 process covariance matrix for speed and course rate
 %  Rd:        EKF 2x2 position measurement covariance matrix
@@ -42,12 +48,14 @@ function x_hat = EKF_5states(position1, position2,...
 %
 % Simulink Models:
 %   demoMarinerPathFollowingCourseControl.slx : Simulink model demonstrating  
-%       path-following course control
+%       path-following course control using straight lines and waypoint 
+%       switching.
 %
-% Reference: S. Fossen and T. I. Fossen (2021). Five-state Extended Kalman 
-% Filter for Estimation of Speed Over Ground (SOG), Course Over Ground (COG) 
-% and Course Rate of Unmanned Surface Vehicles (USVs): Experimental Results. 
-% Sensors 21(23). 
+% References: 
+%   S. Fossen and T. I. Fossen (2021). Five-state Extended Kalman 
+%   Filter for Estimation of Speed Over Ground (SOG), Course Over Ground (COG) 
+%   and Course Rate of Unmanned Surface Vehicles (USVs): Experimental Results. 
+%   Sensors 21(23). 
 %
 % Author:   Thor I. Fossen
 % Date:     2021-07-25 
@@ -80,7 +88,8 @@ Cd  = [1 0 0 0 0
        0 1 0 0 0 ];                                    
 Ed = h * [ 0 0; 0 0; 1 0; 0 0; 0 1 ]; 
 
-if (count == 1)        % update if new measurement
+if (count == 1)   
+    % Correct estimates if new measurement
     y  = [ position1        % y1 = x^n    or   y1 = latitude
            position2 ];     % y2 = y^n    or   y2 = longitude
               
@@ -91,7 +100,8 @@ if (count == 1)        % update if new measurement
     if strcmp(frame,'LL'); eps = ssa(eps); end
     x_hat = x_prd + K * eps; 
     count = Z;            
-else                    % no update
+else                    
+    % Predict/propagate states and covariance if no new measurements
     x_hat = x_prd;
     P_hat = P_prd; 
     count = count - 1;   
