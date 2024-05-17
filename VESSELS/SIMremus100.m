@@ -17,13 +17,13 @@ function SIMremus100()
 %                           and angle wrapping
 %
 % Simulink Models:
-%   demoAUVdepthHeadingControl.slx : Simulink model demonstrating depth 
-%                                    and heading control
+%   demoAUVdepthHeadingControl.slx : Depth and heading control.
 %
 % Reference:
-%   T. I. Fossen & Aguiar, P. (2024). A Uniform Semiglobal Exponential Stable 
-%   Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path Following.
-%   Automatica, 163, 111556. https://doi.org/10.1016/j.automatica.2024.111556
+%   T. I. Fossen & Aguiar, P. (2024). A Uniform Semiglobal Exponential  
+%      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
+%      Following. Automatica, 163, 111556. 
+%      https://doi.org/10.1016/j.automatica.2024.111556
 
 % Author: Thor I. Fossen
 % Date: 2021-06-28
@@ -83,8 +83,8 @@ rangeCheck(n_d, 0, 1525);      % Check if within operational limits
 
 %% CONTROL SYSTEM CONFIGURATION
 % Setup for depth and heading control
-psi_step = deg2rad(-60);       % step change in heading angle (rad)
-z_step = 30;                   % step change in depth, max 100 m
+psi_step = deg2rad(-60);       % Step change in heading angle (rad)
+z_step = 30;                   % Step change in depth, max 100 m
 rangeCheck(z_step,0,100);
 
 % Integral states for autopilots
@@ -113,7 +113,7 @@ r_max = deg2rad(5.0);          % Maximum allowable rate of turn (rad/s)
 % sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
 % delta = (T_yaw*r_r_dot + r_r - K_d*sigma - K_sigma*(sigma/phi_b)) / K_yaw
 lambda = 0.1;
-phi_b = 0.1;                % boundary layer thickness
+phi_b = 0.1;                   % Boundary layer thickness
 
 if ControlFlag == 1% PID control parameters
     K_d = 0.5;                 % Derivative gain for PID controller
