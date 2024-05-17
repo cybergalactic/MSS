@@ -43,8 +43,8 @@ function x_hat = EKF_5states(position1, position2,...
 %  alpha_1:   (Optionally), Singer constant, speed
 %  alpha_2:   (Optionally), Singer constant, course rate
 %
-% See ExOtter.m for a case study using EKF_5states.m to estimate the COG,
-% SOG, and course rate.
+% See ExOtter.m and SIMmariner.m for case studies using EKF_5states.m to 
+% estimate the COG, SOG, and course rate.
 %
 % Simulink Models:
 %   demoMarinerPathFollowingCourseControl.slx : Simulink model demonstrating  
