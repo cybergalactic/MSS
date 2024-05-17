@@ -36,7 +36,13 @@ function [xdot,U] = otter(x,n,mp,rp,V_c,beta_c)
 % Adding a non-zero payload mp will change the steady-state z value since 
 % the payload is added as an external force g_0 in the code.
 %
-% See ExOtter.m and demoOtterUSVHeadingControl.slx
+% M-file Simulators:
+%   SIMotter.m : Script demonstrating 3-D ALOS path-following control.
+%   ExOtter.m  : Example script demonstrating the 5-state EKF for estimation 
+%                of COG, COG and course rate when using a course autopilot.
+% 
+% Simulink Simulators:
+%   demoOtterUSVHeadingControl.slx : 3-D ALOS path-following control.
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
