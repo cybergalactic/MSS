@@ -21,3 +21,6 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 
    to verify that you are using QT.
 4. Select "Edit - Set path - Add directory with subdirectories" and navigate to the unzipped MSS directory. Select "Open - Save - Close".
+5. To get started and find help on using the MSS, type the following command in the command window:
+   
+       >> mssHelp
