@@ -11,9 +11,9 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
 
 ### Installation
 
-- [Matlab](How%20to%20install%20MSS%20for%20MATLAB.md)  
+- [How to install MSS for MATLAB](How%20to%20install%20MSS%20for%20MATLAB.md)  
   You can update an existing path automatically and remove dead links using the command 'mssPath'.
-- [GNU Octave](How%20to%20install%20MSS%20for%20GNU%20Octave.md)  
+- [How to install MSS for GNU Octave](How%20to%20install%20MSS%20for%20GNU%20Octave.md)  
   To update an existing path and remove dead links, the old path in the startup file (https://docs.octave.org/latest/Startup-Files.html) must be deleted before a new path with subfolders is saved under GNU Octave.
 
 ### Get Started
