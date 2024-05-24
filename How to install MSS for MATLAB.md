@@ -1,6 +1,6 @@
 # How to install MSS for MATLAB
 
-The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems(https://www.mathworks.com).
+The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems (https://www.mathworks.com).
 
  Installation
 -
