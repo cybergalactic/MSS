@@ -9,24 +9,12 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
     T. I. Fossen and T. Perez (2004). Marine Systems Simulator (MSS)
     URL: https://github.com/cybergalactic/MSS
 
- Installation
--
-Download the MSS Directory:
-1. Navigate to the GitHub MSS repository and click on the green "Code" button.
-2. Select "Download ZIP" from the dropdown menu.
-3. Unzip the file to a desired location on your computer once the download is complete.
+## Installation
 
-Set Up MATLAB Path:
-1. Open MATLAB.
-2. From the MATLAB menu, choose "Set Path."
-3. Select "Add with Subfolders" and navigate to the unzipped MSS directory. Alternatively, if you are already in the main directory (the top-level folder of the MSS) in MATLAB, you can set the path directly by executing the following command in the MATLAB command window:
-
-       addpath(genpath(pwd))
-       savepath
-
-Later, you can update an existing path automatically, and remove dead links by using the command
-
-    mssPath
+- [Matlab](How to install MSS for MATLAB.md)
+  You can update an existing path automatically and remove dead links by using the command mssPath
+- [GNU Octave](How to install MSS for GNU OCTAVE.md)
+  To update an existing path, the old path in .octaverc must be deleted before a new path with subfolders is saved under GNU Octave.
 
 To get started and find help on using the MSS, type the following command in the MATLAB command window:
 
@@ -50,7 +38,6 @@ Examples and demo files are located under the catalogs:
 The Simulink library is loaded by typing:
 
     mssSimulink  
-
 
  GNC Library
 -
