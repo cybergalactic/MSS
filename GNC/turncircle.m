@@ -33,13 +33,13 @@ for i=1:N+1
 
     time = (i-1)*h;
     
-    if round(abs(x(6))*180/pi)>=90 & store1==1
+    if round(abs(x(6))*180/pi)>=90 && store1==1
         transfer=x(5);   % transfer at 90 deg
         advance =x(4);   % advance at 90 deg
         store1 = 0;
     end
     
-    if round(abs(x(6))*180/pi)>=180 & store2==1
+    if round(abs(x(6))*180/pi)>=180 && store2==1
         tactical=x(5);   % tactical diameter at 180 deg
         store2 = 0;
     end
