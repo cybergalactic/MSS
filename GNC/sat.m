@@ -20,7 +20,7 @@ if x_max < 0
 end
 
 if abs(x) > x_max
-    x = sign(x) * x_max;
+    x = sign(x) .* x_max;
 end
 
 end
