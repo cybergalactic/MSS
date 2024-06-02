@@ -1,34 +1,39 @@
 function [xdot, U, B_delta] = npsauv(x, ui)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, B_delta] = npsauv(x, ui) returns the time derivative of the 
-% state vector: x = [u v w p q r xpos ypos zpos phi theta psi]', speed U 
-% in m/s (optionally) and, input matrix B_delta (optionally) for an 
-% Autnomous Underwater Vehicle (AUV) at the Naval Postgraduate School, 
-% Monterrey. The length of the AUV is 5.3 m and the mass is 5443 kg, while 
-% the state vector is defined by:
+% state vector: x = [u v w p q r xpos ypos zpos phi theta psi
+% delta_r delta_s delta_bp delta_bs n]', speed U in m/s (optionally) and, 
+% input matrix B_delta (optionally) for an Autonomous Underwater Vehicle 
+% (AUV) at the Naval Postgraduate School, Monterrey, USA. The length of the 
+% AUV is 5.3 m and the mass is 5443 kg, while the state vector is defined by:
 %
-%   u:      Surge velocity              (m/s)
-%   v:      Sway velocity               (m/s)
-%   w:      Heave velocity              (m/s)
-%   p:      Roll rate                   (rad/s)
-%   q:      Pitch rate                  (rad/s)
-%   r:      Yaw rate                    (rad/s)
-%   xpos:   Position in x-direction     (m)
-%   ypos:   Position in y-direction     (m)
-%   zpos:   Position in z-direction     (m)
-%   phi:    Roll angle                  (rad)
-%   theta:  Pitch angle                 (rad)
-%   psi:    Yaw angle                   (rad)
+%   u:        Surge velocity              (m/s)
+%   v:        Sway velocity               (m/s)
+%   w:        Heave velocity              (m/s)
+%   p:        Roll rate                   (rad/s)
+%   q:        Pitch rate                  (rad/s)
+%   r:        Yaw rate                    (rad/s)
+%   xpos:     Position in x-direction     (m)
+%   ypos:     Position in y-direction     (m)
+%   zpos:     Position in z-direction     (m)
+%   phi:      Roll angle                  (rad)
+%   theta:    Pitch angle                 (rad)
+%   psi:      Yaw angle                   (rad)
+%   delta_r:  Rudder angle                (rad)
+%   delta_s:  Stern plane                 (rad)
+%   delta_bp: Port bow plane              (rad)
+%   delta_bs: Starboard bow plane         (rad)
+%   n:        Propeller shaft speed       (rpm)
 %
-% Input vector:
+% Input commands:
 %
-%   ui = [ delta_r delta_s delta_bp delta_bs n ]'  
+%   ui = [ delta_r_com delta_s_com delta_bp_com delta_bs_com n_com ]'  
 %
-%   delta_r:    Rudder angle                    (rad)
-%   delta_s:    Stern plane                     (rad)
-%   delta_bp:   Port bow plane                  (rad)
-%   delta_bs:   Starboard bow plane             (rad)
-%   n:          Propeller shaft speed           (rpm)  
+%   delta_r_com:    Rudder angle command          (rad)
+%   delta_s_com:    Stern plane command           (rad)
+%   delta_bp_com:   Port bow plane command        (rad)
+%   delta_bs_com:   Starboard bow plane command   (rad)
+%   n_com:          Propeller shaft speed command (rpm)  
 %
 % M-file Simulators:
 %   SIMnpsauv.m : Script demonstrating 3-D ALOS path-following control.
@@ -46,17 +51,18 @@ function [xdot, U, B_delta] = npsauv(x, ui)
 % Revisions: 
 
 % Check of input and state dimensions
-if (length(x) ~= 12), error('x-vector must have dimension 12!'); end
+if (length(x) ~= 17), error('x-vector must have dimension 17!'); end
 if (length(ui) ~= 5), error('u-vector must have dimension 5!'); end
 
 % Dimensional states
 u   = x(1);  v     = x(2);  w   = x(3);
 p   = x(4);  q     = x(5);  r   = x(6);
 phi = x(10); theta = x(11); psi = x(12);
+u_actual = x(13:17);
 
 U = sqrt(u^2 + v^2 + w^2);  % speed
 
-% Rudder and propeller saturation limits
+% Actuator dynamics and saturation limits
 max_ui = zeros(5,1);
 max_ui(1) = deg2rad(20);   % Max delta_r   (rad)
 max_ui(2) = deg2rad(20);   % Max delta_s   (rad)
@@ -64,14 +70,16 @@ max_ui(3) = deg2rad(20);   % Max delta_bp  (rad)
 max_ui(4) = deg2rad(20);   % Max delta_bs  (rad)
 max_ui(5) = 1500;          % Max propeller speed (rpm)
 
-% Saturation of control inputs
-ui = sat(ui, max_ui);      
+u_actual = sat(u_actual, max_ui);   % Saturation of control inputs 
 
-delta_r  = ui(1);  
-delta_s  = ui(2);
-delta_bp = ui(3);
-delta_bs = ui(4);
-n        = ui(5) / 60 * 2*pi;
+T_actuator = 1.0;          % Unified actuator time constant (seconds)
+udot = (ui - u_actual) / T_actuator;  % Actuator dynamics
+
+delta_r  = u_actual(1);    % Actual control inputs
+delta_s  = u_actual(2);
+delta_bp = u_actual(3);
+delta_bs = u_actual(4);
+n        = u_actual(5) / 60 * 2*pi;
 
 % AUV parameters
 L   = 5.3;    g   = 9.81;
@@ -251,6 +259,7 @@ tau_hydrodynamic = [ X_h Y_h Z_h K_h M_h N_h ]';
 % State derivatives 
 xdot = [ M \ ( tau_control + ...
             tau_hydrodynamic + tau_crossflow + tau_hydrostatic );
-         eulerang(phi,theta,psi) * x(1:6) ];
+         eulerang(phi,theta,psi) * x(1:6) 
+         udot ];
 
 end
