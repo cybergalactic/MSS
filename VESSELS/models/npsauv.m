@@ -1,4 +1,4 @@
-function [xdot, U, M, B_delta] = npsauv(x, ui)
+function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
 % state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
@@ -36,12 +36,19 @@ function [xdot, U, M, B_delta] = npsauv(x, ui)
 %   delta_bs_com:   Starboard bow plane command   (rad)
 %   n_com:          Propeller shaft speed command (rpm)  
 %
+% The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
+% ocean currents
+%
+%    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
+%
 % Example usage:
 %
-%   [~,~,M, B_delta] = npsauv() : Return the 6x6 mass matrix M and 2x4 
-%                                 input matrix B_delta.
-%   [xdot, U] = npsauv(x, ui)   : Return xdot and U.
-%   xdot = npsauv(x, ui)        : Return xdot.
+%   [~,~,M,B_delta] = npsauv() : Return the 6x6 mass matrix M and 2x4 
+%                                input matrix B_delta
+%   [xdot, U] = npsauv(x,ui)   : Return xdot and U, no ocean currents
+%   xdot = npsauv(x,ui)        : Return xdot, no ocean currents
+%   xdot = npsauv(x,ui,Vc,betaVc,alphaVc,w_c) : Return xdot, 3-D currents
+%   xdot = npsauv(x,ui,Vc,betaVc,alphaVc) : Return xdot, horizontal currents
 %
 % M-file Simulators:
 %   SIMnpsauv.m : Script demonstrating MIMO PID heading and deph control
@@ -59,13 +66,10 @@ function [xdot, U, M, B_delta] = npsauv(x, ui)
 % Date:      2024-06-03
 % Revisions: 
 
-% Default values
-if nargin == 0
-    x = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1000]'; 
-    ui = [0 0 0 0 0]'; 
-end
+if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
+if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
+if (nargin == 4), w_c=0; end                   % no vertical ocean currents
 
-% Check of input and state dimensions
 if (length(x) ~= 17), error('x-vector must have dimension 17!'); end
 if (length(ui) ~= 5), error('u-vector must have dimension 5!'); end
 
@@ -75,7 +79,18 @@ p   = x(4);  q     = x(5);  r   = x(6);
 phi = x(10); theta = x(11); psi = x(12);
 u_actual = x(13:17);
 
-U = sqrt(u^2 + v^2 + w^2);  % speed
+% Speed
+U = sqrt(u^2 + v^2 + w^2); 
+
+% Ocean currents expressed in BODY, nu_c = [u_c v_c w_c 0 0 0]'
+u_c = Vc * cos( betaVc - psi );                               
+v_c = Vc * sin( betaVc - psi );   
+
+u_r = u - u_c;                      % Relative velocities
+v_r = v - v_c;
+w_r = w - w_c;
+
+Dnu_c = [ v_c*r -u_c*r 0 0 0 0 ]';    % Time derivative of nu_c
 
 % Actuator dynamics and saturation limits
 max_u = [deg2rad(20); deg2rad(20); deg2rad(20); deg2rad(20); 1500];
@@ -168,23 +183,24 @@ prop  = 0.012 * n / (u + eps_prop);
 Xprop = Cd0 * ( abs(prop) * prop - 1 );
 Ct    = 0.008 * L^2 * abs(prop) * prop / 2;
 Ct1   = 0.008 * L^2 / 2;
-epsilon = -1 + sign(n)/sign(u) * ( sqrt(Ct+1)-1) / (sqrt(Ct1+1)-1 );
+epsilon = -1 + sign(n)/sign(u + eps_prop) * ...
+    ( sqrt(Ct+1)-1 ) / ( sqrt(Ct1+1)-1 + eps_prop );
 
-tau1 = r3 * (Xrdr*u*r*delta_r + (Xqds*delta_s + Xqdb2*delta_bp +...
-             Xqdb2*delta_bs)*u*q) +...
-       r2 * (Xvdr*u*v*delta_r + (Xwds*delta_s + Xwdb2*delta_bs + ...
-             Xwdb2*delta_bp)*u*w + (Xdsds*delta_s^2 + ...
-             + Xdrdr*delta_r^2)*u^2) +...
-       r3 * Xqdsn*u*q*delta_s*epsilon + r2*(Xwdsn*u*w*delta_s +...
-            Xdsdsn*u^2*delta_s^2)*epsilon + r2*u^2*Xprop;
-tau2 = r2 * Ydr*u^2*delta_r;
-tau3 = r2 * u^2*(Zds*delta_s+Zdb2*delta_bs+Zdb2*delta_bp) + ...
-       r3 * Zqn*u*q*epsilon+r2*(Zwn*u*w+Zdsn*u^2*delta_s)*epsilon;
-tau4 = r4 * Kpn*u*p*epsilon+r3*u^3*Kprop + ...
-       r3 * u^2*(Kdb2*delta_bp+Kdb2*delta_bs);
-tau5 = r4 * Mqn*u*q*epsilon+r3*(Mwn*w*u+Mdsn*u^2*delta_s)*epsilon+...
-       r3 * u^2*(Mds*delta_s+Mdb2*delta_bp+Mdb2*delta_bs);
-tau6 = r3 * u^2*Nprop + r3*u^2*Ndr*delta_r;
+tau1 = r3 * (Xrdr*u_r*r*delta_r + (Xqds*delta_s + Xqdb2*delta_bp +...
+             Xqdb2*delta_bs)*u_r*q) +...
+       r2 * (Xvdr*u_r*v_r*delta_r + (Xwds*delta_s + Xwdb2*delta_bs + ...
+             Xwdb2*delta_bp)*u_r*w_r + (Xdsds*delta_s^2 + ...
+             + Xdrdr*delta_r^2)*u_r^2) +...
+       r3 * Xqdsn*u_r*q*delta_s*epsilon + r2*(Xwdsn*u_r*w_r*delta_s +...
+            Xdsdsn*u_r^2*delta_s^2)*epsilon + r2*u_r^2*Xprop;
+tau2 = r2 * Ydr*u_r^2*delta_r;
+tau3 = r2 * u_r^2*(Zds*delta_s+Zdb2*delta_bs+Zdb2*delta_bp) + ...
+       r3 * Zqn*u_r*q*epsilon+r2*(Zwn*u_r*w_r+Zdsn*u_r^2*delta_s)*epsilon;
+tau4 = r4 * Kpn*u_r*p*epsilon+r3*u_r^3*Kprop + ...
+       r3 * u_r^2*(Kdb2*delta_bp+Kdb2*delta_bs);
+tau5 = r4 * Mqn*u_r*q*epsilon+r3*(Mwn*w_r*u_r+Mdsn*u_r^2*delta_s)*epsilon+...
+       r3 * u_r^2*(Mds*delta_s+Mdb2*delta_bp+Mdb2*delta_bs);
+tau6 = r3 * u_r^2*Nprop + r3*u_r^2*Ndr*delta_r;
 
 tau_control = [tau1; tau2; tau3; tau4; tau5; tau6];
 
@@ -210,13 +226,13 @@ Bx = 0.53;              % Average width of submerged body
 Cy = 0; Cz = 0; Cm = 0; Cn = 0;
 for xL = -L/2:dxL:L/2   % Cross-flow drag integrals
 
-    Ucf = sqrt((v + xL * r)^2 + (w - xL * q)^2) + epsilon_drag;
-    drag_term = Cdy * Hx * (v + xL * r)^2 + Cdz * Bx * (w - xL * q)^2;
+    Ucf = sqrt((v_r + xL * r)^2 + (w_r - xL * q)^2) + epsilon_drag;
+    drag_term = Cdy * Hx * (v_r + xL * r)^2 + Cdz * Bx * (w_r - xL * q)^2;
     
-    Cy = Cy + dxL * drag_term * (v + xL * r) / Ucf;
-    Cz = Cz + dxL * drag_term * (w - xL * q) / Ucf;
-    Cm = Cm + dxL * drag_term * (w + xL * q) / Ucf * xL;
-    Cn = Cn + dxL * drag_term * (v + xL * r) / Ucf * xL;
+    Cy = Cy + dxL * drag_term * (v_r + xL * r) / Ucf;
+    Cz = Cz + dxL * drag_term * (w_r - xL * q) / Ucf;
+    Cm = Cm + dxL * drag_term * (w_r + xL * q) / Ucf * xL;
+    Cn = Cn + dxL * drag_term * (v_r + xL * r) / Ucf * xL;
 
 end
 tau_crossflow = (rho/2) * [ 0 -Cy Cz 0 -Cm -Cn]';
@@ -225,38 +241,38 @@ tau_crossflow = (rho/2) * [ 0 -Cy Cz 0 -Cm -Cn]';
 tau_hydrostatic = -gvect(W, B, theta, phi, r_bg, r_bb);
 
 % Hydrodynamic forces and moments
-X_h = r2 * ( Xvv*v^2 + Xww*w^2 ) + ...
-      r3 * ( (m+Xvr)*v*r + (Xwq-m)*w*q + Xvp*v*p ) + ... 
+X_h = r2 * ( Xvv*v_r^2 + Xww*w_r^2 ) + ...
+      r3 * ( (m+Xvr)*v_r*r + (Xwq-m)*w_r*q + Xvp*v_r*p ) + ... 
       r4 * ( (m*xG/L+Xqq)*q^2 + (m*xG/L+Xrr)*r^2 - m*yG/L*p*q + ...
              (Xpr-m*zG/L)*p*r + Xpp*p^2 );
 
-Y_h = r2 * ( Yv*u*v + Yvw*v*w ) + ...
-      r3 * ( Yp*u*p + Yr*u*r +Yvq*v*q + Ywp*w*p + Ywr*w*r ) + ...
+Y_h = r2 * ( Yv*u_r*v_r + Yvw*v_r*w_r ) + ...
+      r3 * ( Yp*u_r*p + Yr*u_r*r +Yvq*v_r*q + Ywp*w_r*p + Ywr*w_r*r ) + ...
       r4 * ( Ypq*p*q + Yqr*q*r) - ...
-      mass * ( u*r -w*p + xG*p*q - yG*(p^2+r^2) + zG*q*r );
+      mass * ( u_r*r - w_r*p + xG*p*q - yG*(p^2+r^2) + zG*q*r );
 
-Z_h = r2 * ( Zw*w*u + Zvv*v^2 ) +...
-      r3 * ( Zq*u*q + Zvp*v*p + Zvr*v*r ) +...
+Z_h = r2 * ( Zw*w_r*u_r + Zvv*v_r^2 ) +...
+      r3 * ( Zq*u_r*q + Zvp*v_r*p + Zvr*v_r*r ) +...
       r4 * ( Zpp*p^2 + Zpr*p*r + Zrr*r^2 ) + ...
-      mass * ( v*p - u*q + xG*p*r + yG*q*r -zG*(p^2+q^2) );
+      mass * ( v_r*p - u_r*q + xG*p*r + yG*q*r -zG*(p^2+q^2) );
 
-K_h = r3 * ( Kv*u*v + Kvw*v*w ) +...
-      r4 * ( Kp*u*p + Kr*u*r + Kvq*v*q + Kwp*w*p + Kwr*w*r ) +...
+K_h = r3 * ( Kv*u_r*v_r + Kvw*v_r*w_r ) +...
+      r4 * ( Kp*u_r*p + Kr*u_r*r + Kvq*v_r*q + Kwp*w_r*p + Kwr*w_r*r ) +...
       r5 * ( Kpq*p*q + Kqr*q*r ) +...
       (Iy-Iz) * q*r - Ixy * p*r - (r^2-q^2) * Iyz + Ixz * p*q - ...
-      mass * ( yG*(v*p-u*q) - zG*(u*r - w*p) );
+      mass * ( yG*(v_r*p-u_r*q) - zG*(u_r*r - w_r*p) );
 
-M_h = r3 * ( Muw*u*w + Mvv*v^2 ) +...
-      r4 * ( Muq*u*q + Mvp*v*p + Mvr*v*r ) +...
+M_h = r3 * ( Muw*u_r*w_r + Mvv*v_r^2 ) +...
+      r4 * ( Muq*u_r*q + Mvp*v_r*p + Mvr*v_r*r ) +...
       r5 * ( Mpp*p^2 + Mpr*p*r + Mrr*r^2 ) - ...
       (Iz-Ix) * p*r + Ixy * q*r - Iyz * p*q - (p^2-r^2) * Ixz + ...
-      mass * ( xG*(v*p-u*q) - zG*(w*q-v*r) );
+      mass * ( xG*(v_r*p-u_r*q) - zG*(w_r*q-v_r*r) );
  
-N_h = r3 * ( Nv*u*v + Nvw*v*w )+...
-      r4 * ( Np*u*p + Nr*u*r + Nvq*v*q + Nwp*w*p + Nwr*w*r )+...
+N_h = r3 * ( Nv*u_r*v_r + Nvw*v_r*w_r )+...
+      r4 * ( Np*u_r*p + Nr*u_r*r + Nvq*v_r*q + Nwp*w_r*p + Nwr*w_r*r )+...
       r5 * ( Npq*p*q + Nqr*q*r ) +...
       (Ix-Iy) * p*q + (p^2-q^2) * Ixy + Iyz * p*r - Ixz * q*r -...
-      mass * ( xG*(u*r-w*p) - yG*(w*q-v*r) );
+      mass * ( xG*(u_r*r-w_r*p) - yG*(w_r*q-v_r*r) );
 
 tau_hydrodynamic = [ X_h Y_h Z_h K_h M_h N_h ]';
 
@@ -264,7 +280,7 @@ tau_hydrodynamic = [ X_h Y_h Z_h K_h M_h N_h ]';
 J = eulerang(phi,theta,psi);
 
 % State derivatives - generalized velocity, position, and actuator states
-xdot = [ M \ ( tau_control + ...
+xdot = [ Dnu_c + M \ ( tau_control + ...
             tau_hydrodynamic + tau_crossflow + tau_hydrostatic );
          J * x(1:6) 
          udot ];
