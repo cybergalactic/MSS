@@ -86,30 +86,26 @@ idx_start = 1;                   % Initial index for Hermite spline
 [w_path, x_path, y_path, dx, dy, pi_h, pp_x, pp_y, N_horizon] = ...
     hermiteSpline(wpt, Umax, h); % Compute Hermite spline for path following
 
-% PID heading autopilot parameters (Nomoto model gains)
-T = 1;                           % Time constant
-m = 41.4;                        % m = T/K
-K = T / m;                       % Nomoto gain
+% Otter USV input matrix
+[~,~,M, B_prop] = otter();
+Binv = inv(B_prop);              % Invert input matrix for control allocation
+
+% PID heading autopilot parameters (Nomoto model: M(6,6) = T/K)
+T = 1;                           % Nomoto time constant
+K = T / M(6,6);                  % Nomoto gain constant
 
 wn = 1.5;                        % Closed-loop natural frequency (rad/s)
 zeta = 1.0;                      % Closed-loop relative damping factor (-)
 
-Kp = m * wn^2;                   % Proportional gain
-Kd = m * (2 * zeta * wn - 1/T);  % Derivative gain
-Td = Kd / Kp;                    % Derivative time constant
-Ti = 10 / wn;                    % Integral time constant
+Kp = M(6,6) * wn^2;                     % Proportional gain
+Kd = M(6,6) * (2 * zeta * wn - 1/T);    % Derivative gain
+Td = Kd / Kp;                           % Derivative time constant
+Ti = 10 / wn;                           % Integral time constant
 
 % Reference model parameters
 wn_d = 1.0;                      % Natural frequency (rad/s)
 zeta_d = 1.0;                    % Relative damping factor (-)
 r_max = deg2rad(10.0);           % Maximum turning rate (rad/s)
-
-% Otter USV input matrix
-y_prop = 0.395;                  % Distance from centerline to propeller (m)
-k_pos = 0.0111;                  % Positive Bollard, one propeller
-B = k_pos * [1 1                 % Input matrix
-             y_prop -y_prop];
-Binv = inv(B);                   % Invert input matrix for control allocation
 
 % Propeller dynamics
 T_n = 0.1;                       % Propeller time constant (s)
