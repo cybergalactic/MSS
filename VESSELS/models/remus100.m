@@ -3,11 +3,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
-% function calls are:
-%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c)  3-D ocean currents
-%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)      horizontal ocean currents
-%   [xdot,U] = remus100(x,ui)                        no ocean currents
-% The function returns the time derivative xdot of the state vector: 
+% function returns the time derivative xdot of the state vector: 
 %   x = [ u v w p q r x y z phi theta psi ]',     alternatively 
 %   x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' 
 % in addition to the speed U in m/s (optionally). The state vector can be 
@@ -45,6 +41,13 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 % 
+% Example usage: 
+% 
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c) : 3-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)     : 2-D ocean currents
+%   [xdot,U] = remus100(x,ui)                       : No ocean currents
+%   xdot     = remus100(x,ui)                       : No ocean currents
+%
 % Author:    Thor I. Fossen
 % Date:      2021-05-27
 % Revisions: 2021-08-24  Ocean currents are now expressed in NED 
@@ -69,8 +72,8 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %           Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
-if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end  % no ocean currents
-if (nargin == 4), w_c = 0; end             % no vertical ocean currents
+if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end  % No ocean currents
+if (nargin == 4), w_c = 0; end             % No vertical ocean currents
 
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 if (length(x) ~= 12 && length(x) ~= 13)
