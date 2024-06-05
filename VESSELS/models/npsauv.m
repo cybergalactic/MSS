@@ -1,11 +1,12 @@
-function [xdot, U, B_delta] = npsauv(x, ui)
+function [xdot, U, M, B_delta] = npsauv(x, ui)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
-% [xdot, U, B_delta] = npsauv(x, ui) returns the time derivative of the 
-% state vector: x = [u v w p q r xpos ypos zpos phi theta psi
-% delta_r delta_s delta_bp delta_bs n]', speed U in m/s (optionally) and, 
-% input matrix B_delta (optionally) for an Autonomous Underwater Vehicle 
-% (AUV) at the Naval Postgraduate School, Monterrey, USA. The length of the 
-% AUV is 5.3 m and the mass is 5443 kg, while the state vector is defined by:
+% [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
+% state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
+% delta_s delta_bp delta_bs n]', speed U in m/s (optionally), the 6x6 mass 
+% matrix M (optionally), and the 2x4 input matrix B_delta (optionally) in 
+% pitch and yaw for an Autonomous Underwater Vehicle (AUV) at the Naval 
+% Postgraduate School (Healey and Lienard (1993). The length of the AUV is 
+% 5.3 m and the mass is  5443 kg, while the state vector is defined by:
 %
 %   u:        Surge velocity              (m/s)
 %   v:        Sway velocity               (m/s)
@@ -35,8 +36,16 @@ function [xdot, U, B_delta] = npsauv(x, ui)
 %   delta_bs_com:   Starboard bow plane command   (rad)
 %   n_com:          Propeller shaft speed command (rpm)  
 %
+% Example usage:
+%
+%   [~,~,M, B_delta] = npsauv() : Return the 6x6 mass matrix M and 2x4 
+%                                 input matrix B_delta.
+%   [xdot, U] = npsauv(x, ui)   : Return xdot and U.
+%   xdot = npsauv(x, ui)        : Return xdot.
+%
 % M-file Simulators:
-%   SIMnpsauv.m : Script demonstrating 3-D ALOS path-following control.
+%   SIMnpsauv.m : Script demonstrating MIMO PID heading and deph control
+%                 as well as 3-D ALOS path-following control.
 %
 % Simulink Simulators:
 %   demoNPSAUV.slx : Simulink model demonstrating PID heading control.
@@ -49,6 +58,12 @@ function [xdot, U, B_delta] = npsauv(x, ui)
 % Author:    Thor I. Fossen
 % Date:      2024-06-03
 % Revisions: 
+
+% Default values
+if nargin == 0
+    x = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1000]'; 
+    ui = [0 0 0 0 0]'; 
+end
 
 % Check of input and state dimensions
 if (length(x) ~= 17), error('x-vector must have dimension 17!'); end
@@ -63,19 +78,12 @@ u_actual = x(13:17);
 U = sqrt(u^2 + v^2 + w^2);  % speed
 
 % Actuator dynamics and saturation limits
-max_ui = zeros(5,1);
-max_ui(1) = deg2rad(20);   % Max delta_r   (rad)
-max_ui(2) = deg2rad(20);   % Max delta_s   (rad)
-max_ui(3) = deg2rad(20);   % Max delta_bp  (rad)
-max_ui(4) = deg2rad(20);   % Max delta_bs  (rad)
-max_ui(5) = 1500;          % Max propeller speed (rpm)
+max_u = [deg2rad(20); deg2rad(20); deg2rad(20); deg2rad(20); 1500];
+u_actual = sat(u_actual, max_u);   % Saturation of control inputs 
+T_actuator = 0.1;                  % Unified actuator time constant in seconds
+udot = (ui-u_actual) / T_actuator; % First-order actuator dynamics
 
-u_actual = sat(u_actual, max_ui);   % Saturation of control inputs 
-
-T_actuator = 1.0;          % Unified actuator time constant (seconds)
-udot = (ui - u_actual) / T_actuator;  % Actuator dynamics
-
-delta_r  = u_actual(1);    % Actual control inputs
+delta_r  = u_actual(1);            % Actual control inputs
 delta_s  = u_actual(2);
 delta_bp = u_actual(3);
 delta_bs = u_actual(4);
@@ -135,7 +143,7 @@ Nvdot =  1.2e-3; Np     = -8.4e-4; Nr    = -1.6e-2; Nvq   = -1.0e-2;
 Nwp   = -1.7e-2; Nwr    =  7.4e-3; Nv    = -7.4e-3; Nvw   = -2.7e-2;
 Ndr   = -1.3e-2; Nprop  =  0;
 
-% Rigid-body and added mass matrices
+% Rigid-body and added mass matrices (Fossen 2021, Chapter 3)
 I_g = [Ix -Ixy -Ixz
        -Ixy Iy -Iyz
        -Ixz -Iyz Iz ];
@@ -178,24 +186,20 @@ tau5 = r4 * Mqn*u*q*epsilon+r3*(Mwn*w*u+Mdsn*u^2*delta_s)*epsilon+...
        r3 * u^2*(Mds*delta_s+Mdb2*delta_bp+Mdb2*delta_bs);
 tau6 = r3 * u^2*Nprop + r3*u^2*Ndr*delta_r;
 
-tau_control = [tau1 tau2 tau3 tau4 tau5 tau6]';
+tau_control = [tau1; tau2; tau3; tau4; tau5; tau6];
 
-% 4-DOF optional input matrix B_delta for the control surfaces in sway, 
-% heave, pitch, and yaw, defined by
-%   tau_control = [ tau1
-%                   B_delta * u_delta + b0(ui) ]
-%   u_delta = [ delta_r delta_s delta_bp delta_bs ]' 
-%   b0 = [ tau1
-%          0
-%          r3 * Zqn * u * q * epsilon + r2 * Zwn * u * w * epsilon
-%          tau4
-%          r4 * Mqn * u * q * epsilon + r3 * Mwn * u * w * epsilon
-%          r3 * u^2 * Nprop ]
-B_delta = u^2 * [
-    r2 * Ydr, 0, 0, 0
-    0, r2 * Zds + r2 * Zdsn * epsilon, r2 * Zdb2, r2 * Zdb2
-    0, r3 * Mdsn * epsilon + r3 * Mds, r3 * Mdb2, r3 * Mdb2
-    r3 * Ndr, 0, 0, 0 ];
+% 2-DOF constant input matrix B_delta for the control surfaces in pitch and 
+% yaw, accessable by: [~,~,M, B_delta] = npsauv()
+if nargin == 0
+    %   [tau5; tau6] = u^2 * B_delta * u_delta + b0
+    %   u_delta = [ delta_r delta_s delta_bp delta_bs ]' 
+    %   b0 = [ r4 * Mqn * u * q * epsilon + r3 * Mwn * u * w * epsilon
+    %          r3 * u^2 * Nprop ]
+    B_delta = [ 0, r3 * Mdsn * epsilon + r3 * Mds, r3 * Mdb2, r3 * Mdb2
+                r3 * Ndr, 0, 0, 0 ];
+else
+    B_delta = [];
+end
 
 % Cross-flow drag assuming a block-shaped body and strip theory
 dxL = L/10;             % Number of sections
@@ -256,10 +260,13 @@ N_h = r3 * ( Nv*u*v + Nvw*v*w )+...
 
 tau_hydrodynamic = [ X_h Y_h Z_h K_h M_h N_h ]';
 
-% State derivatives 
+% Kinematic transformation matrix - Euler angles
+J = eulerang(phi,theta,psi);
+
+% State derivatives - generalized velocity, position, and actuator states
 xdot = [ M \ ( tau_control + ...
             tau_hydrodynamic + tau_crossflow + tau_hydrostatic );
-         eulerang(phi,theta,psi) * x(1:6) 
+         J * x(1:6) 
          udot ];
 
 end
