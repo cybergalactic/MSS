@@ -32,11 +32,7 @@ eta_ref = [ 5 5 psi_ref ]';     % DP setpoint
 wn = diag([0.1, 0.1, 0.2]);     % closed-loop natural frequencies
 zeta = diag([1, 1, 1]);         % closed-loop relative damping ratios
 T_f = 10;                       % setpoint LP-filter time constant
-
-M = 1e9 * [...                  % supply vessel mass matrix
-    0.0068         0         0
-         0    0.0113   -0.0340
-         0   -0.0340    4.4524 ];
+[~,~,M] = supply();             % supply vessel mass matrix
 
 % Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
 %   #1 Bow tunnel thruster (RPM)
