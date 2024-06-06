@@ -1,32 +1,43 @@
-function [xdot, U] = supply(x,tau)
+function [xdot, U, M, D] = supply(x, tau)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
-% [xdot, U] = supply(x,tau) returns the speed and the time derivative 
-% xdot = A*x + B*tau of the state vector: x = [ x y psi u v r ]'  for a 
-% supply vessel length L = 76 m.
+% [xdot, U, M, D] = supply(x, tau) returns the time derivative 
+% xdot = A * x + B * tau of the state vector: x = [ x y psi u v r ]' and 
+% the speed U = sqrt( u^2 + v^2 ) for a supply vessel length L = 76 m. 
+% The 3x3 mass matrix M and 3x3 damping matrix D are optionally outputs, 
+% which can be used for control design.
 %
 % The model is only valid for staionkeeping (dynamic positioning) and 
-% low speed U = sqrt( u^2 + v^2 ).
+% low speed, that is U < 3 m/s. The states are:
 %
-% u:   surge velocity                    (m/s)     
-% v:   sway velocity                     (m/s)
-% r:   yaw velocity                      (rad/s)
-% x    position in the x-direction       (m)
-% y:   position in the y-direction       (m)
-% psi: yaw angle                         (rad)
+%   u:   surge velocity                    (m/s)     
+%   v:   sway velocity                     (m/s)
+%   r:   yaw velocity                      (rad/s)
+%   x    position in the x-direction       (m)
+%   y:   position in the y-direction       (m)
+%   psi: yaw angle                         (rad)
 %
-% tau   = [X, Y, N]' control force/moment
+% The control forces and moment are given by tau = [X, Y, N]'.
 %
-% Reference: Fossen, T. I., S. I. Sagatun and A. J. Sorensen (1996)
-%            Identification of Dynamically Positioned Ships
-%            Journal of Control Engineering Practice CEP-4(3):369-376
+% Example usage:
+%   [~,~,M,D] = supply()      : Return the 3x3 mass ans damping matrices 
+%   [xdot, U] = supply(x,tau) : Return xdot and U
+%   xdot = supply(x,tau)      : Return xdot and U
+%
+% Reference: 
+%   T. I. Fossen, S. I. Sagatun and A. J. Sørensen (1996). Identification 
+%   of Dynamically Positioned Ships. Journal of Control Engineering 
+%   Practice CEP-4(3):369-376
 %
 % Author:     Thor I. Fossen
 % Date:       12 July 2002
-% Revisions:  24 Feb 2004 - Included missing mass in the Bis transformation
-%             12 Oct 2011 - Corrected T and Tinv, which were switched 
-%             27 May 2019 - Added U as ouput
-%             31 May 2019 - Included the rotation matrix in yaw
-%             22 Mar 2023 - Corrected wrong assignmnet of states
+% Revisions:  
+%   24 Feb 2004 - Included missing mass in the Bis transformation
+%   12 Oct 2011 - Corrected T and Tinv, which were switched 
+%   27 May 2019 - Added U as ouput
+%   31 May 2019 - Included the rotation matrix in yaw
+%   22 Mar 2023 - Corrected wrong assignmnet of states
+
+if nargin == 0, x = zeros(6,1); tau = zeros(3,1);  end 
 
 % Normalization variables
 L    =  76.2;           % length of ship (m)
