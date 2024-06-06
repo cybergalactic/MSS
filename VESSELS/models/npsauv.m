@@ -27,7 +27,6 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %   n:        Propeller shaft speed       (rpm)
 %
 % Input commands:
-%
 %   ui = [ delta_r_com delta_s_com delta_bp_com delta_bs_com n_com ]'  
 %
 %   delta_r_com:    Rudder angle command          (rad)
@@ -42,7 +41,6 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 %
 % Example usage:
-%
 %   [~,~,M,B_delta] = npsauv() : Return the 6x6 mass matrix M and 2x4 
 %                                input matrix B_delta
 %   [xdot, U] = npsauv(x,ui)   : Return xdot and U, no ocean currents
