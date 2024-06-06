@@ -7,9 +7,9 @@ function SIMnpsauv()
 % guidance for 3-D path following.
 %
 % The simulation covers:
-% 1. MIMO PID pole placement for pitch and yaw control (autopilots).
-% 2. Adaptive Line-of-Sight (ALOS) control for path following using
-%    straight lines and waypoint switching.
+%   1. MIMO PID pole placement for pitch and yaw control (autopilots).
+%   2. Adaptive Line-of-Sight (ALOS) control for path following using
+%      straight lines and waypoint switching.
 %
 % Dependencies:
 %   npsauv.m              - Dynamics of the NPS AUV
