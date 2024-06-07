@@ -1,0 +1,49 @@
+vehicleName = 'Remus100 AUV';
+vehicleData = {'Length', '1.6 m', 'Diameter', '19 cm', 'Mass', '31.9 kg', 'Max speed', '2.5 m/s', 'Max propeller speed', '1525 RPM'};
+
+displayVesselData2(vehicleName, vehicleData, 'remus100.jpg', 11);
+
+function displayVesselData2(vehicleName, vehicleData, imageFile, figNo)
+    % Function to display MSS vehicle data and an image of the vehicle
+    % Inputs:
+    % - vehicleName: The first line of the heading
+    % - data: A cell array of key-value pairs, e.g., {'Length', '1.6 m', 'Diameter', '19 cm', ...}
+    
+    % Create the heading text
+    Heading = sprintf('%-25s\n%-25s\n', 'MSS Toolbox', vehicleName);
+
+    % Create the data text with proper alignment
+    numEntries = length(vehicleData) / 2;
+    formatSpec = repmat('%-25s : %s\n', 1, numEntries);
+    MSS_text = sprintf(formatSpec, vehicleData{:});
+    
+    % Create a figure window
+    figure(figNo); figure(gcf);
+
+    % Create an axes for the heading
+    axes('Position', [0.1 0.75 0.8 0.1]);
+    text(0, 1, Heading, ...
+        'FontSize', 20, ...
+        'FontWeight', 'bold', ...
+        'FontName', 'Courier', ...
+        'HorizontalAlignment', 'left');
+    axis off;
+
+    % Create an axes for the text
+    axes('Position', [0.1 0.45 0.8 0.3]);
+    text(0, 1, MSS_text, ...
+        'FontSize', 16, ...
+        'FontName', 'Courier', ...
+        'HorizontalAlignment', 'left', ...
+        'VerticalAlignment', 'top');
+    axis off; 
+
+    % Read and display the image
+    filePath = which(imageFile);
+    if ~isempty(filePath)
+        axes('Position', [0.1 0.1 0.8 0.3]);
+        imshow(imread(filePath));
+    else
+        warning('Image file "remus100.jpg" not found.');
+    end
+end
