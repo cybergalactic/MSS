@@ -10,12 +10,12 @@ function [xdot,U] = navalvessel(x, tau)
 %   tau = [Xe Ye Ke Ne]' 
 %
 % where
-%   u     = surge velocity          (m/s)
-%   v     = sway velocity           (m/s)
-%   p     = roll velocity           (rad/s)
-%   r     = yaw velocity            (rad/s)
-%   phi   = roll angle              (rad)
-%   psi   = yaw angle               (rad)
+%   u     : Surge velocity          (m/s)
+%   v     : Sway velocity           (m/s)
+%   p     : Roll velocity           (rad/s)
+%   r     : Yaw velocity            (rad/s)
+%   phi   : Roll angle              (rad)
+%   psi   : Yaw angle               (rad)
 %
 %   Xe is the surge external force (e.g. rudder and fin forces)
 %   Ye is the sway external force  
@@ -32,7 +32,7 @@ function [xdot,U] = navalvessel(x, tau)
 %   2 - The parameters of the model should be defined 
 %       in the structures h and const before using the function.  
 %
-% Author:     Tristan Perez
+% Author: Tristan Perez
 % Revisions:
 %   - Original model from A. G. Jensen and M.S.Chislett (Danish Maritime
 %     Institute) 1983-1989. 
@@ -78,16 +78,15 @@ h.gm 		=  1.1;	                 %  [m]	Transverse Metacenter
 h.bm 		=  h.KM - h.KB;
 h.LCG       = 20.41 ;                % [m]	Longitudinal CG (from AP considered at the rudder stock)
 h.VCG       = 3.36  ;                % [m]	Vertical  CG  above baseline
-h.xG        = -3.38  ;               % coordinate of CG from the body fixed frame adopted for the PMM test  
-h.zG  	    = -(h.VCG-h.D);          % coordinate of CG from the body fixed frame adopted for the PMM test  
+h.xG        = -3.38  ;               % Coordinate of CG from the body fixed frame adopted for the PMM test  
+h.zG  	    = -(h.VCG-h.D);          % Coordinate of CG from the body fixed frame adopted for the PMM test  
 h.m_xg	    = h.m * h.xG;
 h.m_zg	    = h.m * h.zG;
-h.Dp        = 1.6 ;                   % Propeller diameter [m]
+h.Dp        = 1.6 ;                  % Propeller diameter [m]
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The hydrodynamic derivatives are given in dimensional form, and follow
 % from the original publication of Blanke and Christensen 1993.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Data for surge equation 
 h.Xudot  	= -17400.0 ;
 h.Xuau     	= -1.96e+003 ;
