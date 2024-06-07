@@ -1,10 +1,11 @@
 function SIMdsrv()
 % SIMdsrv is compatibel with MATLAB and GNU Octave (www.octave.org). This
 % script simulates the Naval Postraduate School's Deep Submergence Rescue 
-% vehicle (DSRV) under PID heading control.
+% vehicle (DSRV) under depth-changing maneuvers. The depth autopilot is 
+% designed using using succesive-loop closure and PID methods.
 %
 % Dependencies:
-%   DSRV.m    - DSRV dynamics. 
+%   DSRV.m    - DSRV dynamics.
 %
 % Author:     Thor I. Fossen
 % Date:       2024-04-20
@@ -12,41 +13,45 @@ function SIMdsrv()
 %   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 close all;
+clearvars;
 
 %% USER INPUTS
-h  = 0.05;                  % sample time (s)
-N  = 20000;                 % number of samples
+h  = 0.05;                  % Sample time (s)
+N  = 20000;                 % Number of samples
 
 %% DEPTH AUTOPILOTS PARAMETERS
-z_d = 0;                    % initial depth (m), reference model
-z_step = 200;               % step change in depth
+z_d = 0;                    % Initial depth (m), reference model
+z_step = 200;               % Step change in depth
 
 % Autopilot integral states
-z_int = 0;                  % depth
-theta_int = 0;              % pitch angle
+z_int = 0;                  % Depth
+theta_int = 0;              % Pitch angle
 
 % Stern rudder
-T_delta = 0.1;              % time constant (s)
-delta_max = deg2rad(30);    % max stern plane angle (deg)
+T_delta = 0.1;              % Time constant (s)
+delta_max = deg2rad(30);    % Max stern plane angle (deg)
 
 % Depth controller (suceessive-loop closure)
-wn_d_z = 0.01;              % desired natural frequency, reference model
-wnz = 1 * wn_d_z;           % desired natural frequency (heave)
-Kp_z = 0.01;                % proportional gain (heave)
-T_z = 100;                  % integral time constant (heave)
-Kp_theta = 1.0;             % proportional gain (pitch)
-Ki_theta = 0.1;             % integral gain (pitch)
+wn_d_z = 0.01;              % Desired natural frequency, reference model
+wnz = 1 * wn_d_z;           % Desired natural frequency (heave)
+Kp_z = 0.01;                % Proportional gain (heave)
+T_z = 100;                  % Integral time constant (heave)
+Kp_theta = 1.0;             % Proportional gain (pitch)
+Ki_theta = 0.1;             % Integral gain (pitch)
 
 % Initial states
 x = zeros(5,1);     % x = [ w q x z theta ]'
 delta_s = 0;
 
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP
-simdata = zeros(N+1,9);              % memory allocation
+simdata = zeros(N+1,9);              % Memory allocation
 
 for i = 1:N+1
 
-    t= (i-1) * h;                    % simulation time in seconds
+    t= (i-1) * h;                    % Simulation time in seconds
 
     % Measurements
     w     = x(1) + 0.001 * randn;
@@ -68,7 +73,7 @@ for i = 1:N+1
     theta_d = Kp_z * ( (z - z_d) + (1/T_z) * z_int );    
     delta_PID = -Kp_theta * ssa( theta - theta_d ) - Ki_theta * theta_int;
     delta_c = -delta_PID;
-    delta_c = sat(delta_c, delta_max);   % amplitude saturation
+    delta_c = sat(delta_c, delta_max);   % Amplitude saturation
 
     % DSRV dynamics
     xdot = DSRV(x, delta_s);
@@ -130,5 +135,22 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '5.0 m',...  
+    'Mass', '2300 kg',...
+    'Maximum speed', '4.11 m/s',...
+    'Max rudder angle', '30 deg'};
+displayVehicleData('Deep Submergence Rescue Vehicle (DSRV)', vesselData, 'DSRV.png', 3);
+
+end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Deep Submergence Rescue Vehicle (DSRV)');
+    disp('Depth autopilot: Succesive-loop closure')
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
 
