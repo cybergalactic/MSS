@@ -28,7 +28,7 @@ function SIMosv()
 % pseudoinverse methods) and constrained (via dynamic optimization) 
 % techniques, detailed in Fossen (2021, Sections 11.2.2-11.2.3).
 %
-% Dependency:
+% Dependencies:
 %   This script requires the MATLAB optimization toolbox for dynamic 
 %     optimization features due to the use of fmincon for sequential 
 %     quadratic programming (SQP). 
@@ -102,13 +102,7 @@ alpha_old = alpha0;    % Initial values for dynamic optimization.
 u_old = [0, 0, 0, 0]'; % Initial propeller speeds.
 
 % Initialize the nonlinear MIMO PID controller:
-M = 1e9 * ...  % computed in osv.m
-    [ 0.0060         0         0         0   -0.0060         0
-          0    0.0080         0    0.0100         0   -0.0284
-          0         0    0.0130         0    0.2554         0
-          0    0.0100         0    0.3067         0   -0.1299
-    -0.0060         0    0.2554         0    6.4508         0
-          0   -0.0284         0   -0.1299         0    3.3996 ];
+[~,~,M] = osv();             % OSV 6x6 mass matrix
 wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning.
 zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning.
 T_f = 50;                    % Time constant for the low-pass filter in seconds.
