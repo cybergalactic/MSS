@@ -8,7 +8,7 @@ function SIMtanker()
 %   euler2     - Euler's integrations method
 %
 % Reference: 
-%   Van Berlekom, W.B. and Goddard, T.A. (1972). Maneuvering of Large
+%   W. B. Van Berlekom and T. A. and Goddard (1972). Maneuvering of Large
 %     Tankers, Transaction of SNAME, 80:264-298
 %
 % Author:    Thor I. Fossen
@@ -16,6 +16,7 @@ function SIMtanker()
 % Revisions:
 %   None
 
+close all;
 clearvars;
 
 %% USER INPUTS
@@ -102,5 +103,17 @@ title('Control inputs'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
+
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '304.8 m',...
+    'Beam', '47.17 m',...
+    'Draft to design waterline ', '18.46 m',...    
+    'Mass (no payload)', '55.0 kg',...
+    'Volume displacement', '220 000 m3',...
+    'Nominal speed', '16 knots',...
+    'Max rudder angle', '10 deg',...
+    'Max propeller speed', '80 RPM'};
+displayVehicleData('Esso 190 000 dwt Tanker', vesselData, 'tanker.jpg', 3);
 
 end
