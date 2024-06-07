@@ -1,10 +1,14 @@
-function [xdot,U] = osv(x,ui,Vc,betaVc)
+function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
-% [xdot,U] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
+% [xdot,U,M] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
 % and the time derivative xdot of the state vector: 
+%
 %    x = [ u v w p q r x y z phi theta psi ]' 
-% for an Offshore Supply vessel (OSV). The 6-DOF equations of motion are
-% based on the nonlinear model of Fossen (2021, Eqs. 6.111-6.116) given by
+%
+% for an Offshore Supply vessel (OSV). The 6x6 mass matrix M is an 
+% optionally output, which can be used for control design.The 6-DOF 
+% equations of motion arebased on the nonlinear model of Fossen (2021, 
+% Eqs. 6.111-6.116) given by
 %   
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * ( tau_thr +  tau_drag + tau_crossflow...
@@ -41,14 +45,16 @@ function [xdot,U] = osv(x,ui,Vc,betaVc)
 % main characteristics are displayed by calling the function OSV without 
 % input arguments. The function calls are:
 %
-%   osv;                                        Display the OSV main data
-%   [xdot,U] = osv(x,ui,Vc,betaVc,alphaVc)      2-D ocean currents
-%   [xdot,U] = osv(x,ui)                        No ocean currents 
+%   osv();                                 : Display the OSV main data
+%   [~,~,M] = osv()                        : Return the 6x6 mass matrix M
+%   [xdot,U] = osv(x,ui,Vc,betaVc,alphaVc) : Return xdot and U, 2-D currents
+%   [xdot,U] = osv(x,ui)                   : Return xdot and U, no currents 
 % 
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
 % Revisions:
 %   2024-04-22: Enhanced compatibility with GNU Octave.
+%   2024-06-07: Added M as an optional output argument
 
 % Flag for plotting of the surge resitance, linear + quadratic damping
 if nargin > 0
@@ -66,69 +72,69 @@ if nargin == 2 || nargin == 0
     betaVc = 0;
 end
 
-if nargin == 0                          % display main ship characteristics
+if nargin == 0                          % Display main ship characteristics
     ui = zeros(6,1);
 else
-    nu = x(1:6);                        % generalized velocity vector
-    eta = x(7:12);                      % generalized position vector
+    nu = x(1:6);                        % Generalized velocity vector
+    eta = x(7:12);                      % Generalized position vector
 end
 
-U = sqrt( nu(1)^2 + nu(2)^2 );          % speed
+U = sqrt( nu(1)^2 + nu(2)^2 );          % Speed
 
 %% Ship model parameters
-L = 83;                     % length (m)
-B = 18;                     % beam (m)
-T = 5;                      % draft (m)
-rho = 1025;                 % density of water (kg/m3)
-Cb = 0.65;                  % block coefficient: Cb = nabla / (L * B * T)
-S = L * B + 2 * T * B;      % wetted surface, box approximation
+L = 83;                     % Length (m)
+B = 18;                     % Beam (m)
+T = 5;                      % Draft (m)
+rho = 1025;                 % Density of water (kg/m3)
+Cb = 0.65;                  % Block coefficient: Cb = nabla / (L * B * T)
+S = L * B + 2 * T * B;      % Wetted surface, box approximation
 
 % Thrust: T = K_max * abs(n/n_max) * (n/n_max) = K_thr * abs(n) * n
-K_max = [300e3 300e3 420e3 655e3]';        % max propeller thrust (N)
-n_max = [140 140 150 200]';                % max propeller speed (rpm)
-K_thr = diag(K_max./n_max.^2);             % thruster coefficient matrix
-l_x = [37, 35, -L/2, -L/2];                % thruster x-coordinates
-l_y = [0, 0, 7, -7];                       % thruster y-coordinates
+K_max = [300e3 300e3 420e3 655e3]';        % Max propeller thrust (N)
+n_max = [140 140 150 200]';                % Max propeller speed (rpm)
+K_thr = diag(K_max./n_max.^2);             % Thruster coefficient matrix
+l_x = [37, 35, -L/2, -L/2];                % Thruster x-coordinates
+l_y = [0, 0, 7, -7];                       % Thruster y-coordinates
 
 thrust_max = K_max(3)+K_max(4);     % max thrust in the surge direction (N)
 U_max = 7.7;           % Max cruise speed (m/s) corresponding to max thrust
 
-nabla = Cb * L * B * T;     % volume displacement(m3)
-m = rho * nabla;            % mass (kg)
-r_bg = [-4.5 0 -1.2]';      % location of the CG with respect to the CO
+nabla = Cb * L * B * T;     % Volume displacement(m3)
+m = rho * nabla;            % Mass (kg)
+r_bg = [-4.5 0 -1.2]';      % Location of the CG with respect to the CO
 
-Cw = 0.8;                   % waterplane area coefficient: Cw = Awp/(L * B)
-Awp = Cw * B * L;           % waterplane area
+Cw = 0.8;                   % Waterplane area coefficient: Cw = Awp/(L * B)
+Awp = Cw * B * L;           % Waterplane area
 KB = (1/3) * (5*T/2 - nabla/Awp);                         % Eq. (4.38)
 k_munro_smith =  (6 * Cw^3) / ( (1+Cw) * (1+2*Cw));       % Eq. (4.37)
-r_bb = [-4.5 0 T-KB]';      % location of the CB with respect to the CO
-BG = r_bb(3) - r_bg(3);     % vertical distance between CG and CB
+r_bb = [-4.5 0 T-KB]';      % Location of the CB with respect to the CO
+BG = r_bb(3) - r_bg(3);     % Vertical distance between CG and CB
 
-I_T = k_munro_smith * (B^3 * L) / 12;   % transverse moment of inertia
-I_L = 0.7 * (L^3 * B) / 12;             % longitudinal moment of inertia
+I_T = k_munro_smith * (B^3 * L) / 12;   % Transverse moment of inertia
+I_L = 0.7 * (L^3 * B) / 12;             % Longitudinal moment of inertia
 BM_T = I_T / nabla;
 BM_L = I_L / nabla;
-GM_T = BM_T - BG;                       % should be larger than 0.5 m
+GM_T = BM_T - BG;                       % Should be larger than 0.5 m
 GM_L = BM_L - BG;
 
 % G matrix
 LCF = -0.5;                   % x-distance from the CO to the center of Awp
-r_bp = [0 0 0]';                         % compute G in the CO
+r_bp = [0 0 0]';              % Compute G in the CO
 G = Gmtrx(nabla,Awp,GM_T,GM_L,LCF,r_bp);
 
 % Rigid-body mass matrix MRB
-R44 = 0.35 * B;          % radius of gyration in roll, see Eq.(4.77)-(4.78)
-R55 = 0.25 * L;          % radius of gyration in pitch
-R66 = 0.25 * L;          % radius of gyration in yaw
+R44 = 0.35 * B;          % Radius of gyration in roll, see Eq.(4.77)-(4.78)
+R55 = 0.25 * L;          % Radius of gyration in pitch
+R66 = 0.25 * L;          % Radius of gyration in yaw
 [MRB,CRB] = rbody(m,R44,R55,R66,nu(4:6),r_bg');     % MRB and CRB in the CG
 
 % The added mass matrix MA is derived from the frequency-dependent potential 
 % coefficients using a look-alike supply vessel in the MSS toolbox. The data
 % is stored in the structure <vessel>
-%   load supply.mat             % check data by typing vessel
+%   load supply.mat             % Check data by typing vessel
 %   disp(vessel.main)
 %   plotABC(vessel,'A')
-%   w_0 = vessel.freqs;         % the minimum frequency w_0 is approximated
+%   w_0 = vessel.freqs;         % The minimum frequency w_0 is approximated
 %   MA = vessel.A(:,:,1);       % as the zero-frequency used to compute MA 
 MA = 1e10 * [   0.0001    0         0         0         0         0
                 0    0.0003         0    0.0004         0   -0.0006
@@ -150,11 +156,11 @@ M = MRB + MA;
 Minv = inv(M);
 
 % D matrix
-T1 = 100;               % time constants for linear damping (s)
+T1 = 100;               % Time constants for linear damping (s)
 T2 = 100;
 T6 = 1;
-zeta4 = 0.15;           % relative damping ratio in roll
-zeta5 = 0.3;            % relative damping ratio in pitch
+zeta4 = 0.15;           % Relative damping ratio in roll
+zeta5 = 0.3;            % Relative damping ratio in pitch
 D = Dmtrx([T1, T2, T6],[zeta4,zeta5],MRB,MA,G);
 
 % Ocean current
@@ -177,8 +183,8 @@ D(1,1) = 0; % using: X = sigma * Xu * u_r + (1 - sigma) * Xuu * abs(u_r)*u_r
 tau_crossflow = crossFlowDrag(L,B,T,nu_r);
 
 % Thrust: T = K_max * u, where u = abs(n/n_max) * (n/n_max) is normalized
-u_thr = abs(ui(1:4)) .* ui(1:4);               % quadratic propeller speed
-alpha = ui(5:6);                               % azimuth angles
+u_thr = abs(ui(1:4)) .* ui(1:4);               % Quadratic propeller speed
+alpha = ui(5:6);                               % Azimuth angles
 T_thr = thrConfig( {'T', 'T', alpha(1), alpha(2)}, l_x, l_y);
 tau_3dof = T_thr * K_thr * u_thr;
 tau_thr = [ tau_3dof(1) tau_3dof(2) 0 0 0 tau_3dof(3) ]';
@@ -195,7 +201,7 @@ nu_dot = nu_c_dot + ...
 xdot = [nu_dot; eta_dot];    
 
 %% Print vessel data
-if nargin == 0
+if nargin == 0 && nargout == 0
 
     % Natural frequencies
     w3 = sqrt( G(3,3) / M(3,3) );
@@ -251,9 +257,3 @@ if nargin == 0
 end
 
 end
-
-
-
-
-
-
