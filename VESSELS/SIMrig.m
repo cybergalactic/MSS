@@ -77,6 +77,9 @@ G = 1.0e+10 * [
 M = MRB + MA;    
 Minv = inv(M);  
 
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP 
 simdata = zeros(N+1,13);            % table for simulation data
 
@@ -169,6 +172,26 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend','Location',legendLocation),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Pontion length', '84.6 m', ...
+    'Pontoon width', '12.0 m', ...
+    'Pontoon height', '13.0 m', ...
+    'Width of box-shaped leg', '16.0 m', ...  
+    'Mass', '27 000 tonnes'};
+displayVehicleData('Semisubmersible: 2 Pontoons and 4 Legs', ...
+    vesselData, 'semisub.jpg', 3);
+
+end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Semisubmersible');
+    disp('Two pontoons and four legs rig')
+    disp('DP system: MIMO nonlinear PID controller');
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
 
 
