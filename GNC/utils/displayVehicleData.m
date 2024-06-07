@@ -31,7 +31,7 @@ MSS_text = sprintf(formatSpec, vehicleData{:});
 figure(figNo); figure(gcf);
 
 % Create an axes for the heading
-axes('Position', [0.1 0.79 0.8 0.1]);
+axes('Position', [0.1 0.8 0.8 0.1]);
 text(0, 1, Heading, ...
     'FontSize', 20, ...
     'FontWeight', 'bold', ...
@@ -40,7 +40,7 @@ text(0, 1, Heading, ...
 axis off;
 
 % Create an axes for the text
-axes('Position', [0.1 0.55 0.8 0.3]);
+axes('Position', [0.1 0.53 0.8 0.3]);
 text(0, 1, MSS_text, ...
     'FontSize', 16, ...
     'FontName', 'Courier', ...
@@ -50,8 +50,7 @@ axis off;
 
 % Read and display the image
 filePath = which(imageFile);
-img = imread(filePath);
-hAxes = axes('Position', [0.1 0.05 0.8 0.4]);
-imshow(img, 'Parent', hAxes, 'InitialMagnification', 'fit');
+axes('Position', [0.1 0.05 0.8 0.4]);
+imshow(imread(filePath));
 
 end
