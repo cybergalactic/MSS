@@ -24,7 +24,7 @@ function [xdot,U] = container(x,ui)
 %
 % Reference:  Son og Nomoto (1982). On the Coupled Motion of Steering and 
 %             Rolling of a High Speed Container Ship, Naval Architect of 
-%             Ocean Engineering 20:73-83. FromJ.S.N.A., Japan, Vol. 150, 1981.
+%             Ocean Engineering 20:73-83. From J.S.N.A., Japan, Vol. 150, 1981.
 % 
 % Author:    Trygve Lauvdal
 % Date:      1994-05-12
@@ -38,20 +38,20 @@ if (length(x) ~= 10), error('x-vector must have dimension 10 !'); end
 if (length(ui) ~= 2), error('u-vector must have dimension  2 !'); end
 
 % Normalization variables
-L = 175;                     % length of ship (m)
-U = sqrt(x(1)^2 + x(2)^2);   % service speed (m/s)
+L = 175;                     % Length of ship (m)
+U = sqrt(x(1)^2 + x(2)^2);   % Service speed (m/s)
 
 % Check service speed
 if U <= 0,error('The ship must have speed greater than zero');end
-if x(10) <= 0,error('The propeller rpm must be greater than zero');end
+if x(10) <= 0,error('The propeller RPM must be greater than zero');end
 
-delta_max  = 10;             % max rudder angle (deg)
-Ddelta_max = 5;              % max rudder rate (deg/s)
-n_max      = 160;            % max shaft velocity (rpm)
+delta_max  = 10;             % Max rudder angle (deg)
+Ddelta_max = 5;              % Max rudder rate (deg/s)
+n_max      = 160;            % Max shaft velocity (RPM)
 
-% Non-dimensional states and inputs
+% Nondimensional states and inputs
 delta_c = ui(1); 
-n_c     = ui(2)/60*L/U;  
+n_c     = ui(2) / 60 * L/U;  
 
 u     = x(1)/U;   v   = x(2)/U;  
 p     = x(7)*L/U; r   = x(3)*L/U; 
