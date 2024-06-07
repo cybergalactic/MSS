@@ -2,27 +2,28 @@ function [xdot,U] = mariner(x,ui,U0)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot,U] = mariner(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta ]'  for
-% the Mariner class vessel L = 160.93 m, where
+% the Mariner-Class Cargo Vessel, length  160.93 m, where
 %
-%  u     = pertubed surge velocity about Uo (m/s)
-%  v     = pertubed sway velocity about zero (m/s)
-%  r     = pertubed yaw velocity about zero (rad/s)
-%  x     = position in x-direction (m)
-%  y     = position in y-direction (m)
-%  psi   = pertubed yaw angle about zero (rad)
-%  delta = actual rudder angle (rad)
+%  u     : Pertubed surge velocity about Uo (m/s)
+%  v     : Pertubed sway velocity about zero (m/s)
+%  r     : Pertubed yaw velocity about zero (rad/s)
+%  x     : Position in x-direction (m)
+%  y     : Position in y-direction (m)
+%  psi   : Pertubed yaw angle about zero (rad)
+%  delta : Actual rudder angle (rad)
 %
 % The inputs are:
 % 
-%  ui    = commanded rudder angle (rad)
-%  U0    = nominal speed (optionally). Default value is U0 = 7.7175 m/s = 15 knots.
+%  ui    : Commanded rudder angle (rad)
+%  U0    : Nominal speed (optionally). Default value is 7.7175 m/s (15 knots).
 %
-% Reference: M.S. Chislett and J. Stroem-Tejsen (1965). Planar Motion Mechanism Tests 
-%            and Full-Scale Steering and Maneuvering Predictions for a Mariner Class Vessel,
-%            Technical Report Hy-5, Hydro- and Aerodynamics Laboratory, Lyngby, Denmark.
+% Reference: 
+%   M.S. Chislett and J. Stroem-Tejsen (1965). Planar Motion Mechanism Tests 
+%   and Full-Scale Steering and Maneuvering Predictions for a Mariner Class Vessel,
+%   Technical Report Hy-5, Hydro- and Aerodynamics Laboratory, Lyngby, Denmark.
 % 
 % Author:    Trygve Lauvdal
-% Date:      12th May 1994
+% Date:      1994-05-12
 % Revisions: 
 %   2001-07-19 : Added input/ouput U0 and U, changed order of x-vector.
 %   2001-07-20 : Replaced inertia matrix with correct values.
@@ -50,8 +51,8 @@ psi   = x(6);
 delta = x(7); 
 
 % Parameters, hydrodynamic derivatives, and main dimensions
-delta_max  = 40;           % max rudder angle      (deg)
-Ddelta_max = 5;            % max rudder derivative (deg/s)
+delta_max  = 40;           % Max rudder angle      (deg)
+Ddelta_max = 5;            % Max rudder derivative (deg/s)
 
 m  = 798e-5;
 Iz = 39.2e-5;
