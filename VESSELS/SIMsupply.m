@@ -61,6 +61,9 @@ eta = zeros(3,1);     % eta = [ x y psi ]'
 nu = zeros(3,1);      % nu  = [ u v r ]'
 n = zeros(6,1);       % vector of propeller speed states
 
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP
 simdata = zeros(N+1,19);              % memory allocation
 
@@ -187,6 +190,23 @@ title('Main propeller n_6 (RPM)'); grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '76.2 m', ...
+    'Mass', '6000 tonnes', ...
+    'Low speed model', '< 3.0 m/s'};
+displayVehicleData('Supply Vessel', vesselData, 'supply.jpg', 4);
+
+end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Supply Vessel');
+    disp('Linear model for stationkeeping and low-speed maneuvering');    
+    disp('DP system: MIMO nonlinear PID controller for stationkeeping')
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
 
 
