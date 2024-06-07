@@ -17,37 +17,41 @@ function SIMcontainer()
 %   2024-04-19 : Enhanced compatibility with GNU Octave.
 
 clearvars;
+close all;
 
 %% USER INPUTS
-t_f = 600;   % final simulation time (sec)
-h   = 0.1;   % sample time (sec)
+t_f = 600;   % Final simulation time (sec)
+h   = 0.1;   % Sample time (sec)
 
-Kp = 1;      % controller P gain
-Td = 10;     % controller derivative time
+Kp = 1;      % Controller P gain
+Td = 10;     % Controller derivative time
 
 % initial states:
 x1 = [7 0 0 0 0 0 0 0 0 70]';   % x = [ u v r x y psi p phi delta n ]'
 x2 = [7 0 0 0 0 0 0 0 0]';     
 
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP
-N = round(t_f/h);                       % number of samples
-simdata1 = zeros(N+1,length(x1)+2);     % memory allocation
-simdata2 = zeros(N+1,length(x2)+2);     % memory allocation
+N = round(t_f/h);                       % Number of samples
+simdata1 = zeros(N+1,length(x1)+2);     % Memory allocation
+simdata2 = zeros(N+1,length(x2)+2);     % Memory allocation
                 
 for i=1:N+1
 
-    time = (i-1) * h;                   % simulation time in seconds
+    time = (i-1) * h;                   % Simulation time in seconds
 
     r   = x1(3);
     psi = x1(6);
     
     % Control system (constant thrust + PD heading controller)
-    psi_ref = deg2rad(5);                           % desired heading
+    psi_ref = deg2rad(5);                           % Desired heading
     delta_c = -Kp * ( ssa(psi-psi_ref) + Td * r );  % PD controller
     n_c = 70;
     
     % Ship model
-    [xdot1,U1] = container(x1,[delta_c n_c]);       % ship models
+    [xdot1,U1] = container(x1,[delta_c n_c]);       % Ship models
     [xdot2,U2] = Lcontainer(x2,delta_c);
    
     % Store data for presentation
@@ -118,4 +122,26 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '175 m',...
+    'Beam', '25.4 m',...
+    'Draft', '8.5 m',...    
+    'Mass', '21 750 tonnes',...
+    'Volume displacement', '21 222 m3',...
+    'Service speed', '7.0 m/s',...
+    'Max rudder angle', '10 deg',...
+    'Max propeller speed', '160 RPM'};
+displayVehicleData('High-Speed Container Ship', vesselData, 'container.jpg', 3);
+
+end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: High-Speed Container Ship');
+    disp('Linearized and nonlinear models')
+    disp('PD heading autopilot');
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
