@@ -7,12 +7,12 @@ function SIMotter()
 % or straight-line paths.
 %
 % The simulation covers:
-% 1. PID heading autopilot without path following.
-% 2. Adaptive Line-of-Sight (ALOS) control for path following using
-%    straight lines and waypoint switching.
-% 3. Integral Line-of-Sight (ILOS) control for path following using
-%    straight lines and waypoint switching.
-% 4. ALOS control for path following using Hermite spline interpolation.
+%   1. PID heading autopilot without path following.
+%   2. Adaptive Line-of-Sight (ALOS) control for path following using
+%      straight lines and waypoint switching.
+%   3. Integral Line-of-Sight (ILOS) control for path following using
+%      straight lines and waypoint switching.
+%   4. ALOS control for path following using Hermite spline interpolation.
 %
 % Dependencies:
 %   otter.m                 - Dynamics of the Otter USV
@@ -263,6 +263,18 @@ legend('\psi','\psi_d');
 set(findall(gcf,'type','line'),'linewidth',2);
 set(findall(gcf,'type','text'),'FontSize',14);
 set(findall(gcf,'type','legend'),'FontSize',legendSize);
+
+% Display the vehicle data and an image of the vehicle
+vehicleData = {...
+    'Length', '2.0 m',...
+    'Beam', '1.08 m',...
+    'Draft (no payload)', '13.4 cm',...
+    'Draft (25 kg payload)', '19.5 cm',...    
+    'Mass (no payload)', '55.0 kg',...
+    'Max speed', '6 knots (3.09 m/s)',...
+    'Max pos. propeller speed', '993 RPM',...
+    'Max neg. propeller speed', '-972 RPM'};
+displayVehicleData('Maritime Robotics Otter USV', vehicleData, 'otter.jpg', 4);
 
 end
 
