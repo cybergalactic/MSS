@@ -1,6 +1,6 @@
 function SIMmariner()
 % SIMmariner is compatible with MATLAB and GNU Octave (www.octave.org). 
-% This script simulates the dynamic behavior of a Mariner Class Vessel, 
+% This script simulates the dynamic behavior of a Mariner-Class Cargo Vessel, 
 % length 160.93 m, under PID heading control, and waypoint path-following 
 % control using a course autopilot (Fossen 2022). The Speed Over Ground 
 % (SOG) and Course over Ground (COG) are estimated during path following 
@@ -87,7 +87,6 @@ methods = {'PID heading autopilot, no path following',...
            'LOS path-following using a course autopilot with waypoint switching'};
 ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
-
 
 %% MAIN LOOP
 N = round(t_f/h);                    % Number of samples
@@ -256,8 +255,15 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
-end
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '160.93 m', ...
+    'Mass', '17 045 tonnes', ...
+    'Max speed', '7.71 m/s', ...
+    'Max rudder angle', '40 deg'};
+displayVehicleData('Mariner-Class Cargo Vessel', vesselData, 'mariner.png', 3);
 
+end
 
 
 function plotStraightLinesAndCircles(wayPoints, R_switch)
@@ -289,7 +295,8 @@ end
 %% DISPLAY CONTROL METHOD
 function displayControlMethod(ControlFlag, R_switch, Delta_h)
     disp('--------------------------------------------------------------------');
-    disp('MSS toolbox: Mariner Class Vessel (Length = 160.93 m)');
+    disp('MSS toolbox: Mariner-Class Cargo Vessel');
+    disp('Five-state EKF for estimation of SOG and COG');
     switch ControlFlag
         case 1
             disp('PID course autopilot with reference feedforward');
