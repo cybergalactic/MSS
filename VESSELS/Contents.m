@@ -40,6 +40,9 @@
 %                   constrained control allocation (dynamic optimization).
 % SIMcontainer    - Simulate container.m and Lcontainer.m under PD control.
 % SIMnavalvessel  - Simulate navalvessel.m under PD control.
+% SIMnpsauv       - Simulate npsauv.m with MIMO PID autopilots for depth 
+%                   and heading control, and 3-D straight-line path 
+%                   following using ALOS
 % SIMremus100     - Simulate remus100.m using autopilots for depth and 
 %                   heading control, and adaptive line-of-sight (ALOS)
 %                   guidance laws for 3-D path-following control.
