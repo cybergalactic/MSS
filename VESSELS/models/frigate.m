@@ -38,7 +38,7 @@ delta_max  = deg2rad(30);   % max rudder angle (rad)
 Ddelta_max = deg2rad(10);   % max rudder rate (rad/s)
 T_delta = 1.0;              % rudder time constant (s)
 
-% ROV Zefakkel (Van Amerongen 1982) 
+% Frigate (Van Amerongen 1982) 
 data = [...                        data = [ U K T n3]
     6     0.08    20    0.4   
     9     0.18    27    0.6
