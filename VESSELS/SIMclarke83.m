@@ -19,30 +19,33 @@ function SIMclarke83()
 %                Added animation of the ship North-East positions.
 %   2024-04-19 : Enhanced compatibility with GNU Octave.
 
-clear animateShip       % clear the persistent animation variables
+clear animateShip       % Clear the persistent animation variables
 clearvars;
 close all;
 
 %% USER INPUTS
-h = 0.05;               % sampling time
-N = 10000;              % number of samples
+h = 0.05;               % Sampling time
+N = 10000;              % Number of samples
 
-psi_ref = deg2rad(10);  % heading angle setpoint
-w_n = 0.1;              % closed-loop natural frequency
-Kp = w_n^2;             % proportional gain
-Kd = 2 * w_n;           % derivative  gain
+psi_ref = deg2rad(10);  % Heading angle setpoint
+w_n = 0.1;              % Closed-loop natural frequency
+Kp = w_n^2;             % Proportional gain
+Kd = 2 * w_n;           % Derivative  gain
 
 % Initial values
 eta = zeros(3,1);       % x, y, psi
 nu  = [0 0 0 ]';        % u, v, r
 
 % Ship model
-L = 100;      % length (m)
-B = 20;       % beam (m)
-T = 10;       % draft (m)
-Cb = 0.8;     % block coefficient, Cb = V / (L*B*T) where V is the displaced volume
-R66 = 0.27*L; % radius of gyration (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
+L = 100;      % Length (m)
+B = 20;       % Beam (m)
+T = 10;       % Draft (m)
+Cb = 0.8;     % Block coefficient, Cb = V / (L*B*T) where V is the displaced volume
+R66 = 0.27*L; % Radius of gyration (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
 xg = -3;      % x-coordinate of the CG
+
+% Display simulation options
+displayControlMethod();
 
 %% MAIN LOOP
 simdata = zeros(N+1,7);                   % table for simulation data
@@ -103,5 +106,25 @@ xlabel('Time (s)'),title('Yaw angle \psi (deg)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', [num2str(L) ' m'], ...
+    'Beam', [num2str(B) ' m'], ...
+    'Draft', [num2str(T) ' m'],... 
+    'Block coefficient', num2str(Cb),...    
+    'Mass', [num2str(M(1,1)/1000) ' tonnes']};
+displayVehicleData('Ship characterized by L, B and T',...
+    vesselData, 'clarke.png', 3);
+
+end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Ship characterized by length (L), beam (B) and draft (T)');
+    disp('Heading autopilot: PD control law')
+    disp('Speed: Constant thrust')
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
 end
 
