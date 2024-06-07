@@ -1,6 +1,7 @@
 function ControlFlag = controlMethod(methods)
+% ControlFlag is compatible with MATLAB and GNU Octave (www.octave.org). 
 % ControlFlag = controlMethod(methods) creates a GUI for selecting a control
-% method from a list in MATLAB or GNU Octave.
+% method from a list.
 %
 % Inputs:
 %   methods - Cell array of strings, each representing a control method.
