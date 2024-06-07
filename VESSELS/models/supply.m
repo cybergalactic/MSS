@@ -40,9 +40,9 @@ function [xdot, U, M, D] = supply(x, tau)
 if nargin == 0, x = zeros(6,1); tau = zeros(3,1);  end 
 
 % Normalization variables
-L    =  76.2;           % length of ship (m)
-g    =  9.8;            % acceleration of gravity (m/s^2)
-mass = 6000e3;          % mass (kg)
+L    =  76.2;           % Length of ship (m)
+g    =  9.81;           % Acceleration of gravity (m/s^2)
+mass = 6000e3;          % Mass (kg)
 
 T    = diag([1 1 1/L]);
 Tinv = diag([1 1 L]);
@@ -78,6 +78,6 @@ Dbis = [0.0358        0        0
  % Dimensional state derivative
  xdot = A * x + B * tau;
  
- % speed
+ % Speed
   U = sqrt( x(4)^2 + x(5)^2 );
  
