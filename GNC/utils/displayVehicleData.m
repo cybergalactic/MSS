@@ -51,7 +51,7 @@ axis off;
 % Read and display the image
 filePath = which(imageFile);
 if ~isempty(filePath)
-    axes('Position', [0.1 0.1 0.8 0.3]);
+    axes('Position', [0.1 0.1 0.8 0.25]);
     imshow(imread(filePath));
 else
     warning('Image file "remus100.jpg" not found.');
