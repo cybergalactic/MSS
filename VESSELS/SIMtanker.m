@@ -29,9 +29,12 @@ wn = 0.1;               % Closed-loop natural frequency (rad/s)
 Kp = 10;                % Controller P gain
 Td = 10;                % Controller derivative time
 
-% initial states:
+% Initial states:
 x = [7 0 0 0 0 0 0 60]';   % x = [ u v r x y psi delta n ]'
 psi_d = 0;
+
+% Display simulation options
+displayControlMethod();
 
 %% MAIN LOOP
 N = round(t_f/h);                       % Number of samples
@@ -117,3 +120,13 @@ vesselData = {...
 displayVehicleData('Esso 190 000 dwt Tanker', vesselData, 'tanker.jpg', 3);
 
 end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Esso 190 000 dwt Tanker');
+    disp('PD heading autopilot');
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
+end
+
