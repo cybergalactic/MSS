@@ -1,7 +1,7 @@
 function SIMfrigate()
 % SIMfrigate is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates a heading-controlled frigate with a length of 
-% 100 meters,employing a PID control strategy with reference feedforward. 
+% 100 meters, employing a PID control strategy with reference feedforward. 
 % The frigate's dynamics are modeled using the Norrbin (1963) nonlinear 
 % model, providing realistic simulationof naval vessel behavior under 
 % various control scenarios.
@@ -18,23 +18,23 @@ function SIMfrigate()
 close all;
 
 %% USER INPUTS
-h  = 0.05;                      % sample time (s)
-N  = 10000;                     % number of samples
+h  = 0.05;                      % Sample time (s)
+N  = 10000;                     % Number of samples
 
 %% AUTOPILOTS PARAMETERS
-U = 10;                         % speed (m/s)
-delta_max = deg2rad(30);        % max rudder angle (deg)
+U = 10;                         % Speed (m/s)
+delta_max = deg2rad(30);        % Max rudder angle (deg)
 
 % Reference model parameters
-wn_d = 0.1;                     % natural frequency (rad/s)
-zeta_d = 1.0;                   % relative damping factor (-)
-r_max = deg2rad(5.0);           % maximum turning rate (rad/s)
+wn_d = 0.1;                     % Natural frequency (rad/s)
+zeta_d = 1.0;                   % Relative damping factor (-)
+r_max = deg2rad(5.0);           % Maximum turning rate (rad/s)
 
 % PID heading autopilot 
 T = 27.0;                       % Nomoto gains at U = 9 m/s
 K = 0.18;
-wn = 0.5;                       % closed-loop natural frequency (rad/s)
-zeta = 1.0;                     % closed loop relative damping factor (-)
+wn = 0.5;                       % Closed-loop natural frequency (rad/s)
+zeta = 1.0;                     % Closed loop relative damping factor (-)
 
 Kp = (T/K) * wn^2;                    
 Kd = (T/K) * (2 * zeta * wn - 1/T);
@@ -42,20 +42,23 @@ Td = Kd / Kp;
 Ti = 10 / wn;
 
 % Initial states
-psi = 0;                        % heading angle (rad)
-r = 0;                          % yaw rate (rad/s)
-delta = 0;                      % rudder angle (rad)
-psi_int = 0;                    % integral state
-psi_d = psi;                    % reference model states
+psi = 0;                        % Heading angle (rad)
+r = 0;                          % Yaw rate (rad/s)
+delta = 0;                      % Rudder angle (rad)
+psi_int = 0;                    % Integral state
+psi_d = psi;                    % Reference model states
 r_d = r;
 a_d = 0;
 
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP
-simdata = zeros(N+1,7);              % memory allocation
+simdata = zeros(N+1,7);              % Memory allocation
 
 for i = 1:N+1
 
-    t= (i-1) * h;                    % simulation time in seconds
+    t= (i-1) * h;                    % Simulation time in seconds
 
     % Reference model, step input
     psi_ref = deg2rad(30);
@@ -71,7 +74,7 @@ for i = 1:N+1
         Kp * (ssa( psi-psi_d) +...
         Td * (r - r_d) + (1/Ti) * psi_int );
 
-    delta_c = sat(delta_c, delta_max);   % amplitude saturation
+    delta_c = sat(delta_c, delta_max);   % Amplitude saturation
 
     % Frigate dynamics
     [psi_dot, r_dot, delta_dot] = frigate(r, U, delta, delta_c);
@@ -123,5 +126,21 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '100 m', ...
+    'Max speed', '12 m/s', ...
+    'Max rudder angle', '30 deg'};
+displayVehicleData('Frigate', vesselData, 'frigate.png', 2);
+
 end
 
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Frigate');
+    disp('Norrbin (1963) nonlinear model');    
+    disp('Heading autopilot: PID control law with reference feedforward')
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
+end
