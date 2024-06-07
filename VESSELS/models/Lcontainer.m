@@ -37,12 +37,12 @@ if nargin == 2, U0 = 7.0; end
 if U0 <= 0, error('The ship must have speed greater than zero'); end
 
 % Normalization variables
-L = 175;                      % length of ship (m)
-U = sqrt( U0^2 + x(2)^2 );    % ship speed (m/s)
+L = 175;                      % Length of ship (m)
+U = sqrt( U0^2 + x(2)^2 );    % Ship speed (m/s)
 
 % rudder limitations
-delta_max  = 10;             % max rudder angle (deg)
-Ddelta_max = 5;              % max rudder rate (deg/s)
+delta_max  = 10;             % Max rudder angle (deg)
+Ddelta_max = 5;              % Max rudder rate (deg/s)
 
 % States and inputs
 delta_c = ui(1); 
