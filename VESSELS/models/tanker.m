@@ -22,7 +22,7 @@ function [xdot,U] = tanker(x,ui)
 %   h:       water depth, must be larger than draft (m) - draft is 18.46 m
 %
 % Reference: 
-%   Van Berlekom, W.B. and Goddard, T.A. (1972). Maneuvering of Large
+%   W. B. Van Berlekom and T. A. and Goddard (1972). Maneuvering of Large
 %     Tankers, Transaction of SNAME, 80:264-298
 %
 % Author:    Trygve Lauvdal
@@ -38,8 +38,8 @@ if (length(x)  ~= 8),error('x-vector must have dimension 8!'); end
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 
 % Normalization variables
-L   =  304.8;          % length of ship (m)
-g   =  9.8;            % acceleration of gravity (m/s^2)
+L   =  304.8;          % Length of ship (m)
+g   =  9.8;            % Acceleration of gravity (m/s^2)
 
 % Dimensional states and inputs
 u     = x(1);    
@@ -55,9 +55,9 @@ n_c     = ui(2) / 60;  % rps
 h       = ui(3);
 
 % Parameters, hydrodynamic derivatives and main dimensions
-delta_max  = 10;       % max rudder angle      (deg)
-Ddelta_max = 2.33;     % max rudder derivative (deg/s)
-n_max      = 80;       % max shaft velocity    (rpm)
+delta_max  = 10;       % Max rudder angle      (deg)
+Ddelta_max = 2.33;     % Max rudder derivative (deg/s)
+n_max      = 80;       % Max shaft speed   (rpm)
 
 t   =  0.22;
 Tm  =  50;
@@ -150,5 +150,3 @@ xdot = [  gX/m11
           r
           delta_dot
           n_dot    ];
-
-    
