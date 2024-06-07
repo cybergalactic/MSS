@@ -6,7 +6,7 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 % matrix M (optionally), and the 2x4 input matrix B_delta (optionally) in 
 % pitch and yaw for an Autonomous Underwater Vehicle (AUV) at the Naval 
 % Postgraduate School (Healey and Lienard (1993). The length of the AUV is 
-% 5.3 m and the mass is  5443 kg, while the state vector is defined by:
+% 5.3 m and the mass is 5443 kg, while the state vector is defined by:
 %
 %   u:        Surge velocity              (m/s)
 %   v:        Sway velocity               (m/s)
