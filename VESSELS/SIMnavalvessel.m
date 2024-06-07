@@ -1,6 +1,6 @@
 function SIMnavalvessel()
 % SIMnavalvessel is compatibel with MATLAB and GNU Octave (www.octave.org). 
-% Thisscript simulates a naval vessel under PD heading control.
+% This script simulates a naval vessel under PD heading control.
 %
 % Dependencies:  
 %   navalvessel.m   - Naval vessel dynamics (Blanke and Christensen, 1993).
@@ -18,6 +18,8 @@ function SIMnavalvessel()
 %   2024-04-22 : Enhanced compatibility with GNU Octave.
 
 clear animateShip   % clear the persistent animation variables
+close all;
+clearvars;
 
 t_f = 600;          % final simulation time (sec)
 h   = 0.05;         % sample time (sec)
@@ -30,6 +32,10 @@ Td = 20;            % controller derivative time
 x  = [6 0 0 0 0 0 ]';   % x = [u v p r phi psi] ]'   
 pos = [0 0 0]';         % initial position expressed in NED
 
+
+% Display simulation options
+displayControlMethod();
+
 %% MAIN LOOP
 simdata = zeros(N+1,11);                % memory allocation
 
@@ -41,8 +47,8 @@ for i=1:N+1
     psi = x(6) + 0.01 * randn;
     
     % Control system
-    psi_ref = deg2rad(20);                         % desired heading
-    tauX = 1e5;                                    % surge command 
+    psi_ref = deg2rad(20);                         % Desired heading
+    tauX = 1e5;                                    % Thrust
     tauN = -Kp * ( ssa(psi - psi_ref) + Td * r );  % PD heading controller
     
     % Ship dynamics
@@ -73,7 +79,7 @@ U     = simdata(:,9);
 x     = simdata(:,10);
 y     = simdata(:,11);
 
-%Plot and animation of the North-East positions
+% Plot and animation of the North-East positions
 figure(1)
 shipSize = 0.2;
 set(gcf, 'Position', [1, 1, 0.4*scrSz(3), scrSz(4)]);
@@ -100,4 +106,24 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
+% Display the vessel data and an image of the vessel
+vesselData = {...
+    'Length', '51.5 m', ...
+    'Beam', '8.6 m', ...
+    'Draft', '2.3 m', ...
+    'Mass', '362 tonnes', ...
+    'Cruise speed', '8.23 m/s'};
+displayVehicleData('Multipurpose Naval Vessel', vesselData, 'nvessel.jpg', 4);
+
 end
+
+%% DISPLAY CONTROL METHOD
+function displayControlMethod()
+    disp('--------------------------------------------------------------------');
+    disp('MSS toolbox: Multipurpose Naval Vessel');
+    disp('Norrbin (1963) nonlinear model');    
+    disp('Heading autopilot: PD control law with reference feedforward')
+    disp('--------------------------------------------------------------------');
+    disp('Simulating...');
+end
+
