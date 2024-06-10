@@ -27,7 +27,6 @@ function [psi_dot, r_dot, delta_dot] = frigate(r, U, delta, delta_c, d_r)
 % Author:     Thor I. Fossen
 % Date:       2020-06-20
 % Revisions:  
-%   2024-04-20 : Added compability to GNU Octave.
 
 if (nargin == 4), d_r = 0; end
 if (U < 5 || U > 12), error('U should be between 5-12 m/s'); end
