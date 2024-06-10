@@ -23,10 +23,10 @@
 % remus100        - REMUS 100 autonomous underwater vehicle (AUV), L = 1.9 m
 % rig             - Semisubmersible linear mass-damper-spring model, 
 %                   L = 84.6 m.
-% ROVzefakkel     - Nonlinear autopilot model  of a boat, L = 45 m.
 % supply          - Linear DP model of a supply vessel, L = 76.2 m.
 % tanker          - Nonlinear course unstable maneuvering model of a 
 %                   tanker, L = 304 m. 
+% zeefakkel       - Nonlinear autopilot model of a pleasure craft, L = 45 m.
 %
 % Script for time-series simulations:
 %
