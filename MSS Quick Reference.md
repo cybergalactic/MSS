@@ -124,9 +124,9 @@ osv             % Nonlinear model of an Offshore Supply Vessel (OSV), L = 83.0 m
 otter           % OTTER small Uncrewed Surface Vehicle (USV), L = 2.0 m
 remus100        % REMUS 100 Autonomous Underwater Vehicle (AUV), L = 1.9 m
 rig             % Semisubmersible linear mass-damper-spring model, L = 84.6 m
-ROVzefakkel     % Nonlinear autopilot model of a boat, L = 45 m
 supply          % Linear DP model of a supply vessel, L = 76.2 m
 tanker          % Nonlinear course unstable maneuvering model of a tanker, L = 304 m 
+zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 ```
 
 ### Time-series simulation
@@ -134,7 +134,7 @@ tanker          % Nonlinear course unstable maneuvering model of a tanker, L = 3
 ```matlab
 SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control
 SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure
-SIMfrigate      % Simulate frigate.m using a PID heading autopilot.
+SIMfrigate      % Simulate frigate.m using a PID heading autopilot
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
 SIMotter        % Simulate otter.m with heading control and 2-D LOS straight-line path course control
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
@@ -145,6 +145,7 @@ SIMremus100     % Simulate remus100.m with autopilots for depth and heading cont
 SIMrig          % Simulate the 6-DOF semisubmersible model under PID control
 SIMsupply       % Simulate the linear supply vessel model under DP control
 SIMtanker       % Simulate tanker.m under PD control
+SIMzeefakkel    % Simulate zeefakkel.m using a PID heading autopilot
 ```
 
 ### Utils (m-files)
