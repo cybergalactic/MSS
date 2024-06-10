@@ -22,7 +22,7 @@ clearvars;
 h  = 0.05;                      % Sample time (s)
 N  = 10000;                     % Number of samples
 
-%% AUTOPILOTS PARAMETERS
+%% AUTOPILOT PARAMETERS
 U = 6;                          % Speed (m/s)
 delta_max = deg2rad(30);        % Max rudder angle (deg)
 
