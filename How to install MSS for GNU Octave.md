@@ -3,7 +3,7 @@
 The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB and the free software GNU Octave (https://www.octave.org), facilitating broad accessibility and application in marine systems simulation. To begin using the MSS toolbox, ensure it is installed and properly set up in your GNU Octave environment. 
 
 ## Download the MSS Directory:
-1. [Download ZIP](https://github.com/cybergalactic/MSS/archive/refs/heads/master.zip). Alternatively, navigate to the GitHub <a href="https://github.com/cybergalactic/MSS" target="_blank">MSS Repository</a> and click the green "Code" button and "Download ZIP" from the dropdown menu.
+1. [Download ZIP](https://github.com/cybergalactic/MSS/archive/refs/heads/master.zip). 
 2. Unzip the file to a desired location on your computer and name the directory MSS.
    
 ## Download and Install GNU Octave:
