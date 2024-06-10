@@ -17,8 +17,8 @@ function x = sat(x, x_max)
 %   2024-06-05 : Extended to accept vectors as inputs
 
 % Check if x_max is positive
-if any(x_max < 0)
-    error('x_max must be a non-negative number.');
+if any(x_max <= 0)
+    error('x_max must be a vector of positive elements.');
 end
 
 % Saturation
