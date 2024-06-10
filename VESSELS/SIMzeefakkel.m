@@ -1,6 +1,6 @@
 function SIMzeefakkel()
-% SIMrovzeefakkel is compatible with MATLAB and GNU Octave (www.octave.org).
-% This script simulates a heading-controlled ship, the zeefakkel with a 
+% SIMzeefakkel is compatible with MATLAB and GNU Octave (www.octave.org).
+% This script simulates a heading-controlled ship, the Zeefakkel with a 
 % length of 45 meters, employing a PID control strategy with reference 
 % feedforward. The ship dynamics is modeled using the Norrbin (1963) 
 % nonlinear model, providing realistic simulation of the ship turning 
