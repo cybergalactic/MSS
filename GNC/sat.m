@@ -16,19 +16,13 @@ function x = sat(x, x_max)
 % Revisions:
 %   2024-06-05 : Extended to accept vectors as inputs
 
-for i = 1:length(x)
-
-    % Check if x_max(i) is positive
-    if x_max(i) <= 0
-        error(['x_max(' num2str(i) ' must be a positive.']);
-    end
-
-    % Saturation
-    if abs(x(i)) > x_max(i)
-        x(i) = sign(x(i)) * x_max(i);
-    end
-
+% Check if x_max is positive
+if any(x_max < 0)
+    error('x_max must be a non-negative number.');
 end
+
+% Saturation
+x = min(max(x, -x_max), x_max);
 
 end
 
