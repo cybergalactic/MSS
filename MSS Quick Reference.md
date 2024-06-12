@@ -72,7 +72,7 @@ demoWaypointGuidance.slx                  % Waypoint guidance system
 ExEKF           % For-loop implementation (predictor-corrector representation)  of a discrete-time extended Kalman filter (EKF) 
 ExFeedback      % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
 ExFFT           % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
-ExHybrid        % Computation of a hybrid continuous path parametrized by waypoints
+ExHybridPath    % Computation of a hybrid continuous path parametrized by waypoints
 ExINS_AHRS      % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 ExINS_Euler     % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
 ExINS_MEKF      % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
@@ -252,6 +252,7 @@ crosstrack           % Computes the path-tangential origin and cross-track error
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
 crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
+getPathSignal        % Generates the coefficients for subpaths between given waypoints
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
 LOSchi               % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
