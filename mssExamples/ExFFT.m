@@ -1,7 +1,8 @@
-% ExFFT Estimation of wave encounter frequency by FFT. Time-domain data are
-% generated using a wave spectrum transfer function The FFT is used to
-% compute the single-sided spectra for both signal and the peak frequency
-% of the spectra are estimated.
+% ExFFT is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script estimates the wave encounter frequency by FFT. Time-domain 
+% data are generated using a wave spectrum transfer function The FFT is 
+% used to compute the single-sided spectra for both signal and the peak 
+% frequency of the spectra are estimated.
 %
 % Author:    Thor I. Fossen
 % Date:      1 March, 2020
@@ -40,3 +41,7 @@ title('Normalized wave spectrum in the frequency domain'); grid;
 subplot(2,1,2);
 plot(w(1:M),P1(2,1:M),'linewidth',2);    
 title('Normalized sinusoidal in the frequency domain'); grid;
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
