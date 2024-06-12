@@ -1,6 +1,7 @@
-% ExFeedback  Numerical integration of a 1st-order system with feedback
-% and feedforward control laws. Euler's method is implemented using a
-% for-end loop and the results are stored in a table and plotted.
+% ExFeedback is compatibel with MATLAB and GNU Octave (www.octave.org).
+% This script simulates numerical integration of a 1st-order system with 
+% feedback and feedforward control laws. Euler's method is implemented 
+% using a for-end loop and the results are stored in a table and plotted.
 %
 % Continious-time system:    .
 %                            x = a * x + b * u + w
@@ -53,3 +54,7 @@ hold on
 plot(t,r*ones(N+1,1),'linewidth',2)
 hold off
 subplot(212),plot(t,u,'linewidth',2),xlabel('time (s)'),title('u'),grid
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
