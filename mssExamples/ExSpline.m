@@ -1,4 +1,4 @@
-% ExSpline   Cubic Hermite and spline interpolation of way-points 
+% ExSpline   Cubic Hermite and spline interpolation of waypoints 
 % Author:    Thor I. Fossen
 % Date:      6 July 2002
 % Revisions: 
