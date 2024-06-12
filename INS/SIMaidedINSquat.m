@@ -3,8 +3,8 @@ function SIMaidedINSquat()
 % This script simulates an Inertial Navigation System (INS) aided by position 
 % measurements using the Error-State Kalman Filter (ESKF). The attitude is 
 % parametrized using unit quaternions and the error states are represented 
-% using the Gibbs vector and the Multiplicative Extended Kalman Filter (MEKF) 
-% equations (Fossen, 2021, Chapter 14.4).  
+% by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
+% (Fossen, 2021, Chapter 14.4).  
 % 
 % The position measurement frequency f_pos can be chosen smaller 
 % or equal to the sampling frequency f_s, which is equal to the Inertial 
