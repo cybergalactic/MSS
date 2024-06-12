@@ -1,10 +1,12 @@
-% Discrete-time extended Kalman filter (EKF) implementation demonstrating
-% how the "predictor-corrector representation" can be be used to estimate 
-% unknown states and parameters in the nonlinear model:
+% ExEKFparameterEstimation is compatibel with MATLAB and GNU Octave
+% (www.octave.org). This script simulates a discrete-time extended Kalman
+% filter (EKF) implementation demonstrating how the "predictor-corrector
+% representation" can be be used to estimate unknown states and parameters
+% in the nonlinear model:
 % 
-%   dx1/dt = x2
-%   dx2/dt = a * x2 * abs(x2) + b * u + white noise
-%   da/dt = white noise
+%   x1_dot = x2
+%   x2_dot = a * x2 * abs(x2) + b * u + white noise
+%   a_dot  = white noise
 %        y = x1 + white noise
 %
 % where x3 = a is an unknown parameter.
@@ -109,3 +111,7 @@ legend('True veloicty x_2','Estimate x_2hat');
 subplot(313),plot([t(1) t(end)],[a a],'b',t,x_hat(:,3),'r','linewidth',2)
 xlabel('time (s)'),title('Parameter a'),grid
 legend('True parameter a','Estimate x_3hat');
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
