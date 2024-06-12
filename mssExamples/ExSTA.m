@@ -6,9 +6,9 @@
 %
 % where d_r is an unknown bounded disturbance in yaw and 
 %
-%   [psi_dot, r_dot, delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r)
+%   [psi_dot, r_dot, delta_dot] = zeefakkel(r,U,delta,delta_c,d_r)
 %
-% is the Norrbin model for the ROV Zefakkel (Length 45 m) inclduing
+% is the Norrbin model for the Zeefakkel (Length 45 m) inclduing
 % actuator dynamics and saturation. 
 %
 % Author:    Thor I. Fossen
@@ -85,8 +85,8 @@ for i=1:N+1
     w = -alpha * sqrt(abs(sigma)) * sign(sigma) + v;
     delta_c = (T/K) * w;
     
-    % Norrbin model for the ROV Zefakkel
-    [psi_dot,r_dot,delta_dot] = ROVzefakkel(r,U,delta,delta_c,d_r); 
+    % Norrbin model for the Zefakkel
+    [psi_dot,r_dot,delta_dot] = zeefakkel(r,U,delta,delta_c,d_r); 
     
     % store simulation data in a table (for testing)
     simdata(i,:) = [t psi r delta delta_c xd' alpha beta v];       
