@@ -1,7 +1,9 @@
 function y_e = crosstrackWpt(x2, y2, x1, y1, x, y)
+% crosstrack is compatible with MATLAB and GNU Octave (www.octave.org). 
 % y_e = crosstrackWpt(x2, y2, x1, y1, x, y, flag) computes the cross-track
-% error y_e for a craft loacted at position (x, y) when the path is a 
-% straight line from waypoint (x1,y1) to waypoint (x2,y2).
+% error y_e expressed in NED for a craft located at the North-East position 
+% (x, y) when the path is a straight line from waypoint (x1,y1) to 
+% waypoint (x2,y2).
 %
 % Input:    (x1,y1) and (x2,y2), waypoints  expressed in NED
 %           (x,y), craft North-East positions 
@@ -13,12 +15,13 @@ function y_e = crosstrackWpt(x2, y2, x1, y1, x, y)
 % reference frame, and the cross-track error y_e.
 %  
 % Author:    Thor I. Fossen
-% Date:      6 Oct. 2020
-% Revisions: 8 Oct. 2020, updated the description
+% Date:      2020-10-06
+% Revisions: 
+%   None
 
-% path-tanegntial angle with respect to the North axis
+% Path-tanegntial angle with respect to the North axis
 pi_p = atan2(y2-y1, x2-x1);
 
-% cross-track error expressed in NED
+% Cross-track error expressed in NED
 y_e = -(x-x1) * sin(pi_p) + (y-y1) * cos(pi_p);
 
