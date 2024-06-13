@@ -51,8 +51,8 @@ wayPoints = [wpt.pos.x wpt.pos.y];
 
 % LOS parameters
 Delta_h = 500;                   % Look-ahead distance
-R_switch = 50;                   % Radius of switching circle
-K_f = 0.4;                       % LOS observer gain
+R_switch = 400;                  % Radius of switching circle
+K_f = 0.2;                       % LOS observer gain
 
 % Initial heading, vehicle points towards next waypoint
 psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
