@@ -13,6 +13,7 @@ function SIMremus100()
 %   refModel.m            - Reference model for autopilot systems
 %   ALOS.m                - ALOS guidance algorithm for path following
 %   LOSobserver.m         - Observer for LOS guidance 
+%   lowPassFilter.m       - Low-pass filter
 %   q2euler.m, ssa.m      - Utilities for quaternion to Euler conversion 
 %                           and angle wrapping
 %   displayVehicleData    - Display the vehicle data and an image of the
@@ -177,7 +178,7 @@ for i = 1:N+1
        else
            wnz = wn_d_z;
        end
-       z_d = exp(-h*wnz) * z_d + (1 - exp(-h*wnz)) * z_ref;
+       z_d = lowPassFilter(z_d, z_ref, wnz, h);
 
        % Depth autopilot using the stern planes (succesive-loop closure)
        theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
