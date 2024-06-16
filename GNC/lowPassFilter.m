@@ -43,7 +43,7 @@ function xf = lowPassFilter(xf, x, w_n, h)
 % Revisions:
 %   None
 
-phi = expm(-h * w_n);
+phi = exp(-h * w_n);
 
 xf = phi * xf + (1 - phi) * x;
 
