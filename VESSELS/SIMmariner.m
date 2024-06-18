@@ -34,7 +34,7 @@ function SIMmariner()
 % Revisions:
 %   2024-03-27 : Added animation of the ship's North-East positions.
 %   2024-04-19 : Enhanced compatibility with GNU Octave.
-%   2024-05-16 : Added an option for LOS path-following course controll.
+%   2024-05-16 : Added an option for LOS path-following course control.
 
 clearvars; 
 close all;
