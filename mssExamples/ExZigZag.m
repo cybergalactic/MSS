@@ -1,12 +1,14 @@
-% ExZigZag   Zigzag maneuvers for the Mariner class vessel, a container 
-%            ship and the Remus 100 AUV.
+% exZigZag is compatible with MATLAB and GNU Octave (www.octave.org).  
+% Zigzag maneuvers for the Mariner-class cargo vessel, a container ship 
+% and the Remus 100 AUV.
 %
 % Author:    Thor I. Fossen
 % Date:      23 Jul 2001
-% Revisions: 16 Nov 2023 - Included the Remus 100 AUV
+% Revisions: 
+%   16 Nov 2023 - Included the Remus 100 AUV
 
-t_final = 600;           % final simulation time (sec)
-t_rudderexecute = 10;    % time rudder is executed (sec)
+t_final = 600;           % Final simulation time (sec)
+t_rudderexecute = 10;    % Time rudder is executed (sec)
 
 disp('20-20 zigzag maneuver for the Mariner class vessel')
 
