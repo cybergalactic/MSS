@@ -1,4 +1,4 @@
-% exPassiveObs is compatibel with MATLAB and GNU Octave (www.octave.org).
+% exPassiveObs is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script plots the loop transfer function of the passive observer in
 % Fossen (2021, Chapter 13.5) for dynamic positioning.
 %
@@ -6,7 +6,7 @@
 % Date:        15th October 2002
 % Revisions: 
 
-% Filter paramaters
+% Filter parameters
 T = eye(3)/1000
 lambda = 0.1;
 wo   = 0.8976;
