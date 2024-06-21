@@ -1,15 +1,15 @@
-% ExRRD2  Rudder-Roll Damping (RRD) system for the Son and Nomoto
-%         container ship. Calls Son and Nomoto model with wave-induced roll
-%         disturbance: see RRDcontainer.m
+% exRRD2  Rudder-Roll Damping (RRD) system for the Son and Nomoto
+% container ship. Calls Son and Nomoto model with wave-induced roll
+% disturbance: see RRDcontainer.m
 %
 % Author:    Thor I. Fossen
 % Date:      2001-10-31
-% Revisions: 2021-04-07   Added function RRDcontainer.m to the end of the file
+% Revisions: 2021-04-07 - Added function RRDcontainer.m to the end of the file
 
-conversion % load conversion factors
+conversion % Load conversion factors
 
-Ns = 20000; % no. of samples
-h  = 0.05;  % sample time
+Ns = 20000; % No. of samples
+h  = 0.05;  % Sample time
 
 % Normalization variables
 rho = 1025;                 % water density (kg/m^3)
@@ -19,8 +19,10 @@ U0 = 7.3;                   % service speed (m/s)
 % -----------------------------------------------------------------------------------------
 % SHIP MODEL
 % -----------------------------------------------------------------------------------------
-% Linear model using nondimensional matrices and states with dimension (see Lcontainer.m): 
-% TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta = (U^2/L) T b' delta
+% Linear model using nondimensional matrices and states with dimension 
+% (see Lcontainer.m): 
+%   TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta 
+%       = (U^2/L) T b' delta
 
 % nu = [v p r]
 T    = diag([ 1 1/L 1/L]);
@@ -40,7 +42,7 @@ G = [ 0 0.0000704  0
 
 b = [-0.002578 0.0000855 0.00126  ]';
 
-% ship state-space model
+% Ship state-space model
 Minv = inv(T*M*Tinv);
 A11 = - Minv * (U0/L)*T*N*Tinv;
 A12 = - Minv * (U0/L)^2*T*G*Tinv;
@@ -64,74 +66,77 @@ Q = diag([10000 1000 10 1 ]);
 R = 5;
 [G1,G2] = lqtracker(A,B,C,Q,R)
 
-% eigenvalues, damping ratios, natural frequencies
+% Eigenvalues, damping ratios, natural frequencies
 damp(A)
 damp(A+B*G1)
 
-% -----------------------------------------------------------------------------------------
-% SIMULATION OF AUTOPILOT AND RRD SYSTEMS
-% -----------------------------------------------------------------------------------------
-n_ref = 70; % desired rpm
+%% SIMULATION OF AUTOPILOT AND RRD SYSTEMS
+n_ref = 70; % desired RPM
 
 x = [U0 0 0 0 0 0 0 0 0 n_ref 0 0]';  % x = [u v r x y psi p phi delta n xw1 xw2]'
 xout = zeros(Ns+1,length(x));  
 
-wf1 = 0.1;    % low-pass filter frequnecy
-wf2 = 0.05;   % high-pass filter frequency
+wf1 = 0.1;    % Low-pass filter frequnecy
+wf2 = 0.05;   % High-pass filter frequency
 
-xyawf  = [0 0 0]';  % filter states
+xyawf  = [0 0 0]';  % Filter states
 xrollf = [0 0]';
-xw     = [0 0]';    % wave states
+xw     = [0 0]';    % Wave states
 
-% --------------------------- MAIN LOOP --------------------------------------------
+%% MAIN LOOP 
 for i=1:Ns+1
     
-    % state vectors for yaw and roll subsystems 
+    % State vectors for yaw and roll subsystems 
     xyaw  = [x(2) x(3) x(6)]'; 
     xroll = [x(7) x(8)]';
    
-    % discrete time low-pass filter
+    % Discrete time low-pass filter
     phif1   = exp(-h*wf1);
     xyawf  = phif1*xyawf + (1-phif1)*xyaw;
 
-    % discrete time high-pass filter 
+    % Discrete time high-pass filter 
     phif2   = exp(-h*wf2);
     yrollf = xrollf + xroll;
     xrollf = phif2*xrollf + (phif2-1)*xroll;
     
     % x = [v p r phi psi ]'
-    x_fb = [xyawf(1) yrollf(1) xyawf(2) yrollf(2) xyawf(3) ]';  % filtered states
+    x_fb = [xyawf(1) yrollf(1) xyawf(2) yrollf(2) xyawf(3) ]';  % Filtered states
 
-    psi_d = 10*D2R;  % desired heading
+    psi_d = deg2rad(10);  % Desired heading
     
-    % control law:  u_ref = G1 * x + G2 * C * x_d
+    % Control law:  u_ref = G1 * x + G2 * C * x_d
     if i<6000
-        u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';   % course-changing, no roll damping
+         % course-changing, no roll damping
+         u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';  
     elseif i>6000 && i<15000
-        u_ref = G1*x_fb + G2*[0 0 0 psi_d]';                        % course-keeping, roll damping
+        % course-keeping, roll damping
+        u_ref = G1*x_fb + G2*[0 0 0 psi_d]';                        
     else
-        u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';   % course-keeping, no roll damping    
+        % course-keeping, no roll damping    
+        u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';   
     end 
    
-    % save simulation results
+    % Save simulation results
     xout(i,:) = x';    
 
-    % nonlinear ship model with wave disturbance
+    % Nonlinear ship model with wave disturbance
     [xdot,U] = RRDcontainer(x,[u_ref; n_ref]);
     x = x + h*xdot;  
   
 end
 
-% -----------------------------------------------------------------------------------------
-% PLOTS
-% -----------------------------------------------------------------------------------------
+%% PLOTS
 t = h*(0:1:Ns)';
-figure(2)
+figure(gcf)
 subplot(311)
 plot(t,R2D*xout(:,6)); hold on
 plot(t,R2D*psi_d*ones(Ns+1,1),'linewidth',2); hold off; title('yaw angle \psi (deg)')
 subplot(312),plot(t,R2D*xout(:,8)); title('roll angle \phi (deg)')
 subplot(313),plot(t,R2D*xout(:,9)); title('rudder angle \delta (deg)')
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
 
 %% Function [xdot,U] = RRDcontainer(x,ui)
 function [xdot,U] = RRDcontainer(x,ui)
@@ -168,9 +173,7 @@ function [xdot,U] = RRDcontainer(x,ui)
 % Date:      1st Noovember 2001
 % Revisions: 
 
-% -----------------------------------------------------------------------------------------
-% LINEAR WAVE MODEL 
-% -----------------------------------------------------------------------------------------
+%% LINEAR WAVE MODEL 
 Kw     = 0.0001;
 w_wave = 1.0;                    
 Aw = [ 0               1
