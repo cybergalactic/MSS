@@ -1,16 +1,19 @@
-% ExRRD2     Roll and sway-yaw transfer functions for the Son and Nomoto container ship
+% exRRD1 Roll and sway-yaw transfer functions for the Son and Nomoto 
+% container ship
+% 
 % Author:    Thor I. Fossen
 % Date:      21 October 2001
 % Revisions: 
 
-U=7.0;    % service speed
+U=7.0;    % Service speed
 
 % Normalization variables
-rho = 1025;                 % water density (kg/m^3)
-L = 175;                    % length of ship (m)
+rho = 1025;                 % Water density (kg/m^3)
+L = 175;                    % Length of ship (m)
  
-% Linear model using nondimensional matrices and states with dimension (see Fossen 2002): 
-% TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta = (U^2/L) T b' delta
+% Linear model using nondimensional matrices and states with dimension: 
+%     TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta 
+%           = (U^2/L) T b' delta
 
 % nu = [v p r]
 T    = diag([ 1 1/L 1/L]);
@@ -30,7 +33,7 @@ G = [ 0 0.0000704  0
 
 b = [-0.002578 0.0000855 0.00126  ]';
 
-%  state-space model
+% State-space model
 Minv = inv(T*M*Tinv);
 A11 = - Minv * (U/L)*T*N*Tinv;
 A12 = - Minv * (U/L)^2*T*G*Tinv;
@@ -42,14 +45,14 @@ A = [ A11        A12(:,2:3)
   
 B = [ B1 ; 0 ; 0 ]
 
-% roll transfer function (removing yaw integrator when using model reduction)
-roll=ss(A(1:4,1:4),B(1:4,1),[0 0 0 1],0)
-yaw      = ss(A(1:4,1:4),B(1:4,1),[0 0 1 0],0)
+% Roll transfer function (removing yaw integrator when using model reduction)
+roll = ss(A(1:4,1:4),B(1:4,1),[0 0 0 1],0)
+yaw  = ss(A(1:4,1:4),B(1:4,1),[0 0 1 0],0)
 yaw_integrator = tf(1,[1 0]);
 
-% decoupled reduced order models
+% Decoupled reduced order models
 red_yaw  = ss(modred(yaw,[2,4],'del'));
-red_roll = ss(modred(roll,[3],'del'));
+red_roll = ss(modred(roll,3,'del'));
 
 w = logspace(-3,0);
 [mag1,phase1] = bode(series(yaw,yaw_integrator),w);
@@ -57,28 +60,33 @@ w = logspace(-3,0);
 [mag3,phase3] = bode(roll,w);
 [mag4,phase4] = bode(red_roll,w);
 
-subplot(211),semilogx(w,20*log10(mag1(:)),':b'),grid
+figure(gcf)
+subplot(211),semilogx(w,20*log10(mag1(:)),':'),grid
 xlabel('Frequency [rad/s]'),title('Gain [dB]')
 hold on
-semilogx(w,20*log10(mag2(:)),'b')
-semilogx(w,20*log10(mag3(:)),'k','linewidth',2)
-semilogx(w,20*log10(mag4(:)),'k')
+semilogx(w,20*log10(mag2(:)))
+semilogx(w,20*log10(mag3(:)),'linewidth',2)
+semilogx(w,20*log10(mag4(:)))
 hold off
 axis([0.001 1 -40 10]);
-legend('yaw model','decoupled yaw model','roll model','decoupled roll model')
+legend('Yaw model','Decoupled yaw model','Roll model','Decoupled roll model')
 
-subplot(212),semilogx(w,phase1(:),':b'),grid
+subplot(212),semilogx(w,phase1(:),':'),grid
 xlabel('Frequency [rad/s]'),title('Phase [deg]')
 hold on
-semilogx(w,phase2(:),'b')
-semilogx(w,phase3(:)-180,'k','linewidth',2)
-semilogx(w,phase4(:),'k')
+semilogx(w,phase2(:))
+semilogx(w,phase3(:)-180,'linewidth',2)
+semilogx(w,phase4(:))
 hold off
 
-% display transfer functions
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
+
+% Display transfer functions
 zpk(series(yaw,yaw_integrator))
 zpk(roll)
 
-% display reduced-order transfer functions
+% Display reduced-order transfer functions
 zpk(series(red_yaw,yaw_integrator))
 zpk(red_roll)
