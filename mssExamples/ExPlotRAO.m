@@ -1,4 +1,6 @@
-% ExPlotRAO  Script for plotting motion and force RAOs
+function exPlotRAO()
+% exPlotRAO is compatible with MATLAB and GNU Octave (www.octave.org).
+% Script for plotting motion and force RAOs.
 %
 % Author:    Thor I. Fossen
 % Date:      23 June 2019
@@ -32,7 +34,9 @@ for DOF = 1:6
     subplot(414); plotRAOphs(w,phase,DOF); title(txtFp(DOF));     
 end
 
+end
 
+%% FUNCTIONS
 function plotRAOamp(w,amp,DOF)
     velno = 1;   
     arg = amp{DOF}(:,:,velno);
