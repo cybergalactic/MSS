@@ -1,4 +1,4 @@
-% exEKF is compatibel with MATLAB and GNU Octave (www.octave.org).
+% exEKF is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates a discrete-time Extended Kalman filter (EKF), which 
 % demonstrates how the "predictor-corrector representation" can be 
 % applied to the nonlinear model:
