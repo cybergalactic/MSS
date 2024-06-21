@@ -1,4 +1,5 @@
-% ExSTA super twisting adaptive-gain (STA) sliding mode control for heading
+% ExSTA is compatible with MATLAB and GNU Octave (www.octave.org).
+% Super twisting adaptive-gain (STA) sliding mode control for heading
 % control. The yaw dynamics is based on the Norrbin (1963) nonlinear model
 % 
 %                       psi_dot = r
@@ -8,17 +9,15 @@
 %
 %   [psi_dot, r_dot, delta_dot] = zeefakkel(r,U,delta,delta_c,d_r)
 %
-% is the Norrbin model for the Zeefakkel (Length 45 m) inclduing
+% is the Norrbin model for the Zeefakkel (Length 45 m), including
 % actuator dynamics and saturation. 
 %
 % Author:    Thor I. Fossen
 % Date:      20 June 2020
-% Revisions: 29 Nov 2022 - beta is changed to beta = beta_1 * alpha + beta_0
-%            30 Aug 2023 - minor updates and improvements
+% Revisions: 29 Nov 2022 - Beta is changed to beta = beta_1 * alpha + beta_0
+%            30 Aug 2023 - Minor updates and improvements
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h  = 0.01;     % sampling time (s)
 N  = 40000;    % no. of samples
 
