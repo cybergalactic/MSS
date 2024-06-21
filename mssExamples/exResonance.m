@@ -6,7 +6,7 @@
 %   ..     .
 % m x  + d x + k x = F sin(w_e t),     w_n = sqrt(k/m)
 %
-% The results are plotted as change in amplitudes (1/Zm) with respect to the 
+% The results are plotted as changes in amplitudes (1/Zm) for the 
 % frequency ratio w_e/w_n where Zm denotes the impedance.
 %
 % Author:    Thor I. Fossen
