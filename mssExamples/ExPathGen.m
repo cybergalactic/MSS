@@ -1,14 +1,18 @@
-% ExPathGen  Path generation using cubic polynominals
-% Author:    Thor I. Fossen
-% Date:       1 November 2002
-% Revisions: 13 February 2012   Replaced Ylabel with ylabel
-%            7 March 2021       Moved function pva.m to the end of the file
+function exPathGen()
+% wxPathGen is compatible with MATLAB and GNU Octave (www.octave.org).
+% Path generation using cubic polynominals.
 
 % Cubic spline between two points
-% x(th)     =   a3*th^3 + a2*th^2 + a1*th + a0
-% dx/dt(th) = 3*a3*th^2 + 2*a2*th + a1
+%   x(th)     =   a3*th^3 + a2*th^2 + a1*th + a0
+%   dx/dt(th) = 3*a3*th^2 + 2*a2*th + a1
+% 
+% Author:     Thor I. Fossen
+% Date:       1 November 2002
+% Revisions:  
+%   13 February 2012  - Replaced Ylabel with ylabel
+%    7 March 2021     - Moved function pva.m to the end of the file
 
-clear all
+clearvars
 
 % way-point database
 wpt.pos.x   = [0 200 400 700 1000];
@@ -43,7 +47,7 @@ if boundary == 'vel'
     c2 = pva(th(5),'v');
 elseif boundary == 'acs'
     c1 = pva(th(1),'a');
-    c2 = pva(th(5),'a') 
+    c2 = pva(th(5),'a');
 end
 
 O = zeros(1,4);
@@ -86,9 +90,9 @@ y5     = wpt.pos.y(5);
 
 th    = 0:4;
 
-% velocity/acceleration at boundary
+% Velocity/acceleration at boundary
 boundary = 'vel';
-%boundary  = 'acs'
+% boundary  = 'acs'
 
 start = 0;
 final = 0;
@@ -100,7 +104,7 @@ if boundary == 'vel'
     c2 = pva(th(5),'v');
 elseif boundary == 'acs'
     c1 = pva(th(1),'a');
-    c2 = pva(th(5),'a') 
+    c2 = pva(th(5),'a'); 
 end
 
 O = zeros(1,4);
@@ -188,7 +192,7 @@ hold off
 subplot(326)
 plot(0,0)
 hold on
-for i= 1:4,    
+for i= 1:4
     th = linspace(i-1,i,101); 
     DDyth = polyval([0 0 6*Bcoeff(i,1) 2*Bcoeff(i,2) ],th);
     plot(th,DDyth,'linewidth',2);
@@ -281,6 +285,8 @@ plot(t,th,'linewidth',2),
 hold off
 grid
 title('Path variable \theta(t) as a function of time t')
+
+end
 
 %% Function pva
 function y = pva(th,pva)
