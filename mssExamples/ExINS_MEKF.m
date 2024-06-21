@@ -1,4 +1,5 @@
-% ExINS_MEKF error-state (indirect) feedback Kalman filter for INS aided by
+% exINS_MEKF is compatible with MATLAB and GNU Octave (www.octave.org).
+% exINS_MEKF error-state (indirect) feedback Kalman filter for INS aided by
 % position measurements. The attitude is estimated using the MEKF formalism 
 % where attitude is parametrized using unit quaternions/Gibbs vector.
 %
@@ -27,9 +28,7 @@
 % Revisions: 28 Mar 2020, modified to use an INS signal generator
 %            29 Nov 2020, new Kalman filter weights
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 f_s    = 100;     % sampling frequency [Hz]
 f_gnss = 1;       % GNSS measurement frequency [Hz]
 
