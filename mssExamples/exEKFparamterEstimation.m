@@ -1,7 +1,7 @@
 % exEKFparameterEstimation is compatibel with MATLAB and GNU Octave
 % (www.octave.org). This script simulates a discrete-time extended Kalman
 % filter (EKF) implementation demonstrating how the "predictor-corrector
-% representation" can be be used to estimate unknown states and parameters
+% representation" can be used to estimate unknown states and parameters
 % in the nonlinear model:
 % 
 %   x1_dot = x2
