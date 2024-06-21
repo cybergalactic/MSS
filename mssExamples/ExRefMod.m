@@ -1,21 +1,21 @@
-% ExRefMod   2nd-order reference model with nonlinear damping and velocity 
-% saturation
+% exRefMod   2nd-order reference model with nonlinear damping and velocity 
+% saturation.
 %
 % Author:    Thor I. Fossen
 % Date:      3rd November 2001
 % Revisions: 
 
-zeta = 1;  % relative damping ratio
-w = 1;     % natural frequency
-delta = 1; % nonlinear damping coeff.
-v_max = 1; % max velocity
-h = 0.1;   % sampling time
-N = 200;   % number of samples
+zeta = 1;  % Relative damping ratio
+w = 1;     % Natural frequency
+delta = 1; % Nonlinear damping coefficients
+v_max = 1; % Max velocity
+h = 0.1;   % Sampling time
+N = 200;   % Number of samples
 
 t  = 0:h:h*N;
 
-% linear mass-damper-spring system
-r1 = 10*ones(max(size(t)),1);
+% Linear mass-damper-spring system
+r1 = 10 * ones(max(size(t)),1);
 [A,B,C,D] = ord2(w,zeta); 
 [x1,y1]   = lsim(A,B,C,D,r1,t); 
 
@@ -23,7 +23,7 @@ r2 = 10*r1;
 [A,B,C,D] = ord2(w,zeta); 
 [x2,y2]   = lsim(A,B,C,D,r2,t); 
 
-% nonlinear damping
+% Nonlinear damping
 x = 0;
 v = 0;
 r2 = 10;
@@ -36,7 +36,7 @@ for i=1:N+1
    x = x + h * x_dot;
 end
 
-% velocity saturation
+% Velocity saturation
 x = 0;
 v = 0;
 r3 = 10;
@@ -50,14 +50,14 @@ for i=1:N+1
    x_dot = v;
 
    v = v + h * v_dot;
-   if abs(v) > v_max           % veloicty saturation
+   if abs(v) > v_max           % Velocity saturation
       v = sign(v) * v_max;
    end
    x = x + h * x_dot;
 
 end
 
-% plots
+%% Plots
 figure(gcf)
 subplot(211); plot(t,y1(:,1))
 hold on; plot(t,y2(:,1),'--k',t,y3(:,1),'r'); hold off; grid
