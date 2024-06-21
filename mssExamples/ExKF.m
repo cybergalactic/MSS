@@ -1,8 +1,9 @@
-% ExKF Discrete-time Kalman filter (KF) implementation demonstrating
+% exKF is compatible with MATLAB and GNU Octave (www.octave.org).
+% Discrete-time Kalman filter (KF) implementation demonstrating
 % how the "predictor-corrector representation" can be applied to a
 % linear model:
 % 
-%  dx/dt = A * x + B * u + E * w 
+%  x_dot = A * x + B * u + E * w 
 %      y = C * x + v
 %
 %   x_k+1 = Ad * x_k + Bd * u_k + Ed * w_k 
@@ -23,21 +24,21 @@
 %            8 Dec 2021,  map inital yaw angle to [-pi, pi)
 
 %% USER INPUTS
-f_s = 10;    % sampling frequency [Hz]
-f_m = 1;     % yaw angle measurement frequency [Hz]
+f_s = 10;    % Sampling frequency [Hz]
+f_m = 1;     % Yaw angle measurement frequency [Hz]
 
 Z = f_s/f_m;
 if ( mod(Z,1) ~= 0 || Z < 1 )
     error("f_s is not specified such that Z = f_s/f_m >= 1"); 
 end
 
-% simulation parameters
+% Simulation parameters
 N  = 1000;		  % no. of iterations
 
 h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
 h_m = 1/f_m;
 
-% model paramters for mass-damper system (x1 = yaw angle, x2 = yaw rate)
+% Model paramters for mass-damper system (x1 = yaw angle, x2 = yaw rate)
 A = [0 1
      0 -0.1 ];
 B = [0
@@ -46,18 +47,18 @@ E = [0
      1];
 C = [1 0]; 
 
-% discrete-time matrices
+% Discrete-time matrices
 Ad = eye(2) + h * A;
 Bd = h * B;
 Cd = C;
 Ed = h * E;
  
-% initial values for x and u
+% Initial values for x and u
 x = [0 0]';	        
 u = 0;
 
-% initialization of Kalman filter
-x_prd = [ssa(10) 0]';                  % map inital yaw angle to [-pi, pi)
+% Initialization of Kalman filter
+x_prd = [ssa(10) 0]';                  % Map inital yaw angle to [-pi, pi)
 P_prd = diag([1 1]);
 Qd = 1;
 Rd = 10;
@@ -91,7 +92,7 @@ for i=1:N+1
        x_hat = x_prd;
    end
    
-   % store simulation data in a table   
+   % Store simulation data in a table   
    simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
       
    % Predictor (k+1)  
@@ -114,12 +115,12 @@ y_m = ydata(:,2);
 clf
 figure(gcf)
 
-subplot(211),plot(t_m,y_m,'xb',t,x_hat(:,1),'r')
+subplot(211),plot(t_m,y_m,'xb',t,x_hat(:,1),'r','LineWidth',2)
 xlabel('time (s)'),title('Yaw angle x_1'),grid
 legend(['Measurement y = x_1 at ', num2str(f_m), ' Hz'],...
     ['Estimate x_1hat at ', num2str(f_s), ' Hz']);
 
-subplot(212),plot(t,x(:,2),'b',t,x_hat(:,2),'r')
+subplot(212),plot(t,x(:,2),'b',t,x_hat(:,2),'r','LineWidth',2)
 xlabel('time (s)'),title('Yaw rate x_2'),grid
 legend(['True yaw rate x_2 at ', num2str(f_s), ' Hz'],...
     ['Estimate x_2hat at ', num2str(f_s), ' Hz']);
