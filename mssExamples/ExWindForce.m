@@ -1,15 +1,16 @@
-% ExWindForce  is compatible with MATLAB and GNU Octave (www.octave.org).
+% exWindForce is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script plots the wind coefficients using the Blendermann (1994) and
 % Isherwood (1972) formulas for merchant ships.
 % 
 % Dependencies: 
-%            blendermann94
-%            isherwood72
+%            blendermann94.m
+%            isherwood72.m
 %
 % Author:    Thor I. Fossen
 % Date:      2001-06-06 
-% Revisions: 2004-06-06 - New values for A_T and A_L.
-%            2008-11-20 - Updated to include several new ships.
+% Revisions: 
+%   2004-06-06 - New values for A_T and A_L.
+%   2008-11-20 - Updated to include several new ships.
 
 clear CX CY CK CN
 
@@ -17,7 +18,7 @@ gam_deg = (0:10:180)';
 gamma_r = deg2rad(gam_deg);
 V_r = 20;
 
-%%  CASE 1 - Blendermann (1994) 
+%% CASE 1 - Blendermann (1994) 
 CDt       = 0.85;
 CDl_AF{1} = 0.55;     % gamma_r = 0
 CDl_AF{2} = 0.65;     % gamma_r = pi
@@ -32,7 +33,7 @@ vessel_no = 13;
 
 [tau_w,CX,CY,CK,CN] = blendermann94(gamma_r,V_r,AFw,ALw,sH,sL,Loa,vessel_no);
 
-% Plots
+%% Plots
 XDATA = [0 30 60 90 120 150 180];
 
 figure(1)
@@ -73,7 +74,7 @@ if ~isoctave; sgtitle('Blendermann (1994) Wind Coefficients'); end
 set(findall(gcf,'type','legend'),'FontSize',14);
 
 
-%%  CASE 2 - Isherwood (1972)
+%% CASE 2 - Isherwood (1972)
 clear CX CY CK CN
 
 Loa	      =  100;  % Length overall (m)
