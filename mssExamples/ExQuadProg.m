@@ -1,42 +1,40 @@
-% ExQuadProg Quadratic programming for way-point trajectory generation.
-%            Two cubic polynominals are fitted to two way-points where the 
-%            speed and position are specified. The starting time is t0 while
-%            the arrival time t1 at next way-point is unknown.
+% exQuadProg is compatible with MATLAB and GNU Octave (www.octave.org).
+% Quadratic programming for waypoint trajectory generation. Two cubic 
+% polynominals are fitted to two waypoints where the speed and position 
+% are specified. The starting time is t0 while the arrival time t1 at 
+% next waypoint is unknown.
 %
-%            Cubic spline between two points:
-%            x(t) = a3*t^3 + a2*t^2 + a1*t + a0
-%            y(t) = b3*t^3 + b2*t^2 + b1*t + b0
+% Cubic spline between two points:
+%   x(t) = a3*t^3 + a2*t^2 + a1*t + a0
+%   y(t) = b3*t^3 + b2*t^2 + b1*t + b0
 %
 % Author:    Thor I. Fossen
 % Date:      9 July 2002
 % Revisions: 
 
-Umax = 10;    % maximum speed
+Umax = 10;    % Maximum speed
 
-% way-point 0
-t0 = 0;       % time
+% Waypoint #0
+t0 = 0;       % Time
 x0 = 10;      % x-position 
 y0 = 10;      % y-psoition
-U0 = 0;       % speed
+U0 = 0;       % Speed
 
-% way-point 1 
-% time t1 is unknown (will be optimized)
+% waypoint #1 
+% Time t1 is unknown (will be optimized)
 x1 = 200;     % x-position 
-y1 = 100;     % y-psoition
-U1 = 5;       % speed
+y1 = 100;     % y-position
+U1 = 5;       % Speed
 
-% direction from way-point 0 to way-point 1
+% Direction from waypoint #0 to waypoint #1
 psi0 = atan2(y1-y0,x1-x0);
-psi1 = psi0;                  % last way-point equals direction of previous
+psi1 = psi0;                  % Last waypoint equals direction of previous
 
-% --------------------------------------------------------------------
-% MAIN LOOP for computation of the 9 unknowns,
-% time t1 and the polynominal parameters x = [a3 a2 a1 a0 b3 b2 b1 b0]'
-% --------------------------------------------------------------------
-
+%% MAIN LOOP for computation of the 9 unknowns,
+% Time t1 and the polynominal parameters x = [a3 a2 a1 a0 b3 b2 b1 b0]'
 Jbar_min = 1e10;
 
-for dt = 1:100,
+for dt = 1:100
     
     t1 = t0+dt;  
         
@@ -58,7 +56,7 @@ for dt = 1:100,
     
     Jbar = 0.5*(J - y'*y); 
     
-    % speed profile between way-points 0 and 1
+    % Speed profile between waypoints #0 and #1
     t = linspace(t0,t1,101);
     Acoeff = x(1:4);
     Bcoeff = x(5:8);
@@ -66,8 +64,8 @@ for dt = 1:100,
     ydot = polyval([0 3*Bcoeff(1) 2*Bcoeff(2) Bcoeff(3)],t);
     U    = sqrt(xdot.^2+ydot.^2);
     
-    % select optimal solution 
-    if max(U) < Umax,
+    % Select optimal solution 
+    if max(U) < Umax
         xopt = x;
         topt = t1;
         break
@@ -75,15 +73,12 @@ for dt = 1:100,
     
 end
 
-% optimal solution
+% Optimal solution
 t1 = topt
 Acoeff = xopt(1:4)  
 Bcoeff = xopt(5:8)
 
-% --------------------------------------------------------------------
-% graphics
-% --------------------------------------------------------------------
-
+%% PLOTS
 t = linspace(t0,t1,101);
 
 figure(gcf)
@@ -105,3 +100,6 @@ ydot = polyval([0 3*Bcoeff(1) 2*Bcoeff(2) Bcoeff(3)],t);
 U    = sqrt(xdot.^2+ydot.^2);
 plot(t,U,'linewidth',2);
 grid    
+
+set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',14)
