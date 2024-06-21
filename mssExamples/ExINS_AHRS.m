@@ -1,12 +1,14 @@
-% ExINS_AHRS error-state (indirect) feedback Kalman filter for INS aided by
+% exINS_AHRS is compatible with MATLAB and GNU Octave (www.octave.org).
+% Error-state (indirect) feedback Kalman filter for INS aided by
 % position measurements. It is assumed that the attitude (phi, theta, psi)
-% is measured by an AHRS. Alternatively, the roll and pitch angles can be 
-% computed from specific force measurements (to less accuracy) using: 
+% is measured by an Attitude Heading Reference System (AHRS). Alternatively,
+% the roll and pitch angles can be computed from specific force 
+% measurements (to less accuracy) using: 
 %
 %    [phi, theta] = acc2rollpitch(f)
 %
 % while the yaw angle, psi, is measured by a compass. A more accurate and
-% recommended solution is to use the the MEKF, see ExINS_MEKF. 
+% recommended solution is to use the the MEKF, see exINS_MEKF. 
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
 % equal to the  sampling frequency f_s, which is equal to the IMU
