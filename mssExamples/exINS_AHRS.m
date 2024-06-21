@@ -8,11 +8,11 @@
 %    [phi, theta] = acc2rollpitch(f)
 %
 % while the yaw angle, psi, is measured by a compass. A more accurate and
-% recommended solution is to use the the MEKF, see exINS_MEKF. 
+% recommended solution is to use the MEKF; see exINS_MEKF. 
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
 % equal to the  sampling frequency f_s, which is equal to the IMU
-% meaurement frequency. The ratio between the frequencies must be an integer:
+% measurement frequency. The ratio between the frequencies must be an integer:
 %
 %     Integer:  Z = f_s/f_gnss >= 1 
 %
