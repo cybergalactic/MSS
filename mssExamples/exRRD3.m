@@ -1,5 +1,5 @@
 % exRRD3  Inverse response in roll due to right-half-plane zero 
-% (non-minimum phase) for the Son og Nomoto container ship.
+% (non-minimum phase) for the Son and Nomoto container ship.
 % Author:    Thor I. Fossen
 % Date:      31 October 2001
 % Revisions: 
