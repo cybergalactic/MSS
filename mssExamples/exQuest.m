@@ -10,7 +10,7 @@
 %
 % References: 
 %   Schuster, M. D., Oh, S. D., 1981, Three-axis attitude determination 
-%   from vectornobservations, Journal of Guidance, Dynamics and Control 
+%   from vector observations, Journal of Guidance, Dynamics and Control 
 %   JGC-4(1):70-77.
 %
 % Author:    Thor I. Fossen and K. P. Lindegaard
@@ -25,7 +25,7 @@ mb3 = [-0.38 0  -0.18]';
 % Camera position
 rcamera = [2.11  -0.48  1.89]';
 
-% Generate camera measurment for ship position: rcg = [ 2.5 3.0 0.1]' and 
+% Generate camera measurement for ship position: rcg = [ 2.5 3.0 0.1]' and 
 % attitude: phi = 10 deg, theta = 5 deg, and psi = 134 deg.
 disp('True ship position and attitude:')
 rcg = [ 2.5 3.0 0.1]'                        % Location of CG
@@ -34,8 +34,8 @@ theta = 5
 psi = 134
 q = euler2q(phi*pi/180,theta*pi/180,psi*pi/180);  % Quaternions
 R = Rquat(q);                                     % Rotation matrix
-disp('Camera measurments:')
-y1 = rcg - rcamera + R*mb1                        % Camera measurments
+disp('Camera measurements:')
+y1 = rcg - rcamera + R*mb1                        % Camera measurements
 y2 = rcg - rcamera + R*mb2
 y3 = rcg - rcamera + R*mb3
 
