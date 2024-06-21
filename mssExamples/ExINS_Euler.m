@@ -1,5 +1,6 @@
-% ExINS_Euler - Error-state (indirect) feedback Kalman filter for INS aided 
-% by GNSS position and compass measurements. Attitude is parametrized using
+% exINS_Euler is compatible with MATLAB and GNU Octave (www.octave.org).
+% Error-state (indirect) feedback Kalman filter for INS aided by
+% position and compass measurements. Attitude is parametrized using
 % Euler angles.
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
@@ -22,9 +23,7 @@
 % Date:      14 Jan 2021 
 % Revisions: 27 Jan 2021, minor updates of the documentation
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 f_s    = 100;     % sampling frequency [Hz]
 f_gnss = 1;       % GNSS measurement frequency [Hz]
 
