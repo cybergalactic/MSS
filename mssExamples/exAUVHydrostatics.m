@@ -33,7 +33,7 @@ B = W;            % Buoyancy = Weight
 
 % User input for phi and theta
 phi = input('Enter roll angle in degrees: ');
-theta = input('Enter pitch in degrees: ');
+theta = input('Enter pitch angle in degrees: ');
 theta = deg2rad(theta);
 phi = deg2rad(phi);
 
