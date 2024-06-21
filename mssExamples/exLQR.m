@@ -1,4 +1,4 @@
-% eLQR is compatible with MATLAB and GNU Octave (www.octave.org).
+% exLQR is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script computes the LQR gains for a mass-damper system.
 % 
 % Author:    Thor I. Fossen
