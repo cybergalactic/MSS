@@ -1,21 +1,22 @@
-% ExTurnCircle  Generates the turning circle for two different ships
+% exTurnCircle is compatible with MATLAB and GNU Octave (www.octave.org).
+% Generates the turning circle for two different ships.
 %
 % Author:   Thor I. Fossen
 % Date:      21 Jul 2001
-% Revisions: 11 Jun 2003 - Rudder execute is changed from 15 deg to 35 deg 
-%                         (IMO regulations)
+% Revisions: 
+%   11 Jun 2003 - Rudder execute is changed from 15 to 35 deg (IMO regulations)
 
-t_final = 700;           % final simulation time (sec)
-t_rudderexecute = 100;   % time rudder is executed (sec)
-h = 0.1;                 % sampling time (sec)
+t_final = 700;           % Final simulation time (sec)
+t_rudderexecute = 100;   % Time rudder is executed (sec)
+h = 0.1;                 % Sampling time (sec)
 
-disp('Turning cirlce for the Mariner class vessel')
+disp('Turning cirlce for the Mariner-class cargo vessel')
 
 % Mariner class cargo ship, cruise speed U0 = 7.7 m/s (see mariner.m)
 x  = zeros(7,1);     % x  = [ u v r x y psi delta ]' (initial values)
 ui = -deg2rad(35);   % delta_c = -delta_R at time t = t_rudderexecute
  
-[t,u,v,r,x,y,psi,U] = turncircle('mariner',x,ui,t_final,t_rudderexecute,h);
+turncircle('mariner',x,ui,t_final,t_rudderexecute,h);
 
 % Container ship (see container.m)
 disp(' '); disp('Press a key to simulate: Container Ship'); pause
