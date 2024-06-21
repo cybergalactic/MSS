@@ -1,4 +1,6 @@
-% ExMD       Plots the step response of a 2nd-order mass-damper-spring system
+% exMD is compatible with MATLAB and GNU Octave (www.octave.org).     
+% The script plots the step response of a 2nd-order mass-damper-spring
+% system.
 %
 % Author:    Thor I. Fossen
 % Date:      16th June 2001
@@ -6,6 +8,7 @@
 
 wn = 1;
 
+figure(gcf)
 subplot(211)
 t = 0:0.01:20;
 z = 0.5; sys = tf(wn*wn,[1 2*z*wn wn*wn]); step(sys,t)
