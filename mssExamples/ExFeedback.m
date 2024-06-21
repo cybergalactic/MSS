@@ -1,4 +1,4 @@
-% ExFeedback is compatibel with MATLAB and GNU Octave (www.octave.org).
+% exFeedback is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This script simulates numerical integration of a 1st-order system with 
 % feedback and feedforward control laws. Euler's method is implemented 
 % using a for-end loop and the results are stored in a table and plotted.
