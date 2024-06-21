@@ -1,6 +1,6 @@
 function exPathGen()
 % wxPathGen is compatible with MATLAB and GNU Octave (www.octave.org).
-% Path generation using cubic polynominals.
+% Path generation using cubic polynomials.
 
 % Cubic spline between two points
 %   x(th)     =   a3*th^3 + a2*th^2 + a1*th + a0
@@ -9,7 +9,7 @@ function exPathGen()
 % Author:     Thor I. Fossen
 % Date:       1 November 2002
 % Revisions:  
-%   13 February 2012  - Replaced Ylabel with ylabel
+%   13 February 2012  - Replaced Ylabel with label
 %    7 March 2021     - Moved function pva.m to the end of the file
 
 clearvars
