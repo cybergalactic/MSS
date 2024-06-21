@@ -69,42 +69,43 @@ demoWaypointGuidance.slx                  % Waypoint guidance system
 
 ## Examples (m-files)
 ```matlab
-ExEKF           % For-loop implementation (predictor-corrector representation)  of a discrete-time extended Kalman filter (EKF) 
-ExFeedback      % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
-ExFFT           % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
-ExHybridPath    % Computation of a hybrid continuous path parametrized by waypoints
-ExINS_AHRS      % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
-ExINS_Euler     % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
-ExINS_MEKF      % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
-ExKF            % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
-ExKT            % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
-ExLinspec       % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
-ExLQFinHor      % LQ finite time-horizon tracking controller for a mass-damper-spring system
-ExLQR           % Computes the LQR gains for a mass-damper system
-ExLQtrack       % Computes the LQ optimal tracking gains for a mass-damper system
-ExMDS           % Plots the step response of a 2nd-order mass-damper system
-ExMSI           % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
-ExNomoto        % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
-ExObsCtr        % Observability and controllability matrices of a supply vessel
-ExOtter         % Simulates an Otter USV equipped with two propellers
-ExPassiveObs    % Plots the loop transfer function of the passive observer used for heading control
-ExPathGen       % Path generation using cubic polynomials 
-ExPlotRAO       % Script for plotting motion and force RAOs
-ExPullout       % Performs a pullout maneuver for two different ships
-ExQuadProg      % Quadratic programming applied to waypoint trajectory generation
-ExQuest         % 6-DOF position/attitude vector from camera measurements using the QUEST algorithm
-ExRefMod        % 2nd-order reference model with nonlinear damping and velocity saturation
-ExResonance     % Computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
-ExRRD1          % Roll and sway-yaw transfer functions for the Son and Nomoto container ship
-ExRRD2          % Rudder-roll damping (RRD) system for the Son and Nomoto container ship
-ExRRD3          % Inverse response in roll for the Son and Nomoto container ship due to a right-half-plane zero  (non-minimum phase)  
-ExSMC           % Integral sliding mode control (SMC) design for heading control
-ExSpline        % Path generation using cubic Hermite spline interpolation 
-ExSTA           % Adaptive-gain super twisting algorithm (STA) for heading control
-ExTurnCircle    % Generates the turning circle for two different ships
-ExWageningen    % Computes thrust and torque curves for a propeller using the Wageningen B-series data
-ExWindForce     % Plots the wind coefficients by Isherwoods (1972) 
-ExZigZag        % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
+exAUVhydrostatics  % Computation of the hydrostatic quantities for a cylinder-shaped AUV 
+exFeedback         % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
+exFFT              % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
+exHybridPath       % Computation of a hybrid continuous path parametrized by waypoints
+exINS_AHRS         % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
+exINS_Euler        % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
+exINS_MEKF         % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
+exKF               % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
+exKT               % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
+exLinspec          % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
+exLQFinHor         % LQ finite time-horizon tracking controller for a mass-damper-spring system
+exLQR              % Computes the LQR gains for a mass-damper system
+exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper system
+exMDS              % Plots the step response of a 2nd-order mass-damper system
+exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
+exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
+exObsCtr           % Observability and controllability matrices of a supply vessel
+exOtter            % Simulates an Otter USV equipped with two propellers
+exPassiveObs       % Plots the loop transfer function of the passive observer used for heading control
+exPathGen          % Path generation using cubic polynomials 
+exPlotRAO          % Script for plotting motion and force RAOs
+exPullout          % Performs a pullout maneuver for two different ships
+exQuadProg         % Quadratic programming applied to waypoint trajectory generation
+exQuest            % 6-DOF position/attitude vector from camera measurements using the QUEST algorithm
+exRefMod           % 2nd-order reference model with nonlinear damping and velocity saturation
+exResonance        % Computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
+exRRD1             % Roll and sway-yaw transfer functions for the Son and Nomoto container ship
+exRRD2             % Rudder-roll damping (RRD) system for the Son and Nomoto container ship
+exRRD3             % Inverse response in roll for the Son and Nomoto container ship due to a right-half-plane zero  (non-minimum phase)  
+exShiphydrostatics % Computation of the hydrostatic quantities for a ship 
+exSMC              % Integral sliding mode control (SMC) design for heading control
+exSpline           % Path generation using cubic Hermite spline interpolation 
+exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
+exTurnCircle       % Generates the turning circle for two different ships
+exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
+exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
+exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
 
 ## Marine craft simulator (m-files)
