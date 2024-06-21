@@ -7,12 +7,12 @@
 % propeller models of the B_series were tested at N.S.M.B. and analyzed
 % with multiple polynomial regression analysis. The derived polynomials
 % express the thrust and torque coefficients in terms of the number of
-% blades, the blade area ratio, the pitch_diameter ratio and the advance
+% blades, the blade area ratio, the pitch_diameter ratio, and the advance
 % coefficient.
 %
 % Reference: 
 %   Barnitsas, M.M., Ray, D. and Kinley, P. (1981).
-%   KT, KQ and Efficiency Curves for the Wageningen B-Series Propellers
+%   KT, KQ, and Efficiency Curves for the Wageningen B-Series Propellers
 %   http://deepblue.lib.umich.edu/handle/2027.42/3557
 %
 % Author:    Thor I. Fossen
