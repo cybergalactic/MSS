@@ -11,7 +11,7 @@
 %
 % Ad = I + h * A, Bd = h * B, Cd = C and Ed = h * E (h = sampling time). 
 %
-% The case study is a ship model in yaw with heading angle measured at frequency
+% The case study is a ship model in yaw with a heading angle measured at frequency
 % f_m [Hz], which can be chosen smaller or equal to the sampling frequency 
 % f_s [Hz]. The ratio between the frequencies must be a non-negative integer:
 %
