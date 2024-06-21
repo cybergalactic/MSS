@@ -1,5 +1,6 @@
-% ExWageningen computes thrust and torque curves for a propeller using 
-%              the Wageningen B-series data. 
+% exWageningen is compatible with MATLAB and GNU Octave (www.octave.org).
+% The script computes thrust and torque curves for a propeller using 
+% the Wageningen B-series data. 
 %
 % The B-series propellers were designed and tested at the Netherlands Ship
 % Model Basin in Wageningen. The open_water characteristics of 120
@@ -9,20 +10,22 @@
 % blades, the blade area ratio, the pitch_diameter ratio and the advance
 % coefficient.
 %
-% Reference: Barnitsas, M.M., Ray, D. and Kinley, P. (1981).
-% KT, KQ and Efficiency Curves for the Wageningen B-Series Propellers
-% http://deepblue.lib.umich.edu/handle/2027.42/3557
+% Reference: 
+%   Barnitsas, M.M., Ray, D. and Kinley, P. (1981).
+%   KT, KQ and Efficiency Curves for the Wageningen B-Series Propellers
+%   http://deepblue.lib.umich.edu/handle/2027.42/3557
 %
 % Author:    Thor I. Fossen
 % Date:      7 October 2018
-% Revisions: 18 June 2019 - added curve fitting of KT and KQ data
-clear all
+% Revisions: 
+%   18 June 2019 - added curve fitting of KT and KQ data
+clearvars
 
 rho = 1025;   % Density of water (kg/m^3)
 D = 5;        % Propeller diameter (m)
-PD = 1.4;     % pitch/diameter ratio (typically 0.5-2.5)
-AEAO = 0.65;  % blade area ratio (ratio of expanded blade area to propeller disk area)
-z = 4;        % number of propeller blades
+PD = 1.4;     % Pitch/diameter ratio (typically 0.5-2.5)
+AEAO = 0.65;  % Blade area ratio (ratio of expanded blade area to propeller disk area)
+z = 4;        % Number of propeller blades
 
 % Comput KT and KQ for advance velocites Ja
 Ja = -0.5:0.01:1.8;
@@ -71,4 +74,8 @@ plot(n * 60 ,T/1000,'k','LineWidth',2); grid on;
 xlabel('Propeller [RPM]');
 ylabel('Thrust T [kN]');
 title('Thrust in kN vs. propeller RPM');
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
 
