@@ -5,7 +5,7 @@
 %
 % The GNSS position measurement frequency f_gnss can be chosen smaller or
 % equal to the  sampling frequency f_s, which is equal to the IMU
-% meaurement frequency. The ratio between the frequencies must be an integer:
+% measurement frequency. The ratio between the frequencies must be an integer:
 %
 %     Integer:  Z = f_s/f_gnss >= 1 
 %
