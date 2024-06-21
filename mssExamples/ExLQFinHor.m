@@ -1,8 +1,11 @@
-% ExLQFinHor LQ finite time-horizon tracking of mass-damper-spring system
+% exLQFinHor requires the Matlab control systems toolbox
+% LQ finite time-horizon tracking of mass-damper-spring system
+%
 % Author:    Roger Skjetne
 % Date:      28 Januray 2001
-% Revisions: 15 June 2001, T. I. Fossen - minor changes of notation 
-%             9 June 2020, T. I. Fossen - removed disturbance FF
+% Revisions: 
+%   15 June 2001, T. I. Fossen - minor changes of notation 
+%   9 June 2020, T. I. Fossen - removed disturbance FF
 format long;
 
 % Time horizon
@@ -10,11 +13,11 @@ T = 10;
 Ts = 0.01;
 N = round(T/Ts);
 
-% Plant:
+% Plant
 A = [0 1; -1 -2]; B = [0; 1]; E = [0; 0]; C = [1 0];
-plantC = ss(A,[B E],C,zeros(1,length([B E])));  % plant C is of type structure
-[plantD, Mp] = c2d(plantC, Ts, 'foh');          % discretization
-x0 = [1; 2];                                    % initial states
+plantC = ss(A,[B E],C,zeros(1,length([B E])));  % Plant C is of type structure
+[plantD, Mp] = c2d(plantC, Ts, 'foh');          % Discretization
+x0 = [1; 2];                                    % Initial states
 
 Umax = 20;                                      % Saturation level: -Umax < u < +Umax.
 
@@ -22,7 +25,7 @@ Umax = 20;                                      % Saturation level: -Umax < u < 
 Ad = [0 1; -1 -1]; Bd = [0; 1];
 RefGenC = ss(Ad,Bd,C,0);
 [RefGenD, Mr] = c2d(RefGenC, Ts, 'foh');    % RefGenD is of type structure
-xr0 = [0; 0];                               % initial states
+xr0 = [0; 0];                               % Initial states
 
 % Weight Matrices:
 Q  = 1000; Qt = C.'*Q*C; R  = 5; Qf = 0;
