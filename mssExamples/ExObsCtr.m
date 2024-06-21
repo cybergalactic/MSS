@@ -1,16 +1,19 @@
-% ExObsCtr   Observability and Controllability of Ships (see supply.m)
+% exObsCtr is compatibel with MATLAB and GNU Octave (www.octave.org). 
+% The script computes the observability and controllability matrices of a 
+% supply vessel (supply.m).
+%
 % Author:    Thor I. Fossen
 % Date:      11 July 2002
-% Revisions: 20 Dec 2009   minor modifications
+% Revisions: 
+%   20 Dec 2009   - Minor modifications
 
 format compact
 disp('Controllabilty and observability of offShore supply vessel length 76 m')
 
 % Normalization variables
-
-L   =  76.2;           % length of ship (m)
-g   =  9.8;            % acceleration of gravity (m/s^2)
-m   = 6000e3;          % mass (kg)
+L   =  76.2;           % Length of ship (m)
+g   =  9.8;            % Acceleration of gravity (m/s^2)
+m   = 6000e3;          % Mass (kg)
 
 T    = diag([1 1 L]);
 Tinv = diag([1 1 1/L]);
@@ -42,12 +45,10 @@ F = [ zeros(3,3) zeros(3,3) eye(3)
 
 H = [ eye(3) zeros(3,3) zeros(3,3)];
 
+n = rank(ctrb(A,B))
+n = rank(obsv(F,H))
 
-n=rank(ctrb(A,B))
-
-n=rank(obsv(F,H))
-
-% augmented state space modelwith integral action
+% Augmented state-space model with integral action
 C = [ eye(3) zeros(3,3) zeros(3,3)];
 Aa = [zeros(3,3) C
       zeros(9,3) A ];
@@ -55,4 +56,4 @@ Aa = [zeros(3,3) C
 Ba = [zeros(3,3)
       B ];
 
-n=rank(ctrb(Aa,Ba))
+n = rank(ctrb(Aa,Ba))
