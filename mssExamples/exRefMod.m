@@ -62,7 +62,7 @@ figure(gcf)
 subplot(211); plot(t,y1(:,1))
 hold on; plot(t,y2(:,1),'--k',t,y3(:,1),'r'); hold off; grid
 title('2nd-order mass-damper-spring reference model')
-legend('linear damping','nonlinear damping','velocity saturation')
+legend('Linear damping','Nonlinear damping','Velocity saturation')
 subplot(212); plot(t,y1(:,2));
 hold on; plot(t,y2(:,2),'--k',t,y3(:,2),'r'); hold off; grid
 
