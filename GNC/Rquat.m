@@ -4,10 +4,13 @@ function R = Rquat(q)
 %
 % Author:    Thor I. Fossen
 % Date:      14th June 2001
-% Revisions: 6 October 2001, T I. Fossen - eta as first element in q  
+% Revisions: 
+%   6 October 2001 - eta as first element in q  
 
 tol = 1e-6;
-if abs(norm(q)-1)>tol; error('norm(q) must be equal to 1'); end
+if abs(norm(q)-1) > tol
+    error('norm(q) must be equal to 1'); 
+end
 
 eta = q(1);
 eps = q(2:4);
