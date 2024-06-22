@@ -1,6 +1,6 @@
 function [x_d,v_d,a_d] = refModel(x_d,v_d,a_d,x_ref,v_max,zeta_d,w_d,h,eulerAngle)
 % Poisition, velocity and acceleration reference model based on the method
-% by Fossen (2021, Section 12.1.1.). 
+% by Fossen (2021, Chapter 12.1.1). 
 %
 % Inputs:  
 %   x_d: current desired position at time t_k
