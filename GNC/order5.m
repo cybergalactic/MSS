@@ -1,12 +1,13 @@
 function [table, pathlength] = order5(drawmode, constraint, x_vector,y_vector)
 % [table, pathlength] = ORDER5(drawmode, constraint, x_vector,y_vector)
-% Path generation using 5th order polynominals. To be used with demowpt.mdl
+% Path generation using 5th order polynominals. To be used with demoWpt.mdl
 %
 % This version uses a fifth-order polynomial and makes the second
 % derivatives in each waypoint start and end in zero. The calculations are
 % done offline, and the coeficcients are returned in table-form. 
 %
-% Example call: [table, pathlength] = order5(1, 0, [0 200 400 700 1000],[0 600 500 400 1200])
+% Usage: 
+% [table, pathlength] = order5(1, 0, [0 200 400 700 1000],[0 600 500 400 1200])
 %
 % Author:       Jørgen Corneliussen
 % Date:         20 Nov 2002
@@ -16,7 +17,7 @@ function [table, pathlength] = order5(drawmode, constraint, x_vector,y_vector)
 % Testing the provided waypoints
 if length(x_vector) ~= length(y_vector) %There is not an equal amount of x- and y-coordinates.
     disp('The number of X-coordinates and Y-coordinates must be the same');
-elseif length(x_vector) == 1 % Only one waypoint provided
+elseif isscalar(x_vector) % Only one waypoint provided
     disp('You must provide more than one waypoint');
 elseif length(x_vector) == 2 %A straight line, inserting another waypoint in the middle
     disp('Only two waypoints were provided. Adding another waypoint in the middle');
@@ -29,13 +30,13 @@ N = length(x_vector)-1; %The number of paths
 dx = diff(x_vector); % Finding the desired derivatives in each waypoint
 dy = diff(y_vector);
 
-dx(N+1) = 0;%Setting the derivatives in the last waypoint to zero.
+dx(N+1) = 0; %Setting the derivatives in the last waypoint to zero.
 dy(N+1) = 0;
 
 if constraint % If large differences in the derivatives occur, decrease them
     for i=1:N
-        if (abs(dx(i+1)) >= abs(3*dx(i)) & dx(i) ~= 0), dx(i+1) = 3*dx(i); end
-        if (abs(dy(i+1)) >= abs(3*dy(i)) & dy(i) ~= 0), dy(i+1) = 3*dy(i); end
+        if (abs(dx(i+1)) >= abs(3*dx(i)) && dx(i) ~= 0), dx(i+1) = 3*dx(i); end
+        if (abs(dy(i+1)) >= abs(3*dy(i)) && dy(i) ~= 0), dy(i+1) = 3*dy(i); end
     end
 end
 
@@ -48,7 +49,7 @@ ddy = zeros(1,N+1);
 %%%%%  y(th) = b5*th^5 + b4*th^4 + b3*th^3 + b2*th^2 + b1*th + b0  %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for i = 1:N,
+for i = 1:N
     
     % Select two active way-points for curve fitting
     x0     = x_vector(i);
@@ -83,7 +84,7 @@ for i = 1:N,
 end
 
 pathlength = 0;
-for i= 1:N, %Calculating the length of the path
+for i= 1:N %Calculating the length of the path
     th = linspace(0,1);
     xpath = polyval(Acoeff(i,:),th);
     ypath = polyval(Bcoeff(i,:),th);
@@ -96,7 +97,7 @@ if drawmode == 1 %Plotting the path if drawmode is set to 1
     clf
     hold on
     plot(x_vector,y_vector,'ro', 'linewidth',2)
-    for i= 1:N,
+    for i= 1:N
         th = linspace(0,1);
         plot(polyval(Acoeff(i,:),th),polyval(Bcoeff(i,:),th),'linewidth',2);
     end
