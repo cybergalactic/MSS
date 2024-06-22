@@ -1,6 +1,6 @@
 function R = Rzyx(phi,theta,psi)
-% R = Rzyx(phi,theta,psi) computes the Euler angle
-% rotation matrix R in SO(3) using the zyx convention
+% R = Rzyx(phi,theta,psi) computes the Euler angle rotation matrix R 
+% in SO(3) using the zyx convention
 %
 % Author:   Thor I. Fossen
 % Date:     14th June 2001
