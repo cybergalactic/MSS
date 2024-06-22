@@ -15,9 +15,9 @@ function [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp)
 % This is particular useful for the relative equations of motion where 
 % nu_r = nu - nu_c and nu_c = [u_c, v_c, w_c, 0, 0, 0]' is the irrotational
 % current velocity. This implies that the marine craft equations of motion
-% expressed in the CO satisfies (Fossen 2021, Section 3.3.1):
+% expressed in the CO satisfies (Fossen 2021, Chapter 3.3.1):
 % 
-%  MRB * d/dt nu + CRB(nu) * nu = MRB * d/dt nu_r + CRB(nu_r) * nu_r = tau 
+%  MRB * nu_dot + CRB(nu) * nu = MRB * d/dt nu_r + CRB(nu_r) * nu_r = tau 
 %
 % Outputs:
 %  MRB                 - Rigid-body mass matrix
@@ -32,7 +32,8 @@ function [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp)
 % 
 % Author:    Thor I. Fossen
 % Date:      19 April 2019
-% Revisions: 24 April 2021 - improved the documentation
+% Revisions: 
+%   24 April 2021 - Improved the documentation
 
 I3 = eye(3);
 O3 = zeros(3,3);
