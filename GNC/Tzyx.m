@@ -1,6 +1,6 @@
 function T = Tzyx(phi,theta)
-% T = Tzyx(phi,theta) computes the Euler angle
-% transformation matrix T for attitude using the zyx convention
+% T = Tzyx(phi,theta) computes the Euler angle transformation
+% matrix T for attitude using the zyx convention.
 %
 % Author:   Thor I. Fossen
 % Date:     4th August 2011
