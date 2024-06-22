@@ -3,7 +3,7 @@ function [t,u,v,r,x,y,psi,U] = turncircle(ship,x,ui,t_final,t_rudderexecute,h)
 % computes the turning circle maneuvering indexes, see ExTurnCircle.m
 %
 % Inputs:
-%  'ship':          Ship model, compatible with the models under /MSS/Vessels/.
+%  'ship':          Ship model, compatible with the models under /MSS/VESSELS/
 %  x:               Initial state vector for ship model
 %  ui:              ui = [delta,:] where delta is the rudder command at 
 %                   time = t_rudderexecute
@@ -17,11 +17,13 @@ function [t,u,v,r,x,y,psi,U] = turncircle(ship,x,ui,t_final,t_rudderexecute,h)
 %
 % Author:    Thor I. Fossen
 % Date:      18 Jul 2001
-% Revisions: 25 Nov 2002 - Expression for Nrudder was corrected, included
-%                          plots for rudder execute, 90 deg heading angle
+% Revisions: 
+%   25 Nov 2002 - Expression for Nrudder was corrected, included
+%                 plots for rudder execute, 90 deg heading angle
 
 if nargin~=6, error('number of inputs must be 6'); end
-if t_final<t_rudderexecute, error('t_final must be larger than t_rudderexecute'); end
+if t_final<t_rudderexecute, error(['t_final must be larger than' ...
+        ' t_rudderexecute']); end
 
 N = round(t_final/h);               % number of samples
 xout = zeros(N+1,8);                % memory allocation
@@ -53,7 +55,7 @@ for i=1:N+1
     
     xout(i,:) = [time,x(1:6)',U];  
     
-    x = euler2(xdot,x,h);                     % Euler integration
+    x = euler2(xdot,x,h);                  % Euler integration
 end
 
 % time-series
@@ -78,7 +80,7 @@ fprintf('Transfer at 90 (deg) heading           : %4.0f m\n',abs(transfer))
 fprintf('Advance at 90 (deg) heading            : %4.0f m\n',abs(advance-x(Nrudder)))        
 fprintf('Tactical diameter at 180 (deg) heading : %4.0f m\n',abs(tactical))
 
-% plots
+%% Plots
 figure(1)
 plot(x,y,x(Nrudder),y(Nrudder),'linewidth',2), hold on
 plot(x(Nrudder),y(Nrudder),'*r',advance,transfer,'or'), hold off
