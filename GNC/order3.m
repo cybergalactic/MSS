@@ -1,4 +1,4 @@
-function [table, pathlength] = cubic(x_vector,y_vector, drawmode, mode, xstart, xfinal, ystart, yfinal)
+function [table, pathlength] = order3(x_vector,y_vector, drawmode, mode, xstart, xfinal, ystart, yfinal)
 % [table, pathlength] = ORDER3(x_vector,y_vector, drawmode, mode, xstart, xfinal, ystart, yfinal)
 %
 % Path generation using cubic polynominals. To be used with demowpt.mdl
@@ -7,16 +7,17 @@ function [table, pathlength] = cubic(x_vector,y_vector, drawmode, mode, xstart, 
 % all the waypoints. All calculations are made offline, and the coeficcients are returned in
 % table-form. The variable is theta, and it is increased with one between each waypoint.
 %
-% Example call: [table, pathlength] = order3([0 200 400 700 1000],[0 600 500 400 1200],1,1,0,0,0,0)
+% Usage: 
+% [table, pathlength] = order3([0 200 400 700 1000],[0 600 500 400 1200],1,1,0,0,0,0)
 %
-% Author:   J�rgen Corneliussen
+% Author:   Jørgen Corneliussen
 % Date:     20 November 2002
 % Revisions:
 
 % Testing the provided waypoints
 if length(x_vector) ~= length(y_vector) %There is not an equal amount of x- and y-coordinates.
     disp('The number of X-coordinates and Y-coordinates must be the same');
-elseif length(x_vector) == 1 % Only one waypoint provided
+elseif isscalar(x_vector) % Only one waypoint provided
     disp('You must provide more than one waypoint');
 elseif length(x_vector) == 2 %A straight line, inserting another waypoint in the middle
     disp('Only two waypoints were provided. Adding another waypoint in the middle');
