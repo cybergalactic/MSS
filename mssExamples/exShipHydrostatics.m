@@ -7,6 +7,10 @@
 % References: 
 %      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %           Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley 
+%
+% Author:    Thor I. Fossen
+% Date:      2024-07-22
+% Revisions: 
 
 % Ship main characteristics
 L = 92;                     % Length (m)
