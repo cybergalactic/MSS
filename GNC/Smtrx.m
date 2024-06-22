@@ -5,7 +5,8 @@ function S = Smtrx(a)
 %
 % Author:   Thor I. Fossen
 % Date:     14th June 2001
-% Revisions: 6th August 2011 - updated documentation
+% Revisions: 
+%   6th August 2011 - Updated description
  
 S = [    0  -a(3)   a(2)
       a(3)     0   -a(1)
