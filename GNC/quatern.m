@@ -1,5 +1,5 @@
 function [J,J1,J2] = quatern(q)
-% [J,Rq,Tq] = quatern(q) computes the quaternion transformation matrices
+% [J, Rq, Tq] = quatern(q) computes the quaternion transformation matrices.
 %
 %  J = [ Rq     0
 %           0  Tq ]
@@ -8,7 +8,8 @@ function [J,J1,J2] = quatern(q)
 %
 % Author:    Thor I. Fossen
 % Date:      14 Jun 2001
-% Revisions: 07 May 2022  - added calls to Rquat and Tquat
+% Revisions: 
+%   07 May 2022  - Added calls to Rquat and Tquat
 
 J1 = Rquat(q);
 J2 = Tquat(q);
