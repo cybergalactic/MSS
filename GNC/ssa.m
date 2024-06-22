@@ -16,8 +16,8 @@ function angle = ssa(angle,unit)
 %
 % Author:     Thor I. Fossen
 % Date:       2018-09-21
-% Revisions:  2020-03-04  Deafult rad, otional argument for deg
-%__________________________________________________________________________
+% Revisions:  
+%   2020-03-04  Deafult rad, otional argument for deg
 
 if (nargin == 1)
     angle = mod( angle + pi, 2 * pi ) - pi; 
