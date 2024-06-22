@@ -6,11 +6,14 @@ function [eta,q,R] = quest6dof(y,mb,rcamera)
 % vectors stacked in y = [y1_e, y2_e, y3_e] using the QUEST algorithm
 % (see quest.m). The 3x1 body-frame marker position vectors are stacked 
 % in mb = [m1_b, m2_b, m3_b].
+%
+% Usage:
+%   See exQuest.m
 % 
 % Inputs: 
-%    y  = [x1,y1,z1,x2,y2,z2,x3,y3,z3] vector of 3 camera measurements (earth-frame)
-%    mb = [xm1,ym1,zm1,xm2,ym2,zm2,xm3,ym3,zm3] vector of 3 marker positions (body frame)
-%    rcamera = [x_c,y_c,z_c] vector of camera position (earth-frame)
+%    y  = [x1,y1,z1,x2,y2,z2,x3,y3,z3] vector of 3 camera measurements (NED)
+%    mb = [xm1,ym1,zm1,xm2,ym2,zm2,xm3,ym3,zm3] vector of 3 marker positions (BODY)
+%    rcamera = [x_c,y_c,z_c] vector of camera position (NED)
 %
 % Outputs:
 %    eta - 6x1 Earth-fixed positions and attitude (Euler angles)
