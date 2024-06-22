@@ -1,9 +1,13 @@
 function [R,q] = quest(W,V)
 % [R,q] = quest(W,V) computes the quaternion rotation matrix R(q) in SO(3)
-% and the corresponding unit quaternion q = [eta eps1 eps2 eps3] (optionally output)
-% between to vectors V and W such that: W = R(q) V. 
+% and the corresponding unit quaternion q = [eta eps1 eps2 eps3] 
+% (optionally output) between to vectors V and W such that: W = R(q) V. 
 %
-% Ref.: Schuster, M. D., Oh, S. D., 1981, Three-axis attitude determination 
+% Usage:
+%   See exQuest.m
+%
+% References: 
+%   Schuster, M. D., Oh, S. D., 1981, Three-axis attitude determination 
 %   from vectornobservations, Journal of Guidance, Dynamics and Control 
 %   JGC-4(1):70-77.
 %
