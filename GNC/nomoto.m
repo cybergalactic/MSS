@@ -15,9 +15,9 @@ d2 = [T1*T2 T1+T2 1 0]; n2 = K*[T3 1];
 [mag1,phase1,w] = bode(n1,d1);
 [mag2,phase2]   = bode(n2,d2,w);
 
-if K < 0,   % shift ship phase with 360 deg for course unstable ship
-phase1 = phase1-360;
-phase2 = phase2-360;
+if K < 0   % Shift ship phase with 360 deg for course unstable ship
+phase1 = phase1 - 360;
+phase2 = phase2 - 360;
 end
 
 clf,subplot(211),semilogx(w,20*log10(mag1),'b'),grid
