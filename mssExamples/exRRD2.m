@@ -1,10 +1,16 @@
-% exRRD2  Rudder-Roll Damping (RRD) system for the Son and Nomoto
-% container ship. Calls Son and Nomoto model with wave-induced roll
-% disturbance: see RRDcontainer.m
+% exRRD2: Rudder-Roll Damping (RRD) system for the Son and Nomoto (1982)
+% container ship. Calls the function 'RRDcontainer.m' at the end of the 
+% file, which includes wave-induced roll disturbances.
+%
+% References:  
+%   K. Son og K. Nomoto (1982). On the Coupled Motion of Steering and 
+%   Rolling of a High Speed Container Ship, Naval Architect of 
+%   Ocean Engineering 20:73-83. From J.S.N.A., Japan, Vol. 150, 1981.
 %
 % Author:    Thor I. Fossen
 % Date:      2001-10-31
-% Revisions: 2021-04-07 - Added function RRDcontainer.m to the end of the file
+% Revisions: 
+%   2021-04-07 - Added function RRDcontainer.m to the end of the file
 
 conversion % Load conversion factors
 
@@ -12,19 +18,16 @@ Ns = 20000; % No. of samples
 h  = 0.05;  % Sample time
 
 % Normalization variables
-rho = 1025;                 % water density (kg/m^3)
-L = 175;                    % length of ship (m)
-U0 = 7.3;                   % service speed (m/s)
+rho = 1025;                 % Water density (kg/m^3)
+L = 175;                    % Length of ship (m)
+U0 = 7.3;                   % Service speed (m/s)
 
-% -----------------------------------------------------------------------------------------
-% SHIP MODEL
-% -----------------------------------------------------------------------------------------
-% Linear model using nondimensional matrices and states with dimension 
-% (see Lcontainer.m): 
-%   TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta 
-%       = (U^2/L) T b' delta
-
-% nu = [v p r]
+%% SHIP MODEL
+% Lineari model using nondimensional matrices and states with dimension; 
+% see Eq. (D.13) in Fossen (2021, Appendix D): 
+%   T * M' * inv(T) * v_dot + (U/L) * T * N' * inv(T) * v + 
+%      (U/L)^2 * T * G' * inv(T) * eta = (U^2/L) * T * b' * delta
+%   where eta = [x y psi]' and nu = [v p r]'
 T    = diag([ 1 1/L 1/L]);
 Tinv = diag([ 1 L L ]);
 
@@ -66,18 +69,19 @@ Q = diag([10000 1000 10 1 ]);
 R = 5;
 [G1,G2] = lqtracker(A,B,C,Q,R)
 
-% Eigenvalues, damping ratios, natural frequencies
+% Eigenvalues, damping ratios, and natural frequencies
 damp(A)
 damp(A+B*G1)
 
 %% SIMULATION OF AUTOPILOT AND RRD SYSTEMS
-n_ref = 70; % desired RPM
+n_ref = 70; % Desired RPM
 
-x = [U0 0 0 0 0 0 0 0 0 n_ref 0 0]';  % x = [u v r x y psi p phi delta n xw1 xw2]'
+% x = [u v r x y psi p phi delta n xw1 xw2]'
+x = [U0 0 0 0 0 0 0 0 0 n_ref 0 0]';  
 xout = zeros(Ns+1,length(x));  
 
-wf1 = 0.1;    % Low-pass filter frequnecy
-wf2 = 0.05;   % High-pass filter frequency
+wf1 = 0.1;          % Low-pass filter frequnecy
+wf2 = 0.05;         % High-pass filter frequency
 
 xyawf  = [0 0 0]';  % Filter states
 xrollf = [0 0]';
@@ -91,28 +95,28 @@ for i=1:Ns+1
     xroll = [x(7) x(8)]';
    
     % Discrete time low-pass filter
-    phif1   = exp(-h*wf1);
-    xyawf  = phif1*xyawf + (1-phif1)*xyaw;
+    phif1 = exp(-h*wf1);
+    xyawf = phif1*xyawf + (1-phif1)*xyaw;
 
     % Discrete time high-pass filter 
     phif2   = exp(-h*wf2);
     yrollf = xrollf + xroll;
     xrollf = phif2*xrollf + (phif2-1)*xroll;
     
-    % x = [v p r phi psi ]'
-    x_fb = [xyawf(1) yrollf(1) xyawf(2) yrollf(2) xyawf(3) ]';  % Filtered states
+    % Filtered states
+    x_fb = [xyawf(1) yrollf(1) xyawf(2) yrollf(2) xyawf(3) ]';  
 
     psi_d = deg2rad(10);  % Desired heading
     
-    % Control law:  u_ref = G1 * x + G2 * C * x_d
+    % LQ optimal control law:  u_ref = G1 * x + G2 * C * x_d
     if i<6000
-         % course-changing, no roll damping
+         % Course-changing, no roll damping
          u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';  
     elseif i>6000 && i<15000
-        % course-keeping, roll damping
+        % Course-keeping, roll damping
         u_ref = G1*x_fb + G2*[0 0 0 psi_d]';                        
     else
-        % course-keeping, no roll damping    
+        % Course-keeping, no roll damping    
         u_ref = [G1(1) 0 G1(3) 0 G1(5)]*x_fb + G2*[0 0 0 psi_d]';   
     end 
    
@@ -129,8 +133,11 @@ end
 t = h*(0:1:Ns)';
 figure(gcf)
 subplot(311)
-plot(t,R2D*xout(:,6)); hold on
-plot(t,R2D*psi_d*ones(Ns+1,1),'linewidth',2); hold off; title('yaw angle \psi (deg)')
+plot(t,R2D*xout(:,6)); 
+hold on
+plot(t,R2D*psi_d*ones(Ns+1,1),'linewidth',2); 
+hold off; 
+title('yaw angle \psi (deg)')
 subplot(312),plot(t,R2D*xout(:,8)); title('roll angle \phi (deg)')
 subplot(313),plot(t,R2D*xout(:,9)); title('rudder angle \delta (deg)')
 
@@ -141,23 +148,24 @@ set(findall(gcf,'type','line'),'linewidth',2)
 %% Function [xdot,U] = RRDcontainer(x,ui)
 function [xdot,U] = RRDcontainer(x,ui)
 % [xdot,U] = RRDcontainer(x,ui) returns the speed U in m/s (optionally) and 
-% the time derivative of the state vector: x = [ u v r x y psi p phi delta n xw1 xw2]'  
+% the time derivative of the state vector: 
+%   x = [ u v r x y psi p phi delta n xw1 xw2]'  
 % for a container ship L = 175 m.
 %
 % Similar as container.m except that wave disturbances in roll are added
-% and that Ddelta_max = 20 instead of 5), where
+% and that Ddelta_max = 20 instead of 5, where
 %
-%  u     = surge velocity          (m/s)
-%  v     = sway velocity           (m/s)
-%  r     = yaw velocity            (rad/s)
-%  x     = position in x-direction (m)
-%  y     = position in y-direction (m)
-%  psi   = yaw angle               (rad)
-%  p     = roll velocity           (rad/s)
-%  phi   = roll angle              (rad)
-%  delta = actual rudder angle     (rad)
-%  n     = actual shaft velocity   (rpm)
-%  xw1, xw2 = wave states
+%  u     : surge velocity          (m/s)
+%  v     : sway velocity           (m/s)
+%  r     : yaw velocity            (rad/s)
+%  x     : position in x-direction (m)
+%  y     : position in y-direction (m)
+%  psi   : yaw angle               (rad)
+%  p     : roll velocity           (rad/s)
+%  phi   : roll angle              (rad)
+%  delta : actual rudder angle     (rad)
+%  n     : actual shaft velocity   (rpm)
+%  xw1, xw2 : wave states
 %
 % The input vector is:
 %  ui      = [ delta_c n_c ]'  where
@@ -165,13 +173,10 @@ function [xdot,U] = RRDcontainer(x,ui)
 %  delta_c = commanded rudder angle   (rad)
 %  n_c     = commanded shaft velocity (rpm)  
 %
-% Reference:  Son og Nomoto (1982). On the Coupled Motion of Steering and 
-%             Rolling of a High Speed Container Ship, Naval Architect of Ocean Engineering,
-%             20: 73-83. From J.S.N.A. , Japan, Vol. 150, 1981.
-% 
-% Author:    Thor I. Fossen
-% Date:      1st Noovember 2001
-% Revisions: 
+% Reference:  
+%   K. Son og K. Nomoto (1982). On the Coupled Motion of Steering and 
+%   Rolling of a High Speed Container Ship, Naval Architect of 
+%   Ocean Engineering 20:73-83. From J.S.N.A., Japan, Vol. 150, 1981. 
 
 %% LINEAR WAVE MODEL 
 Kw     = 0.0001;
@@ -186,16 +191,16 @@ if (length(x) ~= 12),error('x-vector must have dimension 12 !');end
 if (length(ui) ~= 2),error('u-vector must have dimension  2 !');end
 
 % Normalization variables
-L = 175;                     % length of ship (m)
-U = sqrt(x(1)^2 + x(2)^2);   % service speed (m/s)
+L = 175;                     % Length of ship (m)
+U = sqrt(x(1)^2 + x(2)^2);   % Service speed (m/s)
 
 % Check service speed
 if U <= 0,error('The ship must have speed greater than zero');end
 if x(10) <= 0,error('The propeller rpm must be greater than zero');end
 
-delta_max  = 20;             % max rudder angle (deg)
-Ddelta_max = 20;             % max rudder rate (deg/s)
-n_max      = 160;            % max shaft velocity (rpm)
+delta_max  = 20;             % Max rudder angle (deg)
+Ddelta_max = 20;             % Max rudder rate (deg/s)
+n_max      = 160;            % Max shaft velocity (rpm)
 
 % Non-dimensional states and inputs
 delta_c = ui(1); 
@@ -274,32 +279,32 @@ if n > 0.3,Tm=5.65/n;else,Tm=18.83;end
 n_dot = 1/Tm*(n_c-n)*60;
 
 % Calculation of state derivatives
-  vR     = ga*v + cRr*r + cRrrr*r^3 + cRrrv*r^2*v;
-  uP     = cos(v)*((1 - wp) + tau*((v + xp*r)^2 + cpv*v + cpr*r));
-   J     = uP*U/(n*D);
-  KT     = 0.527 - 0.455*J; 
-  uR     = uP*epsilon*sqrt(1 + 8*kk*KT/(pi*J^2));
-  alphaR = delta + atan(vR/uR);
-  FN     = - ((6.13*Delta)/(Delta + 2.25))*(AR/L^2)*(uR^2 + vR^2)*sin(alphaR);
-  T      = 2*rho*D^4/(U^2*L^2*rho)*KT*n*abs(n);
+vR     = ga*v + cRr*r + cRrrr*r^3 + cRrrv*r^2*v;
+uP     = cos(v)*((1 - wp) + tau*((v + xp*r)^2 + cpv*v + cpr*r));
+J     = uP*U/(n*D);
+KT     = 0.527 - 0.455*J;
+uR     = uP*epsilon*sqrt(1 + 8*kk*KT/(pi*J^2));
+alphaR = delta + atan(vR/uR);
+FN     = - ((6.13*Delta)/(Delta + 2.25))*(AR/L^2)*(uR^2 + vR^2)*sin(alphaR);
+T      = 2*rho*D^4/(U^2*L^2*rho)*KT*n*abs(n);
 
 % Forces and moments
-  X    = Xuu*u^2 + (1-t)*T + Xvr*v*r + Xvv*v^2 + Xrr*r^2 + Xphiphi*phi^2 + ...
-         cRX*FN*sin(delta) + (m + my)*v*r;
-  
-  Y    = Yv*v + Yr*r + Yp*p + Yphi*phi + Yvvv*v^3 + Yrrr*r^3 + Yvvr*v^2*r + ...
-         Yvrr*v*r^2 + Yvvphi*v^2*phi + Yvphiphi*v*phi^2 + Yrrphi*r^2*phi + ...
-         Yrphiphi*r*phi^2 + (1 + aH)*FN*cos(delta) - (m + mx)*u*r;
+X  = Xuu*u^2 + (1-t)*T + Xvr*v*r + Xvv*v^2 + Xrr*r^2 + Xphiphi*phi^2 + ...
+    cRX*FN*sin(delta) + (m + my)*v*r;
 
-  K    = Kv*v + Kr*r + Kp*p + Kphi*phi + Kvvv*v^3 + Krrr*r^3 + Kvvr*v^2*r + ...
-         Kvrr*v*r^2 + Kvvphi*v^2*phi + Kvphiphi*v*phi^2 + Krrphi*r^2*phi + ...
-         Krphiphi*r*phi^2 - (1 + aH)*zR*FN*cos(delta) + mx*lx*u*r - W*GM*phi;
+Y  = Yv*v + Yr*r + Yp*p + Yphi*phi + Yvvv*v^3 + Yrrr*r^3 + Yvvr*v^2*r + ...
+    Yvrr*v*r^2 + Yvvphi*v^2*phi + Yvphiphi*v*phi^2 + Yrrphi*r^2*phi + ...
+    Yrphiphi*r*phi^2 + (1 + aH)*FN*cos(delta) - (m + mx)*u*r;
 
-  N    = Nv*v + Nr*r + Np*p + Nphi*phi + Nvvv*v^3 + Nrrr*r^3 + Nvvr*v^2*r + ...
-         Nvrr*v*r^2 + Nvvphi*v^2*phi + Nvphiphi*v*phi^2 + Nrrphi*r^2*phi + ...
-         Nrphiphi*r*phi^2 + (xR + aH*xH)*FN*cos(delta);
+K  = Kv*v + Kr*r + Kp*p + Kphi*phi + Kvvv*v^3 + Krrr*r^3 + Kvvr*v^2*r + ...
+    Kvrr*v*r^2 + Kvvphi*v^2*phi + Kvphiphi*v*phi^2 + Krrphi*r^2*phi + ...
+    Krphiphi*r*phi^2 - (1 + aH)*zR*FN*cos(delta) + mx*lx*u*r - W*GM*phi;
+
+N  = Nv*v + Nr*r + Np*p + Nphi*phi + Nvvv*v^3 + Nrrr*r^3 + Nvvr*v^2*r + ...
+    Nvrr*v*r^2 + Nvvphi*v^2*phi + Nvphiphi*v*phi^2 + Nrrphi*r^2*phi + ...
+    Nrphiphi*r*phi^2 + (xR + aH*xH)*FN*cos(delta);
      
-K = K + x(11);    % wave-induced roll moments     
+K = K + x(11);    % Wave-induced roll moments     
 
 % Dimensional state derivatives  xdot = [ u v r x y psi p phi delta n ]'
 detM = m22*m33*m44-m32^2*m44-m42^2*m33;
