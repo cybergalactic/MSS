@@ -1,8 +1,13 @@
-% exRRD1 Roll and sway-yaw transfer functions for the Son and Nomoto 
-% container ship
+% exRRD1: Roll and sway-yaw transfer functions for the Son and Nomoto (1982)
+% container ship.
+%
+% References:  
+%   K. Son og K. Nomoto (1982). On the Coupled Motion of Steering and 
+%   Rolling of a High Speed Container Ship, Naval Architect of 
+%   Ocean Engineering 20:73-83. From J.S.N.A., Japan, Vol. 150, 1981.
 % 
 % Author:    Thor I. Fossen
-% Date:      21 October 2001
+% Date:      2001-10-31
 % Revisions: 
 
 U=7.0;    % Service speed
@@ -11,11 +16,11 @@ U=7.0;    % Service speed
 rho = 1025;                 % Water density (kg/m^3)
 L = 175;                    % Length of ship (m)
  
-% Linear model using nondimensional matrices and states with dimension: 
-%     TM'inv(T) dv/dt + (U/L) TN'inv(T) v + (U/L)^2 TG'inv(T) eta 
-%           = (U^2/L) T b' delta
-
-% nu = [v p r]
+% Lineari model using nondimensional matrices and states with dimension; 
+% see Eq. (D.13) in Fossen (2021, Appendix D): 
+%   T * M' * inv(T) * v_dot + (U/L) * T * N' * inv(T) * v + 
+%      (U/L)^2 * T * G' * inv(T) * eta = (U^2/L) * T * b' * delta
+%   where eta = [x y psi]' and nu = [v p r]'
 T    = diag([ 1 1/L 1/L]);
 Tinv = diag([ 1 L L ]);
 
@@ -50,7 +55,7 @@ roll = ss(A(1:4,1:4),B(1:4,1),[0 0 0 1],0)
 yaw  = ss(A(1:4,1:4),B(1:4,1),[0 0 1 0],0)
 yaw_integrator = tf(1,[1 0]);
 
-% Decoupled reduced order models
+% Decoupled reduced-order models
 red_yaw  = ss(modred(yaw,[2,4],'del'));
 red_roll = ss(modred(roll,3,'del'));
 
