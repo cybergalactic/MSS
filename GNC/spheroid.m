@@ -5,7 +5,7 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bg)
 % cylinder-shaped autonomous underwater vehicle (AUV). In general 
 % nu = [u,v,w,p,q,r]', while linear and angular velocities are denoted by
 % nu1 = [u, v, w]' and nu2 = [p, q, r]'. The CRB matrix is computed using 
-% the linear velocity-independent representation (Fossen 2021, Section 3.3.1)
+% the linear velocity-independent representation (Fossen 2021, Chapter 3.3.1)
 % according to:
 %
 %  [MRB,CRB] = spheriod(a, b,[p, q, r]',[xg, yg, zg]') 
@@ -31,17 +31,17 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bg)
 
 O3 = zeros(3,3);
 
-% mass of spheriod 
+% Mass of spheriod 
 rho = 1026;
 m = 4/3 * pi * rho * a * b^2;   
 
-% moment of inertia
+% Moment of inertia
 Ix = (2/5) * m * b^2;
 Iy = (1/5) * m * (a^2 + b^2);
 Iz = Iy;
 Ig = diag([Ix Iy Iz]);
 
-% rigid-body matrices expressed in the CG
+% Rigid-body matrices expressed in the CG
 MRB_CG = diag([ m m m Ix Iy Iz ]);
 CRB_CG = [ m * Smtrx(nu2)    O3
            O3               -Smtrx(Ig*nu2) ];
