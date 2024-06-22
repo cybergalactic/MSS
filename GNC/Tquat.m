@@ -10,7 +10,8 @@ function T = Tquat(u)
 %
 % Author:    Thor I. Fossen
 % Date:      10 Sep 2010 - core algorithm   q_dot = Tquat(q) w
-% Revisions: 13 Dec 2021 - added option for q_dot = Tquat(w) q
+% Revisions: 
+%   13 Dec 2021 - added option for q_dot = Tquat(w) q
  
 if (length(u) == 4)                % T = Tq and q = u
     
