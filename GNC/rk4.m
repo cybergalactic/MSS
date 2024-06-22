@@ -37,7 +37,8 @@ function xnext = rk4(f,x,u,h,t)
 %
 % Author:    Thor I. Fossen
 % Date:      2001-07-14
-% Revisions: 2007-11-23 Christian Holden - update for time-varying systems
+% Revisions: 
+%   2007-11-23 - Update for time-varying systems
 
 xo = x;
 
