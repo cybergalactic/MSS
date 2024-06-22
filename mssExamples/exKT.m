@@ -1,6 +1,6 @@
-% exKT requires the MATLAB Optimization Toolbox.
-% Script for computation of the Nomoto gain and time constants using 
-% nonlinear least-squares. The differential equation 
+% exKT is compatible with MATLAB and GNU Octave (www.octave.org).
+% Script for computation of the Nomoto gain and time constants (K, T) using 
+% nonlinear least-squares curve fitting. The differential equation 
 %
 %   r_dot + (1/T) * r = (K/T) * delta 
 %
@@ -30,7 +30,7 @@ end
 tdata = xout(:,1);
 rdata = rad2deg(xout(:,2)); 
 
-% Nonlinear least-squares: T r_dot + r = K delta, delta = -delta_R
+% Nonlinear least-squares: T * r_dot + r = K * delta, delta = -delta_R
 % x(1) = 1/T and x(2) = K
 x0 = [0.1 1];
 
@@ -46,19 +46,22 @@ K = x(2);
 disp(['Estimated K: ', num2str(K)]);
 disp(['Estimated T: ', num2str(T)]);
 
-% Plot the results
-figure;
-subplot(2,1,1);
+%% Plots 
+figure(gcf);
+subplot(211);
 plot(tdata, rdata, 'k', 'LineWidth', 2); hold on;
 plot(tdata, x(2) * (1 - exp(-tdata * x(1))) * delta_R, 'r', 'LineWidth', 2);
 grid on;
-title('Nonlinear least-squares fit of Mariner-class vessel model for \delta = 5 deg');
+title(['Nonlinear least-squares fit of Mariner-class cargo ship' ...
+    ' for \delta = 5 deg']);
 xlabel('Time (s)');
 ylabel('r (deg/s)');
-legend('Nonlinear model', 'Estimated 1st-order Nomoto model','Location','southeast');
+legend('Nonlinear model', 'Estimated 1st-order Nomoto model', ...
+    'Location','southeast');
 
-subplot(2,1,2);
-plot(tdata, rdata - (x(2) * (1 - exp(-tdata * x(1))) * delta_R), 'LineWidth', 2);
+subplot(212);
+plot(tdata, rdata - (x(2) * (1 - exp(-tdata * x(1))) * delta_R), ...
+    'LineWidth', 2);
 grid on;
 title('Residuals');
 xlabel('Time (s)');
