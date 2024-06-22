@@ -8,8 +8,9 @@ function a = vex(S)
 % See also: S = Smtrx(a) 
 %
 % Author:   Thor I. Fossen
-% Date:      14th June 2001
-% Revisions: 21 April 2019 - minor updates
+% Date:     14th June 2001
+% Revisions: 
+%   21 April 2019 - minor updates
  
 
 if isequal(S,-S')
