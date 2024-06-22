@@ -1,10 +1,10 @@
 function zigzag6dof(vehicle,x,ui,t_final,t_rudderexecute,h,maneuver)
 % zigzag6dof(vehicle,x,ui,t_final,t_rudderexecute,h,maneuver) performs the 
-% zigzag maneuver for 6-DOF models, see ExZigZag.m
+% zigzag maneuver for 6-DOF models, see exZigZag.m
 %
 % Inputs:
 % 'vehicle':       vehicle model. Compatible with the Remmus 100 AUV located
-%                  under .../VESSELS
+%                  under MSS/VESSELS/
 % x:               initial state vector for vehicle model
 % ui:              [delta,:] where delta=0 and the other values are nonzero if any
 % t_final:         final simulation time
@@ -24,8 +24,8 @@ if t_final < t_rudderexecute
 end
 if nargin == 6, maneuver = [20,20]; end
 
-N = round(t_final/h);               % number of samples
-xout = zeros(N+1,15);               % memory allocation
+N = round(t_final/h);               % Number of samples
+xout = zeros(N+1,15);               % Memory allocation
 
 disp('Simulating...')
 
@@ -49,7 +49,7 @@ for i=1:N+1
         end   
     end
  
-    [xdot,U] = feval(vehicle,x,u_vehicle);          % vehicle model
+    [xdot,U] = feval(vehicle,x,u_vehicle);          % Vehicle model
     
     xout(i,:) = [time,x(1:12)',U,u_vehicle(1)];  
     
@@ -73,7 +73,7 @@ psi     = rad2deg( xout(:,13) );
 U       = xout(:,14);
 delta_c = rad2deg( xout(:,15) );
 
-% plots
+%% Plots
 figure(1)
 plot(y,x),grid,axis('equal'),xlabel('East'),ylabel('North')
 title('Zigzag test')
