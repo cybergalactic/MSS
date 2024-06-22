@@ -21,13 +21,14 @@ function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
 % 
 %
 % Reference: 
-% J. Juncher Jensen, A. E. Mansour and A. S. Olsen. Estimation of 
-% Ship Motions using Closed-form Expressions. Ocean Eng. 31, 2004, pp.61-85
+%   J. Juncher Jensen, A. E. Mansour and A. S. Olsen. Estimation of 
+%   Ship Motions using Closed-form Expressions. Ocean Eng. 31, 2004, pp.61-85
 % 
 % Author:    Thor I. Fossen
-% Date:      2018-07-21  Based on the method of Jensen et al. (2005)
-% Revisions: 2019-05-04  Bug fixes
-%            2019-05-11  Updated formula for wn, removed bugs
+% Date:      2018-07-21  
+% Revisions: 
+%   2019-05-04  Bug fixes
+%   2019-05-11  Updated formula for wn, removed bugs
 
 % Constants
 g = 9.81;                 % acceleration of gravity (m/s^2)
@@ -82,7 +83,7 @@ Z4 = sqrt( (2*w4*zeta4)^2 + (1/w_e^2)*(w4^2-w_e^2)^2 );
 eps4 = atan( 2*w_e*w4*zeta4/(w4^2-w_e^2) );
 phi = (180/pi) * ((M/C44)*w4^2/(Z4*w_e)) * cos(w_e*t+eps4);
     
-% Plots 
+%% Plots 
 clf
 figure(gcf)
 hold on
