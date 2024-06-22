@@ -4,7 +4,8 @@ function u = ucalloc(K,T,W,tau)
 %
 % Author:    Thor I. Fossen
 % Date:      3 Nov 2001
-% Revisions: 25 Mar 2024 - function name changed to allocPseudoinverse.m
+% Revisions: 
+%   25 Mar 2024 - function name changed to allocPseudoinverse.m
 
 u = allocPseudoinverse(K,T,W,tau);
 
