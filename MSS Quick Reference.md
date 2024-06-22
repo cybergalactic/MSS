@@ -70,6 +70,7 @@ demoWaypointGuidance.slx                  % Waypoint guidance system
 ## Examples (m-files)
 ```matlab
 exAUVhydrostatics  % Computation of the hydrostatic quantities for a cylinder-shaped AUV 
+exBoxShapedShip    % Computation of the transverse metacentric height and the heave/roll periods of a box-shaped ship
 exFeedback         % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
 exFFT              % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
 exHybridPath       % Computation of a hybrid continuous path parametrized by waypoints
