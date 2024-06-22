@@ -98,7 +98,7 @@ exResonance        % Computes the closed-form responses in heave, roll, and pitc
 exRRD1             % Roll and sway-yaw transfer functions for the Son and Nomoto container ship
 exRRD2             % Rudder-roll damping (RRD) system for the Son and Nomoto container ship
 exRRD3             % Inverse response in roll for the Son and Nomoto container ship due to a right-half-plane zero  (non-minimum phase)  
-exShiphydrostatics % Computation of the hydrostatic quantities for a ship 
+exShipHydrostatics % Computation of the hydrostatic quantities for a ship 
 exSMC              % Integral sliding mode control (SMC) design for heading control
 exSpline           % Path generation using cubic Hermite spline interpolation 
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
