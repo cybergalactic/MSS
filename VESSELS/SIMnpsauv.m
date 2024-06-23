@@ -298,9 +298,9 @@ set(findall(gcf,'type','legend'),'FontSize',legendSize)
 %% Heave position and Euler angles
 figure(2);
 if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/3, scrSz(4)]); end
-if ControlFlag == 3; z_d = eta(:,3); end
+if ControlFlag == 2; z_d = eta(:,3); end
 subplot(411),plot(t,eta(:,3),t,z_d)
-xlabel('Time (s)'),title('Heave position (m)'),grid
+xlabel('Time (s)'),title('Down position (m)'),grid
 legend('True','Desired')
 subplot(412),plot(t,rad2deg(eta(:,4)))
 xlabel('Time (s)'),title('Roll angle (deg)'),grid
