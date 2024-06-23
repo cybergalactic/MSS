@@ -23,7 +23,7 @@ function SIMremus100()
 %   demoAUVdepthHeadingControl.slx : Depth and heading control.
 %
 % Reference:
-%   T. I. Fossen & Aguiar, P. (2024). A Uniform Semiglobal Exponential  
+%   T. I. Fossen & P. Aguiar (2024). A Uniform Semiglobal Exponential  
 %      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
 %      Following. Automatica, 163, 111556. 
 %      https://doi.org/10.1016/j.automatica.2024.111556
@@ -250,14 +250,14 @@ for i = 1:N+1
    end
 
    % Amplitude saturation of the control signals
-   n_max = 1525;                                % maximum propeller rpm
-   max_ui = [deg2rad(15) deg2rad(15) n_max]';   % deg, deg, rpm
+   n_max = 1525;                                % maximum propeller RPM
+   max_ui = [deg2rad(15) deg2rad(15) n_max]';   % deg, deg, RPM
 
    if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
    if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
    if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
 
-   ui = [delta_r delta_s n]';                % Commanded control inputs
+   ui = [delta_r -delta_s n]';                % Commanded control inputs
 
    % Store simulation data in a table
    simdata(i,:) = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
