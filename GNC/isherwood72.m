@@ -32,12 +32,22 @@ function [tau_w, CX, CY, CN] = isherwood72(...
 % Revisions: 2004-04.19 - Bugfix. Changed velocity from knots to m/s. 
 %            2008-11-20 - Changed name from windcoef to isherwood72, updated
 %                         signs and notation to comply with Blendermann (1994).
+%            2024-07-01 - Ensured that gamma_r is between 0-180 degrees when 
+%                         interpolating data.
 
 if nargin~=10, error('the number of inputs must be 10');end
 
 % Conversions and constants
-rho_a = 1.224;                          % Density of air at 20 C
-gamma_r = rad2deg(gamma_r);  
+rho_a = 1.224;                     % Density of air at 20 C
+gamma_r_deg = rad2deg(gamma_r);    % Convert gamma_r from radians to degrees
+
+% Ensure gamma_r is within the range of 0 to 360 degrees
+gamma_r_deg = mod(gamma_r_deg, 360);
+
+% Adjust gamma_r_deg to be within 0 to 180 degrees
+if gamma_r_deg > 180
+    gamma_r_deg = 360 - gamma_r_deg;
+end
 
 % CX_data = [gamma_r(deg) A0 A1	A2	A3	A4	A5	A6	] 
 CX_data= [...  
@@ -107,37 +117,40 @@ CN_data = [...
 
                         
 % Interpolate in the tables		
-A0 = interp1(CX_data(:,1),CX_data(:,2),gamma_r);
-A1 = interp1(CX_data(:,1),CX_data(:,3),gamma_r);
-A2 = interp1(CX_data(:,1),CX_data(:,4),gamma_r);
-A3 = interp1(CX_data(:,1),CX_data(:,5),gamma_r);
-A4 = interp1(CX_data(:,1),CX_data(:,6),gamma_r);
-A5 = interp1(CX_data(:,1),CX_data(:,7),gamma_r);
-A6 = interp1(CX_data(:,1),CX_data(:,8),gamma_r);
+A0 = interp1(CX_data(:,1),CX_data(:,2),gamma_r_deg);
+A1 = interp1(CX_data(:,1),CX_data(:,3),gamma_r_deg);
+A2 = interp1(CX_data(:,1),CX_data(:,4),gamma_r_deg);
+A3 = interp1(CX_data(:,1),CX_data(:,5),gamma_r_deg);
+A4 = interp1(CX_data(:,1),CX_data(:,6),gamma_r_deg);
+A5 = interp1(CX_data(:,1),CX_data(:,7),gamma_r_deg);
+A6 = interp1(CX_data(:,1),CX_data(:,8),gamma_r_deg);
 
-B0 = interp1(CY_data(:,1),CY_data(:,2),gamma_r);
-B1 = interp1(CY_data(:,1),CY_data(:,3),gamma_r);
-B2 = interp1(CY_data(:,1),CY_data(:,4),gamma_r);
-B3 = interp1(CY_data(:,1),CY_data(:,5),gamma_r);
-B4 = interp1(CY_data(:,1),CY_data(:,6),gamma_r);
-B5 = interp1(CY_data(:,1),CY_data(:,7),gamma_r);
-B6 = interp1(CY_data(:,1),CY_data(:,8),gamma_r);
+B0 = interp1(CY_data(:,1),CY_data(:,2),gamma_r_deg);
+B1 = interp1(CY_data(:,1),CY_data(:,3),gamma_r_deg);
+B2 = interp1(CY_data(:,1),CY_data(:,4),gamma_r_deg);
+B3 = interp1(CY_data(:,1),CY_data(:,5),gamma_r_deg);
+B4 = interp1(CY_data(:,1),CY_data(:,6),gamma_r_deg);
+B5 = interp1(CY_data(:,1),CY_data(:,7),gamma_r_deg);
+B6 = interp1(CY_data(:,1),CY_data(:,8),gamma_r_deg);
 
-C0 = interp1(CN_data(:,1),CN_data(:,2),gamma_r);
-C1 = interp1(CN_data(:,1),CN_data(:,3),gamma_r);
-C2 = interp1(CN_data(:,1),CN_data(:,4),gamma_r);
-C3 = interp1(CN_data(:,1),CN_data(:,5),gamma_r);
-C4 = interp1(CN_data(:,1),CN_data(:,6),gamma_r);
-C5 = interp1(CN_data(:,1),CN_data(:,7),gamma_r);
+C0 = interp1(CN_data(:,1),CN_data(:,2),gamma_r_deg);
+C1 = interp1(CN_data(:,1),CN_data(:,3),gamma_r_deg);
+C2 = interp1(CN_data(:,1),CN_data(:,4),gamma_r_deg);
+C3 = interp1(CN_data(:,1),CN_data(:,5),gamma_r_deg);
+C4 = interp1(CN_data(:,1),CN_data(:,6),gamma_r_deg);
+C5 = interp1(CN_data(:,1),CN_data(:,7),gamma_r_deg);
 
 % Wind coeffisients
-CX =  -(A0 + A1*2*ALw/Loa^2 + A2*2*AFw/B^2 + A3*(Loa/B) + A4*(S/Loa) + A5*(C/Loa) + A6*M);
-CY =    B0 + B1*2*ALw/Loa^2 + B2*2*AFw/B^2 + B3*(Loa/B) + B4*(S/Loa) + B5*(C/Loa) + B6*A_SS/ALw;
-CN =    C0 + C1*2*ALw/Loa^2 + C2*2*AFw/B^2 + C3*(Loa/B) + C4*(S/Loa) + C5*(C/Loa);
+CX =  -(A0 + A1*2*ALw/Loa^2 + A2*2*AFw/B^2 + A3*(Loa/B) + ...
+    A4*(S/Loa) + A5*(C/Loa) + A6*M);
+CY =    B0 + B1*2*ALw/Loa^2 + B2*2*AFw/B^2 + B3*(Loa/B) + ...
+    B4*(S/Loa) + B5*(C/Loa) + B6*A_SS/ALw;
+CN =    C0 + C1*2*ALw/Loa^2 + C2*2*AFw/B^2 + C3*(Loa/B) + ...
+    C4*(S/Loa) + C5*(C/Loa);
 
 % Wind forces and moment
 tauX = 0.5 * CX * rho_a * V_r^2 * AFw;
-tauY = 0.5 * CY * rho_a * V_r^2 * ALw;
-tauN = 0.5 * CN * rho_a * V_r^2 * ALw * Loa;
+tauY = 0.5 * CY * rho_a * V_r^2 * ALw .* sign(gamma_r);
+tauN = 0.5 * CN * rho_a * V_r^2 * ALw * Loa .* sign(gamma_r);
 
 tau_w = [tauX, tauY, tauN]';
