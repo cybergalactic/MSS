@@ -20,7 +20,7 @@ load(which(matFile), 'vessel');
 disp(['Loaded the motion RAO structure, vessel.motionRAO, from ', matFile])
 
 % Call the function to select wave spectrum
-[noSpectrum, nameSpectrum] = selectWaveSpectrum(); 
+spectrumType = selectWaveSpectrum(); 
 
 %% Simulation parameters
 Tfinal = 100;                   % Duration of the simulation (s)
@@ -48,52 +48,17 @@ raoAngles = vessel.headings;            % RAO wave direction angles
 numAngles = length(raoAngles);          
 omegaMax = freqs(end);
 
-% Random phases (Fossen 2021, Eq. 10.76)
-randomPhases = 2 * pi * rand(numFreqIntervals, 1);
-
-% Random frequencies within each interval deltaOmega (Fossen 2021, Eq. 10.77)
-deltaOmega = omegaMax / numFreqIntervals; % Frequency interval
-Omega = zeros(numFreqIntervals, 1);
-for i = 1:numFreqIntervals
-    % Midpoint of the current interval
-    omega_mid = (i-1) * deltaOmega + deltaOmega / 2;
-    % Random frequency in each interval around the midpoint,
-    % confined to [-deltaOmega/2, deltaOmega/2]
-    Omega(i) = omega_mid + (rand() - 0.5) * deltaOmega;
-end
-
 % Calculate the wave spectrum power intensity S(Omega) for each frequency
-T0 = Tz / 0.710;
-w0 = 2*pi / T0;  % Modal (peak) frequency
-
-disp(['Number of wave frequensies: ', num2str(numFreqIntervals)])
-disp(['Wave direction: ', num2str(rad2deg(beta_wave)), '°'])
-disp(' ');
-disp(['Significant wave height: Hs = ', num2str(Hs), ' m'])
-disp(['Zero crossing period: Tz = ', num2str(Tz), ' s'])
-disp(['Peak period: T0 = Tz / 0.710 = ', num2str(T0), ' s'])
-disp(['Peak frequency: w0 = 2*pi/T0 = ', num2str(w0), ' rad/s'])
-
-if noSpectrum == 1
-    % Modified PM spectrum
-    S = wavespec(5, [Hs, Tz], Omega,0); 
-elseif noSpectrum  == 2
-    % JONSWAP spectrum
-    if w0 * sqrt(Hs) < 0 || w0 * sqrt(Hs) > 1.75
-        error('It is reccomended to use 1.25 < (w0 * sqrt(Hs) < 1.75')
-    end
-    gamma = 3.3;
-    S = wavespec(7, [Hs, w0, gamma], Omega, 0); 
-else
-    % Torsethaugen spectrum
-    if w0 < 0.6
-        disp('For w0 <= 0.6, only one peak in the Torsetaugen spectrum appears')
-    end
-    S = wavespec(8, [Hs, w0], Omega,0); 
+T0 = Tz / 0.710; % Wave spectrum modal (peak) period (Fossen 2021, Eq. 10.61)
+w0 = 2*pi / T0;  % Wave spectrum modal (peak) frequency
+spectrumParameters = [Hs, w0];
+if ~strcmp(spectrumType ,'JONSWAP')
+    gamma = 3.3; 
+    spectrumParameters = [Hs, w0, gamma];
 end
 
-% Calculate the wave amplitudes (Fossen 2021, Eq. 10.75)
-Amp = sqrt(2 * S * deltaOmega);
+[S, Omega, Amp] = waveSpectrum(spectrumType, spectrumParameters, ...
+    numFreqIntervals, omegaMax);
 
 % Convert RAO amplitudes and phases to real and imaginary components
 RAO_re = cell(6, numAngles);
@@ -142,6 +107,9 @@ for DOF = 1:6
     RAO_complex{DOF} = F_re_dir_interp + 1i * F_im_dir_interp;
 end
 
+% Random phases (Fossen 2021, Eq. 10.76)
+randomPhases = 2 * pi * rand(numFreqIntervals, 1);
+
 %% MAIN LOOP
 t = 0:h:Tfinal; % Time vector
 eta_WF = zeros(length(t), 6); 
@@ -167,7 +135,7 @@ subplot(311);
 plot(Omega, S, 'b-', 'LineWidth', 2);
 xlabel('Omega (rad/s)');
 ylabel('m^2 s');
-title(nameSpectrum);
+title([spectrumType, ' spectrum']);
 xlim([0, omegaMax]);
 hold on; 
 plot([w0, w0], [min(S), max(S)], 'r', 'LineWidth', 2);
@@ -252,10 +220,11 @@ disp(' ');
 end
 
 % Function to select wave spectrum
-function [noSpectrum, nameSpectrum] = selectWaveSpectrum()
+function spectrumType = selectWaveSpectrum()
     spectra = {'Modifed Pierson-Moskowitz (PM) spectrum', ...
         'JONSWAP spectrum', 'Torsethaugen spectrum'};
-    
+    spectraChoice = {'Modified PM', 'JONSWAP', 'Torsethaugen'};
+
     % Display menu to user and get selection
     fprintf('\nPlease choose a wave spectrum:\n');
     for i = 1:length(spectra)
@@ -269,11 +238,10 @@ function [noSpectrum, nameSpectrum] = selectWaveSpectrum()
         choice = input('  Enter the number corresponding to your choice: ');
     end
     
-    noSpectrum = choice;
-    nameSpectrum = spectra{noSpectrum};
+    spectrumType = spectraChoice{choice};
 
     disp(' ');
-    disp(nameSpectrum);
+    disp(spectra{choice});
 
 end
 
