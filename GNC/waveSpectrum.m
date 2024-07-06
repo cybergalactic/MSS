@@ -1,8 +1,9 @@
 function [S, Omega, Amp] = waveSpectrum(spectrumType, spectrumParameters, ...
     numFreqIntervals, omegaMax)
 % waveSpectrum is compatibel with MATLAB and GNU Octave (www.octave.org).
-% Thos function generates a wave spectrum based on the specified type and 
-% parameters.
+% This function generates a wave spectrum, random frequencies within the 
+% frequency intervals, and the associated wave amplitudes based on the 
+% specified type and parameters.
 % 
 % [S, Omega, Amp] = waveSpectrum(spectrumType, spectrumParameters, ...
 %     numFreqIntervals, omegaMax)
