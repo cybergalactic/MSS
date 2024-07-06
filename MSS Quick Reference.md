@@ -105,6 +105,7 @@ exSpline           % Path generation using cubic Hermite spline interpolation
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
 exTurnCircle       % Generates the turning circle for two different ships
 exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
+exWaveFrequencyMotion % Wave elevation and the wave-frequency (WF) motion on a ship for different wave spectra using motion RAOs
 exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
