@@ -6,7 +6,7 @@ function S = wavespec(SpecType,Par,W,PlotFlag)
 % Inputs:
 %  SpecType	- Spectrum type
 %  Par		- Spectrum parameters
-%  W			- Column vector of wave frequencies [rad/s]
+%  W		- Column vector of wave frequencies [rad/s]
 %  PlotFlag	- 1 to plot the spectrum, 0 for no plot
 %
 % Output:
@@ -65,7 +65,7 @@ function S = wavespec(SpecType,Par,W,PlotFlag)
 %
 % JONSWAP (Vwind10,Fetch):
 %  p1 = Vwind10 --wind speed @ 10m over sea surface [m/sec]
-%  p2 = fetch --distance to georaphical boundary [m]
+%  p2 = fetch --distance to geographical boundary [m]
 %  g=9.81;
 %  xtilde= g*fetch/(Vwind10^2);
 %  f0=3.5*(g/Vwind10)*xtilde^-0.33;
@@ -82,10 +82,10 @@ function S = wavespec(SpecType,Par,W,PlotFlag)
 %
 % JONSWAP (Hs,w0, gamma):
 %  p1 = Hs - Significant wave height (Hs = 4 sqrt(m0)) [m]
-%  p2 = w0 - Modal Freq. [rad/sec] (Recomended 1.25<w0*sqrt(Hc)<1.75)
+%  p2 = w0 - Modal Freq. [rad/sec] (Recomended 1.25<w0*sqrt(Hs)<1.75)
 %  p3 = gamma - Peakedness factor (Recommended between 1 and 5; usually 3.3,
 %              set to zero to use DNV formula)
-%  alpha=0.2*Hc^2*w0^4/g^2;
+%  alpha=0.2*Hs^2*w0^4/g^2;
 %  g=9.81 [m/s^2]
 %  sigma=0.07  if w<w0, sigma=0.09 otherwise;
 %  S(w)=S1*S2  [m^2 s]  
@@ -98,7 +98,7 @@ function S = wavespec(SpecType,Par,W,PlotFlag)
 % Torsethaugen (Hs,w0):
 % The Torsethaugen spectrum is an empirical two peaked spectrum for swell 
 % and developing sea based on experimental data from the North Sea. For 
-% small peak frequencies, i.e.  0 < wmax <= 0.6 only one peak in the 
+% small peak frequencies, i.e.  0 < w0 <= 0.6 only one peak in the 
 % spectrum appears. Returns the spectral density function S of the 
 % Torsethaugen spectrum for the frequencies in the vector  W [rad/s].
 %
@@ -202,6 +202,9 @@ case 5 %ITTC-Modified Pierson-Moskowitz (Hs,Tz)
     L1Str = ['Hs =',num2str(Hs),' [m],','  Tz =',num2str(Tz),' [s]'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 case 6 %JONSWAP (Vwind10,Fetch):
+    %  Wwind10, wind speed at 10 meters above the sea surface (m/s)
+     % Fetch, represents the distance over which the wind has blown over 
+     % the water to generate waves, e.g. 50000(m).
 	Vw10  = Par(1); 
     fetch = Par(2);
     g=9.81;
@@ -308,8 +311,8 @@ function S = torset_spec(Hs,wo,omg)
 % Date:       2000-06-15
 % Revisions:  2001-07-06,Svein I. Sagatun, Norsk Hydro - minor revisions
 %             2001-10-14,Thor I. Fossen - IO compatible with the GNC toolbox
-%	          2005-03-12 �yvind Smogeli - Revised to comply with MSS, added output consistency test
-%             2007-10-08 �yvind Smogeli - Bug fix for scaling of spectrum magnitude
+%	          2005-03-12 Øyvind Smogeli - Revised to comply with MSS, added output consistency test
+%             2007-10-08 Øyvind Smogeli - Bug fix for scaling of spectrum magnitude
 
 %---------------------------------------------------------------------------
 % source code: Norsk Hydro
