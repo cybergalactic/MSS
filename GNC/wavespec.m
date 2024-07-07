@@ -142,6 +142,13 @@ if n>m
    return
 end
 
+eps = 1e-4; % A small positive value to avoid the W(1) = 0 singularity
+
+% Replace the first value in Omega with eps if it is zero
+if W(1) == 0
+    W(1) = eps;
+end
+
 switch SpecType
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 case 1  %Bretschneither
