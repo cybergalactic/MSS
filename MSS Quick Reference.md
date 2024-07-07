@@ -105,7 +105,7 @@ exSpline           % Path generation using cubic Hermite spline interpolation
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
 exTurnCircle       % Generates the turning circle for two different ships
 exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
-exWaveFrequencyMotion % Wave elevation and the wave-frequency (WF) motion on a ship for different wave spectra using motion RAOs
+exWaveMotionRAO    % Wave elevation and wave-frequency (WF) motions for a ship using different wave spectra and motion RAOs
 exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
@@ -206,6 +206,7 @@ rand_phases         % Generates a uniformly distributed vector of random phases 
 vw2hs               % Converts average wind speed to significant wave height
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 wavespec            % Function used to evaluate different types of wave spectra
+waveSpectrum        % Computes the directional wave spectrum using a spreading function
 ww2we               % Function used to transform a vector of wave frequencies to encounter frequencies
 ```
 
