@@ -48,7 +48,7 @@ if isempty(z_int)
     eta_d = [0 0 0]';
 end
 
-if isrow(eta_ref); eta_ref = eta_ref'; end
+eta_ref = eta_ref(:);  % Make sure eta_ref is a column vector
 
 % Reduce 6-DOF model to 3-DOF model
 DOF = 3;
