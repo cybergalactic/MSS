@@ -1,5 +1,3 @@
-function exWaveMotionRAO()
-% exWaveMotionRAO is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This function computes the wave elevation and the wave-frequency (WF) 
 % motion, eta_w, on a ship using different wave spectra (Modified Pierson-
 % Moskowitz, JONSWAP, Torsethaugen) and Response Amplitude Operators (RAOs) 
@@ -22,15 +20,19 @@ displayMfileHeader('exWaveMotionRAO.m');  % Print the header text
 % Date:      2024-07-06
 % Revisions: 
 
+clear waveMotionRAO; % Clear persistent RAO tables
+clearvars;
+
 [matFile, spectrumType, spreadingFlag] = simOptions(); % User inputs
 load(which(matFile), 'vessel'); % Load vessel.motionRAO data structure
 disp(['Loaded the motion RAO structure "vessel.motionRAO" (', matFile, ')'])
 
-%% Simulation parameters
-Tfinal = 200;                   % Duration of the simulation (s)
+% Simulation parameters
+T_final = 200;                   % Duration of the simulation (s)
+T_initialTransient = 20;         % Remove initial transient (s)
 h = 0.1;                        % Time step (s)
 numFreqIntervals = 100;         % Number of wave frequency intervals (>100)
-g = 9.81;                       % Acceleration of gravity (m/s^2)
+numDirections = 36;             % Number of wave directions (>15)
 
 % Sea state - JONSWAP spectrum with DNV (2007) correction
 Hs = 10;                        % Significant wave height (m)
@@ -38,15 +40,6 @@ Tz = 10;                        % Zero-crossing period (s)
     
 % Wave direction relative bow, 0 deg for following sea, 180 deg for head sea
 beta_wave = deg2rad(140);
-
-% Fixed seed for reproducibility of random phase angles
-seed = 12345; 
-rng(seed);
-
-freqs = vessel.motionRAO.w;             % RAO wave frequencies
-raoAngles = vessel.headings;            % RAO wave direction angles
-numAngles = length(raoAngles);          
-omegaMax = freqs(end);
 
 % Calculate the wave spectrum power intensity S(Omega) for each frequency
 T0 = Tz / 0.710; % Wave spectrum modal (peak) period (Fossen 2021, Eq. 10.61)
@@ -57,134 +50,38 @@ if strcmp(spectrumType ,'JONSWAP')
    spectrumParameters = [Hs, w0, gamma];
 end
 
-[S_M, Omega, Amp, ~, ~, mu] = waveSpectrum(spectrumType, ...
-    spectrumParameters, numFreqIntervals, omegaMax, spreadingFlag);
+omegaMax = vessel.motionRAO.w(end);  % Max frequency in RAO dataset
 
-% Convert RAO amplitudes and phases to real and imaginary components
-RAO_re = cell(6, numAngles);
-RAO_im = cell(6, numAngles);
-for DOF = 1:6
-    for j = 1:numAngles
-        % Extract amp and phase for zero speed, index 1
-        RAO_phase = vessel.motionRAO.phase{DOF}(:,:,1);
-        RAO_amp = vessel.motionRAO.amp{DOF}(:,:,1);
-
-        % Calculate the real and imaginary parts
-        RAO_re{DOF, j} = RAO_amp .* cos(RAO_phase);
-        RAO_im{DOF, j} = RAO_amp .* sin(RAO_phase);
-    end
-end
-
-% Interpolate Re and Im parts of RAO to be valid for all Omega values
-% Repeat this for all wave directions k = 1:numAngles
-F_re_values_all = cell(1, 6); 
-F_im_values_all = cell(1, 6);
-for DOF = 1:6
-    F_re_values = zeros(numAngles, numFreqIntervals);
-    F_im_values = zeros(numAngles, numFreqIntervals);
-
-    for k = 1:numAngles
-        F_re_values(k, :) = interp1(freqs(:), RAO_re{DOF, k}(:, k), ...
-            Omega, 'linear', 'extrap');
-        F_im_values(k, :) = interp1(freqs(:), RAO_im{DOF, k}(:, k), ...
-            Omega, 'linear', 'extrap');
-    end
-
-    % Store the interpolated values for this DOF
-    F_re_values_all{DOF} = F_re_values;
-    F_im_values_all{DOF} = F_im_values;
-end
+[S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumType, ...
+    spectrumParameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections);
 
 %% MAIN LOOP
-t = 0:h:Tfinal; % Time vector
-eta_WF = zeros(length(t), 6); 
-waveElevation = zeros(length(t), 1);
-randomPhases = 2 * pi * rand(numFreqIntervals, 1);
-
-for t_i = 1:length(t)
+t = 0:h:T_final+T_initialTransient-1; % Time vector
+simdata = zeros(length(t),7);     % Pre-allocate table
+for i = 1:length(t)
 
     U = 5;                             % Time-varying ship speed (m/s)
-    psi = deg2rad(sin(0.1 * t(t_i)));  % Time-varying heading angle (rad)
+    psi = deg2rad(sin(0.1 * t(i)));    % Time-varying heading angle (rad)
 
-    beta_relative = beta_wave - psi;  % Wave direction relative ship
-    
-    % Vector of spreading angles, scalar for M = 1 and one direction mu = 0
-    angle_spreading = mod(beta_relative - mu, 2*pi); % Wrap to 0 to 2*pi 
+    % 6-DOF wave-frequency (WF) motion
+    [eta_WF, waveElevation] = waveMotionRAO(t(i), ...
+        S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
 
-    % Encounter frequency for all frequencies and directions
-    Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(angle_spreading'));
+    simdata(i,:) = [eta_WF' waveElevation];
 
-    % Compute the wave elevation (Fossen 2021, Eq. 10.83)
-    waveElevation(t_i) = 0; % Initialize waveElevation for this time step
-
-    if size(S_M, 2) == 1 % No spreading function
-        integrand = Amp .* cos(Omega_e .* t(t_i) + randomPhases);
-    else % Directional spectrum , apply trapz for summation over directions mu
-        integrand = zeros(numFreqIntervals, 1);
-        for w_i = 1:numFreqIntervals
-            integrand(w_i) = trapz(mu, Amp(w_i, :) .* ...
-                 cos(Omega_e(w_i, :) .* t(t_i) + randomPhases(w_i)));
-        end
-    end
-    % Apply trapz for summation over frequenies Omega
-    waveElevation(t_i) = trapz(Omega, integrand);
-
-    % Compute the complex RAOs as a function of frequency and wave direction
-    RAO_complex = cell(1, 6); % Initialize cell arrays
-    for DOF = 1:6
-
-        % Retrieve stored interpolated values
-        F_re_values = F_re_values_all{DOF};
-        F_im_values = F_im_values_all{DOF};
-
-        % Initialize interpolation results
-        F_re_dir_interp = zeros(length(mu), numFreqIntervals);
-        F_im_dir_interp = zeros(length(mu), numFreqIntervals);
-
-        % Interpolate Re and Im parts of RAO for wave directions 0 to 2*pi
-        for k = 1:length(mu)
-            F_re_dir_interp(k, :) = interp1(raoAngles, F_re_values, ...
-                angle_spreading(k), 'linear', 'extrap');
-            F_im_dir_interp(k, :) = interp1(raoAngles, F_im_values, ...
-                angle_spreading(k), 'linear', 'extrap');
-        end
-
-        % Combine real and imaginary parts to form the complex RAO
-        RAO_complex{DOF} = F_re_dir_interp + 1i * F_im_dir_interp;
-
-        % Compute the 6-DOF wave-frequency motions (Fossen 2021, Eq. 10.105).
-        integrand = zeros(numFreqIntervals, 1);
-
-        if size(S_M, 2) == 1 % No spreading function/directional spectrum
-
-            for w_i = 1:numFreqIntervals
-                integrand(w_i) = abs(RAO_complex{DOF}(:, w_i))' ...
-                    .* Amp(w_i, :) .* cos(Omega_e(w_i, :) .* t(t_i) + ...
-                    angle(RAO_complex{DOF}(:, w_i))' + randomPhases(w_i));
-            end   
-
-        else % Directional spectrum
-
-            for w_i = 1:numFreqIntervals
-                % Apply trapezoidal rule for summation over directions first
-                integrand(w_i) = trapz(mu, ...
-                    abs(RAO_complex{DOF}(:, w_i))' .* ...
-                    Amp(w_i, :) .* cos(Omega_e(w_i, :) .* t(t_i) + ...
-                    angle(RAO_complex{DOF}(:, w_i))' + randomPhases(w_i)));
-            end
-
-        end
-
-        % Apply trapezoidal rule for summation over frequencies
-        eta_WF(t_i, DOF) = trapz(Omega, integrand);
-
-    end
 end
 
 %% PLOTS
 figure(1); clf;
+
+% Time-series
+startIndex = floor(T_initialTransient / h);
+t = t(startIndex:end) - t(startIndex);
+eta_WF = simdata(startIndex:end, 1:6);
+waveElevation = simdata(startIndex:end, 7);
+
 % Plot the wave spectrum
-subplot(311);
+subplot(211);
 hold on;
 if spreadingFlag
     % Plot the wave spectrum for the specific directions
@@ -208,26 +105,8 @@ ylabel('m^2 s');
 title([spectrumType, ' spectrum']);
 grid on;
 
-% Plot the wave amplitude
-subplot(312);
-if spreadingFlag
-    % Plot the wave spectrum for the specific directions
-    hold on;
-    plot(Omega, Amp(:, floor(length(mu)/2)), 'LineWidth', 2);
-    plot(Omega, Amp(:, floor(length(mu)/4)), 'LineWidth', 2);    
-    plot(Omega, Amp(:, length(mu)), 'LineWidth', 2);
-    legend('\mu = 0 deg', '\mu = 45 deg', '\mu = 90 deg');
-    hold off
-else
-    plot(Omega, Amp(:, 1), 'b-', 'LineWidth', 2);
-end
-xlabel('Omega (rad/s)');
-ylabel('m');
-title('Wave Amplitudes');
-grid on;
-
 % Plot the wave elevation
-subplot(313);
+subplot(212);
 plot(t, waveElevation, 'b', 'LineWidth', 2);
 xlabel('Time (s)');
 ylabel('m');
@@ -253,7 +132,6 @@ if ~isoctave
         num2str(rad2deg(beta_wave)), '°']);
 end
 
-end
 
 %% FUNCTIONS
 function [matFile, spectrumType, spreadingFlag] = simOptions()
