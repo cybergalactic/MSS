@@ -39,9 +39,9 @@ function [Zeta_a, Omega, Phase, Wavenum, Psi] = Wave_init(spectrum_type, hs, ome
 %			Wavenum			- Vector of harmonic wave numbers
 %			Psi				- Vector of harmonic wave directions
 %
-% Calls:	GNC toolbox: wavespec.m
+% Calls:	GNC toolbox: waveSpectrum.m
 %
-% Author:	Oyvind Smogeli, September 2004
+% Author:	Øyvind Smogeli, September 2004
 %
 % ________________________________________________________________
 %
@@ -99,19 +99,19 @@ if spectrum_type < 4
 	if spread < 1 
 		spread = 1;
 		if disp_flag ~= 0
-			disp(sprintf(' Spreading factor set to        : %g', spread))
+			fprintf(' Spreading factor set to        : %g\n', spread)
 		end
 	elseif spread > 5 
 		spread = 5;
 		if disp_flag ~= 0
-			disp(sprintf(' Spreading factor set to        : %g', spread))
+			fprintf(' Spreading factor set to        : %g\n', spread)
 		end
 	end
 	
 	if depth < 0.001
 		depth = 0.001;
 		if disp_flag ~= 0
-			disp(sprintf(' Depth set to 0.001 m (minimum).'))
+			fprintf(' Depth set to 0.001 m (minimum).\n')
 		end
 	end
 		
@@ -157,7 +157,7 @@ if spectrum_type < 4
 		
 		if disp_flag ~= 0
 			
-			disp(sprintf(' Calculated peak wave frequency : %0.2f rad/s', omega_peak))
+			fprintf(' Calculated peak wave frequency : %0.2f rad/s\n', omega_peak)
 			
 		end
 		
@@ -170,7 +170,7 @@ if spectrum_type < 4
 
 		if disp_flag ~= 0
 			
-			disp(sprintf(' Energylim input negative, set to zero (using all waves in grid)'))
+			fprintf(' Energylim input negative, set to zero (using all waves in grid)\n')
 			
 		end
 
@@ -186,7 +186,7 @@ if spectrum_type < 4
 			
 			if disp_flag ~= 0
 				
-				disp(sprintf(' energylim > nfreq*ndir, set to nfreq*ndir (using all waves in grid)'))
+				fprintf(' energylim > nfreq*ndir, set to nfreq*ndir (using all waves in grid)\n')
 				
 			end
 
@@ -260,7 +260,7 @@ if spectrum_type < 4
 	end % switch
 	
 	% Generate the spectral densities, no plotting
-	S_vec = wavespec(SpecType,Par,Omega_vec',0);
+	S_vec = waveSpectrum(SpecType,Par,Omega_vec,0);
 
 	% Set first value of Zeta_a vector negative for testing
 	Zeta_a(1) = -1;
@@ -319,7 +319,7 @@ if spectrum_type < 4
             end
             
 			% Keep wave direction within [-pi, pi]
-			psi = rad2pipi(psi);
+			psi = ssa(psi);
 			
 			% Save direction for plotting
 			Psi_plot(n) = psi;
@@ -330,7 +330,7 @@ if spectrum_type < 4
 			% Save harmonic wave components if energy is above limit, store all if using the set
 			% number of waves approach (energylim > 1, nwaves = energylim)
 			
-			if comp_energy/mean_energy >= energylim | energylim > 1
+			if comp_energy/mean_energy >= energylim || energylim > 1
 				
 				% Step component index
 				k = k + 1;
@@ -366,7 +366,7 @@ if spectrum_type < 4
 					
 				end
 				% Direction
-				if ndir > 1 & rand_dir == 1
+				if ndir > 1 && rand_dir == 1
 
 					% Use randomly chosen directions around the equally spaced ones
 					% Do not use this for ndir == 1, since this is long-crested waves in one direction
@@ -482,7 +482,7 @@ if spectrum_type < 4
 				set(gcf,'Position',[230   530   560   420])
 				handle_1 = surf(Y,X,S_plot);
 				shading interp % use interpolated surface coloring
-				set(handle_1, 'FaceAlpha', [0.5]) % set the surface transparent
+				set(handle_1, 'FaceAlpha', 0.5) % set the surface transparent
 				xlabel('y')
 				ylabel('x')
 				zlabel('S [m^2s]')
@@ -537,7 +537,6 @@ if spectrum_type < 4
 			%----------------------------------------------------------------
 			
 			Zeta = zeros(xpoints+1, ypoints+1);
-			Z_temp = Zeta;
 			
 			dx = xdist/xpoints;
 			dy = ydist/ypoints;
