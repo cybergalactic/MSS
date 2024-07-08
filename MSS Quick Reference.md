@@ -105,7 +105,7 @@ exSpline           % Path generation using cubic Hermite spline interpolation
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
 exTurnCircle       % Generates the turning circle for two different ships
 exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
-exWaveMotionRAO    % Wave elevation and wave-frequency (WF) motions for a ship using different wave spectra and motion RAOs
+exWaveMotionRAO    % Wave elevation and ship wave-frequency (WF) motions from motion RAOs using different wave spectra
 exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
@@ -203,10 +203,13 @@ encounter           % Encounter frequency as a function of wave peak frequency, 
 hs2vw               % Converts significant wave height into an equivalent wind speed
 isherwood72         % Computes the wind forces and coefficients based on Isherwood (1972) 
 rand_phases         % Generates a uniformly distributed vector of random phases in the interval [-pi pi]
+torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
+waveMotionRAO       % Computes the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
-wavespec            % Function used to evaluate different types of wave spectra
-waveSpectrum        % Computes the directional wave spectrum using a spreading function
+wavespec            % Obsolete, use waveSpectrum instead.
+waveSpectrum        % Function computing state-of-the-art wave spectra
+waveDirectionalSpectrum % Computes the directional wave spectrum using a spreading function
 ww2we               % Function used to transform a vector of wave frequencies to encounter frequencies
 ```
 
