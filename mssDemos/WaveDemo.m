@@ -1,5 +1,4 @@
-echo off
-% WAVEDEMO: MSS wave spectrum demonstration.
+% wavedemo: MSS wave spectrum demonstration.
 %
 % Author:     Thor I. Fossen
 % Date:       2001-08-14
@@ -7,10 +6,10 @@ echo off
 
 echo on; close all
 
-Hs   = 10;       % Significant wave height
-wmax = 3.0;      % Maximum wave frequency
-To   = 5.0;      % Peak period of the wvae spectrum
-wo   = 2*pi/To;  % Peak frequency 
+Hs   = 10;          % Significant wave height
+wmax = 3.0;         % Maximum wave frequency
+To   = 5.0;         % Peak period of the wawe spectrum
+wo   = 2 * pi /To;  % Peak frequency 
 
 %  SpecType and Par = [p1, p2, p3,..., pn]:
 %   SpecType = 1 : Bretschneither (p1 = A, p2 = B)
@@ -23,10 +22,12 @@ wo   = 2*pi/To;  % Peak frequency
 %   SpecType = 8 : Torsethaugen (p1 = Hs, p2 = w0) 
   
 w = (0:0.025:wmax)';
-S1 = wavespec(3,[Hs,To],w,0);       % Modified Pierson-Moskowitz spectrum
-S2 = wavespec(7,[Hs,wo,3.3],w,0);   % JONSWAP with gamma = 3.3
-S3 = wavespec(7,[Hs,wo,2.0],w,0);   % JONSWAP with gamma = 2.0
-S4 = wavespec(8,[Hs,wo],w,0);       % Torsethaugen
+S1 = waveSpectrum(3,[Hs,To],w,0);       % Modified Pierson-Moskowitz spectrum
+S2 = waveSpectrum(7,[Hs,wo,3.3],w,0);   % JONSWAP with gamma = 3.3
+S3 = waveSpectrum(7,[Hs,wo,2.0],w,0);   % JONSWAP with gamma = 2.0
+S4 = waveSpectrum(8,[Hs,wo],w,0);       % Torsethaugen
+
+echo off
 
 plot(w,S1/(To*Hs^2),'*-',w,S2/(To*Hs^2),'-',w,S3/(To*Hs^2),'-.', ...
     w,S4/(To*Hs^2),'o-')
