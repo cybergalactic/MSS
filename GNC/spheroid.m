@@ -1,8 +1,8 @@
 function [MRB,CRB] = spheroid(a,b,nu2,r_bg)
-% [MRB,CRB] = spheroid(L,D,nu2,r_bg) computes the 6x6 rigid-body mass
+% [MRB,CRB] = spheroid(a,b,nu2,r_bg) computes the 6x6 rigid-body mass
 % and Coriolis-centripetal matrices of a prolate spheroid of length
-% L=2*a and diameter D = 2*b. The spheroid can be used to approximate a 
-% cylinder-shaped autonomous underwater vehicle (AUV). In general 
+% L = 2 * a and diameter D = 2 * b. The spheroid can be used to approximate 
+% a cylinder-shaped autonomous underwater vehicle (AUV). In general 
 % nu = [u,v,w,p,q,r]', while linear and angular velocities are denoted by
 % nu1 = [u, v, w]' and nu2 = [p, q, r]'. The CRB matrix is computed using 
 % the linear velocity-independent representation (Fossen 2021, Chapter 3.3.1)
@@ -15,15 +15,15 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bg)
 % current velocity. This implies that the AUV equations of motion
 % expressed in the CO satisfies:
 % 
-%  MRB * d/dt nu + CRB(nu) * nu = MRB * d/dt nu_r + CRB(nu_r) * nu_r = tau
+%  MRB * nudot + CRB(nu) * nu = MRB * nudot_r + CRB(nu_r) * nu_r = tau
 %
 % Outputs:
-%  MRB;                 rigid-body mass matrix
+%  MRB:                 Rigid-body mass matrix
 %  CRB = CRB(nu2):      Coriolis-centripetal matrix, independent of nu1
 %
 % Inputs:
-%  a, b:                semiaxes a > b
-%  nu2 = [p, q, r]':    angular velocity vector 
+%  a, b:                Semiaxes a > b
+%  nu2 = [p, q, r]':    Angular velocity vector 
 %  r_bg:                r_bg = [xg, yg, zg]' vector from the CO to the CG
 % 
 % Author:    Thor I. Fossen
@@ -32,7 +32,7 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bg)
 O3 = zeros(3,3);
 
 % Mass of spheriod 
-rho = 1026;
+rho = 1025;
 m = 4/3 * pi * rho * a * b^2;   
 
 % Moment of inertia
