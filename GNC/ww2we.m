@@ -1,24 +1,26 @@
-function [We]=ww2we(chi,U,Ww)
-% Function to transform from a vector wave frequancy to 
-% encounter frequencies
+function Omega_e = ww2we(chi, U, Omega)
+% Function to transform from wave frequency to encounter frequency
 %
-%Use: [We]=ww2we(chi,U,W)
-% 
-% We   vecrtor of encounter fequency values [rad/sec] 
-% chi  encounter angle [rad] 0-following seas, pi-head seas
-% U    forward speed [m/sec]
-% W    vecrtor of wave fequancy values [rad/sec] 
+% Usage: Omega_e = ww2we(chi, U, Omega)
 %
-%Reference: A.R.M.J LLoyd "Seakeeping: Ship Behaviour in Rough Wheather."
-%John Wiley & Sons, 1989.
+% Inputs:
+%   chi   - Encounter angle [rad], 0 for following seas, pi for head seas
+%   U     - Forward speed [m/sec]
+%   Omega - Vector of wave frequency values [rad/sec]
 %
-% Created by: Tristan Perez in 2001  
-% Last mod. by: Tristan Perez 
-% Date: 9 March 2005
+% Outputs:
+%   Omega_e - Vector of encounter frequency values [rad/sec]
+%
+% Reference: 
+%   T. I. Fossen (2021) "Handbook of Marine Craft Hydrodynamics and Motion
+%     Control, 2nd edtion, John Wiley & Sons Ltd., Chichester, UK.  
+%
+% Created by: Thor I. Fossen
+% Date: 2024-07-09
 
-w=[];
-for k=1:length(Ww)
-      we_aux=(Ww(k)-Ww(k)^2*U*cos(chi)/9.81);
-   w=[w;we_aux];
+g = 9.81; % Acceleration of gravity
+
+% Calculate the encounter frequency 
+Omega_e = Omega - (Omega.^2 * U * cos(chi) / g);
+
 end
-We=w;
