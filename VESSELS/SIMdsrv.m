@@ -5,19 +5,19 @@ function SIMdsrv()
 % designed using using succesive-loop closure and PID methods.
 %
 % Dependencies:
-%   DSRV.m    - DSRV dynamics.
+%   DSRV.m    - DSRV dynamics
 %
 % Author:     Thor I. Fossen
 % Date:       2024-04-20
 % Revisions:
 %   2024-04-19 : Enhanced compatibility with GNU Octave.
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
-close all;
 clearvars;
 
 %% USER INPUTS
+T_final = 1000;	            % Final simulation time (s)
 h  = 0.05;                  % Sample time (s)
-N  = 20000;                 % Number of samples
 
 %% DEPTH AUTOPILOTS PARAMETERS
 z_d = 0;                    % Initial depth (m), reference model
@@ -47,11 +47,10 @@ delta_s = 0;
 displayControlMethod();
 
 %% MAIN LOOP
-simdata = zeros(N+1,9);              % Memory allocation
+t = 0:h:T_final;                     % Time vector
+simdata = zeros(length(t),8);        % Preallocate table 
 
-for i = 1:N+1
-
-    t= (i-1) * h;                    % Simulation time in seconds
+for i = 1:length(t)
 
     % Measurements
     w     = x(1) + 0.001 * randn;
@@ -60,7 +59,7 @@ for i = 1:N+1
     theta = x(5) + 0.001 * randn;
 
     % Depth command, z_ref
-    if t > 400
+    if t(i) > 300
         z_ref = z_step;
     else
         z_ref = 10;
@@ -75,14 +74,13 @@ for i = 1:N+1
     delta_c = -delta_PID;
     delta_c = sat(delta_c, delta_max);   % Amplitude saturation
 
-    % DSRV dynamics
-    xdot = DSRV(x, delta_s);
-
     % Store data for presentation
-    simdata(i,:) = [t, x', delta_s, theta_d, z_d];
+    simdata(i,:) = [x', delta_s, theta_d, z_d];
+
+    % RK4 method (k+1)
+    x = rk4(@DSRV, h, x, delta_s);  % DSRV dynamics
 
     % Euler's integration method (k+1)
-    x = x + h * xdot;
     delta_s = delta_s + h * (delta_c - delta_s) / T_delta;
     z_int = z_int + h * ( z - z_d );
     theta_int = theta_int + h * ssa( theta - theta_d );
@@ -90,18 +88,17 @@ for i = 1:N+1
 end
 
 %% PLOTS
-% simdata(i,:) = [ t w q x z theta delta_s theta_d z_d ]
-t       = simdata(:,1);      
-w       = simdata(:,2); 
-q       = rad2deg(simdata(:,3));          
-x       = simdata(:,4);   
-z       = simdata(:,5);
-theta   = rad2deg(simdata(:,6));
-delta_s = rad2deg(simdata(:,7));
-theta_d = rad2deg(simdata(:,8));
-z_d     = simdata(:,9);
+% simdata(i,:) = [ w q x z theta delta_s theta_d z_d ]   
+w       = simdata(:,1); 
+q       = rad2deg(simdata(:,2));          
+x       = simdata(:,3);   
+z       = simdata(:,4);
+theta   = rad2deg(simdata(:,5));
+delta_s = rad2deg(simdata(:,6));
+theta_d = rad2deg(simdata(:,7));
+z_d     = simdata(:,8);
 
-figure(1)
+figure(1); clf;
 plot(t,delta_s)
 xlabel('Time (s)')
 title('Stern rudder angle \delta_s (deg)')
@@ -109,7 +106,7 @@ grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
-figure(2)
+figure(2); clf;
 subplot(221)
 plot(t,w)
 xlabel('Time (s)')
@@ -141,7 +138,8 @@ vesselData = {...
     'Mass', '2300 kg',...
     'Maximum speed', '4.11 m/s',...
     'Max rudder angle', '30 deg'};
-displayVehicleData('Deep Submergence Rescue Vehicle (DSRV)', vesselData, 'DSRV.jpg', 3);
+displayVehicleData('Deep Submergence Rescue Vehicle (DSRV)', ...
+    vesselData, 'DSRV.jpg', 3);
 
 end
 
