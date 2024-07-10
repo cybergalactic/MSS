@@ -14,7 +14,7 @@ function SIMcontainer()
 % Author:    Thor I. Fossen
 % Date:      2018-07-21
 % Revisions:
-%   2024-04-19 : Enhanced compatibility with GNU Octave.
+%   2024-04-19: Enhanced compatibility with GNU Octave.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
 clearvars;
