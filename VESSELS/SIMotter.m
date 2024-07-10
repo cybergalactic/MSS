@@ -46,6 +46,8 @@ function SIMotter()
 %   2024-04-01: Integrated ALOS/ILOS path-following control algorithms for
 %               straight-line paths and Hermite splines.
 %   2024-04-21: Enhanced compatibility with GNU Octave.
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method
+%               with RK4.
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -53,7 +55,7 @@ clear ALOSpsi ILOSpsi crosstrackHermiteLOS  % Clear persistent variables
 
 %% USER INPUTS
 h  = 0.05;                       % Sampling time [s]
-N  = 20000;                      % Number of samples
+T_final = 1000;	                 % Final simulation time [s]
 
 % Load condition
 mp = 25;                         % Payload mass (kg), maximum value 45 kg
@@ -112,12 +114,12 @@ T_n = 0.1;                       % Propeller time constant (s)
 n = [0 0]';                      % Initial propeller speed, [n_left n_right]'
 
 % Initial states
-eta = [0 0 0 0 0 psi0]';         % State vector, eta = [x y z phi theta psi]'
-nu  = [0 0 0 0 0 0]';            % Velocity vector, nu  = [u v w p q r]'
+x = zeros(12,1);                 % x = [u v w p q r xn yn zn phi theta psi]'
+x(12) = psi0;                    % Heading angle
 z_psi = 0;                       % Integral state for heading control
-psi_d = eta(6);                  % Initial desired heading
-r_d = 0;                         % Initial desired rate of turn
-a_d = 0;                         % Initial desired acceleration
+psi_d = psi0;                    % Desired heading angle
+r_d = 0;                         % Desired rate of turn
+a_d = 0;                         % Desired acceleration
 
 % Choose control method and display simulation options
 methods = {'PID heading autopilot, no path following',...
@@ -128,39 +130,40 @@ ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
-simdata = zeros(N+1, 15);        % Preallocate table for simulation data
+t = 0:h:T_final;                    % Time vector
+simdata = zeros(length(t), 14);     % Preallocate table for simulation data
 
-for i = 1:N+1
-    t = (i-1) * h;                  % Time (s)
+for i = 1:length(t)
+
     % Measurements with noise
-    x = eta(1) + 0.01 * randn;      % Noisy x measurement
-    y = eta(2) + 0.01 * randn;      % Noisy y measurement
-    r = nu(6) + 0.001 * randn;      % Noisy rate of turn
-    psi = eta(6) + 0.001 * randn;   % Noisy heading
+    r = x(6) + 0.001 * randn;       % Yaw rate 
+    xn = x(7) + 0.01 * randn;       % North position
+    yn = x(8) + 0.01 * randn;       % East position
+    psi = x(12) + 0.001 * randn;    % Yaw angle
 
     % Guidance and control system
     switch ControlFlag
         case 1  % PID heading autopilot with reference model
             % Reference model, step input adjustments
             psi_ref = psi0;
-            if t > 100; psi_ref = deg2rad(0); end
-            if t > 500; psi_ref = deg2rad(-90); end
+            if t(i) > 100; psi_ref = deg2rad(0); end
+            if t(i) > 500; psi_ref = deg2rad(-90); end
 
             % Reference model propagation
             [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max, ...
                                          zeta_d, wn_d, h, 1);
 
         case 2  % ALOS heading autopilot straight-line path following
-            psi_ref = ALOSpsi(x, y, Delta_h, gamma_h, h, R_switch, wpt);
+            psi_ref = ALOSpsi(xn, yn, Delta_h, gamma_h, h, R_switch, wpt);
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
         case 3  % ILOS heading autopilot straight-line path following
-            psi_ref = ILOSpsi(x, y, Delta_h, kappa, h, R_switch, wpt);
+            psi_ref = ILOSpsi(xn, yn, Delta_h, kappa, h, R_switch, wpt);
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
         case 4  % ALOS heading autopilot, cubic Hermite spline interpolation
             [psi_ref, idx_start] = crosstrackHermiteLOS(w_path, x_path, ...
-                y_path, dx, dy, pi_h, x, y, h, Delta_h, pp_x, pp_y, ...
+                y_path, dx, dy, pi_h, xn, yn, h, Delta_h, pp_x, pp_y, ...
                 idx_start, N_horizon, gamma_h);
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
     end
@@ -176,14 +179,12 @@ for i = 1:N+1
     n_c = sign(u) .* sqrt(abs(u));  % Convert to required propeller speeds
 
     % Store simulation data
-    simdata(i, :) = [t, eta', nu', r_d, psi_d];
+    simdata(i, :) = [x', r_d, psi_d];
 
-    % USV dynamics
-    xdot = otter([nu; eta], n, mp, rp, V_c, beta_c);  % State derivatives
+    % RK4 method x(k+1)
+    x = rk4(@otter, h, x, n,mp,rp,V_c,beta_c);
 
-    % Euler's integration method (k+1)
-    nu = nu + h * xdot(1:6);                % Update velocity states
-    eta = eta + h * xdot(7:12);             % Update position states
+    % Euler's method
     n = n + h/T_n * (n_c - n);              % Update propeller speeds
     z_psi = z_psi + h * ssa(psi - psi_d);   % Update integral state
 end
@@ -193,11 +194,10 @@ scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 12;
 
 % Simulation data structure
-t = simdata(:,1);        % Time vector
-eta = simdata(:,2:7);    % State vectors
-nu  = simdata(:,8:13);   % Velocity vectors
-r_d = simdata(:,14);     % Desired rate of turn
-psi_d = simdata(:,15);   % Desired heading
+nu   = simdata(:,1:6); 
+eta  = simdata(:,7:12); 
+r_d = simdata(:,13);    
+psi_d = simdata(:,14);  
 
 % Plot positions
 figure(1);

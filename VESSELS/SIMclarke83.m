@@ -25,7 +25,7 @@ close all;
 
 %% USER INPUTS
 h = 0.05;               % Sampling time
-N = 10000;              % Number of samples
+T_final = 140;	        % Final simulation time [s]
 
 psi_ref = deg2rad(10);  % Heading angle setpoint
 w_n = 0.1;              % Closed-loop natural frequency
@@ -47,16 +47,15 @@ xg = -3;      % x-coordinate of the CG
 % Display simulation options
 displayControlMethod();
 
-%% MAIN LOOP
-simdata = zeros(N+1,7);                   % table for simulation data
+%% MAIN SIMULATION LOOP
+t = 0:h:T_final;                    % Time vector
+simdata = zeros(length(t),6);       % Preallocate table for simulation data
 
-for i=1:N+1
-
-    t = (i-1) * h;                        % simulation time in seconds
+for i=1:length(t)
 
     % Linear maneuvering model
     U = sqrt(nu(1)^2 + nu(2)^2);
-    [M,N] = clarke83(U,L,B,T,Cb,R66,xg);
+    [M, N] = clarke83(U,L,B,T,Cb,R66,xg);
 
     % Control system (constant thrust + PD heading controller)
     tau = [1000000
@@ -67,10 +66,9 @@ for i=1:N+1
     nudot = M \ (tau - N * nu);
 
     % Store data for presentation
-    simdata(i,:) = [t, eta', nu'];
+    simdata(i,:) = [eta', nu'];
 
     % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
-    % x = x + h * xdot is replaced by forward and backward Euler integration
     nu  = nu + h * nudot;                       % Forward Euler
     eta = eta + h * Rzyx(0,0,eta(3)) * nu;      % Backward Euler
 
@@ -79,14 +77,13 @@ end
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
-% Simdata(i,:) = [t, eta', nu']
-t     = simdata(:,1);
-x     = simdata(:,2);
-y     = simdata(:,3);
-psi   = rad2deg(simdata(:,4));
-u     = simdata(:,5);
-v     = simdata(:,6);
-r     = rad2deg(simdata(:,7));
+% Simdata(i,:) = [eta', nu']
+x     = simdata(:,1);
+y     = simdata(:,2);
+psi   = rad2deg(simdata(:,3));
+u     = simdata(:,4);
+v     = simdata(:,5);
+r     = rad2deg(simdata(:,6));
 U     = sqrt(u.^2 + v.^2);
 
 % Plot and animation of the North-East positions

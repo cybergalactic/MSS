@@ -53,7 +53,7 @@ function [x_ins, P_prd] = ins_mekf_psi(...
 % Author: Thor I. Fossen
 % Date: 2020-04-26
 % Revisions: 
-%   2021-12-21: Improved numerical stability by replacing Euler's method 
+%   2021-12-21: Improved numerical accuracy by replacing Euler's method 
 %               with exact discretization in the INS state propagation.
 %   2022-08-30: Use atan2 instead of atan to avoid jumps in the formula:
 %               eps_psi = ssa( y_psi - atan2(u_y, u_x) ); 

@@ -51,8 +51,8 @@ function [x_ins, P_prd] = ins_ahrs( ...
 % Author: Thor I. Fossen
 % Date: 2020-03-21
 % Revisions: 
-%   2021-12-21: Improved numerical stability by replacing Euler's method 
-%               with exact discretization in the INS state propagation.
+%   2021-12-21: Improved numerical accuracy by replacing Euler's method
+%               with exact discretization in the INS PVA propagation.
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -72,9 +72,13 @@ g_n = [0 0 gravity(mu)]';    % WGS-84 gravity model
 O3 = zeros(3,3);
 I3 = eye(3);
 
-% Kinematics
+% Transformation matrices
 R = Rzyx(y_ahrs(1), y_ahrs(2), y_ahrs(3));
-T = Tzyx(y_ahrs(1), y_ahrs(2));
+T = Tzyx(y_ahrs(1), y_ahrs(2)); 
+
+% Bias compensated IMU measurements
+f_ins = f_imu - b_acc_ins;
+w_ins = w_imu - b_ars_ins;
 
 % Discrte-time ESKF matrices
 A = [ O3 I3  O3           O3  O3
@@ -139,11 +143,12 @@ end
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % INS propagation: x_ins[k+1]
-a_ins = R * (f_imu - b_acc_ins) + g_n;               % Linear acceleration
+a_ins = R * f_ins + g_n;                             % Linear acceleration
 p_ins = p_ins + h * v_ins + h^2/2 * a_ins;           % Exact discretization
 v_ins = v_ins + h * a_ins;                           % Exact discretization
-theta_ins = theta_ins + h * T * (w_imu - b_ars_ins); % Euler's method
+theta_ins = theta_ins + h * T * w_ins;               % Euler's method
 
 x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
+
  
 end

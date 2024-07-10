@@ -57,7 +57,7 @@ function [x_ins, P_prd] = ins_mekf(...
 % Date: 2020-04-26
 % Revisions: 
 %   2020-11-29: Bugfix - removed magnetometer projection algorithms.
-%   2021-12-13: Improved numerical stability by replacing Euler's method 
+%   2021-12-13: Improved numerical accuracy by replacing Euler's method 
 %               with exact discretization in the INS state propagation.
 
 % Bias time constants (user specified)

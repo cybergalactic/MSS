@@ -1,4 +1,4 @@
-function SIMremus100()
+function SIMremus200()
 % SIMremus100 is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
 % under depth and heading control while exposed to ocean currents. It 
@@ -37,6 +37,8 @@ function SIMremus100()
 %   2024-04-02: Simulation options for ALOS path following.
 %   2024-04-21: Extended compatibility with GNU Octave.
 %   2024-06-07: Included display of vehicle data using displayVehicleData.m.
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method
+%               with RK4 for the Euler angle representation.
 
 clearvars;                          % Clear all variables from memory
 clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
@@ -44,7 +46,7 @@ close all;                          % Close all open figure windows
 
 %% USER INPUTS
 h = 0.05;                           % Sampling time [s]
-N = 28000;                          % Number of samples to simulate
+T_final = 1400;	                    % Final simulation time [s]
 
 [ControlFlag, KinematicsFlag] = controlMethod();
 
@@ -139,13 +141,13 @@ R_switch = 5;               % radius of switching circle
 K_f = 0.5;                  % LOS observer gain
 
 %% MAIN SIMULATION LOOP
-simdata = zeros(N+1, length(x) + 11);  % Preallocate table for simulation data
-ALOSdata = zeros(N+1, 4);              % Preallocate table for ALOS guidance data
+t = 0:h:T_final;                          % Time vector
+simdata = zeros(length(t), length(x)+10); % Preallocate table for simulation data
+ALOSdata = zeros(length(t), 4); % Preallocate table for ALOS guidance data
 
-for i = 1:N+1
-    t = (i-1) * h;             % Current simulation time
+for i = 1:length(t)
 
-    % Measurement updates
+    % Measurements 
     u = x(1);                  % Surge velocity (m/s)
     v = x(2);                  % Sway velocity (m/s)
     w = x(3);                  % Heave velocity (m/s)
@@ -165,7 +167,7 @@ for i = 1:N+1
    if ControlFlag == 1 || ControlFlag == 2   % Depth control 
 
        % Depth command, z_ref
-       if t > 200
+       if t(i) > 200
            z_ref = z_step;
        else
            z_ref = 10;
@@ -186,7 +188,7 @@ for i = 1:N+1
            - Kd_theta * q - Ki_theta * theta_int - K_w * w;
 
        % PID heading angle command, psi_ref
-       if t > 200
+       if t(i) > 200
            psi_ref = psi_step;
        else
            psi_ref = deg2rad(0);
@@ -221,7 +223,7 @@ for i = 1:N+1
        if abs(r_d) > r_max, r_d = sign(r_d) * r_max; end
 
        % Ocean current dynamics
-       if t > 800
+       if t(i) > 800
            Vc_d = 0.65;
            w_V = 0.1;
            Vc = exp(-h*w_V) * Vc + (1 - exp(-h*w_V)) * Vc_d;
@@ -229,7 +231,7 @@ for i = 1:N+1
            Vc = 0.5;
        end
 
-       if t > 500
+       if t(i) > 500
            betaVc_d = deg2rad(160);
            w_beta = 0.1;
            betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
@@ -260,23 +262,19 @@ for i = 1:N+1
    ui = [delta_r -delta_s n]';                % Commanded control inputs
 
    % Store simulation data in a table
-   simdata(i,:) = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
+   simdata(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
 
-   % Propagate the vehicle dynamics (k+1), (Fossen 2021, Eq. B27-B28)
-   % x = x + h * xdot is replaced by forward and backward Euler integration
-   xdot = remus100(x, ui, Vc, betaVc, wc);
-
-   if (KinematicsFlag == 1)
-       Jmtrx = eulerang(x(10),x(11),x(12));
-       x(1:6) = x(1:6) + h * xdot(1:6);        % forward Euler
-       x(7:12) = x(7:12) + h * Jmtrx * x(1:6); % backward Euler
+    if (KinematicsFlag == 1)
+       % Euler angles x = [ u v w p q r x y z phi theta psi ]'
+       x = rk4(@remus100, h, x, ui, Vc, betaVc, wc);  % RK4 method x(k+1)
    else
-       quat = x(10:13);                        % unit quaternion
-       Rq = Rquat(quat);                       % rotation matrix
-       x(1:6) = x(1:6) + h * xdot(1:6);        % forward Euler
-       x(7:9) = x(7:9) + h * Rq * x(1:3);      % backward Euler
-       quat = expm(Tquat(x(4:6)) * h) * quat;  % exact quat. discretization
-       x(10:13) = quat / norm(quat);           % normalization
+       % Unit quaternions x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'  
+       xdot = remus100(x, ui, Vc, betaVc, wc);
+       quat = x(10:13);                            % Unit quaternion
+       x(1:6) = x(1:6) + h * xdot(1:6);            % Forward Euler
+       x(7:9) = x(7:9) + h * Rquat(quat) * x(1:3); % Backward Euler
+       quat = expm(Tquat(x(4:6)) * h) * quat;  % Exact quat. discretization
+       x(10:13) = quat / norm(quat);           % Normalization
    end
 
    % Euler's integration method (k+1)
@@ -291,26 +289,25 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 12;
 if isoctave; legendLocation = 'northeast'; end
 
-% simdata = [t z_d theta_d psi_d r_d Vc betaVc wc ui' x']
-t       = simdata(:,1);
-z_d     = simdata(:,2);
-theta_d = simdata(:,3);
-psi_d   = simdata(:,4);
-r_d     = simdata(:,5);
-Vc      = simdata(:,6);
-betaVc  = simdata(:,7);
-wc      = simdata(:,8);
-u       = simdata(:,9:11);
-nu      = simdata(:,12:17);
+% simdata = [z_d theta_d psi_d r_d Vc betaVc wc ui' x']
+z_d     = simdata(:,1);
+theta_d = simdata(:,2);
+psi_d   = simdata(:,3);
+r_d     = simdata(:,4);
+Vc      = simdata(:,5);
+betaVc  = simdata(:,6);
+wc      = simdata(:,7);
+u       = simdata(:,8:10);
+nu      = simdata(:,11:16);
 
 if (KinematicsFlag == 1) % Euler angle representation
-    eta = simdata(:,18:23);
+    eta = simdata(:,17:22);
 else % Transform the unit quaternions to Euler angles
-    quaternion = simdata(:,21:24);
-    for i = 1:N+1
+    quaternion = simdata(:,20:23);
+    for i = 1:length(t)
         [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
     end
-    eta = [simdata(:,18:20) phi theta psi];
+    eta = [simdata(:,17:19) phi theta psi];
 end
 
 % ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
