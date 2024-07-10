@@ -50,69 +50,66 @@ function SIMosv()
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
 % Revisions:
-%   None
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
-clear PIDnonlinearMIMO; % Clear persistent variables from previous sessions.
-clearvars;              % Clear all other variables.
-close all;              % Close all windows.
-osv;                    % Initialize or display the OSV's main data.
+clear PIDnonlinearMIMO; % Clear persistent variables from previous sessions
+clearvars;              % Clear all other variables
+close all;              % Close all windows
+osv;                    % Initialize or display the OSV's main data
 
-% Define control allocation mode:
-ALLOC = 1;                   % 0 = Use constant azimuths 
-                             % 1 = Use dynamic optimization (MATLAB only)
+% Define control allocation mode
+ALLOC = 1;                   % 0 - Use constant azimuth angles
+                             % 1 - Dynamic optimization (MATLAB only)
 
 % Constant azimuth angles minimizing the condition number of T_thr                             
 alpha0 = deg2rad([-28; 28]); 
 
-% Define simulation parameters:
-h = 0.1;                     % Sampling time in seconds.
-N = 2000;                    % Number of simulation samples.
+% Define simulation parameters
+T_final = 300;	             % Final simulation time (s)
+h = 0.1;                     % Sampling time (s)
 
-% Define DP setpoints:
-x_ref = 0;                   % Reference North position in meters.
-y_ref = 0;                   % Reference East position in meters.
-psi_ref = deg2rad(0);        % Reference yaw angle in radians.
-eta_ref = [x_ref, y_ref, psi_ref]';  % Reference positions and heading.
+% Define DP setpoints
+x_ref = 5;                   % Reference North position in meters
+y_ref = 5;                   % Reference East position in meters
+psi_ref = deg2rad(0);        % Reference yaw angle in radians
+eta_ref = [x_ref, y_ref, psi_ref]';  % Reference positions and heading
 
-% Vessel and environmental parameters:
-L = 83;                      % Vessel length in meters.
-B = 18;                      % Vessel beam in meters.
-T = 5;                       % Vessel draft in meters.
-Vc = 1;                      % Ocean current speed in meters/second.
-betaVc = deg2rad(-140);      % Ocean current direction in radians.
+% Vessel and environmental parameters
+L = 83;                      % Vessel length in meters
+B = 18;                      % Vessel beam in meters
+T = 5;                       % Vessel draft in meters
+Vc = 0.5;                    % Ocean current speed in meters/second
+betaVc = deg2rad(-140);      % Ocean current direction in radians
 
-% Thruster configuration parameters:
-K_max = diag([300e3, 300e3, 655e3, 655e3]);  % Max thrust for each propeller in Newtons.
-n_max = [140, 140, 150, 150]';               % Max propeller speeds in RPM.
-K_thr = K_max ./ n_max.^2;                   % Thrust coefficient matrix.
-l_x = [37, 35, -L/2, -L/2];                  % X-coordinates of thrusters.
-l_y = [0, 0, 7, -7];                         % Y-coordinates of thrusters.
+% Thruster configuration parameters
+K_max = diag([300e3, 300e3, 655e3, 655e3]); % Max thrust for each propeller (N)
+n_max = [140, 140, 150, 150]';              % Max propeller speeds i(RPM)
+l_x = [37, 35, -L/2, -L/2];                 % X-coordinates of thrusters (m)
+l_y = [0, 0, 7, -7];                        % Y-coordinates of thrusters (m)
 
 % Thruster configuration matrix
 T_thr = thrConfig({'T', 'T', alpha0(1), alpha0(2)}, l_x, l_y);  
 
-% Dynamic optimization setup (if applicable):
-az_max = deg2rad(60);  % Max azimuth rotation angle in radians.
+% Dynamic optimization setup (if applicable)
+az_max = deg2rad(60);  % Max azimuth rotation angle (rad)
 
 % Bounds for control variables:
-lb = [-az_max, -az_max, -1, -1, -1, -1, -inf, -inf, -inf];  % Lower bounds.
-ub = [az_max, az_max, 1, 1, 1, 1, inf, inf, inf];           % Upper bounds.
+lb = [-az_max, -az_max, -1, -1, -1, -1, -inf, -inf, -inf];  % Lower bounds
+ub = [az_max, az_max, 1, 1, 1, 1, inf, inf, inf];           % Upper bounds
 
-alpha_old = alpha0;    % Initial values for dynamic optimization.
-u_old = [0, 0, 0, 0]'; % Initial propeller speeds.
+alpha_old = alpha0;    % Initial values for dynamic optimization
+u_old = [0, 0, 0, 0]'; % Initial propeller speeds 
 
-% Initialize the nonlinear MIMO PID controller:
+% Initialize the nonlinear MIMO PID controller
 [~,~,M] = osv();             % OSV 6x6 mass matrix
-wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning.
-zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning.
-T_f = 50;                    % Time constant for the low-pass filter in seconds.
+wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning
+zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning
+T_f = 50;                    % Time constant for the low-pass filter (s)
 
 % Initialize state vectors for the simulation:
-eta = [0, 0, 0, deg2rad(5), deg2rad(1.3), 0]';  % Euler angles and positions.
-nu = [0, 0, 0, 0, 0, 0]';                       % Velocity vector.
-
-% Allocate memory for simulation data storage:
-simdata = zeros(N+1, 19);  % Pre-allocate matrix for efficiency.
+eta = [0, 0, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
+nu = [0, 0, 0, 0, 0, 0]';                     % Velocity vector
+x = [nu; eta];                                % State vector
 
 % Octave can only use ALLOC = 0
 if isoctave
@@ -122,88 +119,85 @@ end
 
 % Create a progress indicator
 h_waitbar = waitbar(0, 'Processing...');    % Display a wait bar 
-tic;  % Start a timer to measure the simulation's execution time.
+tic;  % Start a timer to measure the simulation's execution time
 
-%% Main simulation loop:
-for i = 1:N+1
+%% MAIN LOOP
+t = 0:h:T_final;                % Time vector
+simdata = zeros(length(t), 18); % Pre-allocate matrix for efficiency
+
+for i = 1:length(t)
    
-   t = (i-1) * h;  % Current simulation time.
-
-   % Update the progress bar every 10 iterations:
+   % Update the progress bar every 10 iterations
    if mod(i, 10) == 0
-       waitbar(i/N, h_waitbar, sprintf('Progress: %3.0f%%', i/N*100));
+       elapsedTime = t(i) / T_final;
+       waitbar(elapsedTime, h_waitbar, sprintf('Progress: %3.0f%%', 100*elapsedTime));
    end
 
-   % Simulate sensor noise and disturbances:
-   eta(1) = eta(1) + 0.06 * randn;   % Simulate noise in the North position.
-   eta(2) = eta(2) + 0.06 * randn;   % Simulate noise in the East position.
-   eta(6) = eta(6) + 0.001 * randn;  % Simulate noise in the yaw angle.
+   % Simulate sensor noise and disturbances
+   eta(1) = eta(1) + 0.01 * randn;   % Simulate noise in the North position
+   eta(2) = eta(2) + 0.01 * randn;   % Simulate noise in the East position
+   eta(6) = eta(6) + 0.0001 * randn; % Simulate noise in the yaw angle
 
-   % Control logic based on the elapsed simulation time:
-   if t > 50 
-       eta_ref = [0, 0, deg2rad(40)]';  % Change setpoint after 50 seconds.
+   % Control logic based on the elapsed simulation time
+   if t(i) > 50 
+       eta_ref = [x_ref, y_ref, deg2rad(40)]'; % Change setpoint after 50 s
    end
 
-   % Calculate control forces using the nonlinear MIMO PID controller:
+   % Calculate control forces using the nonlinear MIMO PID controller
    tau = PIDnonlinearMIMO(eta, nu, eta_ref, M, wn, zeta, T_f, h); 
 
-   % Determine thrust settings based on the selected allocation method:
-   if ALLOC == 0  % Unconstrained control allocation using pseudoinverse method.
-       alpha_c = alpha0 ; % Use constant azimuth angles.
+   % Determine thrust settings based on the selected allocation method
+   if ALLOC == 0  % Unconstrained control allocation using pseudoinverse method
+       alpha_c = alpha0 ; % Use constant azimuth angles
        u_c = allocPseudoinverse(K_max, T_thr, eye(4), tau([1:2, 6]));  
-   else  % Constrained control allocation using dynamic optimization.
+   else  % Constrained control allocation using dynamic optimization
        [alpha_c, u_c, ~] = optimalAlloc(tau([1:2, 6]), lb, ub, alpha_old, ...
            u_old, l_x, l_y, K_max, h);
-       alpha_old = alpha_c;  % Update for next iteration.
-       u_old = u_c;          % Update for next iteration.
+       alpha_old = alpha_c;  % Update for next iteration
+       u_old = u_c;          % Update for next iteration
    end
 
    % Controls: ui = [ n_c(1) n_c(2) n_c(3) n_c(4) alpha_c(1) alpha_c(2) ]'
-   u_c = n_max.^2 .* u_c;  % Scale control efforts to actual propeller speeds.
-   n_c = sign(u_c) .* sqrt(abs(u_c));  % Calculate each propeller's speed.
+   u_c = n_max.^2 .* u_c;  % Scale control efforts to actual propeller speeds
+   n_c = sign(u_c) .* sqrt(abs(u_c));  % Calculate each propeller's speed
    ui = [n_c; alpha_c];  
 
    % Store simulation results:
-   simdata(i, :) = [t, eta', nu', ui'];  % Log data for later analysis.
+   simdata(i, :) = [eta', nu', ui'];  % Log data for later analysis
 
-   % Calculate the OSV's dynamics for the next timestep:
-   xdot = osv([nu; eta], ui, Vc, betaVc);    
-   Jmtrx = eulerang(eta(4), eta(5), eta(6));  
-
-   % Integrate to find the next state:
-   nu = nu + h * xdot(1:6);     % Update velocity using forward Euler method.
-   eta = eta + h * Jmtrx * nu;  % Update position using backward Euler method.
+   % RK methhod (k+1)
+   x = rk4(@osv, h, x, ui, Vc, betaVc);  % OSV dynamics 
+   nu = x(1:6); 
+   eta = x(7:12);
    
 end
 
-close(h_waitbar);  % Close the progress indicator.
+close(h_waitbar);  % Close the progress indicator
 
 %% PLOTS
-t     = simdata(:,1);  
+xn    = simdata(:,1); 
+yn    = simdata(:,2); 
+zn    = simdata(:,3); 
+phi   = ssa(simdata(:,4)); 
+theta = ssa(simdata(:,5)); 
+psi   = ssa(simdata(:,6)); 
 
-x     = simdata(:,2); 
-y     = simdata(:,3); 
-z     = simdata(:,4); 
-phi   = ssa(simdata(:,5)); 
-theta = ssa(simdata(:,6)); 
-psi   = ssa(simdata(:,7)); 
+u     = simdata(:,7);        
+v     = simdata(:,8); 
+w     = simdata(:,9); 
+p     = simdata(:,10);        
+q     = simdata(:,11); 
+r     = simdata(:,12); 
 
-u     = simdata(:,8);        
-v     = simdata(:,9); 
-w     = simdata(:,10); 
-p     = simdata(:,11);        
-q     = simdata(:,12); 
-r     = simdata(:,13); 
+U = sqrt( u.^2 + v.^2 );        % Vessel speed (m/s)
 
-U = sqrt( u.^2 + v.^2 );        % vessel speed (m/s)
+n1 = simdata(:,13);             % Propeller speeds (RPM)
+n2 = simdata(:,14);            
+n3 = simdata(:,15);
+n4 = simdata(:,16);
 
-n1 = simdata(:,14);             % propeller speeds (rpm)
-n2 = simdata(:,15);            
-n3 = simdata(:,16);
-n4 = simdata(:,17);
-
-a1 = simdata(:,18);             % propeller azimuth angles (rad)
-a2 = simdata(:,19); 
+a1 = simdata(:,17);             % Propeller azimuth angles (rad)
+a2 = simdata(:,18); 
 
 legendLocation = 'best';
 if isoctave; legendLocation = 'northeast'; end
@@ -211,11 +205,11 @@ if isoctave; legendLocation = 'northeast'; end
 %% Position and Euler angle plots
 figure(2); clf;
 figure(gcf)
-subplot(321),plot(y,x)
+subplot(321),plot(yn,xn)
 xlabel('East (m)')
 ylabel('North (m)')
 title('North-East positions (m)'),grid
-subplot(322),plot(t,z)
+subplot(322),plot(t,zn)
 xlabel('time (s)'),title('Down position (m)'),grid
 subplot(312),plot(t,rad2deg(phi),t,rad2deg(theta))
 xlabel('time (s)'),title('Roll and pitch angles (deg)'),grid
@@ -254,7 +248,7 @@ plot([0,t(end)],[-n_max(1),-n_max(1)],'k','linewidth',1)
 plot([0,t(end)],[n_max(2),n_max(2)],'k','linewidth',1)
 plot([0,t(end)],[-n_max(2),-n_max(2)],'k','linewidth',1)
 hold off;
-xlabel('time (s)'),title('Bow thrusters (rpm)'),grid
+xlabel('time (s)'),title('Bow thrusters (RPM)'),grid
 legend('n_1','n_2','Location',legendLocation)
 
 subplot(312)
@@ -266,7 +260,7 @@ plot([0,t(end)],[-n_max(3),-n_max(3)],'k','linewidth',1)
 plot([0,t(end)],[n_max(4),n_max(4)],'k','linewidth',1)
 plot([0,t(end)],[-n_max(4),-n_max(4)],'k','linewidth',1)
 hold off;
-xlabel('time (s)'),title('Stern azimuth thrusters (rpm)'),grid
+xlabel('time (s)'),title('Stern azimuth thrusters (RPM)'),grid
 legend('n_3','n_4','Location',legendLocation)
 
 subplot(313)
@@ -342,14 +336,14 @@ end
 % Cost function
 function cost = objectiveFunction(x,alpha_old,u_old)
 
-alpha = x(1:2)';    % azimuth angles
-u = x(3:6)';        % quadratic controls
-s = x(7:9)';        % slack variables: tau = T(alpha) * K_thr * u + s
+alpha = x(1:2)';    % Azimuth angles
+u = x(3:6)';        % Quadratic controls
+s = x(7:9)';        % Slack variables: tau = T(alpha) * K_thr * u + s
 
-w1 = 1;             % weight for squared u
-w2 = 1000;          % weight for squared slack variable s
-w3 = 10;            % weight for squared change in alpha
-w4 = 10;            % weight for squared change in u
+w1 = 1;             % Weight for squared u
+w2 = 100;           % Weight for squared slack variable s
+w3 = 1;             % Weight for squared change in alpha
+w4 = 1;             % Weight for squared change in u
 
 cost = w1 * norm(u)^2 ...
     + w2 * norm(s)^2 ...
