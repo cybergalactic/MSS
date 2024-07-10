@@ -21,11 +21,10 @@ function SIMrig()
 
 clearvars;
 close all;
-clear PIDnonlinearMIMO;         % clear persistent integrator state
+clear PIDnonlinearMIMO;        % Clear persistent integrator state
 
-f = 20;                         % sampling frequency
-h = 1/f;                        % sampling time
-N = round(200 * f);             % number of samples
+T_final = 200;	               % Final simulation time (s)
+h = 0.1;                       % Sampling time (s)
 
 % Environmnetal data
 nu_c = [-1.0 -0.2 0 0 0 0]';    % ocean current velocities
@@ -33,13 +32,13 @@ nu_c = [-1.0 -0.2 0 0 0 0]';    % ocean current velocities
 % Nonlinear PID controller  
 psi_d = deg2rad(10);            % Heading angle step
 eta_ref = [0 0 psi_d]';         % DP system setpoints
-wn = 0.2;                       % closed-loop natural frequency (rad/s)
-zeta = 1.0;                     % closed-loop relative damping factor  
-T_f = 5;                        % low-pass filter time constant (s)
+wn = 0.2;                       % Closed-loop natural frequency (rad/s)
+zeta = 1.0;                     % Closed-loop relative damping factor  
+T_f = 5;                        % Low-pass filter time constant (s)
 
 % Initial values
-eta = [0 0 0 deg2rad(10) deg2rad(5) 0]';   % generalized position vector
-nu  = zeros(6,1);                          % generalized velocity vector
+eta = [0 0 0 deg2rad(10) deg2rad(5) 0]';   % Generalized position vector
+nu  = zeros(6,1);                          % Generalized velocity vector
 
 % Semisub model matrices obtained by running 'rig.m'
 MRB = 1.0e+10 * [
@@ -81,19 +80,18 @@ Minv = inv(M);
 displayControlMethod();
 
 %% MAIN LOOP 
-simdata = zeros(N+1,13);            % table for simulation data
+t = 0:h:T_final;                % Time vector
+simdata = zeros(length(t), 12); % Pre-allocate matrix for efficiency
 
-for i=1:N+1
+for i=1:length(t)
     
-    t = (i-1)*h;                    % simulation time in seconds
-
     % Measurements
     eta(1) = eta(1) + 0.01 * randn;
     eta(2) = eta(2) + 0.01 * randn;
-    eta(6) = eta(6) + 0.001 * randn;
+    eta(6) = eta(6) + 0.0001 * randn;
 
     % DP control law
-    if t > 100
+    if t(i) > 100
         eta_ref = [0 0 -psi_d]';
     end
 
@@ -106,7 +104,7 @@ for i=1:N+1
     J = eulerang(eta(4),eta(5),eta(6));
 
     % Store data for presentation
-    simdata(i,:) = [t, eta', nu'];
+    simdata(i,:) = [eta', nu'];
 
     % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
     nu = nu + h * nudot;          % Forward Euler
@@ -119,19 +117,18 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best';
 if isoctave; legendLocation = 'northeast'; end
 
-t     = simdata(:,1);
-x     = simdata(:,2); 
-y     = simdata(:,3);          
-z     = simdata(:,4);   
-phi   = rad2deg(simdata(:,5)); 
-theta = rad2deg(simdata(:,6)); 
-psi   = rad2deg(simdata(:,7));
-u     = simdata(:,8);
-v     = simdata(:,9);
-w     = simdata(:,10);
-p     = rad2deg(simdata(:,11));
-q     = rad2deg(simdata(:,12));
-r     = rad2deg(simdata(:,13)); 
+x     = simdata(:,1); 
+y     = simdata(:,2);          
+z     = simdata(:,3);   
+phi   = rad2deg(simdata(:,4)); 
+theta = rad2deg(simdata(:,5)); 
+psi   = rad2deg(simdata(:,6));
+u     = simdata(:,7);
+v     = simdata(:,8);
+w     = simdata(:,9);
+p     = rad2deg(simdata(:,10));
+q     = rad2deg(simdata(:,11));
+r     = rad2deg(simdata(:,12)); 
 
 figure(1); 
 if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
