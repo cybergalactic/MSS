@@ -47,7 +47,7 @@ xg = -3;      % x-coordinate of the CG
 % Display simulation options
 displayControlMethod();
 
-%% MAIN SIMULATION LOOP
+%% MAIN LOOP
 t = 0:h:T_final;                    % Time vector
 simdata = zeros(length(t),6);       % Preallocate table for simulation data
 
