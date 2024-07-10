@@ -14,12 +14,11 @@ function SIMfrigate()
 % Date:       2024-04-20
 % Revisions:
 
-close all;
 clearvars;
 
 %% USER INPUTS
-h  = 0.05;                      % Sample time (s)
-N  = 10000;                     % Number of samples
+T_final = 300;	                % Final simulation time (s)
+h = 0.05;                       % Sample time (s)
 
 %% AUTOPILOTS PARAMETERS
 U = 10;                         % Speed (m/s)
@@ -54,15 +53,14 @@ a_d = 0;
 displayControlMethod();
 
 %% MAIN LOOP
-simdata = zeros(N+1,7);              % Memory allocation
+t = 0:h:T_final;                     % Time vector
+simdata = zeros(length(t),6);        % Preallocate table 
 
-for i = 1:N+1
-
-    t= (i-1) * h;                    % Simulation time in seconds
+for i = 1:length(t)
 
     % Reference model, step input
     psi_ref = deg2rad(30);
-    if t > 100
+    if t(i) > 100
         psi_ref = deg2rad(70);
     end
 
@@ -81,25 +79,24 @@ for i = 1:N+1
     [psi_dot, r_dot, delta_dot] = frigate(r, U, delta, delta_c);
 
     % Store data for presentation
-    simdata(i,:) = [t, psi, r, delta, delta_c, psi_d, r_d];
+    simdata(i,:) = [psi, r, delta, delta_c, psi_d, r_d];
 
     % Euler's integration method (k+1)
-    psi = psi + h * psi_dot;
-    r = r + h * r_dot;
-    delta = delta + h * delta_dot;
+    psi = euler2(psi_dot, psi, h);
+    r = euler2(r_dot, r, h);
+    delta = euler2(delta_dot, delta, h);
     psi_int = psi_int + h * ssa( psi - psi_d );
 
 end
 
 %% PLOTS
-% simdata(i,:) = [t, psi, r, delta, delta_c, psi_d, r_d]
-t       = simdata(:,1);      
-psi     = rad2deg(simdata(:,2)); 
-r       = rad2deg(simdata(:,3));          
-delta   = rad2deg(simdata(:,4));   
-delta_c = rad2deg(simdata(:,5));
-psi_d   = rad2deg(simdata(:,6));
-r_d     = rad2deg(simdata(:,7));
+% simdata(i,:) = [psi, r, delta, delta_c, psi_d, r_d] 
+psi     = rad2deg(simdata(:,1)); 
+r       = rad2deg(simdata(:,2));          
+delta   = rad2deg(simdata(:,3));   
+delta_c = rad2deg(simdata(:,4));
+psi_d   = rad2deg(simdata(:,5));
+r_d     = rad2deg(simdata(:,6));
 
 figure(1)
 
