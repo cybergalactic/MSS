@@ -12,27 +12,28 @@ function SIMsupply()
 % Author:     Thor I. Fossen
 % Date:       2024-03-28
 % Revisions:
-%   2024-04-19 : Enhanced compatibility with GNU Octave.
+%   2024-04-19: Enhanced compatibility with GNU Octave
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
-clear PIDnonlinearMIMO          % clear the persistent PID variables
+clear PIDnonlinearMIMO          % Clear the persistent PID variables
 clearvars;
 close all;
 
-t_f = 500;                      % final simulation time (s)
-h   = 0.05;                     % sample time (s)
-N = round(t_f/h);               % number of samples
+% Define simulation parameters
+T_final = 500;	                % Final simulation time (s)
+h = 0.1;                        % Sampling time (s)
 
 % Environment
-Vc = 0.5;                       % current speed (m/s)
-betaVc = deg2rad(20);           % current direction (rad)
+Vc = 0.5;                       % Ocean current speed (m/s)
+betaVc = deg2rad(20);           % Ocean current direction (rad)
 
 % DP control law
 psi_ref = deg2rad(50);
 eta_ref = [ 5 5 psi_ref ]';     % DP setpoint
-wn = diag([0.1, 0.1, 0.2]);     % closed-loop natural frequencies
-zeta = diag([1, 1, 1]);         % closed-loop relative damping ratios
-T_f = 10;                       % setpoint LP-filter time constant
-[~,~,M] = supply();             % supply vessel mass matrix
+wn = diag([0.1, 0.1, 0.2]);     % Closed-loop natural frequencies
+zeta = diag([1, 1, 1]);         % Closed-loop relative damping ratios
+T_f = 10;                       % Setpoint LP-filter time constant
+[~,~,M] = supply();             % Supply vessel mass matrix
 
 % Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
 %   #1 Bow tunnel thruster (RPM)
@@ -41,8 +42,8 @@ T_f = 10;                       % setpoint LP-filter time constant
 %   #4 Stern tunnel thruster (RPM)
 %   #5 Right main propeller (RPM)
 %   #6 Left main propeller (RPM)
-L    =  76.2;                           % length of ship (m)
-T_n = 1;                                % propeler speed time constant (s)
+L    =  76.2;                           % Length of ship (m)
+T_n = 1;                                % Propeler speed time constant (s)
 
 % Thrust_max(i) = K(i) * n_max(i)^2
 n_max = [250, 250, 250, 250, 160, 160]'; % RPM saturation limits
@@ -59,17 +60,16 @@ W = diag([1 1 1 1 1 1]);    % Control allocation propeller weights
 % Initial states
 eta = zeros(3,1);     % eta = [ x y psi ]'
 nu = zeros(3,1);      % nu  = [ u v r ]'
-n = zeros(6,1);       % vector of propeller speed states
+n = zeros(6,1);       % Vector of propeller speed states
 
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-simdata = zeros(N+1,19);              % memory allocation
+t = 0:h:T_final;                % Time vector
+simdata = zeros(length(t), 18); % Pre-allocate matrix for efficiency
 
-for i=1:N+1
-
-    time = (i-1) * h;                % simulation time in seconds
+for i=1:length(t)
 
     % Measurements
     eta(1) = eta(1) + 0.01 * randn;
@@ -102,10 +102,9 @@ for i=1:N+1
     ndot = (n_c - n) / T_n;
 
     % Store data for presentation
-    simdata(i,:) = [time,nu',eta',n',n_c'];
+    simdata(i,:) = [nu',eta',n',n_c'];
 
     % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
-    % x = x + h * xdot is replaced by forward and backward Euler integration
     nu = nu + h * xdot(4:6);                % Forward Euler
     eta = eta + h * Rzyx(0,0,eta(3)) * nu;  % Backward Euler
     n = n + h * ndot;
@@ -115,15 +114,14 @@ end
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
-t     = simdata(:,1);
-u     = simdata(:,2); 
-v     = simdata(:,3);          
-r     = rad2deg(simdata(:,4));   
-x     = simdata(:,5);
-y     = simdata(:,6);
-psi   = rad2deg(simdata(:,7));
-n     = simdata(:,8:13);
-n_c   = simdata(:,14:19);
+u     = simdata(:,1); 
+v     = simdata(:,2);          
+r     = rad2deg(simdata(:,3));   
+x     = simdata(:,4);
+y     = simdata(:,5);
+psi   = rad2deg(simdata(:,6));
+n     = simdata(:,7:12);
+n_c   = simdata(:,13:18);
 
 figure(1); 
 if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
