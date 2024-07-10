@@ -99,7 +99,7 @@ if isempty(k)
     k = 1;                % set first waypoint as the active waypoint
     xk = wpt.pos.x(k); 
     yk = wpt.pos.y(k);  
-    zk = wpt.pos.y(k);     
+    zk = wpt.pos.z(k);     
     fprintf('Active waypoints:\n')
     fprintf('  (x%1.0f,y%1.0f,z%1.0f) = (%.1f,%.1f,%.1f) \n',k,k,k,xk,yk,zk);
 
