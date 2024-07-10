@@ -22,7 +22,7 @@ close all;
 
 %% USER INPUTS
 T_final = 600;	  % Final simulation time [s]
-h   = 0.1;        % Sample time (sec)
+h = 0.1;          % Sample time (sec)
 
 Kp = 1;      % Controller P gain
 Td = 10;     % Controller derivative time
@@ -34,7 +34,7 @@ x2 = [7 0 0 0 0 0 0 0 0]';      % x2 = [ u v r x y psi p phi delta]'
 % Display simulation options
 displayControlMethod();
 
-%% MAIN SIMULATION LOOP
+%% MAIN LOOP
 t = 0:h:T_final;                        % Time vector
 simdata1 = zeros(length(t),length(x1)); % Preallocate table 
 simdata2 = zeros(length(t),length(x2)); % Preallocate table 
