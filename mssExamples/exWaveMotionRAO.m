@@ -1,7 +1,8 @@
 % This function computes the wave elevation and the wave-frequency (WF) 
-% motion, eta_w, on a ship using different wave spectra (Modified Pierson-
-% Moskowitz, JONSWAP, Torsethaugen) and Response Amplitude Operators (RAOs) 
-% (Fossen 2021, Chapters 10.2.1 and 10.2.3). The total motion is:
+% motion, eta_w, on a marine craft  using different wave spectra 
+% (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and Response 
+% Amplitude Operators (RAOs); see Fossen (2021, Chapters 10.2.1 and 10.2.3). 
+% The total motion is:
 %
 %   y = eta + eta_w
 %
@@ -28,13 +29,21 @@ load(which(matFile), 'vessel'); % Load vessel.motionRAO data structure
 disp(['Loaded the motion RAO structure "vessel.motionRAO" (', matFile, ')'])
 
 % Simulation parameters
-T_final = 200;                   % Duration of the simulation (s)
-T_initialTransient = 20;         % Remove initial transient (s)
 h = 0.1;                        % Time step (s)
-numFreqIntervals = 100;         % Number of wave frequency intervals (>100)
-numDirections = 36;             % Number of wave directions (>15)
+T_final = 200;                  % Duration of the simulation (s)
+T_initialTransient = 20;        % Remove initial transient (s)
 
-% Sea state - JONSWAP spectrum with DNV (2007) correction
+% COMMENT: Adding a spreading function involves summing waves from different 
+% directions. Initially, these waves can interfere constructively, causing
+% higher amplitudes. Hence, it is recommended to remove the initial
+% respons by specifying: T_initialTransient >= 20 s.
+
+% numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
+% numDirctions     - Number of wave directions in directional spectrum M(mu)
+numFreqIntervals = 100;         % Number of wave frequency intervals (>100)
+numDirections = 24;             % Number of wave directions (>15)
+
+% Sea state 
 Hs = 10;                        % Significant wave height (m)
 Tz = 10;                        % Zero-crossing period (s)
     
@@ -56,8 +65,8 @@ omegaMax = vessel.motionRAO.w(end);  % Max frequency in RAO dataset
     spectrumParameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections);
 
 %% MAIN LOOP
-t = 0:h:T_final+T_initialTransient-1; % Time vector
-simdata = zeros(length(t),7);     % Pre-allocate table
+t = 0:h:T_final+T_initialTransient-1;  % Time vector
+simdata = zeros(length(t),7);          % Pre-allocate table
 for i = 1:length(t)
 
     U = 5;                             % Time-varying ship speed (m/s)
@@ -75,7 +84,7 @@ end
 figure(1); clf;
 
 % Time-series
-startIndex = floor(T_initialTransient / h);
+startIndex = max(1, floor(T_initialTransient / h) + 1);
 t = t(startIndex:end) - t(startIndex);
 eta_WF = simdata(startIndex:end, 1:6);
 waveElevation = simdata(startIndex:end, 7);
