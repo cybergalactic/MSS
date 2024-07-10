@@ -34,15 +34,16 @@ function SIMnpsauv()
 % Author: Thor I. Fossen
 % Date: 2024-06-05
 % Revisions:
-%   None
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method
+%               with RK4.
 
 clearvars;                          % Clear all variables from memory
 clear ALOS3D;                       % Clear persistent states in controllers
 close all;                          % Close all open figure windows
 
 %% USER INPUTS
-h = 0.05;                           % Sampling time [s]
-N = 30000;                          % Number of samples to simulate
+T_final = 1500;	                    % Final simulation time (s)
+h = 0.05;                           % Sampling time (s)
 
 ControlFlag = controlMethod();
 
@@ -131,12 +132,12 @@ M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 R_switch = 5;               % radius of switching circle
 K_f = 0.4;                  % LOS observer gain
 
-%% MAIN SIMULATION LOOP
-simdata = zeros(N+1, 30);   % Preallocate table for simulation data
-ALOSdata = zeros(N+1, 4);   % Preallocate table for ALOS guidance data
+%% MAIN LOOP
+t = 0:h:T_final;                % Time vector
+simdata = zeros(length(t), 29); % Preallocate table for simulation data
+ALOSdata = zeros(length(t), 4); % Preallocate table for ALOS guidance data
 
-for i = 1:N+1
-    t = (i-1) * h;             % Current simulation time
+for i = 1:length(t)
 
     % Measurement updates
     u = x(1);                  % Surge velocity (m/s)
@@ -160,7 +161,7 @@ for i = 1:N+1
     if ControlFlag == 1 % Depth control
 
         % Depth command, z_ref
-        if t > 200
+        if t(i) > 200
             z_ref = z_step;
         else
             z_ref = 10;
@@ -179,7 +180,7 @@ for i = 1:N+1
         theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
 
         % PID heading angle command, psi_ref
-        if t > 200
+        if t(i) > 200
             psi_ref = psi_step;
         else
             psi_ref = deg2rad(0);
@@ -226,14 +227,13 @@ for i = 1:N+1
     Vc = sat(Vc + 0.05 * h * randn, 1.0);
     wc = sat(wc + 0.01 * h * randn, 0.2);
 
-    % AUV dynamics 
-    xdot = npsauv(x, u_com, Vc, betaVc, wc);
-
     % Store simulation data in a table
-    simdata(i,:) = [t z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
+    simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
+
+    % RK methhod (k+1)
+    x = rk4(@npsauv, h, x, u_com, Vc, betaVc, wc);  % AUV dynamics 
 
     % Euler's integration method (k+1)
-    x = x + h * xdot;
     z_int = z_int + h * ( zn - z_d );
     theta_int = theta_int + h * ssa( theta - theta_d );
     psi_int = psi_int + h * ssa( psi - psi_d );
@@ -245,19 +245,18 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 12;
 if isoctave; legendLocation = 'northeast'; end
 
-% simdata(i,:) = [t z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
-t        = simdata(:,1);
-z_d      = simdata(:,2);
-theta_d  = simdata(:,3);
-psi_d    = simdata(:,4);
-r_d      = simdata(:,5);
-u_com    = simdata(:,6:10);
-nu       = simdata(:,11:16);
-eta      = simdata(:,17:22);
-u_actual = simdata(:,23:27);
-Vc       = simdata(:,28);
-betaVc   = simdata(:,29);
-wc       = simdata(:,30);
+% simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
+z_d      = simdata(:,1);
+theta_d  = simdata(:,2);
+psi_d    = simdata(:,3);
+r_d      = simdata(:,4);
+u_com    = simdata(:,5:9);
+nu       = simdata(:,10:15);
+eta      = simdata(:,16:21);
+u_actual = simdata(:,22:26);
+Vc       = simdata(:,27);
+betaVc   = simdata(:,28);
+wc       = simdata(:,29);
 
 % ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
 y_e = ALOSdata(:,1);
