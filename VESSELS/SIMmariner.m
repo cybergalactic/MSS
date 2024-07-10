@@ -32,16 +32,16 @@ function SIMmariner()
 % Author:     Thor I. Fossen
 % Date:       2018-07-21
 % Revisions:
-%   2024-03-27 : Added animation of the ship's North-East positions.
-%   2024-04-19 : Enhanced compatibility with GNU Octave.
-%   2024-05-16 : Added an option for LOS path-following course control.
+%   2024-03-27: Added animation of the ship's North-East positions.
+%   2024-04-19: Enhanced compatibility with GNU Octave.
+%   2024-05-16: Added an option for LOS path-following course control.
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
 clearvars; 
-close all;
 clear LOSchi EKF_5states  % Clear persistent variables in functions
 
-t_f = 3000;               % Final simulation time (sec)
-h  = 0.05;                % Sampling time [s]
+T_final = 3000;	          % Final simulation time (s)
+h = 0.05;                 % Sampling time [s]
 Z = 2;                    % GNSS measurement frequency (2 times slower)
 
 % Waypoints
@@ -89,12 +89,10 @@ ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
-N = round(t_f/h);                    % Number of samples
-simdata = zeros(N+1,17);             % Memory allocation
+t = 0:h:T_final;                     % Time vector
+simdata = zeros(length(t),15);       % Preallocate table 
 
-for i=1:N+1
-
-    t = (i-1) * h;                   % Simulation time in seconds
+for i=1:length(t)
 
     % Measurements with measurement noise    
     r    = x(3) + 0.0001 * randn;
@@ -113,8 +111,8 @@ for i=1:N+1
         case 1  
             % PID heading autopilot        
             psi_ref = psi0; % Reference model, step input adjustments
-            if t > 100;  psi_ref = deg2rad(30); end
-            if t > 1000; psi_ref = deg2rad(-30); end
+            if t(i) > 100;  psi_ref = deg2rad(30); end
+            if t(i) > 1000; psi_ref = deg2rad(-30); end
 
             % PID heading autopilot
             e = ssa(psi - psi_d);
@@ -144,16 +142,15 @@ for i=1:N+1
     end
     
     delta_c = sat(delta_c, deg2rad(40));             % Maximum rudder angle
-
-    % Ship dynamics
-    [xdot,U] = mariner(x,delta_c);     
-    
+        
     % Store data for presentation
-    simdata(i,:) = [t, x', U, psi_d, r_d, chi_d, omega_chi_d, delta_c, ...
+    simdata(i,:) = [x', psi_d, r_d, chi_d, omega_chi_d, delta_c, ...
         U_hat, chi_hat, omega_chi_hat]; 
     
-    % Numerical integration
-    x = x + h * xdot;                             % Euler's method
+    % RK4 method x(k+1)    
+    x = rk4(@mariner, h, x,delta_c);             % RK4 method x(k+1)
+
+    % Euler's method                           
     e_int = e_int + h * e;
     delta_c = delta_c + h * (delta_PID - delta_c) / 1.0;
 
@@ -166,29 +163,28 @@ end
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
-% Simdata(i,:) = [t, x', U, psi_d, r_d, chi_d, omega_chi_d, delta_c]
-t     = simdata(:,1);
-u     = simdata(:,2); 
-v     = simdata(:,3);          
-r     = rad2deg(simdata(:,4));   
-x     = simdata(:,5);
-y     = simdata(:,6);
-psi   = rad2deg(simdata(:,7));
-delta = -rad2deg(simdata(:,8));     % delta = -delta_r (physical angle)
-U     = simdata(:,9);
-psi_d = rad2deg(simdata(:,10));
-r_d   = rad2deg(simdata(:,11));
-chi_d = rad2deg(simdata(:,12));
-omega_chi_d = rad2deg(simdata(:,13));
-delta_c = rad2deg(simdata(:,14));
-U_hat = simdata(:,15);
-chi_hat = rad2deg(simdata(:,16));
-omega_chi_hat = rad2deg(simdata(:,17));
+% simdata(i,:) = [x', U, psi_d, r_d, chi_d, omega_chi_d, delta_c]
+u     = simdata(:,1); 
+v     = simdata(:,2);          
+r     = rad2deg(simdata(:,3));   
+x     = simdata(:,4);
+y     = simdata(:,5);
+psi   = rad2deg(simdata(:,6));
+delta = -rad2deg(simdata(:,7));     % delta = -delta_r (physical angle)
+psi_d = rad2deg(simdata(:,8));
+r_d   = rad2deg(simdata(:,9));
+chi_d = rad2deg(simdata(:,10));
+omega_chi_d = rad2deg(simdata(:,11));
+delta_c = rad2deg(simdata(:,12));
+U_hat = simdata(:,13);
+chi_hat = rad2deg(simdata(:,14));
+omega_chi_hat = rad2deg(simdata(:,15));
 
-chi = psi + atan2(v, U0 + u);
+U     = sqrt( (U0 + u).^2 + v.^2) ;          % SOG
+chi = psi + atan2(v, U0 + u);                % COG
 
 % Plot and animation of the North-East positions
-figure(1)
+figure(1); clf;
 set(gcf,'Position',[1,1, 1.0*scrSz(4),1.0*scrSz(4)],'Visible','off');
 hold on;
 plot(y,x,'b');  % Plot vehicle position
@@ -209,7 +205,7 @@ set(findall(gcf,'type','line'),'linewidth',2);
 set(findall(gcf,'type','legend'),'FontSize',12);
 set(1,'Visible', 'on');  % Show figure
 
-figure(2)
+figure(2); clf;
 subplot(221)
 if ControlFlag == 1  
     % Heading autopilot
