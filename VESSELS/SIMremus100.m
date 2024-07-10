@@ -140,7 +140,7 @@ M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
 R_switch = 5;               % radius of switching circle
 K_f = 0.5;                  % LOS observer gain
 
-%% MAIN SIMULATION LOOP
+%% MAIN LOOP
 t = 0:h:T_final;                          % Time vector
 simdata = zeros(length(t), length(x)+10); % Preallocate table for simulation data
 ALOSdata = zeros(length(t), 4); % Preallocate table for ALOS guidance data
