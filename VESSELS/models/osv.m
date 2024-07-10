@@ -1,14 +1,10 @@
 function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
 % [xdot,U,M] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
-% and the time derivative xdot of the state vector: 
-%
-%    x = [ u v w p q r x y z phi theta psi ]' 
-%
-% for an Offshore Supply vessel (OSV). The 6x6 mass matrix M is an 
-% optionally output, which can be used for control design.The 6-DOF 
-% equations of motion arebased on the nonlinear model of Fossen (2021, 
-% Eqs. 6.111-6.116) given by
+% and the time derivative xdot of the state vector for an Offshore Supply 
+% vessel (OSV). The 6x6 mass matrix M is an optionally output, which can be 
+% used for control design.The 6-DOF equations of motion arebased on the 
+% nonlinear model of Fossen (2021, Eqs. 6.111-6.116) given by
 %   
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * ( tau_thr +  tau_drag + tau_crossflow...
@@ -53,7 +49,7 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 % Author:    Thor I. Fossen
 % Date:      2024-03-25
 % Revisions:
-%   2024-04-22: Enhanced compatibility with GNU Octave.
+%   2024-04-22: Enhanced compatibility with GNU Octave
 %   2024-06-07: Added M as an optional output argument
 
 % Flag for plotting of the surge resitance, linear + quadratic damping
@@ -63,7 +59,7 @@ else
     flag = 1;
 end
 
-% Initialize common variables
+% Initialize state variables
 nu = zeros(6,1);
 eta = zeros(6,1);
 
