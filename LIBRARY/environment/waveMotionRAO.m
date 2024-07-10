@@ -91,7 +91,7 @@ if isempty(RAO_im_values_interpolated)
     end
 
     % Fixed seed for reproducibility of random phase angles
-    seed = 12345; rng(seed);
+    rng(12345,"twister")
     randomPhases = 2 * pi * rand(numFreqIntervals, 1);
 
 end
