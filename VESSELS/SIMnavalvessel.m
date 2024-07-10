@@ -4,7 +4,6 @@ function SIMnavalvessel()
 %
 % Dependencies:  
 %   navalvessel.m   - Naval vessel dynamics (Blanke and Christensen, 1993).
-%   euler2.m        - Euler's integration method.
 %
 % Reference: 
 %   M. Blanke and A. Christensen (1993). Rudder-roll damping autopilot 
@@ -18,66 +17,69 @@ function SIMnavalvessel()
 %   2024-04-22 : Enhanced compatibility with GNU Octave.
 
 clear animateShip   % clear the persistent animation variables
-close all;
 clearvars;
 
-t_f = 600;          % final simulation time (sec)
-h   = 0.05;         % sample time (sec)
-N = round(t_f/h);   % number of samples
+T_final = 600;	    % Final simulation time (s)
+h   = 0.05;         % Sample time (s)
 
-Kp = 1e6;           % controller proportional gain
-Td = 20;            % controller derivative time
+% PD controller
+Kp = 1e6;           % Controller proportional gain
+Td = 1;            % Controller derivative time
+
+% Reference signal
+w_n = 0.01;             % Low-pass filter cut-off frequency (rad/s)
+psi_ref = deg2rad(20);  % Desired heading
 
 % Initial states
 x  = [6 0 0 0 0 0 ]';   % x = [u v p r phi psi] ]'   
-pos = [0 0 0]';         % initial position expressed in NED
-
+eta = [0 0 0]';         % initial position expressed in NED
+psi_d = eta(3);
 
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-simdata = zeros(N+1,11);                % memory allocation
+t = 0:h:T_final;                     % Time vector
+simdata = zeros(length(t),11);       % Preallocate table 
 
-for i=1:N+1
-    time = (i-1)*h;                     % simulation time in seconds
+for i=1:length(t)
 
     % Measurements
     r   = x(4) + 0.001 * randn;
-    psi = x(6) + 0.01 * randn;
+    psi = x(6) + 0.001 * randn;
     
     % Control system
-    psi_ref = deg2rad(20);                         % Desired heading
     tauX = 1e5;                                    % Thrust
-    tauN = -Kp * ( ssa(psi - psi_ref) + Td * r );  % PD heading controller
+    tauN = -Kp * ( ssa(psi - psi_d) + Td * r );  % PD heading controller
     
     % Ship dynamics
     tau = [tauX 0 0 tauN]';
     [xdot,U] = navalvessel(x,tau);       
    
     % Store data for presentation
-    simdata(i,:) = [ time, x', tauN, U, pos(1:2)' ]; 
+    simdata(i,:) = [x', tauN, U, eta(1:2)', psi_d]; 
     
     % Numerical integration
     x = euler2(xdot,x,h);                 
-    pos = pos + h * Rzyx(0,0,psi) * [x(1) x(2) x(4)]'; 
+    eta = eta + h * Rzyx(0,0,psi) * [x(1) x(2) x(4)]'; 
+    psi_d = lowPassFilter(psi_d, psi_ref, w_n, h);  % Desired heading
 
 end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 
-t     = simdata(:,1);
-u     = simdata(:,2); 
-v     = simdata(:,3);          
-p     = rad2deg(simdata(:,4));   
-r     = rad2deg(simdata(:,5));
-phi   = rad2deg(simdata(:,6));
-psi   = rad2deg(simdata(:,7));
-tauN  = simdata(:,8);
-U     = simdata(:,9);
-x     = simdata(:,10);
-y     = simdata(:,11);
+u     = simdata(:,1); 
+v     = simdata(:,2);          
+p     = rad2deg(simdata(:,3));   
+r     = rad2deg(simdata(:,4));
+phi   = rad2deg(simdata(:,5));
+psi   = rad2deg(simdata(:,6));
+tauN  = simdata(:,7);
+U     = simdata(:,8);
+x     = simdata(:,9);
+y     = simdata(:,10);
+psi_d = rad2deg(simdata(:,11));
 
 % Plot and animation of the North-East positions
 figure(1)
@@ -98,7 +100,7 @@ plot(t,r,'b'),xlabel('time (s)'),title('Yaw rate r (deg/s)'),grid
 subplot(222)
 plot(t,phi,'b'),xlabel('time (s)'),title('Roll angle \phi (deg)'),grid
 subplot(223)
-plot(t,psi,'b',[0,t(end)],rad2deg([psi_ref psi_ref])),xlabel('time (s)'),
+plot(t,psi,'b',t, psi_d,'r'),xlabel('time (s)'),
 title('Yaw angle \psi (deg)'),grid
 subplot(224)
 plot(t,tauN,'b'),xlabel('time (s)'),title('Yaw control moment (Nm)'),grid
