@@ -1,4 +1,4 @@
-function SIMremus200()
+function SIMremus100()
 % SIMremus100 is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
 % under depth and heading control while exposed to ocean currents. It 
