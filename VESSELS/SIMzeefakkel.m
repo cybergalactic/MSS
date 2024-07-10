@@ -13,14 +13,14 @@ function SIMzeefakkel()
 % Author:     Thor I. Fossen
 % Date:       2024-06-10
 % Revisions:
-%   None
 
 close all;
 clearvars;
 
 %% USER INPUTS
-h  = 0.05;                      % Sample time (s)
-N  = 10000;                     % Number of samples
+% Define simulation parameters
+T_final = 500;	                % Final simulation time (s)
+h = 0.05;                       % Sampling time (s)
 
 %% AUTOPILOT PARAMETERS
 U = 6;                          % Speed (m/s)
@@ -55,15 +55,14 @@ a_d = 0;
 displayControlMethod();
 
 %% MAIN LOOP
-simdata = zeros(N+1,7);              % Memory allocation
+t = 0:h:T_final;               % Time vector
+simdata = zeros(length(t), 6); % Pre-allocate matrix for efficiency
 
-for i = 1:N+1
-
-    t= (i-1) * h;                    % Simulation time in seconds
+for i = 1:length(t)
 
     % Reference model, step input
     psi_ref = deg2rad(-100);
-    if t > 100
+    if t(i) > 100
         psi_ref = deg2rad(60);
     end
 
@@ -81,7 +80,7 @@ for i = 1:N+1
     [psi_dot, r_dot, delta_dot] = zeefakkel(r, U, delta, delta_c);
 
     % Store data for presentation
-    simdata(i,:) = [t, psi, r, delta, delta_c, psi_d, r_d];
+    simdata(i,:) = [psi, r, delta, delta_c, psi_d, r_d];
 
     % Euler's integration method (k+1)
     psi = psi + h * psi_dot;
@@ -92,14 +91,13 @@ for i = 1:N+1
 end
 
 %% PLOTS
-% simdata(i,:) = [t, psi, r, delta, delta_c, psi_d, r_d]
-t       = simdata(:,1);      
-psi     = rad2deg(simdata(:,2)); 
-r       = rad2deg(simdata(:,3));          
-delta   = rad2deg(simdata(:,4));   
-delta_c = rad2deg(simdata(:,5));
-psi_d   = rad2deg(simdata(:,6));
-r_d     = rad2deg(simdata(:,7));
+% simdata(i,:) = [psi, r, delta, delta_c, psi_d, r_d]  
+psi     = rad2deg(simdata(:,1)); 
+r       = rad2deg(simdata(:,2));          
+delta   = rad2deg(simdata(:,3));   
+delta_c = rad2deg(simdata(:,4));
+psi_d   = rad2deg(simdata(:,5));
+r_d     = rad2deg(simdata(:,6));
 
 figure(1)
 
