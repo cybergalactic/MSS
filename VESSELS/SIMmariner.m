@@ -41,7 +41,7 @@ clearvars;
 clear LOSchi EKF_5states  % Clear persistent variables in functions
 
 T_final = 3000;	          % Final simulation time (s)
-h = 0.05;                 % Sampling time [s]
+h = 0.05;                 % Sampling time (s)
 Z = 2;                    % GNSS measurement frequency (2 times slower)
 
 % Waypoints
