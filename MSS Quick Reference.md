@@ -110,7 +110,7 @@ refModel             % Third-order reference model for position, velocity and ac
 ```
 
 
-## LIBRARY
+## LIBRARY (m-files)
 .../MSS/LIBRARY/
 
 ### Modeling
@@ -205,7 +205,7 @@ euler2              % Integrates a system of ordinary differential equations usi
 rk4                 % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
-## INS
+## INS (m-files)
 .../MSS/INS/
 
 ### INS error-state Kalman filter (ESKF) simulators
