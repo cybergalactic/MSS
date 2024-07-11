@@ -34,7 +34,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
   - [Hydrodynamics (m-files)](#hydrodynamics-m-files)
 - [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
-  - [Demos](#demos)
+  - [FDI demos](#fdi-demos)
   - [Utils](#utils)
 ---
 
@@ -82,7 +82,7 @@ zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 ```
 
 ## GNC (m-files)
-.../MSS/VESSELS/GNC/
+.../MSS/GNC/
 
 ```matlab
 acc2rollpitch        % Static roll and pitch angles from the specific force
@@ -111,7 +111,7 @@ refModel             % Third-order reference model for position, velocity and ac
 
 
 ## LIBRARY
-.../MSS/VESSELS/LIBRARY/
+.../MSS/LIBRARY/
 
 ### Modeling
 
@@ -229,7 +229,7 @@ insSignal            % Basic INS signal generator
 ## Simulink 
 .../MSS/SIMULINK/
 
-### demos
+### Simulink demos
 .../MSS/SIMULINK/mssSimulinkDemos/
 
 ```matlab
@@ -374,7 +374,7 @@ plotWD              % Plots the wave drift amplitudes
 
 ## Frequency-domain identification (FDI) of radiation models (m-files)
 
-### Demos
+### FDI demos
 ```matlab
 Demo_FDIRadMod_NA     % FDI using hydrodynamic data without infinite-frequency added mass
 Demo_FDIRadMod_WA     % FDI using hydrodynamic data, including infinite-frequency added mass
