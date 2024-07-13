@@ -14,20 +14,20 @@ function [eta_WF, waveElevation] = waveMotionRAO(...
 % phase angles.
 %
 % INPUTS:
-%   t               - Time vector (s)
-%   S_M             - Spectral density matrix
-%   Amp             - Wave amplitude matrix
-%   Omega           - Wave frequencies (rad/s)
-%   mu              - Wave spreading angles (radians)
-%   vessel          - Vessel data structure containing RAO info
-%   U               - Vessel speed (m/s)
-%   psi             - Vessel heading angle (radians)
-%   beta_wave       - Wave direction (radians)
+%   t                - Time vector (s)
+%   S_M              - Spectral density matrix
+%   Amp              - Wave amplitude matrix
+%   Omega            - Wave frequencies (rad/s)
+%   mu               - Wave spreading angles (radians)
+%   vessel           - Vessel data structure containing RAO info
+%   U                - Vessel speed (m/s)
+%   psi              - Vessel heading angle (radians)
+%   beta_wave        - Wave direction (radians)
 %   numFreqIntervals - Number of frequency intervals (> 100)
 %
 % OUTPUTS:
-%   eta_WF          - Wave-frequency motions (6-DOF)
-%   waveElevation   - Wave elevation (m)
+%   eta_WF           - Wave-frequency motions (6-DOF)
+%   waveElevation    - Wave elevation (m)
 %
 % Reference:
 %   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
@@ -122,16 +122,16 @@ eta_WF = zeros(6,1);
 numDirections = length(mu);
 for DOF = 1:6
 
-    % Retrieve stored interpolated values
+    % Retrieve stored frequency interpolated values
     RAO_re_values = RAO_re_values_interpolated{DOF};
     RAO_im_values = RAO_im_values_interpolated{DOF};
 
-    % Initialize interpolation results
+    % Initialize tables to stor the wave-direction interpolated results
     RAO_re_dir_interp = zeros(numFreqIntervals, numDirections);
     RAO_im_dir_interp = zeros(numFreqIntervals, numDirections);
 
-    % Interpolate Re and Im parts of RAO for time-varying directions 
-    % angle_spreading between 0 to 2*pi
+    % Interpolate Re and Im parts of RAO for time-varying 'angle_spreading'
+    % directions between 0 to 2*pi
     for k = 1:numDirections
         RAO_re_dir_interp(:, k) = interp1(raoAngles, RAO_re_values', ...
             angle_spreading(k), 'linear', 'extrap')';
