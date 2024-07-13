@@ -1,11 +1,11 @@
 # MSS Quick Reference
 
-The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To begin using the MSS toolbox, ensure that the files are downloaded and properly set up in your MATLAB/Octave environment. See the guides "How to install MSS for Matlab/Octave?". 
+The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To use the MSS toolbox, please ensure the files are downloaded and correctly set up in your MATLAB/Octave environment. See the guide "How to install MSS for Matlab/Octave?". 
 
 ```matlab
->> mssHelp            % MSS Quick Reference 
->> mssPath			  % Build/update and save the MSS path (not available in GNU Octave)
->> mssSimulink        % Simulink Library (not available in GNU Octave)
+>> mssHelp        % MSS Quick Reference 
+>> mssPath        % Build/update and save the MSS path (not available in GNU Octave)
+>> mssSimulink    % Simulink Library (not available in GNU Octave)
 ```
 
 ## Table of Contents
@@ -22,7 +22,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
 - [INS (m-files)](#ins-m-files)
-  - [INS error-state Kalman filter (EKSF) simulators](#ins-error-state-kalman-filter-eksf-simulators)
+  - [INS error-state Kalman filter (EKSF) simulators](#ins-error-state-kalman-filter-eskf-simulators)
   - [Functions](#functions)
 - [MSS Demos (m-files)](#mss-demos-m-files)
 - [MSS Examples (m-files)](#mss-examples-m-files)
