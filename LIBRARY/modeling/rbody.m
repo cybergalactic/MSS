@@ -17,7 +17,7 @@ function [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp)
 % current velocity. This implies that the marine craft equations of motion
 % expressed in the CO satisfies (Fossen 2021, Chapter 3.3.1):
 % 
-%  MRB * nu_dot + CRB(nu) * nu = MRB * d/dt nu_r + CRB(nu_r) * nu_r = tau 
+%  MRB * nudot + CRB(nu) * nu = MRB * nudot_r + CRB(nu_r) * nu_r = tau 
 %
 % Outputs:
 %  MRB                 - Rigid-body mass matrix
@@ -27,13 +27,13 @@ function [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp)
 %  nu2 = [p, q, r]'    - Angular velocity vector 
 %  R44, R55, R66       - Radii of gyration with respect to CG
 %  r_bp                - Vector from CO to an arbitrarily point P, e.g.
-%                       r_bp = [0, 0, 0]'    CO = CG
-%                       r_bp = r_bg = [xg, yg, zg]' vector from CO to CG
+%                        r_bp = [0, 0, 0]'    CO = CG
+%                        r_bp = r_bg = [xg, yg, zg]' vector from CO to CG
 % 
 % Author:    Thor I. Fossen
-% Date:      19 April 2019
+% Date:      2019-04-19
 % Revisions: 
-%   24 April 2021 - Improved the documentation
+%  2021-04-21 - Improved the documentation
 
 I3 = eye(3);
 O3 = zeros(3,3);
