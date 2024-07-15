@@ -22,7 +22,7 @@ function [eta_WF, waveElevation] = waveMotionRAO(...
 %   vessel           - Vessel data structure containing RAO info
 %   U                - Vessel speed (m/s)
 %   psi              - Vessel heading angle (radians)
-%   beta_wave        - Wave direction (radians)
+%   beta_wave        - Wave direction, 0 following sea, pi head sea (radians)
 %   numFreqIntervals - Number of frequency intervals (> 100)
 %
 % OUTPUTS:
@@ -40,7 +40,7 @@ function [eta_WF, waveElevation] = waveMotionRAO(...
 persistent RAO_re_values_interpolated RAO_im_values_interpolated randomPhases;
 
 % Constants
-g = 9.81; % Acceleration of gravity (m/s^2)
+g = vessel.main.g; 
 
 % Vesssel RAO data
 freqs = vessel.motionRAO.w;  % RAO wave frequencies
@@ -96,14 +96,14 @@ if isempty(RAO_im_values_interpolated)
 
 end
 
-% Wave direction relative ship
+% Wave direction relative ship, beta_wave = 0 for following sea
 beta_relative = beta_wave - psi;  
 
 % Vector of spreading angles, scalar for M = 1 corresponding to mu = 0
-angle_spreading = mod(beta_relative - mu, 2*pi); % Wrap to 0 to 2*pi
+beta_RAO = mod(beta_relative + mu, 2*pi); % Wrap to 0 to 2*pi
 
 % Encounter frequency Omega_e(Omega, mu) for all frequencies and directions
-Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(angle_spreading'));
+Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(beta_RAO'));
 
 % Compute the wave elevation (Fossen 2021, Eq. 10.83) using
 % Amp = sqrt(2 * S_M * deltaOmega * deltaDirections).
@@ -130,13 +130,13 @@ for DOF = 1:6
     RAO_re_dir_interp = zeros(numFreqIntervals, numDirections);
     RAO_im_dir_interp = zeros(numFreqIntervals, numDirections);
 
-    % Interpolate Re and Im parts of RAO for time-varying 'angle_spreading'
+    % Interpolate Re and Im parts of RAO for time-varying 'beta_RAO'
     % directions between 0 to 2*pi
     for k = 1:numDirections
         RAO_re_dir_interp(:, k) = interp1(raoAngles, RAO_re_values', ...
-            angle_spreading(k), 'linear', 'extrap')';
+            beta_RAO(k), 'linear', 'extrap')';
         RAO_im_dir_interp(:, k) = interp1(raoAngles, RAO_im_values', ...
-            angle_spreading(k), 'linear', 'extrap')';        
+            beta_RAO(k), 'linear', 'extrap')';        
     end
 
     % Combine real and imaginary parts to form the complex RAO
