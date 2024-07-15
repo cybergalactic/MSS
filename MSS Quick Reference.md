@@ -164,6 +164,7 @@ hs2vw               % Converts significant wave height into an equivalent wind s
 isherwood72         % Computes the wind forces and coefficients based on Isherwood (1972) 
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
+waveForceRAO        % Computes the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
 waveMotionRAO       % Computes the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 wavespec            % Obsolete, use waveSpectrum instead.
@@ -313,6 +314,7 @@ exSpline           % Path generation using cubic Hermite spline interpolation
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
 exTurnCircle       % Generates the turning circle for two different ships
 exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
+exWaveForceRAO     % Wave elevation and generalized 1st-order wave forces from force RAOs using different wave spectra 
 exWaveMotionRAO    % Wave elevation and ship wave-frequency (WF) motions from motion RAOs using different wave spectra
 exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
