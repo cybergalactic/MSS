@@ -31,10 +31,9 @@
 % Revisions: 26 March 2020, added flags as user input
 %            28 March 2020, modified to use an INS signal generator
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% USER INPUTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f_s    = 100;   % sampling frequency [Hz]
+T_final = 100;	% Final simulation time (s)
+f_s    = 100;   % Sampling frequency [Hz]
 f_gnss = 1;     % GNSS measurement frequency [Hz]
 
 % Flag
@@ -46,15 +45,14 @@ Z = f_s/f_gnss;   % ratio betwween sampling/IMU frequencies
 h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
 h_gnss = 1/f_gnss;  
 
-% simulation parameters
-N  = 10000;		  % no. of iterations
+% Biases
 b_acc = [0.1 0.3 -0.1]';
 b_ars = [0.05 0.1 -0.05]';
    
-% initial values for x (for testing)
+% Initial values for x (for testing)
 x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	        
 
-% initialization of Kalman filter
+% Initialization of Kalman filter
 P_prd = eye(15);
 
 if (vel == 0)
@@ -65,7 +63,7 @@ else
    Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]);
 end
 
-% initialization of INS
+% Initialization of INS
 p_ins = [0 0 0]'; 
 v_ins = [0 0 0]';
 b_acc_ins = [0 0 0]';
@@ -73,10 +71,13 @@ th_ins = [0 0 0]';
 b_ars_ins = [0 0 0]';
 x_ins = [p_ins; v_ins; b_acc_ins; th_ins; b_ars_ins];
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % WGS-84 gravity model
 mu = 63.4305 * pi / 180;    % lattitude  
 g = gravity(mu);  
-
 
 %% Display
 disp('----------------------------------------------------------');
@@ -95,17 +96,14 @@ else
 end
 disp('----------------------------------------------------------');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN LOOP
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-simdata = zeros(N+1,34);                  % table of simulation data
-ydata = [0 x(1:3)'];                      % table of position measurements
+simdata = zeros(nTimeSteps,33); % Pre-allocate table of simulation data
+ydata = [0 x(1:3)'];            % Pre-allocatetable of position measurements
 
-for i=1:N+1
+for i=1:nTimeSteps
     
-    % INS signal generator
-    t = (i-1) * h;                      % time (s)   
-    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t);
+    % INS signal generator  
+    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t(i));
     
     if (compass == 0)      % AHRS measurements
        
@@ -119,11 +117,11 @@ for i=1:N+1
     end
     
     % GNSS measurements are Z times slower than the sampling time
-    if mod( t, h_gnss ) == 0
+    if mod( t(i), h_gnss ) == 0
         
         y_pos = x(1:3) + 0.1 * randn(3,1);    % position measurements
         y_vel = x(4:6) + 0.01 * randn(3,1);   % optionally velocity meas.
-        ydata = [ydata; t, y_pos'];           % store position measurements                  
+        ydata = [ydata; t(i), y_pos'];           % store position measurements                  
        
         if (vel == 0)
             [x_ins,P_prd] = ins_ahrs(...
@@ -140,18 +138,15 @@ for i=1:N+1
     end
     
     % store simulation data in a table (for testing)
-    simdata(i,:) = [t x' x_ins', y_ahrs']; 
+    simdata(i,:) = [x' x_ins', y_ahrs']; 
     
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% PLOTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-t     = simdata(:,1);           
-x     = simdata(:,2:16); 
-x_hat = simdata(:,17:31); 
+%% PLOTS       
+x     = simdata(:,1:15); 
+x_hat = simdata(:,16:30); 
 
-theta_m = simdata(:,32:34);     % fast AHRS measurements
+theta_m = simdata(:,31:33);     % fast AHRS measurements
 
 t_m = ydata(:,1);               % slow GNSS measurements
 y_m = ydata(:,2:4);
