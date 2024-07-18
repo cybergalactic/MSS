@@ -51,14 +51,17 @@ psi_d = psi;                    % Reference model states
 r_d = r;
 a_d = 0;
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;               % Time vector
-simdata = zeros(length(t), 6); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, 6); % Pre-allocate matrix for efficiency
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
 
     % Reference model, step input
     psi_ref = deg2rad(-100);
