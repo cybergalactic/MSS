@@ -33,14 +33,17 @@ Td = 10;                % Controller derivative time
 x = [7 0 0 0 0 0 0 60]';   % x = [ u v r x y psi delta n ]'
 psi_d = 0;
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                         % Time vector
-simdata = zeros(length(t), length(x)+2); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, length(x)+2); % Pre-allocate matrix for efficiency
                 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     r   = x(3);
     psi = x(6);
