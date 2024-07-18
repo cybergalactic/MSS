@@ -24,18 +24,16 @@
 %            8 Dec 2021,  map inital yaw angle to [-pi, pi)
 
 %% USER INPUTS
-f_s = 10;    % Sampling frequency [Hz]
-f_m = 1;     % Yaw angle measurement frequency [Hz]
+T_final = 100; % Final simulation time (s)
+f_s = 10;      % Sampling frequency (Hz)
+f_m = 1;       % Yaw angle measurement frequency (Hz)
 
 Z = f_s/f_m;
 if ( mod(Z,1) ~= 0 || Z < 1 )
     error("f_s is not specified such that Z = f_s/f_m >= 1"); 
 end
 
-% Simulation parameters
-N  = 1000;		  % no. of iterations
-
-h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
+h  = 1/f_s; 	  % Sampling time: h  = 1/f_s (s) 
 h_m = 1/f_m;
 
 % Model paramters for mass-damper system (x1 = yaw angle, x2 = yaw rate)
@@ -63,22 +61,25 @@ P_prd = diag([1 1]);
 Qd = 1;
 Rd = 10;
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 %% MAIN LOOP
-simdata = zeros(N+1,7);                    % table of simulation data
-ydata = [0 x_prd(1)];                      % table of measurement data
+simdata = zeros(nTimeSteps,6);  % Pre-allocate table of simulation data
+ydata = [0 x_prd(1)];           % Pre-allocate table of measurement data
 
-for i=1:N+1
-   t = (i-1) * h;                          % time (s)             
-
+for i=1:nTimeSteps
+           
    % Plant
-   u = 0.1 * sin(0.1*t);                   % input
+   u = 0.1 * sin(0.1*t(i));                   % input
    w = 0.1 * randn(1);                     % process noise
    x_dot = A * x + B * u + E * w;
    
    % measurements are Z times slower than the sampling time
-   if mod( t, h_m ) == 0
+   if mod( t(i), h_m ) == 0
        y = x(1) + 0.1 * randn(1);
-       ydata = [ydata; t, y];
+       ydata = [ydata; t(i), y];
        
        % KF gain
        K = P_prd * Cd' * inv( Cd * P_prd * Cd' + Rd );
@@ -93,7 +94,7 @@ for i=1:N+1
    end
    
    % Store simulation data in a table   
-   simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
+   simdata(i,:) = [ x' x_hat' P_hat(1,1) P_hat(2,2) ];    
       
    % Predictor (k+1)  
    x_prd = Ad * x_hat + Bd * u;
@@ -104,10 +105,9 @@ for i=1:N+1
 end
 
 %% PLOTS
-t     = simdata(:,1); 
-x     = simdata(:,2:3); 
-x_hat = simdata(:,4:5); 
-X_hat = simdata(:,6:7);
+x     = simdata(:,1:2); 
+x_hat = simdata(:,3:4); 
+X_hat = simdata(:,5:6);
 
 t_m = ydata(:,1);
 y_m = ydata(:,2);
