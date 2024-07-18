@@ -35,14 +35,17 @@ x  = [6 0 0 0 0 0 ]';   % x = [u v p r phi psi] ]'
 eta = [0 0 0]';         % initial position expressed in NED
 psi_d = eta(3);
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                     % Time vector
-simdata = zeros(length(t),11);       % Preallocate table 
+simdata = zeros(nTimeSteps,11);       % Preallocate table 
 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     % Measurements
     r   = x(4) + 0.001 * randn;
