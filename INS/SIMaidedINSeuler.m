@@ -28,9 +28,9 @@ function SIMaidedINSeuler()
 % Revisions:
 
 %% USER INPUTS
-N  = 10000;		  % No. of iterations
-f_s    = 100;     % Sampling frequency [Hz]
-f_pos = 1;        % Position measurement frequency [Hz]
+T_final = 100;	  % Final simulation time (s)
+f_s    = 100;     % Sampling frequency (Hz)
+f_pos = 1;        % Position measurement frequency (Hz)
 
 [attitudeFlag, velFlag] = displayMethod();
 
@@ -80,29 +80,32 @@ theta_ins = [0, 0, 0]';
 b_ars_ins = [0 0 0]';
 x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % WGS-84 gravity model
 mu = 63.4305 * pi / 180;    % lattitude  
 g = gravity(mu);  
 
 
 %% MAIN LOOP
-simdata = zeros(N+1,31);                  % Table of simulation data
-ydata = [0 x(1:3)'];                      % Table of position measurements
+simdata = zeros(nTimeSteps,30); % Pre-allocate table for simulation data
+ydata = [0 x(1:3)'];            % Pre-allocate table for position measurements
 
-for i=1:N+1
+for i=1:nTimeSteps
     
     % INS signal generator
-    t = (i-1) * h;                        % Time (s)   
-    [x, f_imu, w_imu] = insSignal(x, mu, h, t);
+    [x, f_imu, w_imu] = insSignal(x, mu, h, t(i));
     y_psi = x(12);
     y_ahrs = x(10:12);
     
     % Position measurements are times slower than the sampling time
-    if mod( t, h_pos ) == 0
+    if mod( t(i), h_pos ) == 0
 
         y_pos = x(1:3) + 0.05 * randn(3,1);   % Position measurements
         y_vel = x(4:6) + 0.01 * randn(3,1);   % Optionally velocity meas.
-        ydata = [ydata; t, y_pos'];           % Store position measurements
+        ydata = [ydata; t(i), y_pos'];        % Store position measurements
 
         if (attitudeFlag == 1) % Compass
 
@@ -141,17 +144,16 @@ for i=1:N+1
     end
 
     % Store simulation data in a table (for testing)
-    simdata(i,:) = [t x' x_ins'];
+    simdata(i,:) = [x' x_ins'];
 
 end
 
 %% PLOTS
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 12;
-
-t     = simdata(:,1);           
-x     = simdata(:,2:16); 
-x_hat = simdata(:,17:31); 
+         
+x     = simdata(:,1:15); 
+x_hat = simdata(:,16:30); 
 
 t_m = ydata(:,1);              % Slow position measurements
 y_m = ydata(:,2:4);
