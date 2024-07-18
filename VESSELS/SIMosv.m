@@ -111,6 +111,10 @@ eta = [0, 0, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
 nu = [0, 0, 0, 0, 0, 0]';                     % Velocity vector
 x = [nu; eta];                                % State vector
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Octave can only use ALLOC = 0
 if isoctave
     ALLOC = 0;
@@ -122,15 +126,15 @@ h_waitbar = waitbar(0, 'Processing...');    % Display a wait bar
 tic;  % Start a timer to measure the simulation's execution time
 
 %% MAIN LOOP
-t = 0:h:T_final;                % Time vector
-simdata = zeros(length(t), 18); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, 18); % Pre-allocate matrix for efficiency
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
    
    % Update the progress bar every 10 iterations
    if mod(i, 10) == 0
        elapsedTime = t(i) / T_final;
-       waitbar(elapsedTime, h_waitbar, sprintf('Progress: %3.0f%%', 100*elapsedTime));
+       waitbar(elapsedTime, h_waitbar, ...
+           sprintf('Progress: %3.0f%%', 100*elapsedTime));
    end
 
    % Simulate sensor noise and disturbances
