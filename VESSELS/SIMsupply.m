@@ -62,14 +62,17 @@ eta = zeros(3,1);     % eta = [ x y psi ]'
 nu = zeros(3,1);      % nu  = [ u v r ]'
 n = zeros(6,1);       % Vector of propeller speed states
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                % Time vector
-simdata = zeros(length(t), 18); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, 18); % Pre-allocate matrix for efficiency
 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     % Measurements
     eta(1) = eta(1) + 0.01 * randn;
