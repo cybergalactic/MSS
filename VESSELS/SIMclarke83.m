@@ -32,10 +32,6 @@ w_n = 0.1;              % Closed-loop natural frequency
 Kp = w_n^2;             % Proportional gain
 Kd = 2 * w_n;           % Derivative  gain
 
-% Initial values
-eta = zeros(3,1);       % x, y, psi
-nu  = [0 0 0 ]';        % u, v, r
-
 % Ship model
 L = 100;      % Length (m)
 B = 20;       % Beam (m)
@@ -44,14 +40,21 @@ Cb = 0.8;     % Block coefficient, Cb = V / (L*B*T) where V is the displaced vol
 R66 = 0.27*L; % Radius of gyration (smaller vessels R66 ≈ 0.25L, tankers R66 ≈ 0.27L)
 xg = -3;      % x-coordinate of the CG
 
+% Initial values
+eta = zeros(3,1);       % x, y, psi
+nu  = [0 0 0 ]';        % u, v, r
+
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                    % Time vector
-simdata = zeros(length(t),6);       % Preallocate table for simulation data
+simdata = zeros(nTimeSteps,6);      % Preallocate table for simulation data
 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     % Linear maneuvering model
     U = sqrt(nu(1)^2 + nu(2)^2);
