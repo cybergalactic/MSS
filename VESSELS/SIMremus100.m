@@ -86,6 +86,10 @@ n = 1000;                      % Initial propeller speed (rpm)
 n_d = 1300;                    % Desired propeller speed (rpm)
 rangeCheck(n_d, 0, 1525);      % Check if within operational limits
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 %% CONTROL SYSTEM CONFIGURATION
 % Setup for depth and heading control
 psi_step = deg2rad(-60);       % Step change in heading angle (rad)
@@ -141,11 +145,10 @@ R_switch = 5;               % radius of switching circle
 K_f = 0.5;                  % LOS observer gain
 
 %% MAIN LOOP
-t = 0:h:T_final;                          % Time vector
-simdata = zeros(length(t), length(x)+10); % Preallocate table for simulation data
-ALOSdata = zeros(length(t), 4); % Preallocate table for ALOS guidance data
+simdata = zeros(nTimeSteps, length(x)+10); % Preallocate table for simulation data
+ALOSdata = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
 
     % Measurements 
     u = x(1);                  % Surge velocity (m/s)
