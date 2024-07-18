@@ -82,6 +82,10 @@ omega_chi_d = 0;                 % Initial desired course rate
 r_d = 0;                         % Initial desired rate of turn
 a_d = 0;                         % Initial desired acceleration
 
+% Time vector initialization
+t = 0:h:T_final;                 % Time vector from 0 to T_final          
+nTimeSteps = length(t);          % Number of time steps
+
 % Choose control method and display simulation options
 methods = {'PID heading autopilot, no path following',...
            'LOS path-following using a course autopilot with waypoint switching'};
@@ -89,10 +93,9 @@ ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
-t = 0:h:T_final;                     % Time vector
-simdata = zeros(length(t),15);       % Preallocate table 
+simdata = zeros(nTimeSteps,15);       % Preallocate table 
 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     % Measurements with measurement noise    
     r    = x(3) + 0.0001 * randn;
