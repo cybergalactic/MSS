@@ -121,6 +121,10 @@ psi_d = psi0;                    % Desired heading angle
 r_d = 0;                         % Desired rate of turn
 a_d = 0;                         % Desired acceleration
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Choose control method and display simulation options
 methods = {'PID heading autopilot, no path following',...
            'ALOS path-following control using straight lines and waypoint switching',...
@@ -130,10 +134,9 @@ ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
-t = 0:h:T_final;                    % Time vector
-simdata = zeros(length(t), 14);     % Preallocate table for simulation data
+simdata = zeros(nTimeSteps, 14);    % Preallocate table for simulation data
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
 
     % Measurements with noise
     r = x(6) + 0.001 * randn;       % Yaw rate 
