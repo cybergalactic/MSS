@@ -43,14 +43,17 @@ Ki_theta = 0.1;             % Integral gain (pitch)
 x = zeros(5,1);     % x = [ w q x z theta ]'
 delta_s = 0;
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                     % Time vector
-simdata = zeros(length(t),8);        % Preallocate table 
+simdata = zeros(nTimeSteps,8);        % Preallocate table 
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
 
     % Measurements
     w     = x(1) + 0.001 * randn;
