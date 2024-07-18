@@ -31,15 +31,18 @@ Td = 10;     % Controller derivative time
 x1 = [7 0 0 0 0 0 0 0 0 70]';   % x1 = [ u v r x y psi p phi delta n ]'
 x2 = [7 0 0 0 0 0 0 0 0]';      % x2 = [ u v r x y psi p phi delta]'
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Display simulation options
 displayControlMethod();
 
 %% MAIN LOOP
-t = 0:h:T_final;                        % Time vector
-simdata1 = zeros(length(t),length(x1)); % Preallocate table 
-simdata2 = zeros(length(t),length(x2)); % Preallocate table 
+simdata1 = zeros(nTimeSteps,length(x1)); % Preallocate table 
+simdata2 = zeros(nTimeSteps,length(x2)); % Preallocate table 
                 
-for i=1:length(t)
+for i=1:nTimeSteps
 
     r   = x1(3);
     psi = x1(6);
