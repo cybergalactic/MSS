@@ -16,20 +16,16 @@
 % Author:    Thor I. Fossen
 % Date:      2018-10-17
 % Revisions: 
-%   2020-02-28 - Minor updates of notation
 
 %% USER INPUTS
+T_final = 100;  % Final simulation time (s)
 f_s    = 10;    % sampling frequency [Hz]
 f_gnss = 1;     % GNSS position measurement frequency [Hz]
 
 Z = f_s/f_gnss;
 if ( mod(Z,1) ~= 0 || Z < 1 )
-    error("f_s is not specified such that Z = f_s/f_m >= 1"); 
+    error("f_s = Z * f_m is not specified such that Z = f_s/f_m >= 1%"); 
 end
-
-
-% Simulation parameters
-N  = 1000;		  % no. of iterations
 
 h  = 1/f_s; 	  % sampling time: h  = 1/f_s (s) 
 h_gnss = 1/f_gnss;      
@@ -51,33 +47,32 @@ P_prd = diag([1 1]);
 Qd = 1;
 Rd = 10;
 
-if ( mod(Z,1) ~= 0 || Z < 1 )
-    error("f_s = Z * f_m is not specified such that Z = f_s/f_m >= 1%"); 
-end
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
 
 %% MAIN LOOP
-simdata = zeros(N+1,7);                    % table of simulation data
-ydata = [0 x_prd(1)];                      % table of measurement data
+simdata = zeros(nTimeSteps,6);  % Pre-allocate table of simulation data
+ydata = [0 x_prd(1)];           % Pre-allocate table of measurement data
 
-for i=1:N+1
-   t = (i-1) * h;                          % time (s)             
-
+for i=1:nTimeSteps
+           
    % Plant
-   u = 0.1 * sin(0.1*t);                   % input
-   w = 0.1 * randn(1);                     % process noise
+   u = 0.1 * sin(0.1*t(i));                % Input
+   w = 0.1 * randn(1);                     % Process noise
    f = [ x(2)
          a*x(2)*abs(x(2)) + b*u];
    E = [0 e]';
    x_dot = f + E * w;                      % dx/dt = f + E * w   
    
    % GNSS measurements are Z times slower than the sampling time
-   if mod( t, h_gnss ) == 0
+   if mod( t(i), h_gnss ) == 0
        y = x(1) + 0.1 * randn(1); 
-       ydata = [ydata; t, y]; 
+       ydata = [ydata; t(i), y]; 
        
        Cd     = [1 0];               
    else
-       Cd     = [0 0];               % no measurement
+       Cd     = [0 0];               % No measurement
    end
     
    % KF gain      
@@ -90,7 +85,7 @@ for i=1:N+1
    x_hat = x_prd + K * eps;   
    
    % Store simulation data in a table   
-   simdata(i,:) = [t x' x_hat' P_hat(1,1) P_hat(2,2) ];    
+   simdata(i,:) = [x' x_hat' P_hat(1,1) P_hat(2,2) ];    
 
    % Discrete-time EKF model
    f_hat = [ x_hat(2)
@@ -112,10 +107,9 @@ for i=1:N+1
 end
 
 %% PLOTS
-t     = simdata(:,1); 
-x     = simdata(:,2:3); 
-x_hat = simdata(:,4:5); 
-X_hat = simdata(:,6:7);
+x     = simdata(:,1:2); 
+x_hat = simdata(:,3:4); 
+X_hat = simdata(:,5:6);
 
 t_m = ydata(:,1);
 y_m = ydata(:,2);
