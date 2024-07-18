@@ -40,6 +40,10 @@ T_f = 5;                        % Low-pass filter time constant (s)
 eta = [0 0 0 deg2rad(10) deg2rad(5) 0]';   % Generalized position vector
 nu  = zeros(6,1);                          % Generalized velocity vector
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 % Semisub model matrices obtained by running 'rig.m'
 MRB = 1.0e+10 * [
     0.0027         0         0         0   -0.0530         0
@@ -80,10 +84,9 @@ Minv = inv(M);
 displayControlMethod();
 
 %% MAIN LOOP 
-t = 0:h:T_final;                % Time vector
-simdata = zeros(length(t), 12); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, 12); % Pre-allocate matrix for efficiency
 
-for i=1:length(t)
+for i=1:nTimeSteps
     
     % Measurements
     eta(1) = eta(1) + 0.01 * randn;
