@@ -76,6 +76,10 @@ rangeCheck(n_d, 0, 1500);      % Check if within operational limits
 % Intitial state vector
 x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi; 0; 0; 0; 0; n];
 
+% Time vector initialization
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
+
 %% UNCONSTRAINED CONTROL ALLOCATION
 % [tau2 tau3 tau5 tau6] = B_delta * [delta_r, delta_s, delta_bp, delta_bs]
 [~, ~, M, B_delta] = npsauv();  % Mass matrix M and input matrix B_delta
@@ -133,11 +137,10 @@ R_switch = 5;               % radius of switching circle
 K_f = 0.4;                  % LOS observer gain
 
 %% MAIN LOOP
-t = 0:h:T_final;                % Time vector
-simdata = zeros(length(t), 29); % Preallocate table for simulation data
-ALOSdata = zeros(length(t), 4); % Preallocate table for ALOS guidance data
+simdata = zeros(nTimeSteps, 29); % Preallocate table for simulation data
+ALOSdata = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 
-for i = 1:length(t)
+for i = 1:nTimeSteps
 
     % Measurement updates
     u = x(1);                  % Surge velocity (m/s)
