@@ -2,7 +2,13 @@ function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     pp_x, pp_y, N_horizon] = hermiteSpline(wpt, Umax, h)
 % Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % hermiteSpline computes paths and path tangents using Hermite spline 
-% interpolation. The function calculates a Hermite spline path through a 
+% interpolation. It uses the Akima algorithm for 1-D interpolation to 
+% produce piecewise polynomials with continuous 1st-order derivatives (C1). 
+% Compared to the spline algorithm, the Akima algorithm produces fewer 
+% undulations and is better suited to deal with quick changes between 
+% flat regions. Compared to the pchip algorithm, the Akima algorithm is 
+% not as aggressively flattened and is therefore still able to deal with 
+% oscillatory data. The function calculates a Hermite spline path through a 
 % set of waypoints, estimating the numer of intervals (moving horizon) needed
 % to find the crosstrack error for a vehicle moving at speed Umax. It 
 % provides the path variables, the x and y coordinates along the path, 
@@ -35,7 +41,7 @@ function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
 % Author:    Thor I. Fossen
 % Date:      2024-04-21
 % Revisions: 
-%   None
+%   2024-06-22 Replaced pchip with makima.
 
 % Calculate path length from waypoints
 pathLength = 0;
@@ -58,8 +64,8 @@ w_path = linspace(0, N_interval, N_interval + 1);
 wpt.idx = linspace(0, N_interval, length(wpt.pos.x));
 
 % Interpolate waypoints using PCHIP
-pp_x = pchip(wpt.idx, wpt.pos.x);
-pp_y = pchip(wpt.idx, wpt.pos.y);
+pp_x = makima(wpt.idx, wpt.pos.x);
+pp_y = makima(wpt.idx, wpt.pos.y);
 
 % Calculate derivatives of the path using the custom derivative function
 pp_dx = ppDerivative(pp_x);
