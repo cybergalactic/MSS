@@ -1,7 +1,6 @@
 function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     pp_x, pp_y, N_horizon] = hermiteSpline(wpt, Umax, h)
 % Compatible with MATLAB and the free software GNU Octave (www.octave.org).
-%
 % hermiteSpline computes paths and path tangents using Hermite spline 
 % interpolation. The function calculates a Hermite spline path through a 
 % set of waypoints, estimating the numer of intervals (moving horizon) needed
@@ -77,8 +76,8 @@ y_path = ppval(pp_y, w_path);
 
 end
 
+%% Calculate the derivative of a piecewise polynomial
 function dpp = ppDerivative(pp)
-% Calculate the derivative of a piecewise polynomial
     [breaks, coefs, ~, k, ~] = unmkpp(pp);
     dcoefs = coefs(:, 1:k-1) .* (k-1:-1:1);
     dpp = mkpp(breaks, dcoefs);
