@@ -70,17 +70,21 @@ wn_d = 0.1;                      % Natural frequency (rad/s)
 zeta_d = 1.0;                    % Relative damping factor (-)
 r_max = deg2rad(1.0);            % Maximum turning rate (rad/s)
 
-% Initial states
-x_hat = zeros(5,1);              % xhat = [ x, y, U, chi, oemga_chi ]'
-x = zeros(7,1);                  % x = [ u v r x y psi delta ]'
+% Initialization for mariner vessel states
+x = [0 0 0 0 0 psi0 0]';         % x = [ u v r x y psi delta ]'
+
 U0 = 7.7175;                     % Nominal speed
 e_int = 0;                       % Autopilot integral state 
 delta_c = 0;                     % Initial rudder angle command
-psi_d = 0;                       % Initial desired heading angle
-chi_d = 0;                       % Initial desired course angle
+psi_d = x(6);                    % Initial desired heading angle
+chi_d = x(6);                    % Initial desired course angle
 omega_chi_d = 0;                 % Initial desired course rate
 r_d = 0;                         % Initial desired rate of turn
 a_d = 0;                         % Initial desired acceleration
+
+% Initial EKF states x_hat = [ x, y, U, chi, omega_chi ]'
+x_prd_init = [x(4) x(5) U0 x(6) 0]'; % x_hat = [x, y, U, chi, omega_chi]'
+x_hat = x_prd_init;              % Corrector equals initial state vetor
 
 % Time vector initialization
 t = 0:h:T_final;                 % Time vector from 0 to T_final          
@@ -159,7 +163,7 @@ for i=1:nTimeSteps
 
     % Propagation of the EKF states
     x_hat = EKF_5states(xpos, ypos, h, Z, 'NED', ...
-        100*diag([0.1,0.1]), 1000*diag([1 1]), 0.00001, 0.00001);
+        100*diag([0.1,0.1]), 1000*diag([1 1]), 0.00001, 0.00001, x_prd_init);
 
 end
 
@@ -183,8 +187,9 @@ U_hat = simdata(:,13);
 chi_hat = rad2deg(simdata(:,14));
 omega_chi_hat = rad2deg(simdata(:,15));
 
-U     = sqrt( (U0 + u).^2 + v.^2) ;          % SOG
-chi = psi + atan2(v, U0 + u);                % COG
+U     = sqrt( (U0 + u).^2 + v.^2);          % SOG
+beta_c = rad2deg(atan2(v, U0 + u));         % Crab angle
+chi = ssa(psi + beta_c, 'deg');             % COG
 
 % Plot and animation of the North-East positions
 figure(1); clf;
