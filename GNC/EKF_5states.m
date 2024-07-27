@@ -1,5 +1,5 @@
 function x_hat = EKF_5states(position1, position2,...
-    h, Z, frame, Qd, Rd, alpha_1, alpha_2) 
+    h, Z, frame, Qd, Rd, alpha_1, alpha_2, x_prd_init) 
 % EKF_5states is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function estimates the Speed Over Ground (SOG), Course Over Ground 
 % (COG), and course rate from GNSS positions measurements (xn[k], yn[k]) 
@@ -7,7 +7,7 @@ function x_hat = EKF_5states(position1, position2,...
 % discrete-time extended Kalman filter (EKF). The output is the predicted 
 % state vector x_hat[k+1], which includes the positions (x, y), SOG (U), 
 % COG (chi), and course rate (omega_chi). The EKF discrete-time state-space 
-% model is (Fossen and Fossen 2021)
+% model is (Fossen and Fossen, 2021):
 %
 %   x[k+1] = x[k] + h * U[k] * cos(chi[k])
 %   y[k+1] = y[k] + h * U[k] * sin(chi[k])
@@ -26,11 +26,11 @@ function x_hat = EKF_5states(position1, position2,...
 %
 % Examples:
 %   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd) 
-%   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd, alpha_1, alpha_2) 
+%   x_hat = EKF_5states(x, y, h, Z, 'NED', Qd, Rd, alpha_1, alpha_2, x_prd_init) 
 % where x_hat = [x, y, U, chi, omega_chi] 
 %
 %   x_hat = EKF_5states(mu, l, h, Z, 'LL', Qd, Rd)
-%   x_hat = EKF_5states(mu, l, h, Z, 'LL', Qd, Rd, alpha_1, alpha_2)
+%   x_hat = EKF_5states(mu, l, h, Z, 'LL', Qd, Rd, alpha_1, alpha_2, x_prd_init)
 % where x_hat = [mu, l, U, chi, omega_chi]
 %
 % Inputs:
@@ -42,6 +42,7 @@ function x_hat = EKF_5states(position1, position2,...
 %  Rd:        EKF 2x2 position measurement covariance matrix
 %  alpha_1:   (Optionally), Singer constant, speed
 %  alpha_2:   (Optionally), Singer constant, course rate
+%  x_prd_int: (Otionally), Initial state vector x_prd
 %
 % See ExOtter.m and SIMmariner.m for case studies using EKF_5states.m to 
 % estimate the COG, SOG, and course rate.
@@ -60,6 +61,7 @@ function x_hat = EKF_5states(position1, position2,...
 % Author:   Thor I. Fossen
 % Date:     2021-07-25 
 % Revisions:
+%   2024-07-27 - Added optional inital state vector x_prd_int.
 
 persistent x_prd;
 persistent P_prd;
@@ -67,11 +69,19 @@ persistent count;
 
 I5 = eye(5);
 
-if isempty(x_prd)
-   disp('Init EKF states') 
-   x_prd = [ position1 position2 0 0 0 ]';
-   P_prd = I5;          
-   count = 1;
+if isempty(x_prd) 
+    if nargin < 10  % Check if x_prd_init is provided
+        disp(['Using default initial EKF states: x_prd = ' ...
+            '[position1 position2 0 0 0]']);
+        x_prd = [position1 position2 0 0 0]';
+    else
+        x_prd_init = x_prd_init(:);
+        disp(['Using user specified initial EKF states: x_prd = ', ...
+            num2str(x_prd_init')]);
+       x_prd = x_prd_init;
+    end
+       P_prd = I5;          
+       count = 1;
 end
 
 % WGS-84 data
