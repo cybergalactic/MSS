@@ -76,8 +76,8 @@ if isempty(x_prd)
         x_prd = [position1 position2 0 0 0]';
     else
         x_prd_init = x_prd_init(:);
-        disp(['Using user specified initial EKF states: x_prd = ', ...
-            num2str(x_prd_init')]);
+        disp(['Using user specified initial EKF states: x_prd = [', ...
+            num2str(x_prd_init', '%.2f '), ']']);
        x_prd = x_prd_init;
     end
        P_prd = I5;          
