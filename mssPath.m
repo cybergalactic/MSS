@@ -18,7 +18,7 @@
 % Date:      2024-04-26
 % Revisions:
 
-if isoctave
+if exist('OCTAVE_VERSION', 'builtin')
     disp(['Add the MSS path with subfolders by starting' ...
         ' "octave --gui", then click, edit - set path']);
     return;
