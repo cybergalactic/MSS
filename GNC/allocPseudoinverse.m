@@ -9,10 +9,16 @@ function u = allocPseudoinverse(K,T,W,tau)
 % (dimension r, where r >= n). The function minimizes the force f = K * u.
 % The unconstrained solution is (Fossen 2021, Section 11.2.2)
 % 
-%   u = inv(K) * inv(W) * T' * inv(T * inv(W) * T')
+%   u = Kinv * Winv * T' * invQR(T * Winv * T')
 % 
-% The optimal solution exists if the matrix product T * T' is non-singular. 
-% The control inputs can also be quadratic function u = abs(n) * n.
+% where Winv = diag(1 ./ diag(W)) and Kinv = diag(1 ./ diag(K)). The optimal 
+% solution exists if the matrix product T * Winv * T' is non-singular. 
+% The matrix inverse is computed using the QR decomposition method. QR 
+% decomposition is preferred in this case due to its numerical stability 
+% over other methods, particularly for thruster configuration matrices that 
+% may not be perfectly conditioned. 
+% 
+% Note: The control inputs can also be quadratic function u = abs(n) * n.
 %
 % Inputs:
 %   K: rxr diagonal matrix of force coeffisients 
@@ -32,12 +38,10 @@ function u = allocPseudoinverse(K,T,W,tau)
 % Author:    Thor I. Fossen
 % Date:      2001-11-03
 % Revisions: 
+%   2024-07-31 : Improved numerical accuracy by replacing inv(T * Winv * T')
+%                with invQR(T * Winv * T')
 
-if det(T * T') == 0
-
-    error('The product T * T''is singular'); 
-
-elseif det(W) == 0 || ~isequal( W, diag(diag(W)) )
+if det(W) == 0 || ~isequal( W, diag(diag(W)) )
 
     error('W = diag( [w1, w2,...,wn] ) must be a positive diagonal matrix'); 
 
@@ -49,7 +53,7 @@ else
 
     Winv = diag(1 ./ diag(W));
     Kinv = diag(1 ./ diag(K));
-    u = Kinv * Winv * T' * inv( T * Winv * T') * tau;
+    u = Kinv * Winv * T' * invQR( T * Winv * T') * tau;
 
 end
 
