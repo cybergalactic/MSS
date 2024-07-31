@@ -199,10 +199,11 @@ Hmtrx               % 6x6 system transformation matrix H
 vex                 % Computes a = vex(S(a)) where S is a skew-symmetric matrix
 ```
 
-### Numerical integration methods
+### Numerical methods
 
 ```matlab
 euler2              % Integrates a system of ordinary differential equations using Euler’s 2nd-order method
+invQR               % Matrix inversion using QR factorization for improved numerical stability
 rk4                 % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
 
