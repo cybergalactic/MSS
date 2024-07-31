@@ -69,8 +69,8 @@ T_final = 300;	             % Final simulation time (s)
 h = 0.1;                     % Sampling time (s)
 
 % Define DP setpoints
-x_ref = 5;                   % Reference North position in meters
-y_ref = 5;                   % Reference East position in meters
+x_ref = 0;                   % Reference North position in meters
+y_ref = 0;                   % Reference East position in meters
 psi_ref = deg2rad(0);        % Reference yaw angle in radians
 eta_ref = [x_ref, y_ref, psi_ref]';  % Reference positions and heading
 
@@ -102,12 +102,12 @@ u_old = [0, 0, 0, 0]'; % Initial propeller speeds
 
 % Initialize the nonlinear MIMO PID controller
 [~,~,M] = osv();             % OSV 6x6 mass matrix
-wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning
+wn = 0.2 * diag([1 1 3]);    % Natural frequencies for PID tuning
 zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning
 T_f = 50;                    % Time constant for the low-pass filter (s)
 
 % Initialize state vectors for the simulation:
-eta = [0, 0, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
+eta = [5, 5, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
 nu = [0, 0, 0, 0, 0, 0]';                     % Velocity vector
 x = [nu; eta];                                % State vector
 
