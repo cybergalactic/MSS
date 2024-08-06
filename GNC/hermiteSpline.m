@@ -55,7 +55,7 @@ end
 time = pathLength / Umax;
 
 % Determine the number of intervals based on the time and sampling interval
-N_interval = floor(time / h) + 1;
+N_interval = floor(time / h) + 1; 
 deltaPath = pathLength / N_interval;
 N_horizon = round(Umax / deltaPath);
 
@@ -63,7 +63,7 @@ N_horizon = round(Umax / deltaPath);
 w_path = linspace(0, N_interval, N_interval + 1);
 wpt.idx = linspace(0, N_interval, length(wpt.pos.x));
 
-% Interpolate waypoints using PCHIP
+% Interpolate waypoints using MAKIMA
 pp_x = makima(wpt.idx, wpt.pos.x);
 pp_y = makima(wpt.idx, wpt.pos.y);
 
@@ -82,9 +82,35 @@ y_path = ppval(pp_y, w_path);
 
 end
 
-%% Calculate the derivative of a piecewise polynomial
+%% Calculate the derivative of a piecewise polynomial using finite differences
+%function dpp = ppDerivative(pp)
+%    [breaks, coefs, ~, k, ~] = unmkpp(pp);
+ %   dcoefs = coefs(:, 1:k-1) .* (k-1:-1:1);
+ %   dpp = mkpp(breaks, dcoefs);
+% end
+
+%% Calculate the derivative of a piecewise polynomial with smoothing
 function dpp = ppDerivative(pp)
+    % Extract the pieces of the piecewise polynomial
     [breaks, coefs, ~, k, ~] = unmkpp(pp);
+    
+    % Calculate the new coefficients for the derivative
     dcoefs = coefs(:, 1:k-1) .* (k-1:-1:1);
     dpp = mkpp(breaks, dcoefs);
+    
+    % Evaluate the polynomial and its derivative at a dense set of points
+    num_points = 1000;
+    xq = linspace(breaks(1), breaks(end), num_points);
+    yq = ppval(pp, xq);
+    dyq = ppval(dpp, xq);
+    
+    % Apply a simple moving average to smooth the derivatives
+    window_size = 100; % Adjust this parameter to control smoothness
+    smoothed_dyq = movmean(dyq, window_size);
+    
+    % Fit a new piecewise polynomial to the smoothed derivative
+    dpp = interp1(xq, smoothed_dyq, 'linear', 'pp');
+
 end
+
+
