@@ -1,16 +1,19 @@
 % This function computes the wave elevation and the wave-frequency (WF) 
-% motion, eta_w, on a marine craft  using different wave spectra 
-% (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and Response 
-% Amplitude Operators (RAOs); see Fossen (2021, Chapters 10.2.1 and 10.2.3). 
-% The total motion is:
+% motion, eta_w, nu_w, and nu_dot_w on a marine craft  using different 
+% wave spectra (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and 
+% Response  Amplitude Operators (RAOs); see Fossen (2021, Chapters 10.2.1 
+% and 10.2.3). The total motion is:
 %
-%   y = eta + eta_w
+%   y_eta   = eta + eta_w
+%   y_nu    = nu  + nu_w
+%   y_nudot = nudot + nudot_w
 %
-% where eta is the low-frequency (LF) ship model component. The real and 
-% imaginary parts of the RAO tables are interpolated in frequency and 
-% varying wave directions to compute the RAO amplitudes and phases. This 
-% approach avoids unwrapping problems and interpolation issues in RAO 
-% phase angles.
+% where eta, nu, and nudot are the low-frequency (LF) ship model components. 
+% The real and imaginary parts of the RAO tables are interpolated in 
+% frequency and varying wave directions to compute the RAO amplitudes and 
+% phases. This approach avoids unwrapping problems and interpolation issues 
+% in RAO phase angles.
+
 displayMfileHeader('exWaveMotionRAO.m');  % Print the header text
 
 % Reference:
@@ -66,17 +69,17 @@ omegaMax = vessel.motionRAO.w(end);  % Max frequency in RAO dataset
 
 %% MAIN LOOP
 t = 0:h:T_final+T_initialTransient-1;  % Time vector
-simdata = zeros(length(t),7);          % Pre-allocate table
+simdata = zeros(length(t),19);          % Pre-allocate table
 for i = 1:length(t)
 
     U = 5;                             % Time-varying ship speed (m/s)
     psi = deg2rad(sin(0.1 * t(i)));    % Time-varying heading angle (rad)
 
     % 6-DOF wave-frequency (WF) motion
-    [eta_WF, waveElevation] = waveMotionRAO(t(i), ...
+    [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(t(i), ...
         S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
 
-    simdata(i,:) = [eta_WF' waveElevation];
+    simdata(i,:) = [eta_WF' nu_WF' nudot_WF' waveElevation];
 
 end
 
@@ -87,6 +90,8 @@ figure(1); clf;
 startIndex = max(1, floor(T_initialTransient / h) + 1);
 t = t(startIndex:end) - t(startIndex);
 eta_WF = simdata(startIndex:end, 1:6);
+nu_WF = simdata(startIndex:end, 1:6);
+nudot_WF = simdata(startIndex:end, 1:6);
 waveElevation = simdata(startIndex:end, 7);
 
 % Plot the wave spectrum
@@ -124,9 +129,9 @@ title(['Wave Elevation for wave direction \beta_{wave} = ', ...
 grid on;
 
 figure(2); clf;
-% Plot the 6-DOF wave-frequency motions
-DOF_txt = {'Surge (m)', 'Sway (m)', 'Heave (m)',...
-    'Roll (deg)', 'Pitch (deg)', 'Yaw (deg)'};
+% Plot the 6-DOF wave-frequency positions
+DOF_txt = {'x-position (m)', 'y-position (m)', 'z-position (m)',...
+    'Roll angle (deg)', 'Pitch angle (deg)', 'Yaw angle (deg)'};
 T_scale = [1 1 1 180/pi 180/pi 180/pi];
 for DOF = 1:6
     subplot(6, 1, DOF);
@@ -137,10 +142,27 @@ for DOF = 1:6
 end
 
 if ~isoctave
-    sgtitle(['Wave-frequency motions for \beta_{wave} = ' ...
+    sgtitle(['Wave-frequency positions and Euler angles for \beta_{wave} = ' ...
         num2str(rad2deg(beta_wave)), '°']);
 end
 
+figure(3); clf;
+% Plot the 6-DOF wave-frequency velocities
+DOF_txt = {'Surge velocity (m)', 'Sway velocity (m)', 'Heave velocity (m)',...
+    'Roll rate (deg)', 'Pitch rate (deg)', 'Yaw rate (deg)'};
+T_scale = [1 1 1 180/pi 180/pi 180/pi];
+for DOF = 1:6
+    subplot(6, 1, DOF);
+    plot(t, T_scale(DOF) * nu_WF(:, DOF), 'LineWidth', 2);
+    xlabel('Time (s)');
+    grid on;
+    legend(DOF_txt{DOF});
+end
+
+if ~isoctave
+    sgtitle(['Wave-frequency velocities for \beta_{wave} = ' ...
+        num2str(rad2deg(beta_wave)), '°']);
+end
 
 %% FUNCTIONS
 function [matFile, spectrumType, spreadingFlag] = simOptions()
