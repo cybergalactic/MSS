@@ -1,16 +1,17 @@
 function msi = HMmsi(a_z, w_e)
 % msi = HMmsi(a_z,w_e) computes the Motion Sickness Incidence using the 
-% method  of O'Hanlon and McCauley (1974).
+% method of O'Hanlon and McCauley (1974).
 %
 % INPUTS; 
-%   a_z: Mean of absolute vertical acceleration (m/s^2), i.e. 
+%   a_z: Mean of absolute BODY-fixed vertical acceleration (m/s^2), i.e. 
 %        a_z = mean(abs(a_measured(:,1)))
 %   w_e: Vector of enconter frequency (rad/s), see encounter.m.
 %
 % OUTPUTS:
-%   msi: The percentage of persons that become seasick during a 2 hours sail
+%   msi: The percentage of persons that become seasick during a 2 hours
+%        voyage.
 %
-% Refs.  
+% Referencess:  
 %   - A. R. J. M. Lloyd (1989). Seakeeping Behaviour in Rough Water. Ellis
 %     Horwoowd Ltd.
 %   - E. V. Lewis (Ed.) (1989). Principles of Naval Architecture. Vol III 
@@ -22,7 +23,10 @@ function msi = HMmsi(a_z, w_e)
 % Author:    J. M. de la Cruz
 % Date:      28th March 2000
 % Revisions: 
-%   5th November 2001 : Minor changes of notation/documentation. 
+%   2024-08-07 : Minor changes of notation/documentation. 
+
+a_z = a_z(:);
+w_e = w_e(:);
 
 g = 9.81;
 
@@ -33,7 +37,7 @@ I      = ( -log10(abs(a_z) / g ) + mu_MSI ) / 0.4;
 % Matlab function erf.m and erf() used in Lloyd (1989), page 335.
 I = I / sqrt(2); 
 
-msi = zeros(length(w_e));
+msi = zeros(length(w_e), 1);
 for i=1:length(w_e)
     if I(i) >= 0
         msi(i) = 0.5 - 0.5 * abs( erf(I(i)) );
