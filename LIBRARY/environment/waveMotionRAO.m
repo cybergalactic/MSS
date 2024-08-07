@@ -1,17 +1,20 @@
-function [eta_WF, waveElevation] = waveMotionRAO(...
+function [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(...
     t, S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals)
 % waveMotionRAO computes the wave elevation and the wave-frequency (WF) 
-% motion, eta_w, on a ship using different wave spectra (Modified Pierson-
-% Moskowitz, JONSWAP, Torsethaugen) and Response Amplitude Operators (RAOs) 
-% (Fossen 2021, Chapters 10.2.1 and 10.2.3). The total motion is:
+% motion, eta_w, nu_w, and nu_dot_w on a ship using different wave spectra 
+% (Modified Pierson-Moskowitz, JONSWAP, Torsethaugen) and Response 
+% Amplitude Operators (RAOs) (Fossen 2021, Chapters 10.2.1 and 10.2.3). 
+% The total motion is:
 %
-%   y = eta + eta_w
+%   y_eta   = eta + eta_w
+%   y_nu    = nu  + nu_w
+%   y_nudot = nudot  + nudot_w
 %
-% where eta is the low-frequency (LF) ship model component. The real and 
-% imaginary parts of the RAO tables are interpolated in frequency and 
-% varying relative directions to compute the RAO amplitudes and phases. 
-% This approach avoids unwrapping problems and interpolation issues in RAO 
-% phase angles.
+% where eta, nu, and nudot are the low-frequency (LF) ship model component. 
+% The real and imaginary parts of the RAO tables are interpolated in 
+% frequency and varying relative directions to compute the RAO amplitudes 
+% and phases. This approach avoids unwrapping problems and interpolation 
+% issues in RAO phase angles.
 %
 % INPUTS:
 %   t                - Time vector (s)
@@ -26,7 +29,9 @@ function [eta_WF, waveElevation] = waveMotionRAO(...
 %   numFreqIntervals - Number of frequency intervals (> 100)
 %
 % OUTPUTS:
-%   eta_WF           - Wave-frequency motions (6-DOF)
+%   eta_WF           - 6x1 WF position (6 DOF)
+%   nu_WF            - 6x1 WF velocity (m/s and rad/s)
+%   nudot_WF         - 6x1 WF acceleration (6 DOF)
 %   waveElevation    - Wave elevation (m)
 %
 % Reference:
@@ -119,6 +124,9 @@ end
 % Compute the complex RAOs as a function of frequency and wave direction
 RAO_complex = cell(1, 6); % Initialize cell arrays
 eta_WF = zeros(6,1);
+nu_WF = zeros(6,1);
+nudot_WF = zeros(6,1);
+
 numDirections = length(mu);
 for DOF = 1:6
 
@@ -142,18 +150,41 @@ for DOF = 1:6
     % Combine real and imaginary parts to form the complex RAO
     RAO_complex{DOF} = RAO_re_dir_interp + 1i * RAO_im_dir_interp;
 
+    % Compute velocity RAO by multiplying position RAO by j*Omega_e
+    velocity_RAO = 1i * Omega_e .* RAO_complex{DOF};
+
+    % Compute acceleration RAO by multiplying position RAO by -Omega_e^2
+    acceleration_RAO = -Omega_e.^2 .* RAO_complex{DOF};
+
     % Compute the 6-DOF wave-frequency motions (Fossen 2021, Eq. 10.105).
     if size(S_M, 2) == 1 
         % No spreading function/directional spectrum
         eta_WF(DOF) = sum( abs(RAO_complex{DOF}) .* Amp .* ...
             cos(Omega_e * t + angle(RAO_complex{DOF}) + randomPhases), 1);
+
+        nu_WF(DOF) = sum( abs(velocity_RAO) .* Amp .* ...
+            cos(Omega_e * t + angle(velocity_RAO) + randomPhases), 1 );
+
+        nudot_WF(DOF) = sum(abs(acceleration_RAO) .* Amp .* ...
+            cos(Omega_e * t + angle(acceleration_RAO) + randomPhases), 1);
+
     else 
         % Directional spectrum
         eta_WF(DOF) = sum( sum( abs(RAO_complex{DOF}) .* Amp .* ...
             cos(Omega_e * t + angle(RAO_complex{DOF}) + randomPhases), 2), 1);
+
+        nu_WF(DOF) = sum( sum( abs(velocity_RAO) .* Amp .* ...
+            cos(Omega_e * t + angle(velocity_RAO) + randomPhases), 2 ), 1);
+
+        nudot_WF(DOF) = sum( sum( abs(acceleration_RAO) .* Amp .* ...
+            cos(Omega_e * t + angle(acceleration_RAO) + randomPhases), 2 ), 1);
+
     end
 end
 
 end
+
+
+
 
 
