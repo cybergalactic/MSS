@@ -17,6 +17,9 @@ function dense_wpt = addIntermediateWaypoints(wpt, multiplier)
 % Revisions:
 %   None
 
+% Ensure wpt.pos.x and wpt.pos.y are column vectors
+wpt.pos.x = wpt.pos.x(:);
+wpt.pos.y = wpt.pos.y(:);
 dense_wpt.pos.x = [];
 dense_wpt.pos.y = [];
 
@@ -41,4 +44,5 @@ end
 % Add the last waypoint
 dense_wpt.pos.x(end + 1) = wpt.pos.x(end);
 dense_wpt.pos.y(end + 1) = wpt.pos.y(end);
+
 end

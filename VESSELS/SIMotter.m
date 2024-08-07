@@ -66,9 +66,11 @@ V_c = 0.3;                       % Ocean current speed (m/s)
 beta_c = deg2rad(30);            % Ocean current direction (rad)
 
 % Waypoints
-wpt.pos.x = [0 0   150 150 -100 -100 200]';
-wpt.pos.y = [0 200 200 -50  -50  250 250]';
-wayPoints = [wpt.pos.x wpt.pos.y];
+wpt.pos.x = [0 0   150 150 -100 -100 200];
+wpt.pos.y = [0 200 200 -50  -50  250 250];
+
+% Add intermediate waypoints along the line segments between for better resolution
+wpt = addIntermediateWaypoints(wpt, 2);
 
 % ALOS and ILOS parameters
 Delta_h = 10;                    % Look-ahead distance
@@ -213,9 +215,9 @@ plot(eta(:,2),eta(:,1),'b');  % Plot vehicle position
 if ControlFlag == 1  % Heading autopilot
     legend('Vehicle position');
 elseif any(ControlFlag == [2, 3])  % Straight line and circles
-    plotStraightLinesAndCircles(wayPoints, R_switch);
+    plotStraightLinesAndCircles(wpt, R_switch);
 else  % Hermite splines
-    plotHermiteSplines(y_path, x_path, wayPoints);
+    plotHermiteSplines(y_path, x_path, wpt);
 end
 
 xlabel('East (m)', 'FontSize', 14);
@@ -282,39 +284,44 @@ displayVehicleData('Maritime Robotics Otter USV', vehicleData, 'otter.jpg', 4);
 end
 
 %% HELPER FUNCTIONS FOR PLOTTING
-function plotStraightLinesAndCircles(wayPoints, R_switch)
+function plotStraightLinesAndCircles(wpt, R_switch)
     legendLocation = 'best';
     if isoctave; legendLocation = 'northeast'; end
     
-    % Plot straight lines and circles for straight-line path following
-    for idx = 1:length(wayPoints(:,1))-1
+    % Plot straight lines for straight-line path following
+    for idx = 1:length(wpt.pos.x)-1
         if idx == 1
-            plot([wayPoints(idx,2),wayPoints(idx+1,2)],[wayPoints(idx,1),...
-                wayPoints(idx+1,1)], 'r--', 'DisplayName', 'Line');
+            plot([wpt.pos.y(idx), wpt.pos.y(idx+1)], [wpt.pos.x(idx), wpt.pos.x(idx+1)], ...
+                 'r--', 'DisplayName', 'Straight-line path');
         else
-            plot([wayPoints(idx,2),wayPoints(idx+1,2)],[wayPoints(idx,1),...
-                wayPoints(idx+1,1)], 'r--','HandleVisibility', 'off');
+            plot([wpt.pos.y(idx), wpt.pos.y(idx+1)], [wpt.pos.x(idx), wpt.pos.x(idx+1)], ...
+                 'r--', 'HandleVisibility', 'off');
         end
     end
 
+    % Plot circles for waypoint switching
     theta = linspace(0, 2*pi, 100);
-    for idx = 1:length(wayPoints(:,1))
-        xCircle = R_switch * cos(theta) + wayPoints(idx,1);
-        yCircle = R_switch * sin(theta) + wayPoints(idx,2);
-        plot(yCircle, xCircle, 'k');
+    for idx = 1:length(wpt.pos.x)
+        xCircle = R_switch * cos(theta) + wpt.pos.x(idx);
+        yCircle = R_switch * sin(theta) + wpt.pos.y(idx);
+        if idx == 1
+            plot(yCircle, xCircle, 'k', 'DisplayName', 'Circle of acceptance');
+        else
+            plot(yCircle, xCircle, 'k', 'HandleVisibility', 'off');
+        end
     end
 
-    legend('Vehicle position','Straight-line path','Circle of acceptance',...
-        'Location',legendLocation);
+    % Add legend
+    legend('Vehicle position', 'Location', legendLocation);
 end
 
-function plotHermiteSplines(y_path, x_path, wayPoints)
+function plotHermiteSplines(y_path, x_path, wpt)
     legendLocation = 'best';
     if isoctave; legendLocation = 'northeast'; end
 
     % Plot Hermite spline paths for spline path following
     plot(y_path, x_path, 'r');
-    plot(wayPoints(:, 2), wayPoints(:, 1), 'ko',...
+    plot(wpt.pos.y, wpt.pos.x, 'ko', ...
         'MarkerFaceColor', 'g', 'MarkerSize',10);
     legend('Vehicle position','Hermite spline','Waypoints', ...
         'Location',legendLocation);
