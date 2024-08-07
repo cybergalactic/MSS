@@ -18,17 +18,19 @@ figure(1); clf;
 hold on
 
 for i = 1:6
-    w_e = encounter(beta, U, w_0);         % Frequency of encounter (rad/s)
-    msi = HMmsi(a_z(i), w_e);              % O'Hanlon and McCauley MSI (%)
-    plot(w_e, msi, '-', w_e, msi, idx(i)); % Plot curve
+    w_e = encounter(beta, U, w_0); % Frequency of encounter (rad/s)
+    msi = HMmsi(a_z(i), w_e);      % O'Hanlon and McCauley MSI (%)
+    plot(w_e, msi, ['-', idx(i)]); % Plot curve
 end
 
 hold off
 title('O''Hanlon and McCauley (1974) Motion Sickness Incidence (MSI)')
 xlabel('Frequency of encounter \omega_e (rad/s)')
 ylabel('MSI (%)')
-legend('a_z = 0.5 (m/s^2)', 'a_z = 1 (m/s^2)', 'a_z = 2 (m/s^2)', 'a_z = 3 (m/s^2)', ...
-    'a_z = 4 (m/s^2)', 'a_z = 5 (m/s^2)');
+legend('a_z = 0.5 (m/s^2)', 'a_z = 1 (m/s^2)', 'a_z = 2 (m/s^2)', ...
+    'a_z = 3 (m/s^2)', 'a_z = 4 (m/s^2)', 'a_z = 5 (m/s^2)');
+title('Percentage of Persons that become Seasick during a 2 Hours Voyage', ...
+    'O''Hanlon and McCauley (1974) Motion Sickness Incidence (MSI)');
 grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
@@ -43,8 +45,8 @@ figure(2); clf;
 hold on
 
 for i = 1:5
-    [a_z, w_e] = ISOmsi(t(i));             % ISO 2631 MSI
-    plot(w_e, a_z,'-', w_e, a_z, idx(i)); % Plot curve
+    [a_z, w_e] = ISOmsi(t(i));     % ISO 2631 MSI
+    plot(w_e, a_z,['-', idx(i)]);  % Plot curve
 end
 
 hold off
