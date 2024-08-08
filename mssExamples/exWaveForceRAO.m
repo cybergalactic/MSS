@@ -115,7 +115,7 @@ plot(t, waveElevation, 'b', 'LineWidth', 2);
 xlabel('Time (s)');
 ylabel('m');
 title(['Wave Elevation for wave direction \beta_{wave} = ', ...
-    num2str(rad2deg(beta_wave)), '°']);
+    num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 grid on;
 
 figure(2); clf;
@@ -133,7 +133,7 @@ end
 
 if ~isoctave
     sgtitle(['Generalized 1st-order Wave Forces for \beta_{wave} = ' ...
-        num2str(rad2deg(beta_wave)), '°']);
+        num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 end
 
 
