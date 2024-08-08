@@ -125,7 +125,7 @@ plot(t, waveElevation, 'b', 'LineWidth', 2);
 xlabel('Time (s)');
 ylabel('m');
 title(['Wave Elevation for wave direction \beta_{wave} = ', ...
-    num2str(rad2deg(beta_wave)), '°']);
+    num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 grid on;
 
 figure(2); clf;
@@ -143,13 +143,13 @@ end
 
 if ~isoctave
     sgtitle(['Wave-frequency positions and Euler angles for \beta_{wave} = ' ...
-        num2str(rad2deg(beta_wave)), '°']);
+        num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 end
 
 figure(3); clf;
 % Plot the 6-DOF wave-frequency velocities
-DOF_txt = {'Surge velocity (m)', 'Sway velocity (m)', 'Heave velocity (m)',...
-    'Roll rate (deg)', 'Pitch rate (deg)', 'Yaw rate (deg)'};
+DOF_txt = {'Surge velocity (m/s)', 'Sway velocity (m/s)', 'Heave velocity (m/s)',...
+    'Roll rate (deg/s)', 'Pitch rate (deg/s)', 'Yaw rate (deg/s)'};
 T_scale = [1 1 1 180/pi 180/pi 180/pi];
 for DOF = 1:6
     subplot(6, 1, DOF);
@@ -161,7 +161,7 @@ end
 
 if ~isoctave
     sgtitle(['Wave-frequency velocities for \beta_{wave} = ' ...
-        num2str(rad2deg(beta_wave)), '°']);
+        num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 end
 
 %% FUNCTIONS
