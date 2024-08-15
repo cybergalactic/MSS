@@ -85,7 +85,7 @@ f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
 % Normalized gravity vectors
-v10 = [0 0 1]';             % NED
+v01 = [0 0 1]';             % NED
 v1 = -f_ins/g;              % BODY
 v1 = v1 / sqrt( v1' * v1 );
 
@@ -100,12 +100,12 @@ Ad = eye(15) + h * A + 0.5 * (h * A)^2;
 
 if (nargin == 10)
     Cd = [ I3 O3 O3 O3 O3             % NED positions
-        O3 O3 O3 Smtrx(R'*v10) O3     % Gravity
+        O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
         zeros(1,11) 1 zeros(1,3) ];   % Compass
 else
     Cd = [ I3 O3 O3 O3 O3                % NED positions
         O3 I3 O3 O3 O3                % NED velocities
-        O3 O3 O3 Smtrx(R'*v10) O3     % Gravity
+        O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
         zeros(1,11) 1 zeros(1,3) ];   % Compass
 end
 
@@ -128,7 +128,7 @@ else                         % INS aiding
 
     % Estimation error: eps[k]
     eps_pos = y_pos - p_ins;
-    eps_g   = v1 - R' * v10;
+    eps_g   = v1 - R' * v01;
     eps_psi = ssa(psi - theta_ins(3));
 
     if (nargin == 10)
