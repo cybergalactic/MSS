@@ -54,7 +54,7 @@ function [quat, b_ars] = quatObserver(...
 %   b_ars[k+1] - 3x1 vector representing the updated ARS bias estimate
 %
 % The function implements a quaternion-based nonlinear observer for attitude
-% estimation by Grip et al. (2012), which guarantees USGES stability. 
+% estimation by Grip et al. (2013), which guarantees USGES stability. 
 % The observer updates the quaternion based on specific force and magnetic 
 % field measurements while also correcting for ARS bias. The observer employs 
 % a feedback mechanism that uses the cross products between the measured vectors 
