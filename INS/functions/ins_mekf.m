@@ -59,7 +59,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %   2020-11-29: Bugfix - removed magnetometer projection algorithms.
 %   2021-12-13: Improved numerical accuracy by replacing Euler's method 
 %               with exact discretization in the INS state propagation.
-%   2024-08-15: Corrected the normalization of v2 to use w_imu
+%   2024-08-15: Corrected the projections of v20 and v2
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -87,15 +87,27 @@ R = Rquat(q_ins);
 f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
-% Normalized gravity vectors
-v01 = [0 0 1]';             % NED
-v1 = -f_ins/g;              % BODY
-v1 = v1 / sqrt( v1' * v1 );
+% NED normalized reference vectors
+v01 = [0 0 1]'; % Gravity reference vector
+v02 = m_ref / norm(m_ref); % Magnetic field reference vector
 
-% Normalized magnetic field vectors
-v02 = m_ref / sqrt( m_ref' * m_ref );    % NED
-v2  = m_imu / sqrt( m_imu' * m_imu );    % BODY
- 
+% BODY-fixed normalized IMU measurements (forward-starboard-down)
+v1 = -f_imu / norm(f_imu); % Specific force measurement
+v2 =  m_imu / norm(m_imu); % Magnetic field measurement
+
+% Make the estimator robust to situations where the magnetic field vector is
+% nearly aligned with gravity using a threhold value for vector projection
+if abs(dot(v2, v1)) <= 0.9   
+    % Projection of the vector x2 onto the plane orthogonal to x1 is
+    % given by: x2_projected = x2 - dot(x2, x1) * x1
+    v2 = v2 - dot(v2, v1) * v1;
+    v02 = v02 - dot(v02, v01) * v01;
+
+    % Normalize the projected vectors
+    v2 = v2 / norm(v2);
+    v02 = v02 / norm(v02);
+end
+
 % Discrte-time ESKF matrices
 A = [ O3 I3  O3            O3              O3
       O3 O3 -R            -R*Smtrx(f_ins)  O3
