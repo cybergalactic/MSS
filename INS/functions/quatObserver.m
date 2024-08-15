@@ -1,5 +1,5 @@
 function [quat, b_ars] = quatObserver(...
-    quat, b_ars, h, Ki, k1, k2, g, f_imu, w_imu, m_imu, m_ref)
+    quat, b_ars, h, Ki, k1, k2, f_imu, w_imu, m_imu, m_ref)
 % quatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing the 
 % orientation between the BODY and NED frames, and the bias b_ars[k+1] of the 
@@ -9,11 +9,11 @@ function [quat, b_ars] = quatObserver(...
 % (without new measurements):
 %
 %   Corrector (new IMU measurements)
-%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, g, ...
+%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, ...
 %         f_imu, w_imu, m_imu, m_ref)
 %
 %   Predictor (no measurements)
-%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, g)
+%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2)
 % 
 % The injection term is implemented using two reference vectors
 %   sigma = k1 * v1 x R'(q) * v01 + k2 * v2 x R'(q) * v02
@@ -46,7 +46,6 @@ function [quat, b_ars] = quatObserver(...
 %               force measurement
 %   k2        - Gain for the feedback term associated with the magnetic 
 %               field measurement
-%   g         - Acceleration due to gravity, typically 9.81 m/s^2
 %   h         - Time step (sampling period) for the observer update
 %
 % Outputs:  
@@ -81,16 +80,28 @@ R_transposed = Rquat(quat);
 sigma = 0; % Observer is a predictor by default
 
 % Observer acts as a corrector when there are new measurements
-if nargin == 11 
+if nargin == 10
     
     % NED normalized reference vectors 
     v01 = [0 0 1]'; % Gravity reference vector
     v02 = m_ref / sqrt( m_ref' * m_ref ); % Magnetic field reference vector 
 
-    % BODY-fixed normalized IMU measurements
-    v1 = -f_imu / g; % Specific force measurement 
-    v1 = v1 / sqrt( v1' * v1 ); 
-    v2  = m_imu / sqrt( m_imu' * m_imu ); % Magnetic field measurement
+    % BODY-fixed normalized IMU measurements (forward-starboard-down)
+    v1 = -f_imu / norm(f_imu); % Specific force measurement
+    v2 =  m_imu / norm(m_imu); % Magnetic field measurement
+
+    % Make the observer robust to situations where the magnetic field vector is
+    % nearly aligned with gravity using a threhold value for vector projection
+    if abs(dot(v2, v1)) <= 0.9   
+        % Projection of the vector x2 onto the plane orthogonal to x1 is
+        % given by: x2_projected = x2 - dot(x2, x1) * x1
+        v2 = v2 - dot(v2, v1) * v1;
+        v02 = v02 - dot(v02, v01) * v01;
+
+        % Normalize the projected vectors
+        v2 = v2 / norm(v2);
+        v02 = v02 / norm(v02);
+    end
 
     % Nonlinear injection term
     sigma = k1 * cross(v1, R_transposed * v01) ...
