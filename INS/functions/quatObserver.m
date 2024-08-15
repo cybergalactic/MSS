@@ -8,17 +8,17 @@ function [quat, b_ars] = quatObserver(...
 % can be called as either a corrector (with new measurements) or a predictor 
 % (without new measurements):
 %
-%   Corrector (new IMU measurements):
+%   Corrector (new IMU measurements)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, g, ...
 %         f_imu, w_imu, m_imu, m_ref)
 %
-%   Predictor (no measurements):
+%   Predictor (no measurements)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, g)
 % 
-% The injection term is implemented using two reference vectors:
+% The injection term is implemented using two reference vectors
 %   sigma = k1 * v1 x R'(q) * v01 + k2 * v2 x R'(q) * v02
 %
-% Continuous-time observer (Grip et al. 2013):
+% Continuous-time observer (Grip et al. 2013)(Fossen 2021, Eqs. 14.48-14.50)
 %   quat_dot = T(q) * (w_imu - b_ars - sigma)
 %   b_ars_dot = -Ki * sigma
 %
