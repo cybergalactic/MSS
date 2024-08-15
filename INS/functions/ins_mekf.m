@@ -59,6 +59,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %   2020-11-29: Bugfix - removed magnetometer projection algorithms.
 %   2021-12-13: Improved numerical accuracy by replacing Euler's method 
 %               with exact discretization in the INS state propagation.
+%   2024-08-15: Corrected the normalization of v2 to use w_imu
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -87,13 +88,13 @@ f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
 % Normalized gravity vectors
-v10 = [0 0 1]';             % NED
+v01 = [0 0 1]';             % NED
 v1 = -f_ins/g;              % BODY
 v1 = v1 / sqrt( v1' * v1 );
 
 % Normalized magnetic field vectors
-v20 = m_ref / sqrt( m_ref' * m_ref );    % NED
-v2  = m_imu / sqrt( m_ref' * m_ref );    % BODY
+v02 = m_ref / sqrt( m_ref' * m_ref );    % NED
+v2  = m_imu / sqrt( m_imu' * m_imu );    % BODY
  
 % Discrte-time ESKF matrices
 A = [ O3 I3  O3            O3              O3
@@ -106,13 +107,13 @@ Ad = eye(15) + h * A + 0.5 * (h * A)^2;
 
 if (nargin == 11)
     Cd = [ I3 O3 O3 O3 O3               % NED positions 
-           O3 O3 O3 Smtrx(R'*v10) O3    % Gravity           
-           O3 O3 O3 Smtrx(R'*v20) O3 ]; % Magnetic field
+           O3 O3 O3 Smtrx(R'*v01) O3    % Gravity           
+           O3 O3 O3 Smtrx(R'*v02) O3 ]; % Magnetic field
 else
     Cd = [ I3 O3 O3 O3 O3               % NED positions 
            O3 I3 O3 O3 O3               % NED velocities 
-           O3 O3 O3 Smtrx(R'*v10) O3    % Gravity          
-           O3 O3 O3 Smtrx(R'*v20) O3 ]; % Magnetic field
+           O3 O3 O3 Smtrx(R'*v01) O3    % Gravity          
+           O3 O3 O3 Smtrx(R'*v02) O3 ]; % Magnetic field
 end
 
 Ed = h *[  O3 O3    O3 O3
@@ -134,8 +135,8 @@ else                          % INS aiding
     
     % Estimation error: eps[k]
     eps_pos = y_pos - p_ins;
-    eps_g   = v1 - R' * v10; 
-    eps_mag = v2 - R' * v20;    
+    eps_g   = v1 - R' * v01; 
+    eps_mag = v2 - R' * v02;    
     
     if (nargin == 11)
         eps = [eps_pos; eps_g; eps_mag];
