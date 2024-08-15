@@ -226,6 +226,7 @@ ins_euler            % Error-state Kalman filter (ESKF) for INS aided by positio
 ins_mekf             % Error-state Kalman filter (ESKF) for INS aided by position and magnetic field measurements
 ins_mekf_psi         % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
 insSignal            % Basic INS signal generator
+quatObserver         % Nonlinear quaternion-based attitude observer using 9-DOF IMU measurements
 ```
 
 ## Simulink 
