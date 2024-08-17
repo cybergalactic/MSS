@@ -9,6 +9,7 @@ function [phi, theta] = acc2rollpitch(f)
 % Date:      2020-03-20
 % Revisions:
 %   2024-07-28 : Modified to accept time-series of specific force.
+%   2024-08-17 : Made robust for four-quadrant angle solution
 
 % Input validation and reshaping if necessary
 [n, m] = size(f);
@@ -27,8 +28,25 @@ theta = zeros(n, 1);
 
 % Compute roll (phi) and pitch (theta) angles for each row
 for i = 1:n
-    phi(i) = atan2(f(i, 2), f(i, 3));  
-    theta(i) = atan2(f(i, 1), sqrt(f(i, 2)^2 + f(i, 3)^2)); 
+
+    % Calculate roll angle using atan(fy/fz) since atan2(fy, fz) fails when 
+    % both arguments can have both signs. This approach avoids 180 deg roll 
+    % angles when the physical angle is 0 deg.
+    phi(i) = atan(f(i, 2) / f(i, 3));  
+
+    % Correct the angle based on the quadrant
+    if f(i, 3) > 0  % fz > 0, meaning potential Quadrant 2 or 3
+        if f(i, 2) > 0
+            phi(i) = phi(i) - pi;  % Quadrant 2: 90 to 180 degrees
+        else
+            phi(i) = phi(i) + pi;  % Quadrant 3: -90 to -180 degrees
+        end
+    end
+
+    % Calculate pitch angle using atan2. This works for both signs of fx 
+    % since sqrt(fy^2 + fz^2) > 0 (always positive).
+    theta(i) = atan2(f(i, 1), sqrt(f(i, 2)^2 + f(i, 3)^2));  
+
 end
 
 end
