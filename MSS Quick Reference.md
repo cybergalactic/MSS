@@ -85,7 +85,7 @@ zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 .../MSS/GNC/
 
 ```matlab
-acc2rollpitch        % Static roll and pitch angles from the specific force
+acc2rollpitch        % Static roll and pitch angles from IMU specific force measurements
 allocPseudoinverse   % Unconstrained control allocation
 ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
 ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
@@ -107,6 +107,7 @@ order3               % Path generation using cubic polynomials (see demoWaypoint
 order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
 PIDnonlinearMIMO     % Nonlinear MIMO PID regulator for dynamic positioning (DP)
 refModel             % Third-order reference model for position, velocity and acceleration
+staticRollPitchYaw   % Static roll, pitch, and yaw angles from IMU specific force and magnetometer measurements
 ```
 
 
