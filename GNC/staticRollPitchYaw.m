@@ -58,9 +58,24 @@ psi = zeros(rows1, 1);
 % Compute roll (phi), pitch (theta), and yaw (psi) angles for each row
 for i = 1:rows1
     % Static roll and pitch angles, see Fossen (2021, Eqs. (14.34-(14.35)).
-    phi(i) = atan2(f_imu(i, 2), f_imu(i, 3));
-    theta(i) = atan2(f_imu(i, 1), sqrt(f_imu(i, 2)^2 + f_imu(i, 3)^2));
-    
+    % Calculate roll angle using atan(fy/fz) since atan2(fy, fz) fails when 
+    % both arguments can have both signs. This approach avoids 180 deg roll 
+    % angles when the physical angle is 0 deg.
+    phi(i) = atan(f(i, 2) / f(i, 3));  
+
+    % Correct the angle based on the quadrant
+    if f(i, 3) > 0  % fz > 0, meaning potential Quadrant 2 or 3
+        if f(i, 2) > 0
+            phi(i) = phi(i) - pi;  % Quadrant 2: 90 to 180 degrees
+        else
+            phi(i) = phi(i) + pi;  % Quadrant 3: -90 to -180 degrees
+        end
+    end
+
+    % Calculate pitch angle using atan2. This works for both signs of fx 
+    % since sqrt(fy^2 + fz^2) > 0 (always positive).
+    theta(i) = atan2(f(i, 1), sqrt(f(i, 2)^2 + f(i, 3)^2)); 
+
     % Compute yaw angle (psi) only if magnetometer data is provided
     if nargin == 2
         % Tilt-compensated magnetometer readings, see Fossen (2021, Eq.(14.27)).
