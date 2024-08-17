@@ -114,7 +114,7 @@ if nargin == 8
         % nearly aligned with gravity using a threhold value for vector projection
         if abs(dot(v2, v1)) <= 0.9   
             % Projection of the vector x2 onto the plane orthogonal to x1 is
-            % given by: x2_projected = x2 - dot(x2, x1) * x1
+            % x2_projected = x2 - dot(x2, x1) * x1 whenever norm(x) = 1
             v2 = v2 - dot(v2, v1) * v1;
             v02 = v02 - dot(v02, v01) * v01;
 
@@ -124,7 +124,7 @@ if nargin == 8
         end
 
         % Nonlinear injection term
-        sigma2  = k2 * cross(v2, R_transposed * v02); % Magnetic field
+        sigma2 = k2 * cross(v2, R_transposed * v02); % Magnetic field
     end
 
 % Nonlinear injection term
