@@ -151,7 +151,7 @@ disp(['Significant wave height: Hs = ', num2str(Hs), ' m'])
 disp(['Zero crossing period: Tz = ', num2str(Tz), ' s'])
 disp(['Peak period: T0 = Tz / 0.710 = ', num2str(T0), ' s'])
 disp(['Peak frequency: w0 = 2*pi/T0 = ', num2str(w0), ' rad/s'])
-disp(['Number of wave frequensies: ', num2str(numFreqIntervals)])
+disp(['Number of wave frequencies: ', num2str(numFreqIntervals)])
 disp(['Number of wave directions: ', num2str(numDirections)])
 
 % Compute the directional wave spectrum S_M(Omega, mu) = S(Omega) * M(mu)
