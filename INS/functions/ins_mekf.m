@@ -170,7 +170,6 @@ a_ins = R * f_ins + g_n;                     % Linear acceleration
 p_ins = p_ins + h * v_ins + h^2/2 * a_ins;   % Exact discretization
 v_ins = v_ins + h * a_ins;                   % Exact discretization
 q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % Exact discretization
-% q_ins = q_ins + h * Tquat(q_ins) * w_ins;  % Euler's method (alternative)
 q_ins = q_ins / norm(q_ins);                 % Normalization
 
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
