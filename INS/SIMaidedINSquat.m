@@ -20,6 +20,7 @@ function SIMaidedINSquat()
 %   ins_mekf.m      - Feedback ESKF for INS aided by position measurements 
 %                     y_pos and magnetometer measurements y_mag. The velocity 
 %                     aiding signal y_vel is optionally.
+%   magneticField.m - Magnetic field vectors for different cities.
 %  
 % References:
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
@@ -28,18 +29,23 @@ function SIMaidedINSquat()
 % Author: Thor I. Fossen
 % Date: 2024-04-26
 % Revisions:
+%   2024-08-20 : Using the updated insSignal.m generator.
 
 %% USER INPUTS
 T_final = 200;	  % Final simulation time (s)
 f_s    = 100;     % Sampling frequency (Hz)
 f_pos = 1;        % Position measurement frequency (Hz)
 
-[attitudeFlag, velFlag] = displayMethod();
-
 % Sampling times
 h  = 1/f_s; 	 
-h_pos = 1/f_pos;  
+h_pos = 1/f_pos; 
 
+% Magntic field and latitude for city #1, see magneticField.m
+[m_ref, ~, mu, cityName] = magneticField(1);
+
+% Display simulation options
+[attitudeFlag, velFlag] = displayMethod(cityName);
+ 
 % IMU biases
 b_acc = [0.1 0.3 -0.1]';
 b_ars = [0.05 0.1 -0.05]';
@@ -79,10 +85,6 @@ x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 t = 0:h:T_final;                % Time vector from 0 to T_final          
 nTimeSteps = length(t);         % Number of time steps
 
-% WGS-84 gravity model
-mu = 63.4305 * pi / 180;    % lattitude  
-g = gravity(mu);  
-
 %% MAIN LOOP
 simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
 ydata = [0 x(1:3)'];            % Pre-allocate table for position measurements          % Table of position measurements
@@ -90,7 +92,7 @@ ydata = [0 x(1:3)'];            % Pre-allocate table for position measurements  
 for i=1:nTimeSteps
     
     % INS signal generator 
-    [x, f_imu, w_imu, m_imu, m_ref] = insSignal(x, mu, h, t(i));
+    [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref);
     y_psi = x(12);
     
     % Position measurements are slower than the sampling time
@@ -208,7 +210,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 %% RADIO BUTTONS, FLAGS AND DISPLAY
-function [attitudeFlag, velFlag] = displayMethod()
+function [attitudeFlag, velFlag] = displayMethod(cityName)
 
     f = figure('Position', [400, 400, 400, 300], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
 
@@ -257,6 +259,7 @@ function [attitudeFlag, velFlag] = displayMethod()
     else
         disp(['COMPASS measurements at ',num2str(f_s), ' Hz']);
     end
+    disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
     disp('-------------------------------------------------------------------');
     disp('Simulating...');
 
