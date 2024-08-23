@@ -165,13 +165,21 @@ end
 % Predictor: P_prd[k+1]
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
-% INS propagation: x_ins[k+1]
+% INS propagation: p_ins[k] and v_ins[k]
 a_ins = R * f_ins + g_n;                     % Linear acceleration
 p_ins = p_ins + h * v_ins + h^2/2 * a_ins;   % Exact discretization
 v_ins = v_ins + h * a_ins;                   % Exact discretization
+
+% q_ins[k+1] is computed using the matrix exponential, which serves as the 
+% exponential map for matrix Lie groups, ensuring an exact discretization 
+% of the quaternion differential equation: 
+%    quat_ins_dot = Tquat(w_imu - b_ars + sigma) * quat_ins
+% You can replace the build-in Matlab function expm.m with the custom-made 
+% MSS function expm_taylor.m for this computation.
 q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % Exact discretization
 q_ins = q_ins / norm(q_ins);                 % Normalization
 
+% INS state vector: x_ins[k+1]
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 
 end
