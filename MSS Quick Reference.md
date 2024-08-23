@@ -217,6 +217,7 @@ rk4                 % Integrates a system of ordinary differential equations usi
 ```matlab
 SIMaidedINSeuler     % Simulate the ESKF for aided INS using Euler angles
 SIMaidedINSquat      % Simulate the ESKF for aided INS using unit quaternions (MEKF representation)
+SIMquatObserver      % Simulate the nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 ```
 
 ### Functions
@@ -227,8 +228,9 @@ ins_ahrs             % Error-state Kalman filter (ESKF) for INS aided by positio
 ins_euler            % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
 ins_mekf             % Error-state Kalman filter (ESKF) for INS aided by position and magnetic field measurements
 ins_mekf_psi         % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
-insSignal            % Basic INS signal generator
-quatObserver         % Nonlinear quaternion-based attitude observer using 9-DOF IMU measurements
+insSignal            % INS signal generator for testing of Kalman filters and observers
+magneticField        % NED magnetic field reference vectors 'm_ref' for different cities
+quatObserver         % Nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 ```
 
 ## Simulink 
@@ -239,7 +241,7 @@ quatObserver         % Nonlinear quaternion-based attitude observer using 9-DOF 
 
 ```matlab
 demoAUVdepthHeadingControl.slx            % Simultaneously heading and depth control of the Remus 100 AUV
-demoCS2passiveObserverDP.slx              % Passive observer with wave filtering and nonlinear PID control for the CyberShip2 model ship
+demoCS2passiveObserverDP.slx              % Passive observer with wave filtering and nonlinear PID control (CyberShip2 model ship)
 demoDPThrusterModels.slx                  % Supply vessel with azimuth thrusters
 demoDSRVdepthControl.slx                  % DSRV depth control system
 demoKalmanWavefilterAutop.slx             % Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
