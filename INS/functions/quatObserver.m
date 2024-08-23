@@ -143,16 +143,19 @@ sigma = sigma1 + sigma2;
 %   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
 % You can replace the build-in Matlab function expm.m with the custom-made 
 % MSS function expm_taylor.m for this computation.
-w_nb = w_imu - b_ars + sigma; % Angular velocity of BODY w.r.t. NED
+
+% Angular velocity with bias compensation 'b_ars' and injection term 'sigma'
+w_estimated = w_imu - b_ars + sigma; 
 
 if coningSculling == 0
-    quat = expm( Tquat(w_nb) * h ) * quat; % Quaternion propgation
+    % No coning and sculling compensation 
+    quat = expm( Tquat(w_estimated) * h ) * quat; % Quaternion propagation
     quat = quat / norm(quat);  % Normalization
 else
     % Midtpoint method for compensating coning and sculling effects 
-    quat_midpoint = expm( Tquat(w_nb) * h/2) * quat;
+    quat_midpoint = expm( Tquat(w_estimated) * h/2) * quat;
     quat_midpoint = quat_midpoint / norm(quat_midpoint);
-    quat = expm( Tquat(w_nb) * h/2 ) * quat_midpoint;
+    quat = expm( Tquat(w_estimated) * h/2 ) * quat_midpoint;
     quat = quat / norm(quat);  % Normalization
 end
 
