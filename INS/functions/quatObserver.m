@@ -53,12 +53,13 @@ function [quat, b_ars] = quatObserver( ...
 %               angular velocity measurements, and m_imu[k] is a 3x1 vector 
 %               representing the IMU magnetic field measurements. The IMU 
 %               axes are assumed to be oriented forward-starboard-down.
-% coningSculling (OPTIONAL) 1, to apply coning and sculling compenstation,
+% coningSculling (OPTIONAL) 1, to apply coning and sculling compensation.
 %                0, is the default value (no compensation). Coning is the 
 %                error from integrating small rotational movements, while 
 %                sculling is the error from combining rotational movements 
 %                with linear accelerations during integration. The effects
 %                are small when using high-rate measurements (1000 Hz).
+%                Compensation is important for slower update rates.
 %
 % Outputs:  
 %   quat[k+1]  - 4x1 vector representing the updated unit quaternion estimate
