@@ -25,7 +25,7 @@ function [quat, b_ars] = quatObserver( ...
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref)
 % 
 % The injection term is implemented using two reference vectors
-%   sigma = k1 * v1 x R'(q) * v01 + k2 * v2 x R'(q) * v02
+%   sigma = k1 * v1 x R'(quat) * v01 + k2 * v2 x R'(quat) * v02
 %
 % Continuous-time observer (Grip et al. 2013)(Fossen 2021, Eqs. 14.48-14.50)
 %   quat_dot = T(q) * (w_imu - b_ars - sigma)
