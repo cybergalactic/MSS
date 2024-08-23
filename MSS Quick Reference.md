@@ -204,6 +204,7 @@ vex                 % Computes a = vex(S(a)) where S is a skew-symmetric matrix
 
 ```matlab
 euler2              % Integrates a system of ordinary differential equations using Euler’s 2nd-order method
+expm_taylor         % Custom-made matrix exponential, which serves as exponential map for matrix Lie groups
 invQR               % Matrix inversion using QR factorization for improved numerical stability
 rk4                 % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
 ```
