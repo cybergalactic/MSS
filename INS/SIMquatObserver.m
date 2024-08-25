@@ -23,9 +23,9 @@
 % Revisions:
 
 %% USER INPUTS
-T_final = 200; % Final simulation time (s)
-f_s     = 500; % Sampling frequency equals high-rate inertial measurements (Hz)
-f_mag   = 100; % Magnetometer measurement frequency (Hz)
+T_final = 200;  % Final simulation time (s)
+f_s     = 1000; % Sampling frequency equals high-rate inertial measurements (Hz)
+f_mag   = 100;  % Magnetometer measurement frequency (Hz)
 
 % Observer gains
 k1 = 100; % Gain for specific force measurement vector
@@ -33,8 +33,8 @@ k2 = 100; % Gain for magnetic field measurement vector
 Ki = 0.1 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
 coningSculling = 0; % No compensation of coning and sculling
 
-% Magntic field and latitude for city #1, see magneticField.m
-[m_ref, l, mu, cityName] = magneticField(14);
+% Magntic field and latitude for city #15, see magneticField.m
+[m_ref, l, mu, cityName] = magneticField(15);
 
 % IMU biases
 b_ars = [0.05 0.1 -0.1]';
