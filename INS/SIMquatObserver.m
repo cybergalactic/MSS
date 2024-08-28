@@ -30,11 +30,11 @@ f_mag   = 100;  % Magnetometer measurement frequency (Hz)
 % Observer gains
 k1 = 100; % Gain for specific force measurement vector
 k2 = 100; % Gain for magnetic field measurement vector
-Ki = 0.1 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
+Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
 coningSculling = 0; % No compensation of coning and sculling
 
 % Magntic field and latitude for city #15, see magneticField.m
-[m_ref, l, mu, cityName] = magneticField(15);
+[m_ref, l, mu, cityName] = magneticField(1);
 
 % IMU biases
 b_ars = [0.05 0.1 -0.1]';
