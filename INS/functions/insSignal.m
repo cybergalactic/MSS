@@ -40,7 +40,7 @@ g_n = [0 0 gravity(mu)]'; % NED gravity vector for lattitude mu
 % True specific force: f[k] = a[k] - g
 f_true = @(t, g_n, x) [
     0.1 * sin(0.1 * t);  
-    0.1 * cos(0.1 * t);
+    0.01 * cos(0.1 * t);
     0.05 * sin(0.05 * t)] - Rzyx(x(10), x(11), x(12))' * g_n;
 
 % True angular rate: w[k]
