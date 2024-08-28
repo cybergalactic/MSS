@@ -69,7 +69,7 @@ omegaMax = vessel.motionRAO.w(end);  % Max frequency in RAO dataset
 
 %% MAIN LOOP
 t = 0:h:T_final+T_initialTransient-1;  % Time vector
-simdata = zeros(length(t),19);          % Pre-allocate table
+simdata = zeros(length(t),19);         % Pre-allocate table
 for i = 1:length(t)
 
     U = 5;                             % Time-varying ship speed (m/s)
@@ -90,9 +90,9 @@ figure(1); clf;
 startIndex = max(1, floor(T_initialTransient / h) + 1);
 t = t(startIndex:end) - t(startIndex);
 eta_WF = simdata(startIndex:end, 1:6);
-nu_WF = simdata(startIndex:end, 1:6);
-nudot_WF = simdata(startIndex:end, 1:6);
-waveElevation = simdata(startIndex:end, 7);
+nu_WF = simdata(startIndex:end, 7:12);
+nudot_WF = simdata(startIndex:end, 13:18);
+waveElevation = simdata(startIndex:end, 19);
 
 % Plot the wave spectrum
 subplot(211);
