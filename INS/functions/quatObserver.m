@@ -11,10 +11,10 @@ function [quat, b_ars] = quatObserver( ...
 % can operate at a slower rate (typically 100 Hz) compared to the high-rate 
 % specific force and ARS measurements (typically 1000 Hz). 
 %
-%   New 9-DOF measurements:
+%   9-DOF measurements:
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu', m_imu'])
-%   New 6-DOF measurements but no magnetometer measurements:
+%   6-DOF measurements (no magnetometer measurements):
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu'])
 % 
