@@ -1,0 +1,14 @@
+QUIC (Quick UDP Internet Connections) is often considered safer than UDP (User Datagram Protocol) for several reasons, primarily related to its design which incorporates features that address many of the limitations and security vulnerabilities inherent in traditional UDP. Here are some key points that highlight why QUIC is generally regarded as safer:
+
+- Built-in Encryption: QUIC integrates TLS (Transport Layer Security) encryption by default, which is not a built-in feature of standard UDP. This means that QUIC ensures encrypted communication, providing confidentiality, integrity, and authentication, whereas UDP alone does not provide any of these security features.
+
+- Connection Security: QUIC employs a secure connection establishment mechanism, similar to TLS 1.3. It combines the transport layer and cryptographic handshakes to reduce the potential for man-in-the-middle attacks, which can be a concern with UDP if additional 
+security layers are not implemented.
+
+- Improved Congestion Control: QUIC has advanced congestion control mechanisms that help in maintaining the stability and security of the network. While UDP does not inherently handle congestion and can lead to network issues, QUIC manages data flow and congestion, thereby promoting a more reliable transfer of data.
+
+- Protection Against DDoS Attacks: QUIC includes protections against certain types of DDoS (Distributed Denial of Service) attacks, such as those exploiting IP spoofing. It validates client addresses through its handshake process, which is not a feature of UDP.
+
+- Stateless Reset: QUIC has a stateless reset feature, which allows for a connection to be securely terminated without maintaining connection state. This is beneficial in situations where maintaining connection states could be exploited for resource exhaustion attacks.
+
+- Multiplexing Without Head-of-Line Blocking: QUIC allows multiple streams of data in a single connection without suffering from head-of-line blocking, a problem that can affect TCP security. This means that if one stream is attacked or becomes unreliable, other streams can continue unaffected.
