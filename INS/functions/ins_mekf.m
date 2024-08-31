@@ -8,17 +8,17 @@ function [x_ins, P_prd] = ins_mekf(...
 % the Multiplicative Error State Kalman Filter (MEKF) formulation, thus 
 % avoiding gimbal lock. 
 %
-% Usage scenarios are detailed in examples SIMaidedINSquat and ExINS_MEKF, 
+% Usage scenarios are detailed in examples SIMaidedINSquat and exINS_MEKF, 
 % demonstrating the implementation of the Kalman filter loop using the 
 % corrector-predictor representation:
 %
-%   - With new slow measurements:
+%   - With new slow position measurements:
 %      [x_ins,P_prd] = ins_mekf(...
 %         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos)
 %      [x_ins,P_prd] = ins_mekf(...
 %         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos, y_vel)
 %
-%   - Without new measurements (no aiding):
+%   - Without new position measurements (no aiding):
 %      [x_ins,P_prd] = ins_mekf(...
 %         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref)
 %
@@ -40,7 +40,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %   w_imu[k] : Angular rate measurements from the IMU.
 %   m_imu[k] : Magnetic field measurements from the IMU.
 %   m_ref    : Magentometer NED reference vector
-%             (m_ref = R' m_imu can be computed for phi = theta = psi = 0)
+%             (m_ref = Rzyx'*m_imu can be computed for phi = theta = psi = 0)
 %   y_psi[k] : Fast compass measurement (yaw angle).
 %   y_pos[k] : Slow position measurements aids the filter.
 %   y_vel[k] : (Optionally) Slow velocity measurements aids the filter.
@@ -59,6 +59,7 @@ function [x_ins, P_prd] = ins_mekf(...
 %   2020-11-29: Bugfix - removed magnetometer projection algorithms.
 %   2021-12-13: Improved numerical accuracy by replacing Euler's method 
 %               with exact discretization in the INS state propagation.
+%   2024-08-31: Sign correction for v10 and using invQR.m instead of inv.m
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -87,11 +88,11 @@ f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
 % NED normalized reference vectors
-v01 = [0 0 1]'; % Gravity reference vector
+v01 = [0 0 -1]'; % Gravity reference vector, f_z = [0 0 -g]' at rest
 v02 = m_ref / norm(m_ref); % Magnetic field reference vector
 
 % BODY-fixed normalized IMU measurements (forward-starboard-down)
-v1 = -f_imu / norm(f_imu); % Specific force measurement
+v1 =  f_imu / norm(f_imu); % Specific force measurement
 v2 =  m_imu / norm(m_imu); % Magnetic field measurement
 
 % Discrte-time ESKF matrices
@@ -101,7 +102,8 @@ A = [ O3 I3  O3            O3              O3
       O3 O3  O3           -Smtrx(w_ins)   -I3
       O3 O3  O3            O3             -(1/T_ars)*I3 ];
    
-Ad = eye(15) + h * A + 0.5 * (h * A)^2;
+% Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
+Ad = expm_taylor(A * h); 
 
 if (nargin == 11)
     Cd = [ I3 O3 O3 O3 O3               % NED positions 
@@ -128,7 +130,7 @@ if (nargin == 10)             % No aiding
 else                          % INS aiding 
     
     % KF gain: K[k]
-    K = P_prd * Cd' * inv(Cd * P_prd * Cd' + Rd); 
+    K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd); 
     IKC = eye(15) - K * Cd;
     
     % Estimation error: eps[k]
@@ -149,7 +151,7 @@ else                          % INS aiding
     
 	% Error quaternion (2 x Gibbs vector): delta_q_hat[k]
 	delta_a = delta_x_hat(10:12);
-	delta_q_hat = 1/sqrt(4 + delta_a' * delta_a) * [2 delta_a']';
+	delta_q_hat = 1 / sqrt(4 + delta_a' * delta_a) * [2 delta_a']';
     
     % INS reset: x_ins[k]
 	p_ins = p_ins + delta_x_hat(1:3);	         % Reset position
@@ -157,8 +159,8 @@ else                          % INS aiding
 	b_acc_ins = b_acc_ins + delta_x_hat(7:9);    % Reset ACC bias
 	b_ars_ins = b_ars_ins + delta_x_hat(13:15);  % Reset ARS bias
      
-    q_ins = quatprod(q_ins, delta_q_hat);   % Schur product    
-    q_ins = q_ins / norm(q_ins);            % Normalization       
+    q_ins = quatprod(q_ins, delta_q_hat);        % Schur product    
+    q_ins = q_ins / norm(q_ins);                 % Normalization       
     
 end
 
@@ -173,9 +175,9 @@ v_ins = v_ins + h * a_ins;                   % Exact discretization
 % q_ins[k+1] is computed using the matrix exponential, which serves as the 
 % exponential map for matrix Lie groups, ensuring an exact discretization 
 % of the quaternion differential equation: 
-%    quat_ins_dot = Tquat(w_imu - b_ars + sigma) * quat_ins
+%    q_ins_dot = Tquat(w_ins) * q_ins
 % You can replace the build-in Matlab function expm.m with the custom-made 
-% MSS function expm_taylor.m for this computation.
+% MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
 q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % Exact discretization
 q_ins = q_ins / norm(q_ins);                 % Normalization
 
