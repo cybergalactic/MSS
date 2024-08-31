@@ -28,7 +28,7 @@ function [quat, b_ars] = quatObserver( ...
 % Discrete-time observer using the matrix exponential, which serves as the 
 % exponential map for matrix Lie groups, ensuring an exact discretization 
 % of the quaternion differential equation: 
-%   quat = expm(Tquat(w_imu - b_ars + sigma) * h) * quat
+%   quat = expm( Tquat(w_imu - b_ars + sigma) * h ) * quat
 %   quat = quat / sqrt(quat' * quat)
 % 
 % Inputs:   
@@ -98,8 +98,8 @@ R_transposed = Rquat(quat)';
 f_imu = imu_meas(1:3)';
 w_imu = imu_meas(4:6)';
 
-v01 = [0 0 1]'; % Normalized gravity reference vector
-v1 = -f_imu / norm(f_imu); % Normalized specific force measurement
+v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+v1 = f_imu / norm(f_imu); % Normalized specific force measurement
 
 % Nonlinear injection terms
 sigma1 = k1 * cross(v1, R_transposed * v01) ;
@@ -116,20 +116,6 @@ if N == 9
     v02 = m_ref / norm(m_ref); % Normalized magnetic field reference vector
     v2 =  m_imu / norm(m_imu); % Normalized magnetic field measurement
 
-    % Make the observer robust to situations where the magnetic field
-    % vector is nearly aligned with gravity using a threhold value for
-    % vector projection
-    if abs(dot(v2, v1)) <= 0.9
-        % Projection of the vector x2 onto the plane orthogonal to x1
-        % is x2_projected = x2 - dot(x2, x1) * x1 whenever norm(x) = 1
-        v2 = v2 - dot(v2, v1) * v1;
-        v02 = v02 - dot(v02, v01) * v01;
-
-        % Normalize the projected vectors
-        v2 = v2 / norm(v2);
-        v02 = v02 / norm(v02);
-    end
-
     % Nonlinear injection term for magnetic field
     sigma2 = k2 * cross(v2, R_transposed * v02);
 end
@@ -142,7 +128,7 @@ sigma = sigma1 + sigma2;
 % exact discretization of the quaternion differential equation: 
 %   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
 % You can replace the build-in Matlab function expm.m with the custom-made 
-% MSS function expm_taylor.m for this computation.
+% MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
 
 % Angular velocity with bias compensation 'b_ars' and injection term 'sigma'
 w_estimated = w_imu - b_ars + sigma; 
