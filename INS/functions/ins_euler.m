@@ -2,23 +2,22 @@ function [x_ins, P_prd] = ins_euler(...
     x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, psi, y_pos, y_vel)
 % ins_euler is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter
-% (ESKF) specifically for Inertial Navigation Systems (INS) that are
-% aided by compass and positional data. Attitude is parametrized using the
-% 3-parameter Euler angle representation, which is singular for
-% theta = +- 90 deg. To avoid the singularity, use ins_mekf or ins_mekf_psi
-% instead.
+% (ESKF) specifically for Inertial Navigation Systems (INS) that are aided
+% by compass and positional data. Attitude is parametrized using the 3-parameter
+% Euler angle representation, which is singular for theta = +- 90 deg. To avoid 
+% the singularity, use ins_mekf or ins_mekf_psi. instead.
 %
-% Usage scenarios are detailed in examples SIMaidedINSeuler and ExINS_Euler,
+% Usage scenarios are detailed in examples SIMaidedINSeuler and exINS_Euler,
 % demonstrating the implementation of the Kalman filter loop using the
 % corrector-predictor representation:
 %
-%   - With new slow measurements:
+%   - With new slow position measurements:
 %       [x_ins,P_prd] = ins_euler(...
 %           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos)
 %       [x_ins,P_prd] = ins_euler(...
 %           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos, y_vel)
 %
-%   - Without new measurements (no aiding):
+%   - Without new positions measurements (no aiding):
 %       [x_ins,P_prd] = ins_euler(...
 %          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi)
 %
@@ -57,6 +56,7 @@ function [x_ins, P_prd] = ins_euler(...
 %               with exact discretization in the INS PVA propagation.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4 in the INS attitude dynamics.
+%   2024-08-31: Using invQR.m instead of inv.m
 
 % Bias time constants (user specified)
 T_acc = 1000;
@@ -78,42 +78,42 @@ O3 = zeros(3,3);
 I3 = eye(3);
 
 % Rotation matrix
-R = Rzyx(theta_ins(1),theta_ins(2),theta_ins(3));
+R = Rzyx(theta_ins(1), theta_ins(2), theta_ins(3));
 
 % Bias compensated IMU measurements
 f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
-% Normalized gravity vectors
-v01 = [0 0 1]';             % NED
-v1 = -f_ins/g;              % BODY
-v1 = v1 / sqrt( v1' * v1 );
+% Normalized specific force 
+v01 = [0 0 -1]';          % NED gravity reference vector, f_z = [0 0 -g]' at rest
+v1 = f_ins / norm(f_ins); % BODY specific force measurement
 
 % Discrete-time ESKF matrices
 A = [ O3 I3  O3            O3              O3
-    O3 O3 -R            -R*Smtrx(f_ins)  O3
-    O3 O3 -(1/T_acc)*I3  O3              O3
-    O3 O3  O3           -Smtrx(w_ins)   -I3
-    O3 O3  O3            O3             -(1/T_ars)*I3 ];
+      O3 O3 -R            -R*Smtrx(f_ins)  O3
+      O3 O3 -(1/T_acc)*I3  O3              O3
+      O3 O3  O3           -Smtrx(w_ins)   -I3
+      O3 O3  O3            O3             -(1/T_ars)*I3 ];
 
-Ad = eye(15) + h * A + 0.5 * (h * A)^2;
+% Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
+Ad = expm_taylor(A * h); 
 
 if (nargin == 10)
-    Cd = [ I3 O3 O3 O3 O3             % NED positions
-        O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
-        zeros(1,11) 1 zeros(1,3) ];   % Compass
+    Cd = [ I3 O3 O3 O3 O3                % NED positions
+           O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
+           zeros(1,11) 1 zeros(1,3) ];   % Compass
 else
     Cd = [ I3 O3 O3 O3 O3                % NED positions
-        O3 I3 O3 O3 O3                % NED velocities
-        O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
-        zeros(1,11) 1 zeros(1,3) ];   % Compass
+           O3 I3 O3 O3 O3                % NED velocities
+           O3 O3 O3 Smtrx(R'*v01) O3     % Gravity
+           zeros(1,11) 1 zeros(1,3)  ];  % Compass
 end
 
-Ed = h *[  O3 O3    O3 O3
-    -R  O3    O3 O3
-    O3 I3    O3 O3
-    O3 O3   -I3 O3
-    O3 O3    O3 I3  ];
+Ed = h *[ O3 O3    O3 O3
+         -R  O3    O3 O3
+          O3 I3    O3 O3
+          O3 O3   -I3 O3
+          O3 O3    O3 I3  ];
 
 %% Kalman filter algorithm
 if (nargin == 9)             % No aiding
@@ -123,7 +123,7 @@ if (nargin == 9)             % No aiding
 else                         % INS aiding
 
     % ESKF gain: K[k]
-    K = P_prd * Cd' * inv(Cd * P_prd * Cd' + Rd);
+    K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd);
     IKC = eye(15) - K * Cd;
 
     % Estimation error: eps[k]
@@ -160,12 +160,12 @@ p_ins = p_ins + h * v_ins + h^2/2 * a_ins;      % Exact discretization
 v_ins = v_ins + h * a_ins;                      % Exact discretization
 theta_ins = rk4(@attitudeDynamics , h, theta_ins, w_ins); % RK4
 
-% Euler's method (alternative)
-% theta_ins = theta_ins + h * Tzyx(theta_ins(1),theta_ins(2)) * w_ins;         
+% Euler's method, alternative to rk4
+% theta_ins = theta_ins + h * Tzyx(theta_ins(1), theta_ins(2)) * w_ins;         
 
 x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
 
-%% FUNCTIONS
+%% Attitude dynamics function
 function thetadot = attitudeDynamics(theta, w)
     % attitudeDynamics computes the time derivative of the Euler angles.
     thetadot = Tzyx(theta(1), theta(2)) * w;
