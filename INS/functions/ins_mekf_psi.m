@@ -12,13 +12,13 @@ function [x_ins, P_prd] = ins_mekf_psi(...
 % demonstrating the implementation of the Kalman filter loop using the 
 % corrector-predictor representation:
 %
-%   - With new slow measurements:
+%   - With new slow position measurements:
 %       [x_ins,P_prd] = ins_mekf_psi(...
 %          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos)
 %       [x_ins,P_prd] = ins_mekf_psi(...
 %          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi, y_pos, y_vel)
 %
-%   - Without new measurements (no aiding):
+%   - Without new position measurements (no aiding):
 %       [x_ins,P_prd] = ins_mekf_psi(...
 %          x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_psi)
 %
@@ -57,6 +57,7 @@ function [x_ins, P_prd] = ins_mekf_psi(...
 %               with exact discretization in the INS state propagation.
 %   2022-08-30: Use atan2 instead of atan to avoid jumps in the formula:
 %               eps_psi = ssa( y_psi - atan2(u_y, u_x) ); 
+%   2024-08-31: Sign correction for v10 and using invQR.m instead of inv.m
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -77,8 +78,8 @@ g_n = [0 0 g]';
 O3 = zeros(3,3);
 I3 = eye(3);
 
-% Reference vectors
-v01 = [0 0 1]';              % Gravity
+% NED normalized reference vector
+v01 = [0 0 -1]';  % Gravity reference vector, f_z = [0 0 -g]' at rest
 
 % Unit quaternion rotation matrix
 R = Rquat(q_ins);
@@ -94,7 +95,8 @@ A = [ O3 I3  O3            O3              O3
       O3 O3  O3           -Smtrx(w_ins)   -I3
       O3 O3  O3            O3             -(1/T_ars)*I3 ];
    
-Ad = eye(15) + h * A + 0.5 * (h * A)^2;
+% Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
+Ad = expm_taylor(A * h); 
 
 % Linearization of the compass measurement equation
 a = (2/q_ins(1)) * [q_ins(2) q_ins(3) q_ins(4)]';      % 2 x Gibbs vector
@@ -132,13 +134,13 @@ if (nargin == 9)               % No aiding
 else                           % INS aiding 
     
     % KF gain: K[k]
-    K = P_prd * Cd' * inv(Cd * P_prd * Cd' + Rd); 
+    K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd); 
     IKC = eye(15) - K * Cd;
     
-    % Estimation error: eps[k]
-    v1 = -f_ins/g;              % Gravity vector
-    v1 = v1 / sqrt( v1' * v1 );
+    % BODY-fixed normalized IMU measurements (forward-starboard-down)
+    v1 = f_ins / norm(f_ins);  % Specific force measurement
     
+    % Estimation error: eps[k]
     eps_pos = y_pos - p_ins;
     eps_g   = v1 - R' * v01; 
     
@@ -165,8 +167,8 @@ else                           % INS aiding
 	b_acc_ins = b_acc_ins + delta_x_hat(7:9);    % Reset ACC bias
 	b_ars_ins = b_ars_ins + delta_x_hat(13:15);  % Reset ARS bias
      
-    q_ins = quatprod(q_ins, delta_q_hat);   % Schur product    
-    q_ins = q_ins / sqrt(q_ins' * q_ins);   % Normalization       
+    q_ins = quatprod(q_ins, delta_q_hat);        % Schur product    
+    q_ins = q_ins / norm(q_ins);                 % Normalization       
     
 end
 
@@ -181,11 +183,11 @@ v_ins = v_ins + h * a_ins;                   % Exact discretization
 % q_ins[k+1] is computed using the matrix exponential, which serves as the 
 % exponential map for matrix Lie groups, ensuring an exact discretization 
 % of the quaternion differential equation: 
-%    quat_ins_dot = Tquat(w_imu - b_ars + sigma) * quat_ins
+%    q_ins_dot = Tquat(w_ins) * q_ins
 % You can replace the build-in Matlab function expm.m with the custom-made 
-% MSS function expm_taylor.m for this computation.
+% MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
 q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % Exact discretization
-q_ins = q_ins / sqrt(q_ins' * q_ins);        % Normalization
+q_ins = q_ins / norm(q_ins);                 % Normalization
 
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 
