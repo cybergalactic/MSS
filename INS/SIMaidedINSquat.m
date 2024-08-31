@@ -6,12 +6,12 @@ function SIMaidedINSquat()
 % by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
 % (Fossen, 2021, Chapter 14.4).  
 % 
-% The position measurement frequency f_pos can be chosen smaller 
-% or equal to the sampling frequency f_s, which is equal to the Inertial 
-% Measurement Unit (IMU) measurement frequency. The ratio between the 
-% frequencies must be an integer Z such that:
+% The position measurement frequency f_pos can be chosen smaller or equal to
+% sampling frequency f_s, which is equal to the Inertial Measurement Unit (IMU) 
+% measurement frequency. The ratio between the frequencies must be an integer 
+% Z such that:
 %
-%     Integer:       Z = f_s/f_pos >= 1 
+%     Integer:       Z = f_s / f_pos >= 1 
 %
 % Dependencies:
 %   ins_mekf_psi.m  - Feedback ESKF for INS aided by position measurements 
@@ -87,7 +87,7 @@ nTimeSteps = length(t);         % Number of time steps
 
 %% MAIN LOOP
 simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
-ydata = [0 x(1:3)'];            % Pre-allocate table for position measurements          % Table of position measurements
+ydata = zeros(nTimeSteps,4);    % Pre-allocate table for position measurements
 
 for i=1:nTimeSteps
     
@@ -100,23 +100,20 @@ for i=1:nTimeSteps
         
         y_pos = x(1:3) + 0.05 * randn(3,1);   % Position measurements
         y_vel = x(4:6) + 0.01 * randn(3,1);   % Optionally velocity meas.
-        ydata = [ydata; t(i), y_pos'];           % Store position measurements                  
+        ydata(i,:) = [t(i), y_pos'];          % Store position measurements                  
               
         if (velFlag == 1 && attitudeFlag == 2)
             % Position aiding + magnetometer
             [x_ins,P_prd] = ins_mekf(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref,y_pos);
-
         elseif (velFlag == 2 && attitudeFlag == 2)
             % Position/velocity aiding + magnetometer
             [x_ins,P_prd] = ins_mekf(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref,y_pos,y_vel);
-
         elseif (velFlag == 1 && attitudeFlag == 1)
             % Position aiding + compass
             [x_ins,P_prd] = ins_mekf_psi(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos);
-
         else
             % Position/velocity aiding + compass
             [x_ins,P_prd] = ins_mekf_psi(...
@@ -129,12 +126,10 @@ for i=1:nTimeSteps
             % Magnetometer
             [x_ins,P_prd] = ins_mekf(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref);
-
         else
             % Compass
             [x_ins,P_prd] = ins_mekf_psi(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);
-
         end
         
     end
