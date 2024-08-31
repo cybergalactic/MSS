@@ -11,13 +11,13 @@ function [x_ins, P_prd] = ins_ahrs( ...
 % demonstrating the implementation of the Kalman filter loop using the 
 % corrector-predictor representation:
 %
-%   - With new slow measurements:
+%   - With new slow position measurements:
 %       [x_ins,P_prd] = ins_ahrs(...
 %           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos)
 %       [x_ins,P_prd] = ins_ahrs(...
 %           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
 %
-%   - Without new measurements (no aiding):
+%   - Without new position measurements (no aiding):
 %       [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs)
 %
 % This function models the INS errors in a 15-dimensional state space, 
@@ -53,6 +53,7 @@ function [x_ins, P_prd] = ins_ahrs( ...
 % Revisions: 
 %   2021-12-21: Improved numerical accuracy by replacing Euler's method
 %               with exact discretization in the INS PVA propagation.
+%   2024-08-31: Using invQR.m instead of inv.m
 
 % Bias time constants (user specified)
 T_acc = 1000; 
@@ -87,7 +88,8 @@ A = [ O3 I3  O3           O3  O3
       O3 O3  O3           O3 -T
       O3 O3  O3           O3 -(1/T_ars)*I3 ];
    
-Ad = eye(15) + h * A + 0.5 * (h * A)^2;
+% Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
+Ad = expm_taylor(A * h); 
 
 if (nargin == 10)
     Cd = [ I3 O3 O3 O3 O3        % NED positions (x, y, z)
@@ -112,7 +114,7 @@ if (nargin == 9)             % No aiding
 else                         % INS aiding 
     
     % ESKF gain: K[k]
-    K = P_prd * Cd' * inv(Cd * P_prd * Cd' + Rd);
+    K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd);
     IKC = eye(15) - K * Cd;
     
     % Estimation error: eps[k]
