@@ -92,7 +92,7 @@ idx_start = 1;                   % Initial index for Hermite spline
 
 % Otter USV input matrix
 [~,~,M, B_prop] = otter();
-Binv = inv(B_prop);              % Invert input matrix for control allocation
+Binv = invQR(B_prop);            % Invert input matrix for control allocation
 
 % PID heading autopilot parameters (Nomoto model: M(6,6) = T/K)
 T = 1;                           % Nomoto time constant
