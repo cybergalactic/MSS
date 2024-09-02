@@ -10,7 +10,7 @@ function E = expm_squaresPade(A)
 %       to be computed.
 %
 % Outputs:
-%   E - The matrix exponential of A, computed using a Taylor series expansion.
+%   E - The matrix exponential of A.
 %
 % Example: Matrix exponential of A
 %   A = [0 1; -1 0];
@@ -18,11 +18,11 @@ function E = expm_squaresPade(A)
 %
 % Example: INS unit quaternion propagation:
 %   q_ins = expm_squaresPade( Tquat(w_ins) * h ) * q_ins; % Exact discretization
-%   q_ins = q_ins / sqrt(q_ins' * q_ins);                  % Normalization
+%   q_ins = q_ins / norm(q_ins);                          % Normalization
 %
 % Reference:
 %   C. Moler and C. V. Loan (2003). Nineteen Dubious Ways to Compute the 
-% Exponential of a Matrix, Twenty-Five Years Later. SIAM REVIEW, Vol. 45, No. 1.
+%   Exponential of a Matrix, Twenty-Five Years Later. SIAM REVIEW, Vol. 45, No. 1.
 %
 % Author: Thor I. Fossen
 % Date: 2024-08-28
@@ -32,7 +32,7 @@ function E = expm_squaresPade(A)
 normA = norm(A, 'inf');  % Calculate the infinity norm of A
 maxDegree = 6;  % Degree of the Pade approximant, known to be stable/efficient
 
-% Scaling: Find the smallest s such that ||A/2^s|| <= 1/2
+% Scaling: Find the smallest s such that || A/2^s || <= 1/2
 s = max(0, ceil(log2(normA)) + 1);
 A = A / 2^s;
 
