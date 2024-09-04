@@ -30,7 +30,7 @@ and the m-files can be listed by typing
 
     help VESSELS                            Marine craft models and time-series simulation templates (m-files)
 
-![SIMremus100.m](VESSELS/vesselSIMplots/SIMremus100.jpg)
+![SIMremus100.m](figs/SIMremus100.jpg)
 Figure 1. The user-editable script 'SIMremus100.m' is used to simulate the Remus 100 AUV ('remus100.m') during 3-D path following.
 
 Examples and demo files are located under the catalogs: 
