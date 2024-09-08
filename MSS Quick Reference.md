@@ -293,6 +293,7 @@ exHybridPath       % Computation of a hybrid continuous path parametrized by way
 exINS_AHRS         % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 exINS_Euler        % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
 exINS_MEKF         % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
+exIntWindup        % Demonstrates integrator windup and anti-windup when the control law is saturated.
 exKF               % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
 exKT               % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
 exLinspec          % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
