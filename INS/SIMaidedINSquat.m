@@ -5,13 +5,14 @@ function SIMaidedINSquat()
 % parametrized using unit quaternions and the error states are represented 
 % by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
 % (Fossen, 2021, Chapter 14.4).  
-% 
-% The position measurement frequency f_pos (typically 5 Hz) can be chosen smaller 
-% or equal to the sampling frequency f_s (typically 1000 Hz), which is equal to 
-% the Inertial Measurement Unit (IMU) measurement frequency. The ratio 
-% between the frequencies must be an integer Z such that:
 %
-%   Integer:          Z = f_s/f_pos >= 1, for instance Z = 1000 Hz/5 Hz = 200
+% The ESKF uses high-rate inertial measurements from a 9-DOF inertial measurement
+% unit (IMU). The ESKF can be called either as a corrector (with new measurements) 
+% or as a predictor (without new measurements). The high-rate IMU frequency is
+% equal to the sampling frequency f_s (typically 1000 Hz). Additionally, the 
+% magnetometer or compass can operate at a slower rate (typically 100 Hz). The 
+% position measurement frequency f_pos (typically 5 Hz) must be smaller or equal 
+% to the sampling frequency f_s. 
 %
 % Dependencies:
 %   ins_mekf_psi.m  - Feedback ESKF for INS aided by position measurements 
@@ -30,15 +31,19 @@ function SIMaidedINSquat()
 % Date: 2024-04-26
 % Revisions:
 %   2024-08-20 : Using the updated insSignal.m generator.
+%   2024-09-09 : Redesign for slower magnetometer measurements.
+clearvars;
 
 %% USER INPUTS
-T_final = 100;	  % Final simulation time (s)
-f_s    = 1000;    % Sampling frequency equals IMU measurement frequency (Hz)
-f_pos = 5;        % Position measurement frequency (Hz)
+T_final = 100; % Final simulation time (s)
+f_s    = 1000; % Sampling frequency, equal to the IMU measurement frequency (Hz)
+f_mag  = 100;  % Magnetometer measurement frequency (Hz)
+f_pos = 5;     % Position measurement frequency (Hz)
 
-% Sampling times
+% Sampling times in seconds
 h  = 1/f_s; 	
 h_pos = 1/f_pos; 
+h_mag = 1/f_mag;
 
 % Magntic field and latitude for city #1, see magneticField.m
 [m_ref, ~, mu, cityName] = magneticField(1);
@@ -56,24 +61,24 @@ x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';
 % Initialization of ESKF covariance matrix
 P_prd = eye(15);
 
-% Process noise weights: v, acc_bias, w, ars_bias
+% Process noise weights: vel, acc_bias, w, ars_bias
 Qd = diag([0.01 0.01 0.01 0.01 0.01 0.01 0.1 0.1 0.1 0.001 0.001 0.001]);
    
 if (velFlag == 1 && attitudeFlag == 2)
     % Position aiding + magnetometer
-    Rd = diag([1 1 1  1 1 1 0.01 0.01 0.01]);  % p, acc, mag
+    Rd = diag([1 1 1  1 1 1 0.01 0.01 0.01]);  % pos, acc, mag
 elseif  (velFlag == 2 && attitudeFlag == 2)
     % Position/velocity aiding + magnetometer
-    Rd = diag([1 1 1  0.1 0.1 0.1  1 1 1  0.01 0.01 0.01]);  % p, v, acc, mag
+    Rd = diag([1 1 1  0.1 0.1 0.1  1 1 1  0.01 0.01 0.01]); % pos, vel, acc, mag
 elseif (velFlag == 1 && attitudeFlag == 1)
     % Position aiding + compass
-    Rd = diag([1 1 1  1 1 1  0.001]);  % p, acc, psi
+    Rd = diag([1 1 1  1 1 1  0.001]);  % pos, acc, psi
 else
     % Position/velocity aiding + compass
-    Rd = diag([1 1 1  1 1 1  1 1 1  0.001]);  % p, vel, acc, psi
+    Rd = diag([1 1 1  1 1 1  1 1 1  0.001]); % pos, vel, acc, psi
 end
 
-% Initialization of INS states
+% Initialization of the INS states
 p_ins = [0 0 0]'; 
 v_ins = [0 0 0]';
 b_acc_ins = [0 0 0]';
@@ -93,7 +98,15 @@ for i=1:nTimeSteps
     
     % INS signal generator 
     [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref);
-    y_psi = x(12);
+   
+     % IMU magnetometer and compass measurements are slower than the sampling time
+    if mod( t(i), h_mag ) == 0
+        imu_meas = [f_imu' w_imu' m_imu']; % 9-DOF IMU measurements
+        y_psi = x(12); % Compass measurement
+    else 
+        imu_meas = [f_imu' w_imu']; % No magnetometer measurements
+        y_psi = []; % No compass measurement
+    end
     
     % Position measurements are slower than the sampling time
     if mod( t(i), h_pos ) == 0
@@ -105,11 +118,11 @@ for i=1:nTimeSteps
         if (velFlag == 1 && attitudeFlag == 2)
             % Position aiding + magnetometer
             [x_ins,P_prd] = ins_mekf(...
-                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref,y_pos);
+                x_ins,P_prd,mu,h,Qd,Rd,imu_meas,m_ref,y_pos);
         elseif (velFlag == 2 && attitudeFlag == 2)
             % Position/velocity aiding + magnetometer
             [x_ins,P_prd] = ins_mekf(...
-                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref,y_pos,y_vel);
+                x_ins,P_prd,mu,h,Qd,Rd,imu_meas,m_ref,y_pos,y_vel);
         elseif (velFlag == 1 && attitudeFlag == 1)
             % Position aiding + compass
             [x_ins,P_prd] = ins_mekf_psi(...
@@ -125,7 +138,7 @@ for i=1:nTimeSteps
         if (attitudeFlag == 2)
             % Magnetometer
             [x_ins,P_prd] = ins_mekf(...
-                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,m_imu,m_ref);
+                x_ins,P_prd,mu,h,Qd,Rd,[f_imu',w_imu',m_imu'],m_ref);
         else
             % Compass
             [x_ins,P_prd] = ins_mekf_psi(...
@@ -152,7 +165,7 @@ for i = 1:length(t)
 end
 Theta = [phi theta psi];
 
-t_m = ydata(:,1);              % Slow position measurements
+t_m = ydata(:,1); % Slow position measurements
 y_m = ydata(:,2:4);
 
 figure(1); 
@@ -250,11 +263,11 @@ function [attitudeFlag, velFlag] = displayMethod(cityName)
     else
         disp(['INS aided by position and velocity at ',num2str(f_pos),' Hz']);
     end
-    disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
+    disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
     if (attitudeFlag == 2)
-        disp(['Magnetometer measurements at ',num2str(f_s), ' Hz']);
+        disp(['IMU magnetometer measurements at ',num2str(f_mag), ' Hz']);
     else
-        disp(['Compass measurements at ',num2str(f_s), ' Hz']);
+        disp(['Compass measurements at ',num2str(f_mag), ' Hz']);
     end
     disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
     disp('-------------------------------------------------------------------');
