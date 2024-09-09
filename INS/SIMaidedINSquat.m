@@ -6,12 +6,12 @@ function SIMaidedINSquat()
 % by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
 % (Fossen, 2021, Chapter 14.4).  
 % 
-% The position measurement frequency f_pos can be chosen smaller or equal to
-% sampling frequency f_s, which is equal to the Inertial Measurement Unit (IMU) 
-% measurement frequency. The ratio between the frequencies must be an integer 
-% Z such that:
+% The position measurement frequency f_pos (typically 5 Hz) can be chosen smaller 
+% or equal to the sampling frequency f_s (typically 1000 Hz), which is equal to 
+% the Inertial Measurement Unit (IMU) measurement frequency. The ratio 
+% between the frequencies must be an integer Z such that:
 %
-%     Integer:       Z = f_s / f_pos >= 1 
+%   Integer:          Z = f_s/f_pos >= 1, for instance Z = 1000 Hz/5 Hz = 200
 %
 % Dependencies:
 %   ins_mekf_psi.m  - Feedback ESKF for INS aided by position measurements 
@@ -32,12 +32,12 @@ function SIMaidedINSquat()
 %   2024-08-20 : Using the updated insSignal.m generator.
 
 %% USER INPUTS
-T_final = 200;	  % Final simulation time (s)
-f_s    = 100;     % Sampling frequency (Hz)
-f_pos = 1;        % Position measurement frequency (Hz)
+T_final = 100;	  % Final simulation time (s)
+f_s    = 1000;    % Sampling frequency equals IMU measurement frequency (Hz)
+f_pos = 5;        % Position measurement frequency (Hz)
 
 % Sampling times
-h  = 1/f_s; 	 
+h  = 1/f_s; 	
 h_pos = 1/f_pos; 
 
 % Magntic field and latitude for city #1, see magneticField.m
@@ -67,10 +67,10 @@ elseif  (velFlag == 2 && attitudeFlag == 2)
     Rd = diag([1 1 1  0.1 0.1 0.1  1 1 1  0.01 0.01 0.01]);  % p, v, acc, mag
 elseif (velFlag == 1 && attitudeFlag == 1)
     % Position aiding + compass
-    Rd = diag([1 1 1  1 1 1  0.01]);  % p, acc, psi
+    Rd = diag([1 1 1  1 1 1  0.001]);  % p, acc, psi
 else
     % Position/velocity aiding + compass
-    Rd = diag([1 1 1  1 1 1  1 1 1  0.01]);  % p, vel, acc, psi
+    Rd = diag([1 1 1  1 1 1  1 1 1  0.001]);  % p, vel, acc, psi
 end
 
 % Initialization of INS states
@@ -213,11 +213,13 @@ function [attitudeFlag, velFlag] = displayMethod(cityName)
     bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.65 0.96 0.3], 'Title', 'Compass Aiding','FontSize',14,'FontWeight','bold');
     radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Compass', 'Position', [10 40 500 30], 'Tag', '1');
     radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Magnetometer', 'Position', [10 10 500 30], 'Tag', '2');
+    set(radio2, 'Value', 1); % Set default value
 
     % Add button group for velocity aiding options
     bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.35 0.96 0.3], 'Title', 'Velocity Aiding','FontSize',14,'FontWeight','bold');
     radio3 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'No Velocity Aiding', 'Position', [10 35 500 30], 'Tag', '1');
     radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Velocity Aiding', 'Position', [10 5 500 30], 'Tag', '2');
+    set(radio3, 'Value', 1); % Set default value
 
     % Add OK button to confirm selections
     uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 13, 'Position', [20 30 100 40], 'Callback', @(src, evt) uiresume(f));
@@ -250,9 +252,9 @@ function [attitudeFlag, velFlag] = displayMethod(cityName)
     end
     disp(['IMU measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
     if (attitudeFlag == 2)
-        disp(['MAGNETOMETER measurements at ',num2str(f_s), ' Hz']);
+        disp(['Magnetometer measurements at ',num2str(f_s), ' Hz']);
     else
-        disp(['COMPASS measurements at ',num2str(f_s), ' Hz']);
+        disp(['Compass measurements at ',num2str(f_s), ' Hz']);
     end
     disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
     disp('-------------------------------------------------------------------');
