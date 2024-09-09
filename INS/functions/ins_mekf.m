@@ -1,26 +1,26 @@
 function [x_ins, P_prd] = ins_mekf(...
-   x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos, y_vel)
+   x_ins, P_prd, mu, h, Qd, Rd, imu_meas, m_ref, y_pos, y_vel)
 % ins_mekf is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
-% (ESKF) specifically for Inertial Navigation Systems (INS) that are 
-% aided by magnetometer and positional data. Attitude is parametrized using 
-% the 4-parameter unit quaternion representation and the Gibbs vector in 
-% the Multiplicative Error State Kalman Filter (MEKF) formulation, thus 
-% avoiding gimbal lock. 
+% (ESKF) specifically for Inertial Navigation Systems (INS) that are aided
+% by magnetometer and positional data. Attitude is parametrized using the
+% 4-parameter unit quaternion representation and the Gibbs vector in the
+% Multiplicative Error State Kalman Filter (MEKF) formulation, thus avoiding
+% gimbal lock. 
 %
-% Usage scenarios are detailed in examples SIMaidedINSquat and exINS_MEKF, 
-% demonstrating the implementation of the Kalman filter loop using the 
-% corrector-predictor representation:
+% Usage scenarios are detailed in SIMaidedINSquat.m demonstrating the 
+% implementation of the Kalman filter loop using the corrector-predictor 
+% representation:
 %
 %   - With new slow position measurements:
 %      [x_ins,P_prd] = ins_mekf(...
-%         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos)
+%         x_ins, P_prd, mu, h, Qd, Rd, imu_meas, m_ref, y_pos)
 %      [x_ins,P_prd] = ins_mekf(...
-%         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref, y_pos, y_vel)
+%         x_ins, P_prd, mu, h, Qd, Rd, imu_meas, m_ref, y_pos, y_vel)
 %
 %   - Without new position measurements (no aiding):
 %      [x_ins,P_prd] = ins_mekf(...
-%         x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, m_imu, m_ref)
+%         x_ins, P_prd, mu, h, Qd, Rd, imu_meas, m_ref)
 %
 % This function models the INS errors in a 15-dimensional state space, 
 % including position, velocity, biases, and attitude errors:
@@ -36,12 +36,16 @@ function [x_ins, P_prd] = ins_mekf(...
 %   h        : Sampling time in seconds.
 %   Qd, Rd   : Process and measurement noise covariance matrices for the 
 %              Kalman filter.
-%   f_imu[k] : Specific force measurements from the IMU.
-%   w_imu[k] : Angular rate measurements from the IMU.
-%   m_imu[k] : Magnetic field measurements from the IMU.
+%  imu_meas[k] = [f_imu', w_imu', m_imu'] is 1x9 vector with components
+%               [fx, fy, fz, wx, wy, wz, mx, my, mz]. More specific, 
+%               f_imu[k] is a 3x1 vector representing the IMU specific force 
+%               measurements, w_imu[k] is a 3x1 vector representing the IMU 
+%               angular velocity measurements, and m_imu[k] is a 3x1 vector 
+%               representing the IMU magnetic field measurements. The IMU 
+%               axes are assumed to be oriented forward-starboard-down.
 %   m_ref    : Magentometer NED reference vector
 %             (m_ref = Rzyx'*m_imu can be computed for phi = theta = psi = 0)
-%   y_psi[k] : Fast compass measurement (yaw angle).
+%   y_psi[k] : Compass measurement (yaw angle).
 %   y_pos[k] : Slow position measurements aids the filter.
 %   y_vel[k] : (Optionally) Slow velocity measurements aids the filter.
 %
@@ -56,13 +60,14 @@ function [x_ins, P_prd] = ins_mekf(...
 % Author: Thor I. Fossen
 % Date: 2020-04-26
 % Revisions: 
-%   2020-11-29: Bugfix - removed magnetometer projection algorithms.
-%   2021-12-13: Improved numerical accuracy by replacing Euler's method 
-%               with exact discretization in the INS state propagation.
-%   2024-08-31: Sign correction for v10 and using invQR.m instead of inv.m
+%   2020-11-29 : Bugfix - removed magnetometer projection algorithms.
+%   2021-12-13 : Improved numerical accuracy by replacing Euler's method 
+%                with exact discretization in the INS state propagation.
+%   2024-08-31 : Sign correction for v10 and using invQR.m instead of inv.m
+%   2024-09-09 : Redesign for slower magnetometer measurements
 
 % Bias time constants (user specified)
-T_acc = 1000; 
+T_acc = 500; 
 T_ars = 500; 
 
 %% ESKF states and matrices
@@ -83,17 +88,16 @@ I3 = eye(3);
 % Unit quaternion rotation matrix
 R = Rquat(q_ins);
 
+% High-rate IMU specific force and ARS measurements: f_imu[k] and w_imu[k]
+f_imu = imu_meas(1:3)';
+w_imu = imu_meas(4:6)';
+
 % Bias compensated IMU measurements
 f_ins = f_imu - b_acc_ins;
 w_ins = w_imu - b_ars_ins;
 
-% NED normalized reference vectors
-v01 = [0 0 -1]'; % Gravity reference vector, f_z = [0 0 -g]' at rest
-v02 = m_ref / norm(m_ref); % Magnetic field reference vector
-
-% BODY-fixed normalized IMU measurements (forward-starboard-down)
-v1 =  f_imu / norm(f_imu); % Specific force measurement
-v2 =  m_imu / norm(m_imu); % Magnetic field measurement
+v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+v1 = f_imu / norm(f_imu); % Normalized specific force measurement
 
 % Discrte-time ESKF matrices
 A = [ O3 I3  O3            O3              O3
@@ -105,15 +109,24 @@ A = [ O3 I3  O3            O3              O3
 % Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
 Ad = expm_taylor(A * h); 
 
-if (nargin == 11)
+if (nargin == 9)
+    % No velocity measurements
     Cd = [ I3 O3 O3 O3 O3               % NED positions 
-           O3 O3 O3 Smtrx(R'*v01) O3    % Gravity           
-           O3 O3 O3 Smtrx(R'*v02) O3 ]; % Magnetic field
+           O3 O3 O3 Smtrx(R'*v01) O3];  % Gravity           
 else
+    % Velocity measurements
     Cd = [ I3 O3 O3 O3 O3               % NED positions 
            O3 I3 O3 O3 O3               % NED velocities 
-           O3 O3 O3 Smtrx(R'*v01) O3    % Gravity          
-           O3 O3 O3 Smtrx(R'*v02) O3 ]; % Magnetic field
+           O3 O3 O3 Smtrx(R'*v01) O3 ]; % Gravity          
+end
+
+% Magnetic field IMU measurements: m_imu[k]
+if length(imu_meas) == 9
+    m_imu = imu_meas(7:9)';
+    v2 =  m_imu / norm(m_imu); % BODY-fixed magnetic field measurement
+    v02 = m_ref / norm(m_ref); % NED magnetic field reference vector
+    Cd = [ Cd
+           O3 O3 O3 Smtrx(R'*v02) O3 ]; % Augment the compass measurement to Cd
 end
 
 Ed = h *[  O3 O3    O3 O3
@@ -123,26 +136,30 @@ Ed = h *[  O3 O3    O3 O3
            O3 O3    O3 I3  ];
 
 %% Kalman filter algorithm       
-if (nargin == 10)             % No aiding
-    
-    P_hat = P_prd;
-    
-else                          % INS aiding 
-    
+if (nargin == 8)              % No position and velocity aiding
+    P_hat = P_prd;  
+else                          % Aiding 
     % KF gain: K[k]
     K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd); 
     IKC = eye(15) - K * Cd;
     
-    % Estimation error: eps[k]
+    % Estimation errors (injection terms)
     eps_pos = y_pos - p_ins;
-    eps_g   = v1 - R' * v01; 
-    eps_mag = v2 - R' * v02;    
+    eps_g   = v1 - R' * v01;    
     
-    if (nargin == 11)
-        eps = [eps_pos; eps_g; eps_mag];
+    if (nargin == 9)
+        % No velocity measurements
+        eps = [eps_pos; eps_g];
     else
+        % Velocity measurements
         eps_vel = y_vel - v_ins;
-        eps = [eps_pos; eps_vel; eps_g; eps_mag];        
+        eps = [eps_pos; eps_vel; eps_g];        
+    end
+
+    if length(imu_meas) == 9
+        % Magnetic field IMU measurements
+        eps_mag = v2 - R' * v02;  
+        eps = [eps; eps_mag];
     end
     
     % Corrector: delta_x_hat[k] and P_hat[k]
@@ -160,8 +177,7 @@ else                          % INS aiding
 	b_ars_ins = b_ars_ins + delta_x_hat(13:15);  % Reset ARS bias
      
     q_ins = quatprod(q_ins, delta_q_hat);        % Schur product    
-    q_ins = q_ins / norm(q_ins);                 % Normalization       
-    
+    q_ins = q_ins / norm(q_ins);                 % Normalization           
 end
 
 % Predictor: P_prd[k+1]
@@ -177,7 +193,7 @@ v_ins = v_ins + h * a_ins;                   % Exact discretization
 % of the quaternion differential equation: 
 %    q_ins_dot = Tquat(w_ins) * q_ins
 % You can replace the build-in Matlab function expm.m with the custom-made 
-% MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
+% MSS function expm_squaresPade.m for this computation.
 q_ins = expm( Tquat(w_ins) * h ) * q_ins;    % Exact discretization
 q_ins = q_ins / norm(q_ins);                 % Normalization
 
