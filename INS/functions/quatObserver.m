@@ -105,11 +105,8 @@ v1 = f_imu / norm(f_imu); % Normalized specific force measurement
 sigma1 = k1 * cross(v1, R_transposed * v01) ;
 sigma2 = zeros(3,1);
 
-% If new magnetometer measurements: [f_imu' w_imu' m_imu'] has 9 columns
-% The IMU axes are oriented forward-starboard-down
-[~, N] = size(imu_meas);
-if N == 9
-
+% If new magnetometer measurements: [f_imu' w_imu' m_imu'] has dimension 9
+if length(imu_meas) == 9
     % Magnetic field IMU measurements: m_imu[k]
     m_imu = imu_meas(7:9)';
 
