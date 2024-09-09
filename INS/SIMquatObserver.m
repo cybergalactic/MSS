@@ -23,9 +23,13 @@
 % Revisions:
 
 %% USER INPUTS
-T_final = 200;  % Final simulation time (s)
-f_s     = 1000; % Sampling frequency equals high-rate inertial measurements (Hz)
-f_mag   = 100;  % Magnetometer measurement frequency (Hz)
+T_final = 200; % Final simulation time (s)
+f_s = 1000;    % Sampling frequency, equal to the IMU measurement frequency (Hz)
+f_mag = 100;   % Magnetometer measurement frequency (Hz)
+
+% Sampling times in seconds
+h  = 1/f_s; 	 
+h_mag = 1/f_mag;
 
 % Observer gains
 k1 = 100; % Gain for specific force measurement vector
@@ -45,10 +49,6 @@ x = [zeros(1,6) zeros(1,3) zeros(1,3) b_ars']';
 % Initialization of observer states
 quat_prd = [1 0 0 0]'; 
 b_ars_prd = [0 0 0]';
-
-% Sampling times
-h  = 1/f_s; 	 
-h_mag = 1/f_mag;
 
 % Time vector initialization
 t = 0:h:T_final;                % Time vector from 0 to T_final          
@@ -79,7 +79,7 @@ for i=1:nTimeSteps
     psi = x(12);
     b_ars = x(13:15);
 
-    % IMU measurements are slower than the sampling time
+    % IMU magnetometer easurements are slower than the sampling time
     if mod( t(i), h_mag ) == 0
         imu_meas = [f_imu' w_imu' m_imu'];
     else  % No magnetometer measurement
