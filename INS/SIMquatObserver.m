@@ -1,9 +1,12 @@
 % SIMquatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
-% This script simulates an Inertial Navigation System (INS) aided by position 
-% measurements using the Error-State Kalman Filter (ESKF). The attitude is 
-% parametrized using unit quaternions and the error states are represented 
-% by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
-% (Fossen, 2021, Chapter 14.4).  
+% This script simulates the nonlinear quaternion-based attitude observer of  
+% Mahony et al. (2008) using the vector-cross product representation of Grip 
+% et al. (2013) with attitude-rate sensor (ARS) bias estimation. The observer 
+% uses high-rate inertial measurements from a 9-DOF inertial measurement unit 
+% (IMU). The observer can be called either as a corrector (with new 
+% measurements) or as a predictor (without new measurements). Additionally, 
+% the magnetometer can operate at a slower rate (typically 100 Hz) compared to 
+% the high-rate specific force and ARS measurements (typically 1000 Hz). 
 %
 % Dependencies:
 %   quatObserver.m  - Nonlinear attiitude observer using reference vectors
@@ -15,6 +18,9 @@
 %       Quaternion-Based Attitude Estimation. American Control Conference, 
 %       Washington DC, USA, IEEE Xplore, pp. 272-279. 
 %       doi.org/10.1109/ACC.2013.6579849
+%  R. Mahony, T. Hamel and J.-M. Pflimlin (2008). Nonlinear Complementary 
+%       Filters on the Special Orthogonal Group. IEEE Trans. on Aut. Control 53(5)
+%
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. 2nd Edition, Wiley.
 %
