@@ -43,7 +43,7 @@ k2 = 100; % Gain for magnetic field measurement vector
 Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
 coningSculling = 0; % No compensation of coning and sculling
 
-% Magntic field and latitude for city #15, see magneticField.m
+% Magnetic field and latitude for city #15, see magneticField.m
 [m_ref, l, mu, cityName] = magneticField(1);
 
 % IMU biases
