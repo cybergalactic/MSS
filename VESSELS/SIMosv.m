@@ -1,4 +1,4 @@
-function SIMosv()
+%function SIMosv()
 % SIMosv is compatibel with MATLAB and incorporates dynamic and static 
 % optimization techniques for control allocation, though dynamic 
 % optimization is not supported in GNU Octave. The script simulates an 
@@ -65,8 +65,8 @@ ALLOC = 1;                   % 0 - Use constant azimuth angles
 alpha0 = deg2rad([-28; 28]); 
 
 % Define simulation parameters
-T_final = 300;	             % Final simulation time (s)
-h = 0.1;                     % Sampling time (s)
+T_final = 250;	             % Final simulation time (s)
+h = 0.05;                    % Sampling time (s)
 
 % Define DP setpoints
 x_ref = 0;                   % Reference North position in meters
@@ -102,9 +102,9 @@ u_old = [0, 0, 0, 0]'; % Initial propeller speeds
 
 % Initialize the nonlinear MIMO PID controller
 [~,~,M] = osv();             % OSV 6x6 mass matrix
-wn = 0.2 * diag([1 1 3]);    % Natural frequencies for PID tuning
+wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning
 zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning
-T_f = 50;                    % Time constant for the low-pass filter (s)
+T_f = 30;                    % Time constant for the low-pass filter (s)
 
 % Initialize state vectors for the simulation:
 eta = [5, 5, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
@@ -138,8 +138,8 @@ for i = 1:nTimeSteps
    end
 
    % Simulate sensor noise and disturbances
-   eta(1) = eta(1) + 0.01 * randn;   % Simulate noise in the North position
-   eta(2) = eta(2) + 0.01 * randn;   % Simulate noise in the East position
+   eta(1) = eta(1) + 0.0001 * randn;   % Simulate noise in the North position
+   eta(2) = eta(2) + 0.0001 * randn;   % Simulate noise in the East position
    eta(6) = eta(6) + 0.0001 * randn; % Simulate noise in the yaw angle
 
    % Control logic based on the elapsed simulation time
@@ -280,7 +280,7 @@ legend('\alpha_1','\alpha_2','Location',legendLocation)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-end
+%end
 
 %% FUNCTIONS FOR DYNAMIC OPTIMIZATION
 function [alpha_opt, u_opt, slack] = ...
@@ -347,7 +347,7 @@ s = x(7:9)';        % Slack variables: tau = T(alpha) * K_thr * u + s
 w1 = 1;             % Weight for squared u
 w2 = 100;           % Weight for squared slack variable s
 w3 = 1;             % Weight for squared change in alpha
-w4 = 1;             % Weight for squared change in u
+w4 = 0.1;           % Weight for squared change in u
 
 cost = w1 * norm(u)^2 ...
     + w2 * norm(s)^2 ...
@@ -359,21 +359,32 @@ end
 % Constraints
 function [c, ceq] = constraints(x, alpha_old, u_old, l_x, l_y, K_thr,tau,h)
 
-alpha = x(1:2)';     % azimuth angles
-u = x(3:6)';         % quadratic controls
-s = x(7:9)';         % slack variables: tau = T(alpha) * K_thr * u + s
+alpha = x(1:2)';     % Azimuth angles
+u = x(3:6)';         % Quadratic controls
+s = x(7:9)';         % Slack variables: tau = T(alpha) * K_thr * u + s
 
 % Maximum azimuth angle and pitch rates
-max_rate_alpha = 0.3;           % 0.3 rad/s = 17.2 deg/s
-max_rate_u = 0.3;               
+max_rate_alpha = 0.3;  % 0.3 rad/s = 17.2 deg/s
+max_rate_u = 0.1;               
 
-c(1) = abs( alpha(1) - alpha_old(1) ) / h - max_rate_alpha;
-c(2) = abs( alpha(2) - alpha_old(2) ) / h - max_rate_alpha;
+% Separate positive and negative constraints to avoid abs
+c(1) = ( alpha(1) - alpha_old(1) ) / h - max_rate_alpha; % Positive constraint for alpha(1)
+c(2) = -( alpha(1) - alpha_old(1) ) / h - max_rate_alpha; % Negative constraint for alpha(1)
 
-c(3) = abs( u(1) - u_old(1) ) / h - max_rate_u;
-c(4) = abs( u(2) - u_old(2) ) / h - max_rate_u;
-c(5) = abs( u(3) - u_old(3) ) / h - max_rate_u;
-c(6) = abs( u(4) - u_old(4) ) / h - max_rate_u;
+c(3) = ( alpha(2) - alpha_old(2) ) / h - max_rate_alpha; % Positive constraint for alpha(2)
+c(4) = -( alpha(2) - alpha_old(2) ) / h - max_rate_alpha; % Negative constraint for alpha(2)
+
+c(5) = ( u(1) - u_old(1) ) / h - max_rate_u; % Positive constraint for u(1)
+c(6) = -( u(1) - u_old(1) ) / h - max_rate_u; % Negative constraint for u(1)
+
+c(7) = ( u(2) - u_old(2) ) / h - max_rate_u; % Positive constraint for u(2)
+c(8) = -( u(2) - u_old(2) ) / h - max_rate_u; % Negative constraint for u(2)
+
+c(9) = ( u(3) - u_old(3) ) / h - max_rate_u; % Positive constraint for u(3)
+c(10) = -( u(3) - u_old(3) ) / h - max_rate_u; % Negative constraint for u(3)
+
+c(11) = ( u(4) - u_old(4) ) / h - max_rate_u; % Positive constraint for u(4)
+c(12) = -( u(4) - u_old(4) ) / h - max_rate_u; % Negative constraint for u(4)
 
 % Equality constraint
 T_alpha = thrConfig( {'T', 'T', alpha(1), alpha(2)}, l_x, l_y);
