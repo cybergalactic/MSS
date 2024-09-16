@@ -1,4 +1,4 @@
-%function SIMosv()
+function SIMosv()
 % SIMosv is compatibel with MATLAB and incorporates dynamic and static 
 % optimization techniques for control allocation, though dynamic 
 % optimization is not supported in GNU Octave. The script simulates an 
@@ -280,7 +280,7 @@ legend('\alpha_1','\alpha_2','Location',legendLocation)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
-%end
+end
 
 %% FUNCTIONS FOR DYNAMIC OPTIMIZATION
 function [alpha_opt, u_opt, slack] = ...
