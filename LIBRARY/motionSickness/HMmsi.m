@@ -3,8 +3,8 @@ function msi = HMmsi(a_z, w_e)
 % method of O'Hanlon and McCauley (1974).
 %
 % INPUTS; 
-%   a_z: Mean of absolute BODY-fixed vertical acceleration (m/s^2), i.e. 
-%        a_z = mean(abs(a_measured(:,1)))
+%   a_z: Mean of absolute vertical acceleration (m/s^2) expressed in NED, 
+%        i.e. a_z = mean(abs(a_measured(:,1)))
 %   w_e: Vector of enconter frequency (rad/s), see encounter.m.
 %
 % OUTPUTS:
