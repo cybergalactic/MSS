@@ -2,7 +2,8 @@ function [xdot,U] = tanker(x,ui)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot,U] = tanker(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta n ]'  for
-% a large tanker L = 304.8 m where
+% a the Esso 190,000-dwt tanker L = 304.8 m (Berlekom and Goddhard 1972, 
+% Appendix A) where
 %
 %   u:     surge velocity, must be positive (m/s) - design speed u = 8.23 m/s
 %   v:     sway velocity (m/s)
