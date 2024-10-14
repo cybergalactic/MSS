@@ -27,7 +27,7 @@ PD = 1.4;     % Pitch/diameter ratio (typically 0.5-2.5)
 AEAO = 0.65;  % Blade area ratio (ratio of expanded blade area to propeller disk area)
 z = 4;        % Number of propeller blades
 
-% Comput KT and KQ for advance velocites Ja
+% Compute KT and KQ for advance velocites Ja
 Ja = -0.5:0.01:1.8;
 for i = 1:length(Ja)
     [KT(i), KQ(i)] = wageningen(Ja(i),PD,AEAO,z);
