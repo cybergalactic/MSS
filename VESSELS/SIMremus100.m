@@ -126,7 +126,7 @@ phi_b = 0.1;                   % Boundary layer thickness
 
 if ControlFlag == 1% PID control parameters
     K_d = 0.5;                 % Derivative gain for PID controller
-    K_sigma = 0;               % Gain for SMC component in PID (inactive in PID mode)
+    K_sigma = 0;               % Gain for SMC (inactive when using PID)
 else                        
     % SMC control parameters
     K_d = 0;                   % Derivative gain inactive in SMC mode
@@ -267,7 +267,7 @@ for i = 1:nTimeSteps
    % Store simulation data in a table
    simdata(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
 
-    if (KinematicsFlag == 1)
+   if (KinematicsFlag == 1)
        % Euler angles x = [ u v w p q r x y z phi theta psi ]'
        x = rk4(@remus100, h, x, ui, Vc, betaVc, wc);  % RK4 method x(k+1)
    else
