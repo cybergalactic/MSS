@@ -26,7 +26,7 @@ function [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(...
 %   U                - Vessel speed (m/s)
 %   psi              - Vessel heading angle (radians)
 %   beta_wave        - Wave direction, 0 following sea, pi head sea (radians)
-%   numFreqIntervals - Number of frequency intervals (> 100)
+%   numFreqIntervals - Number of frequency intervals (> 50)
 %
 % OUTPUTS:
 %   eta_WF           - 6x1 WF position (6 DOF)
