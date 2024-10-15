@@ -24,7 +24,7 @@ load(which(matFile), 'vessel'); % Load vessel.forceRAO data structure
 disp(['Loaded the force RAO structure "vessel.forceRAO" (', matFile, ')'])
 
 % Simulation parameters
-h = 0.1;                        % Time step (s)
+h = 0.05;                       % Time step (s)
 T_final = 200;                  % Duration of the simulation (s)
 T_initialTransient = 20;        % Remove initial transient (s)
 
@@ -35,7 +35,7 @@ T_initialTransient = 20;        % Remove initial transient (s)
 
 % numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
 % numDirctions     - Number of wave directions in directional spectrum M(mu)
-numFreqIntervals = 100;         % Number of wave frequency intervals (>100)
+numFreqIntervals = 50;          % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
 % Sea state 
