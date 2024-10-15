@@ -19,7 +19,7 @@ function [tau_wave1, waveElevation] = waveForceRAO(...
 %   U                - Vessel speed (m/s)
 %   psi              - Vessel heading angle (radians)
 %   beta_wave        - Wave direction, 0 following sea, pi head sea (radians)
-%   numFreqIntervals - Number of frequency intervals (> 100)
+%   numFreqIntervals - Number of frequency intervals (> 50)
 %
 % OUTPUTS:
 %   tau_wave1        - 6x1 generalized 1st-order wave forces (6-DOF)
