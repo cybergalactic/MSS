@@ -52,6 +52,7 @@ function SIMosv()
 % Revisions:
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
+clear osv;              % Clear persistent vessel structure 'vessel'
 clear PIDnonlinearMIMO; % Clear persistent variables from previous sessions
 clearvars;              % Clear all other variables
 close all;              % Close all windows
@@ -74,17 +75,14 @@ y_ref = 0;                   % Reference East position in meters
 psi_ref = deg2rad(0);        % Reference yaw angle in radians
 eta_ref = [x_ref, y_ref, psi_ref]';  % Reference positions and heading
 
-% Vessel and environmental parameters
-L = 83;                      % Vessel length in meters
-B = 18;                      % Vessel beam in meters
-T = 5;                       % Vessel draft in meters
+% Environmental parameters
 Vc = 0.5;                    % Ocean current speed in meters/second
 betaVc = deg2rad(-140);      % Ocean current direction in radians
 
 % Thruster configuration parameters
 K_max = diag([300e3, 300e3, 655e3, 655e3]); % Max thrust for each propeller (N)
 n_max = [140, 140, 150, 150]';              % Max propeller speeds i(RPM)
-l_x = [37, 35, -L/2, -L/2];                 % X-coordinates of thrusters (m)
+l_x = [37, 35, -42, -42];                   % X-coordinates of thrusters (m)
 l_y = [0, 0, 7, -7];                        % Y-coordinates of thrusters (m)
 
 % Thruster configuration matrix
@@ -104,7 +102,7 @@ u_old = [0, 0, 0, 0]'; % Initial propeller speeds
 [~,~,M] = osv();             % OSV 6x6 mass matrix
 wn = 0.1 * diag([1 1 3]);    % Natural frequencies for PID tuning
 zeta = 1.0 * diag([1 1 1]);  % Damping ratios for PID tuning
-T_f = 30;                    % Time constant for the low-pass filter (s)
+T_f = 30;                    % Time constant for the setpoint low-pass filter (s)
 
 % Initialize state vectors for the simulation:
 eta = [5, 5, 0, deg2rad(5), deg2rad(2), 0]';  % Euler angles and positions
