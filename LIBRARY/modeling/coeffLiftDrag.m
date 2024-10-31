@@ -16,7 +16,7 @@ function [CL,CD] = coeffLiftDrag(b,S,CD_0,alpha,sigma,display)
 %
 % implying that for alpha = 0, CD(0) = CD_0 = CD_p and CL(0) = 0. For
 % high angles of attack the linear lift model can be blended with a
-% nonlinear model to describe stall
+% nonlinear model to describe stall:
 %
 %  CL(alpha) = (1-sigma) * CL_alpha * alpha + ...
 %              sigma     * 2 * sign(alpha) * sin(alpha)^2 * cos(alpha) 
@@ -24,46 +24,75 @@ function [CL,CD] = coeffLiftDrag(b,S,CD_0,alpha,sigma,display)
 % where 0 <= sigma <= 1 is a blending parameter. 
 %
 % Outputs:
-%  CL:      lift coefficient as a function of alpha   
-%  CD:      drag coefficient as a function of alpha   
+%  CL:      Lift coefficient as a function of alpha   
+%  CD:      Drag coefficient as a function of alpha   
 %
 % Inputs:
-%  b:       wing span (m)
-%  S:       wing area (m^2)
-%  CD_0:    parasitic drag (alpha = 0), typically 0.1-0.2 for a streamlined body
-%  alpha:   angle of attack, scalar or vector (rad)
-%  sigma:   blending parameter between 0 and 1, use sigma = 0 for linear lift 
-%  display: use 1 to plot CD and CL (optionally)
+%  b:       Wing span (m)
+%  S:       Wing area (m^2)
+%  CD_0:    Parasitic drag (alpha = 0), typically 0.1-0.2 for a streamlined body
+%  alpha:   Angle of attack, scalar or vector (rad)
+%  sigma:   Blending parameter between 0 and 1, use sigma = 0 for linear lift 
+%  display: Use 1 to plot CD and CL (optionally)
 %
 % Examples:
 %
 % Cylinder-shaped AUV with length L = 1.8, diameter D = 0.2 and CD_0 = 0.3:
-%    alpha = 0.1 * pi/180;
-%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.3, alpha, 0.2)
+%    b = L; 
+%    S = b * D;
+%    CD_0 = 0.1;
 %    alpha = (-5:1:80)*pi/180;
-%    [CL,CD] = coeffLiftDrag(0.2, 1.8*0.2, 0.3, alpha, 0.2, 1)
+%    [CL,CD] = coeffLiftDrag(b, S, CD_0, alpha, 0.2, 1)
 % 
 % Author:    Thor I. Fossen
-% Date:      25 April 2021 
+% Date:      2021-05-25 
+%   2024-10-31 Bug fixes and added plot for optimal alpha corresponding to max(CL/CD)
 
-e = 0.7;             % Oswald efficiency number
-AR = b^2/S;          % wing aspect ratio
+% Oswald efficiency number
+% 0.3-0.4 is typically values for a cylinder-shaped AUVs and torpedos
+% 0.5-0.7 is typically for streamlined AUVs such as the NPS AUV
+e = 0.3; 
 
-% linear lift
+% Wing aspect ratio
+AR = b^2/S; 
+
+% Linear lift
 CL_alpha = pi * AR / ( 1 + sqrt(1 + (AR/2)^2) );
-CL = CL_alpha * alpha;  
+CL_linear = CL_alpha * alpha;  
 
-% parasitic and induced drag
+% Nonlinear lift (blending function)
+CL = (1 - sigma) .* CL_linear + ...
+    sigma .* 2 .* sign(alpha) .* sin(alpha).^2 .* cos(alpha);
+
+% Parasitic and induced drag
 CD = CD_0 + CL.^2 / (pi * e * AR); 
 
-% nonlinear lift (blending function)
-CL = (1-sigma) .* CL + sigma .* 2 .* sign(alpha).*sin(alpha).^2.*cos(alpha);
-
-% optionally plot
+% Optionally plot
 if (nargin == 6 && display == 1)
     figure(gcf)
-    subplot(211),plot(alpha*180/pi,CD,'linewidth',2)
-    title('Drag coefficient CD(\alpha)'),xlabel('\alpha (deg)'),grid
-    subplot(212),plot(alpha*180/pi,CL,'linewidth',2)
-    title('Lift coefficient CL(\alpha)'),xlabel('\alpha (deg)'),grid
+    % Plot Drag Coefficient CD(alpha)
+    subplot(311), plot(rad2deg(alpha), CD, 'linewidth', 2)
+    title('Drag coefficient CD(\alpha)'), xlabel('\alpha (deg)'), grid
+    
+    % Plot Lift Coefficient CL(alpha)
+    subplot(312), plot(rad2deg(alpha), CL, 'linewidth', 2)
+    title('Lift coefficient CL(\alpha)'), xlabel('\alpha (deg)'), grid
+    
+    % Calculate and Plot Lift-to-Drag Ratio CL/CD
+    CL_CD = CL ./ CD;
+    
+    % Find the index of the maximum CL/CD
+    [max_CL_CD, idx_opt] = max(CL_CD);
+    alpha_opt = rad2deg(alpha(idx_opt)); 
+    
+    % Plot CL/CD with optimal alpha indication
+    subplot(313)
+    plot(rad2deg(alpha), CL_CD, 'linewidth', 2)
+    hold on
+    plot(alpha_opt, max_CL_CD, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r') 
+    title('Lift-to-Drag Ratio CL/CD(\alpha)')
+    xlabel('\alpha (deg)'), ylabel('CL/CD')
+    legend('CL/CD', ['Optimal \alpha = ', num2str(alpha_opt, '%.2f'), '°'])
+    grid on
+    hold off
 end
