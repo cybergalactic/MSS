@@ -217,6 +217,7 @@ rk4                 % Integrates a system of ordinary differential equations usi
 
 ```matlab
 SIMaidedINSeuler     % Simulate the ESKF for aided INS using Euler angles
+SIMaidedINSheave     % Simulate the ESKF for aided INS in heave using pressure measurements
 SIMaidedINSquat      % Simulate the ESKF for aided INS using unit quaternions (MEKF representation)
 SIMquatObserver      % Simulate the nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 ```
@@ -225,10 +226,11 @@ SIMquatObserver      % Simulate the nonlinear quaternion-based attitude observer
 
 ```matlab
 gravity              % Acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
-ins_ahrs             % Error-state Kalman filter (ESKF) for INS aided by position and AHRS measurements 
-ins_euler            % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
-ins_mekf             % Error-state Kalman filter (ESKF) for INS aided by position and magnetic field measurements
-ins_mekf_psi         % Error-state Kalman filter (ESKF) for INS aided by position and yaw angle measurements
+ins_ahrs             % Error-state Kalman filter (ESKF) for an INS aided by position and AHRS measurements 
+ins_euler            % Error-state Kalman filter (ESKF) for an INS aided by position and yaw angle measurements
+ins_heave            % Error-state Kalman filter (ESKF) for an INS (heave only) aided by pressure measurements
+ins_mekf             % Error-state Kalman filter (ESKF) for an INS aided by position and magnetic field measurements
+ins_mekf_psi         % Error-state Kalman filter (ESKF) for an INS aided by position and yaw angle measurements
 insSignal            % INS signal generator for testing of Kalman filters and observers
 magneticField        % NED magnetic field reference vectors 'm_ref' for different cities
 quatObserver         % Nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
