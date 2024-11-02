@@ -1,4 +1,4 @@
-%function SIMaidedINSheave()
+function SIMaidedINSheave()
 % SIMaidedINSheave is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates an Inertial Navigation System (INS) aided by pressure 
 % measurements using the Error-State Kalman Filter (ESKF). 
@@ -47,7 +47,8 @@ b_acc_ins = 0;
 x_ins = [z_ins v_z_ins b_acc_ins];
 
 % Initial values for signal generator
-[m_ref, ~, mu, ~] = magneticField(1); % Magntic field and latitude for city #1
+[m_ref, ~, mu,cityName] = magneticField(1); % Magntic field and latitude for city #1
+displayMethod(cityName);
 b_acc = [0.1 0.3 -0.1]'; % IMU biases
 b_ars = [0.05 0.1 -0.05]';
 x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial states 
@@ -92,7 +93,7 @@ for i=1:nTimeSteps
 end
 
 %% PLOTS         
-x     = simdata(:,1:3); % High-rate simulation data
+x     = simdata(:,1:3); % High-rate IMU data
 x_hat = simdata(:,4:6); 
 
 t_m = posdata(:,1); % Slow-rate position data
@@ -125,3 +126,15 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
+%% DISPLAY DATA
+function displayMethod(cityName)
+    disp('-------------------------------------------------------------------');
+    disp('MSS toolbox: Error-state Kalman filter (ESKF) for heave estimation');
+    disp(['INS aided by pressure measurements at ',num2str(f_pos), ' Hz']);
+    disp(['IMU measurements (specific force) at ',num2str(f_s),' Hz']);
+    disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
+    disp('-------------------------------------------------------------------');
+    disp('Simulating...');
+end
+
+end
