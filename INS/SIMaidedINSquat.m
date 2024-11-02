@@ -30,8 +30,8 @@ function SIMaidedINSquat()
 % Author: Thor I. Fossen
 % Date: 2024-04-26
 % Revisions:
-%   2024-08-20 : Using the updated insSignal.m generator.
-%   2024-09-09 : Redesign for slower magnetometer measurements.
+%   2024-08-20 : Using the updated insSignal.m generator
+%   2024-09-09 : New logic for slow position and magnetometer/compass measurements
 clearvars;
 
 %% USER INPUTS
@@ -45,11 +45,11 @@ h  = 1/f_s;
 h_pos = 1/f_pos; 
 h_mag = 1/f_mag;
 
-% Initial values for signal generator
+% Initialization of the INS signal generator
 [m_ref, ~, mu, cityName] = magneticField(1); % Magntic field and latitude for city #1
 b_acc = [0.1 0.3 -0.1]'; % IMU biases
 b_ars = [0.05 0.1 -0.05]';
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial values for signal generator
+x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial states for signal generator
 
 % Display simulation options
 [attitudeFlag, velFlag] = displayMethod(cityName);       
