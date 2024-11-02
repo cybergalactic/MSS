@@ -35,8 +35,10 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
 %   x_prd      : 3x1 Predicted state vector
 %   P_prd      : 3x3 Predicted covariance matrix
 
-persistent ins; % Clear the persistent data structure 'ins'
+persistent ins; % Persistent data structure 'ins'
 
+% Initialization of INS parameters. Compute the INS parameters only once
+% to avoid that the ESKF repeats the computation in the loop at each time step
 if isempty(ins)
     % Constants
     ins.g = 9.81; % Gravity in m/s^2
