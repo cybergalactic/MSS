@@ -45,18 +45,14 @@ h  = 1/f_s;
 h_pos = 1/f_pos; 
 h_mag = 1/f_mag;
 
-% Magntic field and latitude for city #1, see magneticField.m
-[m_ref, ~, mu, cityName] = magneticField(1);
+% Initial values for signal generator
+[m_ref, ~, mu, cityName] = magneticField(1); % Magntic field and latitude for city #1
+b_acc = [0.1 0.3 -0.1]'; % IMU biases
+b_ars = [0.05 0.1 -0.05]';
+x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial values for signal generator
 
 % Display simulation options
-[attitudeFlag, velFlag] = displayMethod(cityName);
- 
-% IMU biases
-b_acc = [0.1 0.3 -0.1]';
-b_ars = [0.05 0.1 -0.05]';
-   
-% Initial values for signal generator
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	        
+[attitudeFlag, velFlag] = displayMethod(cityName);       
 
 % Initialization of ESKF covariance matrix
 P_prd = eye(15);
@@ -66,13 +62,13 @@ Qd = diag([0.01 0.01 0.01 0.01 0.01 0.01 0.1 0.1 0.1 0.001 0.001 0.001]);
    
 if (velFlag == 1 && attitudeFlag == 2)
     % Position aiding + magnetometer
-    Rd = diag([1 1 1  1 1 1 0.01 0.01 0.01]);  % pos, acc, mag
+    Rd = diag([1 1 1  1 1 1 0.01 0.01 0.01]); % pos, acc, mag
 elseif  (velFlag == 2 && attitudeFlag == 2)
     % Position/velocity aiding + magnetometer
     Rd = diag([1 1 1  0.1 0.1 0.1  1 1 1  0.01 0.01 0.01]); % pos, vel, acc, mag
 elseif (velFlag == 1 && attitudeFlag == 1)
     % Position aiding + compass
-    Rd = diag([1 1 1  1 1 1  0.001]);  % pos, acc, psi
+    Rd = diag([1 1 1  1 1 1  0.001]); % pos, acc, psi
 else
     % Position/velocity aiding + compass
     Rd = diag([1 1 1  1 1 1  1 1 1  0.001]); % pos, vel, acc, psi
@@ -92,7 +88,8 @@ nTimeSteps = length(t);         % Number of time steps
 
 %% MAIN LOOP
 simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
-ydata = zeros(nTimeSteps,4);    % Pre-allocate table for position measurements
+posdata = zeros(floor(T_final * f_pos), 4); % Pre-allocate table for position data
+pos_index = 0; % Initialize index for posdata
 
 for i=1:nTimeSteps
     
@@ -110,10 +107,11 @@ for i=1:nTimeSteps
     
     % Position measurements are slower than the sampling time
     if mod( t(i), h_pos ) == 0
-        
-        y_pos = x(1:3) + 0.05 * randn(3,1);   % Position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1);   % Optionally velocity meas.
-        ydata(i,:) = [t(i), y_pos'];          % Store position measurements                  
+        % Aiding
+        pos_index = pos_index + 1; 
+        y_pos = x(1:3) + 0.05 * randn(3,1); % Position measurements
+        y_vel = x(4:6) + 0.01 * randn(3,1); % Optionally velocity meas.
+        posdata(pos_index, :) = [t(i), y_pos']; % Store position measurements                 
               
         if (velFlag == 1 && attitudeFlag == 2)
             % Position aiding + magnetometer
@@ -132,9 +130,8 @@ for i=1:nTimeSteps
             [x_ins,P_prd] = ins_mekf_psi(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos,y_vel);
         end
-        
-    else  % No aiding
-        
+    else  
+        % No aiding
         if (attitudeFlag == 2)
             % Magnetometer
             [x_ins,P_prd] = ins_mekf(...
@@ -143,8 +140,7 @@ for i=1:nTimeSteps
             % Compass
             [x_ins,P_prd] = ins_mekf_psi(...
                 x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);
-        end
-        
+        end       
     end
        
     % Store simulation data in a table (for testing)
@@ -165,8 +161,8 @@ for i = 1:length(t)
 end
 Theta = [phi theta psi];
 
-t_m = ydata(:,1); % Slow position measurements
-y_m = ydata(:,2:4);
+t_m = posdata(:,1); % Slow-rate position measurements
+y_m = posdata(:,2:4);
 
 figure(1); 
 if ~isoctave; set(gcf,'Position',[1,1,0.4*scrSz(3),scrSz(4)]); end
