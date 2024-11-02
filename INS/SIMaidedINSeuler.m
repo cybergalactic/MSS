@@ -36,11 +36,11 @@ f_pos = 5; % Position measurement frequency (Hz)
 h  = 1/f_s; 	 
 h_pos = 1/f_pos; 
 
-% Initial values for signal generator
+% Initialization of the INS signal generator
 [m_ref, ~,mu,cityName] = magneticField(1); % Magntic field and latitude for city #1
 b_acc = [0.1 0.3 -0.1]'; % IMU biases
 b_ars = [0.05 0.1 -0.05]';
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']'; % Initial values for signal generator        
+x = [zeros(1,6) b_acc' zeros(1,3) b_ars']'; % Initial states for signal generator        
 
 % Display simulation options
 [attitudeFlag, velFlag] = displayMethod(cityName);
