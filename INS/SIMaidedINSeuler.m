@@ -6,10 +6,7 @@ function SIMaidedINSeuler()
 % 
 % The position measurement frequency f_pos (typically 5 Hz) can be chosen smaller 
 % or equal to the sampling frequency f_s (typically 1000 Hz), which is equal to 
-% the Inertial Measurement Unit (IMU) measurement frequency. The ratio between 
-% the frequencies must be an integer Z such that:
-%
-%   Integer:          Z = f_s/f_pos >= 1, for instance Z = 1000 Hz/5 Hz = 200
+% the Inertial Measurement Unit (IMU) measurement frequency. 
 %
 % Dependencies:
 %   ins_euler.m     - Feedback ESKF for INS aided by position measurements 
@@ -28,55 +25,47 @@ function SIMaidedINSeuler()
 % Date: 2021-04-26
 % Revisions:
 %   2024-08-20 : Using the updated insSignal.m generator.
+%   2024-11-02 : Improved logic for slow position data
 
 %% USER INPUTS
-T_final = 100;	  % Final simulation time (s)
-f_s    = 1000;    % Sampling frequency equals IMU measurement frequency (Hz)
-f_pos = 5;        % Position measurement frequency (Hz)
+T_final = 100; % Final simulation time (s)
+f_s    = 1000; % Sampling frequency equals IMU measurement frequency (Hz)
+f_pos = 5; % Position measurement frequency (Hz)
 
 % Sampling times
 h  = 1/f_s; 	 
 h_pos = 1/f_pos; 
 
-% Magntic field and latitude for city #1, see magneticField.m
-[m_ref, ~, mu, cityName] = magneticField(1);
+% Initial values for signal generator
+[m_ref, ~,mu,cityName] = magneticField(1); % Magntic field and latitude for city #1
+b_acc = [0.1 0.3 -0.1]'; % IMU biases
+b_ars = [0.05 0.1 -0.05]';
+   x = [zeros(1,6) b_acc' zeros(1,3) b_ars']'; % Initial values for signal generator        
 
 % Display simulation options
 [attitudeFlag, velFlag] = displayMethod(cityName);
 
-% IMU biases
-b_acc = [0.1 0.3 -0.1]';
-b_ars = [0.05 0.1 -0.05]';
-   
-% Initial values for signal generator
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	        
-
 % Initialization of ESKF covariance matrix
 P_prd = eye(15);
 
-if (attitudeFlag == 1) % Compass
-    
+if (attitudeFlag == 1) % Compass    
     % Process noise weights: vel, acc_bias, w_nb, ars_bias
-    Qd = diag([0.1 0.1 0.1  0.001 0.001 0.001  0.1 0.1 0.1  0.001 0.001 0.001]);
-   
+    Qd = diag([0.1 0.1 0.1  0.001 0.001 0.001  0.1 0.1 0.1  0.001 0.001 0.001]);   
     if (velFlag == 1)
         % Position and compass aiding
-        Rd = diag([0.1 0.1 0.1  1 1 1  0.001]);   % pos, acc, compass
+        Rd = diag([0.1 0.1 0.1  1 1 1  0.001]); % pos, acc, compass
     else % velFlag == 2
         % Position/velocity aiding + compass
-        Rd = diag([1 1 1  1 1 1  1 1 1  0.001]);  % pos, vel, acc, psi
+        Rd = diag([1 1 1  1 1 1  1 1 1  0.001]); % pos, vel, acc, psi
     end
-
 else % attitudeFlag == 2 (AHRS)
-
     if (velFlag == 1) 
-       Rd = diag([1 1 1  1 1 1]);       % pos, euler_angles
+       Rd = diag([1 1 1  1 1 1]); % pos, euler_angles
        Qd = diag([1 1 1  1 1 1  10 10 10  0.01 0.01 0.01]);
     else 
-       Rd = diag([10 10 10 1 1 1 0.1 0.1 0.1]);  % pos, vel, euler_angles
+       Rd = diag([10 10 10 1 1 1 0.1 0.1 0.1]); % pos, vel, euler_angles
        Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]); 
     end
-
 end
 
 % Initialization of INS states
@@ -88,12 +77,14 @@ b_ars_ins = [0 0 0]';
 x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
 
 % Time vector initialization
-t = 0:h:T_final;                % Time vector from 0 to T_final          
-nTimeSteps = length(t);         % Number of time steps
+t_slow = 0; % Initialize the time for the next slow measurement
+t = 0:h:T_final; % Time vector from 0 to T_final          
+nTimeSteps = length(t); % Number of time steps
 
 %% MAIN LOOP
 simdata = zeros(nTimeSteps,30); % Pre-allocate table for simulation data
-ydata = zeros(nTimeSteps,4);    % Pre-allocate table for position measurements
+posdata = zeros(floor(T_final * f_pos), 4); % Pre-allocate table for position data
+pos_index = 0; % Initialize index for posdata
 
 for i=1:nTimeSteps
     
@@ -102,15 +93,15 @@ for i=1:nTimeSteps
     y_psi = x(12);
     y_ahrs = x(10:12);
     
-    % Position measurements are times slower than the sampling time
-    if mod( t(i), h_pos ) == 0
-
-        y_pos = x(1:3) + 0.05 * randn(3,1);   % Position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1);   % Optionally velocity meas.
-        ydata(i,:) = [t(i), y_pos'];          % Store position measurements 
+    % Positions measurements are slower than the sampling time
+    if t(i) > t_slow
+        % Aiding
+        pos_index = pos_index + 1; 
+        y_pos = x(1:3) + 0.05 * randn(3,1); % Position measurements
+        y_vel = x(4:6) + 0.01 * randn(3,1); % Optionally velocity meas.
+        posdata(pos_index, :) = [t(i), y_pos']; % Store position measurements 
 
         if (attitudeFlag == 1) % Compass
-
             if (velFlag == 1)
                 % Position aiding + compass aiding
                 [x_ins,P_prd] = ins_euler(...
@@ -120,9 +111,7 @@ for i=1:nTimeSteps
                 [x_ins,P_prd] = ins_euler(...
                     x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos,y_vel);
             end
-
         else % attitudeFlag == 2 (AHRS)
-
             if (velFlag == 1)
                 [x_ins,P_prd] = ins_ahrs(...
                     x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
@@ -130,11 +119,13 @@ for i=1:nTimeSteps
                 [x_ins,P_prd] = ins_ahrs(...
                     x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
             end
-
         end
+        
+        % Update the time for the next slow position measurement
+        t_slow = t_slow + h_pos; 
 
-    else  % No aiding
-
+    else  
+        % No aiding
         if (attitudeFlag == 1) 
             % Compass
             [x_ins,P_prd] = ins_euler(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);
@@ -142,7 +133,6 @@ for i=1:nTimeSteps
             % AHRS
             [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs);
         end
-
     end
 
     % Store simulation data in a table (for testing)
@@ -154,11 +144,11 @@ end
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 12;
          
-x     = simdata(:,1:15); 
+x     = simdata(:,1:15); % High-rate IMU data
 x_hat = simdata(:,16:30); 
 
-t_m = ydata(:,1);              % Slow position measurements
-y_m = ydata(:,2:4);
+t_m = posdata(:,1); % Slow-rate position measurements
+y_m = posdata(:,2:4);
 
 figure(1); 
 if ~isoctave;set(gcf,'Position',[1,1,0.4*scrSz(3),scrSz(4)]);end
