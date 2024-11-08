@@ -124,6 +124,7 @@ forceSurgeDamping   % Linear and quadratic damping forces in the surge direction
 crossFlowDrag 	    % Crossflow drag computed from strip theory integrals
 Dmtrx               % 6x6 linear damping matrix for marine craft (submerged and floating)
 Gmtrx               % 6x6 system spring stiffness matrix G
+GM_surfaced2submerged % GM_T and BM_T transition for an AUV diving from the surface to a given depth
 gvect               % 6x1 vector of restoring forces, Euler angles as input
 gRvect              % 6x1 vector of restoring forces, Euler angle, or unit quaternion rotation matrix as input
 imlay61             % 6x6 hydrodynamic added mass and Coriolis-centripetal matrices MA and CA for a prolate spheroid
@@ -291,6 +292,7 @@ exAUVhydrostatics  % Computation of the hydrostatic quantities for a cylinder-sh
 exBoxShapedShip    % Computation of the transverse metacentric height and the heave/roll periods of a box-shaped ship
 exFeedback         % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
 exFFT              % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
+exPlotGM           % Compute and plot the GM_T and BM_T for an AUV diving from the surface to a given depth
 exHybridPath       % Computation of a hybrid continuous path parametrized by waypoints
 exINS_AHRS         % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 exINS_Euler        % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
