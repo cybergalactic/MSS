@@ -59,7 +59,7 @@ function [GM, BM, z_b] = GM_surfaced2submerged( ...
 % Date:      2024-11-08
 % Revisions:
 
-rangeCheck(zn, 0, 10000); % The depth should be between 0 and 1000 m
+rangeCheck(zn, -10, 10000); % The depth should be between -10 and 1000 m
 rangeCheck(T, 0, 100); % The draft should be between 0 and 100 m
 
 % Submersion ratio alpha, between 0 and 1
