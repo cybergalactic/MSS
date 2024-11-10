@@ -35,7 +35,7 @@ z_b_values = zeros(size(zn_values));
 N = length(zn_values);
 for i = 1:N
     zn = zn_values(i);
-    [BM_T, GM_T, z_b] = GM_surfaced2submerged( ...
+    [GM_T, BM_T, z_b] = GM_surfaced2submerged( ...
         I_T, nabla, zn, T, z_b_surface, z_b_submerged, z_g);
     BG_z_values(i) = z_g - z_b;
     GM_T_values(i) = GM_T;
