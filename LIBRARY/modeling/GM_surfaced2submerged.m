@@ -63,7 +63,7 @@ rangeCheck(zn, -10, 10000); % The depth should be between -10 and 1000 m
 rangeCheck(T, 0, 100); % The draft should be between 0 and 100 m
 
 % Submersion ratio alpha, between 0 and 1
-alpha = exp(-(zn/T)^2);
+alpha = exp(-5*(zn/T)^2);
 
 % Compute hydrostatic parameter using alpha as transition parameter
 BM = alpha * (I_waterplane / nabla);
