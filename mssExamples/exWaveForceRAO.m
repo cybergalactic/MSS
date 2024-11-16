@@ -120,8 +120,8 @@ grid on;
 
 figure(2); clf;
 % Plot the 6-DOF 1st-order wave forces
-DOF_txt = {'Surge (m)', 'Sway (m)', 'Heave (m)',...
-    'Roll (deg)', 'Pitch (deg)', 'Yaw (deg)'};
+DOF_txt = {'Surge (N)', 'Sway (N)', 'Heave (N)',...
+    'Roll (Nm)', 'Pitch (Nm)', 'Yaw (Nm)'};
 T_scale = [1 1 1 180/pi 180/pi 180/pi];
 for DOF = 1:6
     subplot(6, 1, DOF);
