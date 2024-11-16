@@ -35,6 +35,7 @@ T_initialTransient = 20;        % Remove initial transient (s)
 
 % numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
 % numDirctions     - Number of wave directions in directional spectrum M(mu)
+maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s) 
 numFreqIntervals = 50;          % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
@@ -52,6 +53,16 @@ spectrumParameters = [Hs, w0];
 if strcmp(spectrumType ,'JONSWAP')
    gamma = 3.3; 
    spectrumParameters = [Hs, w0, gamma];
+end
+
+% Reshape vessel data o use 0 to maxFreq
+if vessel.forceRAO.w(end) > maxFreq
+    w_index = find(vessel.forceRAO.w > maxFreq, 1) - 1;
+    vessel.forceRAO.w = vessel.forceRAO.w(1:w_index); % frequency vector
+    for DOF = 1:length(vessel.forceRAO.amp)
+        vessel.forceRAO.amp{DOF} = vessel.forceRAO.amp{DOF}(1:w_index, :, :);
+        vessel.forceRAO.phase{DOF} = vessel.forceRAO.phase{DOF}(1:w_index, :, :);
+    end
 end
 
 omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
