@@ -94,7 +94,6 @@ crosstrackWpt        % Computes the cross-track error when the path is a straigh
 crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
 EKF_5states          % Estimation of SOG, COG, and course rate from NED positions or latitude-longitude
-expRefModel          % Transition from x_start to x_final over time t_max using an exponential curve 
 getPathSignal        % Generates the coefficients for subpaths between given waypoints
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
@@ -108,6 +107,7 @@ order3               % Path generation using cubic polynomials (see demoWaypoint
 order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
 PIDnonlinearMIMO     % Nonlinear MIMO PID regulator for dynamic positioning (DP)
 refModel             % Third-order reference model for position, velocity and acceleration
+RefModelPolyExp      % Transition from x_start to x_final using a polynomial or an exponential curve 
 staticRollPitchYaw   % Static roll, pitch, and yaw angles from IMU specific force and magnetometer measurements
 ```
 
