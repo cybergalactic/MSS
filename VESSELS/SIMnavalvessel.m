@@ -33,7 +33,7 @@ psi_ref = deg2rad(20);  % Desired heading
 % Initial states
 x  = [6 0 0 0 0 0 ]';   % x = [u v p r phi psi] ]'   
 eta = [0 0 0]';         % initial position expressed in NED
-psi_d = eta(3);
+xf_psi_d = eta(3);
 
 % Time vector initialization
 t = 0:h:T_final;                % Time vector from 0 to T_final          
@@ -50,9 +50,12 @@ for i=1:nTimeSteps
     % Measurements
     r   = x(4) + 0.001 * randn;
     psi = x(6) + 0.001 * randn;
+
+    % Desired heading
+    [xf_psi_d, psi_d] = lowPassFilter(xf_psi_d, psi_ref, w_n, h);  
     
     % Control system
-    tauX = 1e5;                                    % Thrust
+    tauX = 1e5;                                  % Thrust
     tauN = -Kp * ( ssa(psi - psi_d) + Td * r );  % PD heading controller
     
     % Ship dynamics
@@ -65,7 +68,6 @@ for i=1:nTimeSteps
     % Numerical integration
     x = euler2(xdot,x,h);                 
     eta = eta + h * Rzyx(0,0,psi) * [x(1) x(2) x(4)]'; 
-    psi_d = lowPassFilter(psi_d, psi_ref, w_n, h);  % Desired heading
 
 end
 
@@ -127,7 +129,7 @@ function displayControlMethod()
     disp('--------------------------------------------------------------------');
     disp('MSS toolbox: Multipurpose Naval Vessel');
     disp('Norrbin (1963) nonlinear model');    
-    disp('Heading autopilot: PD control law with reference feedforward')
+    disp('Heading autopilot: PD control law')
     disp('--------------------------------------------------------------------');
     disp('Simulating...');
 end
