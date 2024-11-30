@@ -65,6 +65,7 @@ U = 1;                              % Initial speed (m/s)
 % Initial control and state setup
 theta_d = 0; q_d = 0;               % Initial pitch references
 psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
+xf_z_d = zn;                        % Initial low-pass filter state
 
 % State vector initialization
 if KinematicsFlag == 1 
@@ -183,7 +184,7 @@ for i = 1:nTimeSteps
        else
            wnz = wn_d_z;
        end
-       z_d = lowPassFilter(z_d, z_ref, wnz, h);
+       [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wnz, h);
 
        % Depth autopilot using the stern planes (succesive-loop closure)
        theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
