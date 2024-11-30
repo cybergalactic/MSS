@@ -28,8 +28,6 @@ B = [1; 0];
 C = [2*zeta*w_0 - 2*w_0, 0];
 D = 1;
 
-% zeta = 0.01; w_0 = 1.0; bode([-2*w_0 -w_0^2; 1 0],[1; 0],[2*zeta*w_0 - 2*w_0, 0],1);
-
 %  Filtered output at time k 
 y = C * xf + D * u;
 
