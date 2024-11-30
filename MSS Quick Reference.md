@@ -21,6 +21,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
   - [Numerical integration methods](#numerical-integration-methods)
+  - [Signal filters](#signal-filters)
 - [INS (m-files)](#ins-m-files)
   - [INS error-state Kalman filter (EKSF) simulators](#ins-error-state-kalman-filter-eskf-simulators)
   - [Functions](#functions)
@@ -210,6 +211,13 @@ expm_squaresPade    % Custom-made matrix exponential using Pade approximations (
 expm_taylor         % Custom-made matrix exponential using Taylor series (exponential map for matrix Lie groups)
 invQR               % Matrix inversion using QR factorization for improved numerical stability
 rk4                 % Integrates a system of ordinary differential equations using Runge-Kutta’s 4th-order method
+```
+
+### Signal filters
+
+```matlab
+lowPassFilter       % First-order low-pass filter using exact discretization
+notchFilter         % Second-order notch filter using the RK4-method
 ```
 
 ## INS (m-files)
