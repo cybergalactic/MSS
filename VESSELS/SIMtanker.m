@@ -20,18 +20,18 @@ clearvars;
 
 %% USER INPUTS
 % Define simulation parameters
-T_final = 2000;	                % Final simulation time (s)
-h = 0.1;                        % Sampling time (s)
+T_final = 2000;	        % Final simulation time (s)
+h = 0.1;                % Sampling time (s)
 
 water_depth = 100;      % Water depth must be larger than draft 18.5 m
 psi_ref = deg2rad(5);   % Desired heading
-wn = 0.1;               % Closed-loop natural frequency (rad/s)
+wn = 0.02;              % Closed-loop natural frequency (rad/s)
 Kp = 10;                % Controller P gain
 Td = 10;                % Controller derivative time
 
 % Initial states:
 x = [7 0 0 0 0 0 0 60]';   % x = [ u v r x y psi delta n ]'
-psi_d = 0;
+xf_psi_d = 0;
 
 % Time vector initialization
 t = 0:h:T_final;                % Time vector from 0 to T_final          
@@ -49,10 +49,11 @@ for i=1:nTimeSteps
     psi = x(6);
     
     % Control system (constant thrust + PD heading controller)
+    psi_d = 0;
     if t(i) > 600
-        psi_d = lowPassFilter(psi_d, psi_ref, wn, h);
+        [xf_psi_d, psi_d] = lowPassFilter(xf_psi_d, psi_ref, wn, h);
     end
-    delta_c = -Kp * ( ssa(psi-psi_d) + Td * r );  % PD controller
+    delta_c = -Kp * ( ssa(psi - psi_d) + Td * r );  % PD controller
     n_c = 70;
     
     % Ship model
