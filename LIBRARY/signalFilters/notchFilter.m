@@ -1,4 +1,4 @@
-function [xf, y] = notchFilter(xf, u, w_0, zeta, h)
+function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h)
 % notchFilter is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function implements a 2nd-order notch filter using the RK4 method. The 
 % filter transfer function is:
@@ -13,8 +13,8 @@ function [xf, y] = notchFilter(xf, u, w_0, zeta, h)
 % h           - Sampling time
 %
 % Outputs:
-% xf          - Propagated filter state at time k+1 (2x1 vector)
-% y           - Filtered output at time k+1 (scalar)
+% xf_next     - Propagated filter state at time k+1 (2x1 vector)
+% y           - Filtered output at time k (scalar)
 %
 % Author: Thor I. Fossen
 % Date: 2024-11-27
@@ -22,11 +22,16 @@ function [xf, y] = notchFilter(xf, u, w_0, zeta, h)
 
 xf = xf(:);
 
-% Define 2nd-order filter state-space matrices
-A = [0 1; -w_0^2 -2*zeta*w_0];
-B = [0; 1];
-C = [w_0^2 2*zeta*w_0];
+% State-space matrices
+A = [-2*w_0, -w_0^2; 1, 0];
+B = [1; 0];
+C = [2*zeta*w_0 - 2*w_0, 0];
 D = 1;
+
+% zeta = 0.01; w_0 = 1.0; bode([-2*w_0 -w_0^2; 1 0],[1; 0],[2*zeta*w_0 - 2*w_0, 0],1);
+
+%  Filtered output at time k 
+y = C * xf + D * u;
 
 % RK4 implementation for state propagation
 k1 = A * xf + B * u;
@@ -34,10 +39,7 @@ k2 = A * (xf + 0.5 * h * k1) + B * u;
 k3 = A * (xf + 0.5 * h * k2) + B * u;
 k4 = A * (xf + h * k3) + B * u;
 
-xf = xf + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
-
-% Compute the filtered output at time k+1
-y = C * xf + D * u;
+xf_next = xf + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
 
 end
 
