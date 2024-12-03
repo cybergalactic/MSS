@@ -23,9 +23,10 @@ function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h)
 xf = xf(:);
 
 % State-space matrices
-A = [-2*w_0, -w_0^2; 1, 0];
+A = [-2*w_0, -w_0^2 
+    1, 0];
 B = [1; 0];
-C = [2*zeta*w_0 - 2*w_0, 0];
+C = [2*w_0*(zeta-1), 0];
 D = 1;
 
 %  Filtered output at time k 
