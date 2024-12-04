@@ -18,11 +18,16 @@ function angle = ssa(angle,unit)
 % Author:     Thor I. Fossen
 % Date:       2018-09-21
 % Revisions:  
-%   2020-03-04  Deafult rad, otional argument for degrees.
+%   2020-03-04  Deafult rad, optional argument for degrees.
+%   2024-12-04  Allow rad as optional argument. Throw error for invalid
+%   unit. Author: Tor Børve Rasmussen.
 
-if (nargin == 1)
+if nargin == 1 || strcmp(unit, 'rad')
     angle = mod( angle + pi, 2 * pi ) - pi; 
 elseif strcmp(unit,'deg')
     angle = mod( angle + 180, 360 ) - 180; 
+else
+    error("MSS:InvalidArgument", "Invalid unit argument: \'%s\'. " + ...
+        "Unit must be either \'deg\' or \'rad\'", unit);
 end
     
