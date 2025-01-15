@@ -34,9 +34,9 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %
 %   ui = [ delta_r delta_s n ]'  where
 %
-%    delta_r:   rudder angle (rad)
-%    delta_s:   stern plane angle (rad) 
-%    n:         propeller revolution (RPM)
+%    delta_r:   Rudder angle (rad)
+%    delta_s:   Stern plane angle (rad) 
+%    n:         Propeller revolution (RPM)
 %
 % The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
 % ocean currents
@@ -48,7 +48,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c) : 3-D ocean currents
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)     : 2-D ocean currents
 %   [xdot,U] = remus100(x,ui)                       : No ocean currents
-%    xdot     = remus100(x,ui)                      : No ocean currents
+%    xdot    = remus100(x,ui)                       : No ocean currents
 %
 % Author:    Thor I. Fossen
 % Date:      2021-05-27
@@ -65,7 +65,7 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %            2023-10-07  Scaled down the propeller roll-induced moment
 %            2024-02-09  Updated rudder and stern-plane areas
 %            2024-02-13  Calibration of the model parameters
-%            2023-06-23  Corrected sign of tau(5). A positive delta_s will 
+%            2024-06-23  Corrected sign of tau(5). A positive delta_s will 
 %                        result in a negative pitch and negative Z_s. 
 %                        Hence, tau(5) = -x_s * Z_s when x_s < 0.
 %
@@ -93,9 +93,9 @@ rho = 1026;             % Density of water (m/s2)
 % State vectors and control inputs
 nu = x(1:6); 
 eta = x(7:12);
-delta_r = ui(1);        % tail rudder (rad)
-delta_s = ui(2);        % stern plane (rad)
-n = ui(3)/60;           % propeller revolution (rps)
+delta_r = ui(1);        % Tail rudder (rad)
+delta_s = ui(2);        % Stern plane (rad)
+n = ui(3)/60;           % Propeller revolution (rps)
 
 % Amplitude saturation of the control signals
 n_max = 1525;                                   % Maximum propeller RPM
