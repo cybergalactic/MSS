@@ -216,8 +216,11 @@ rk4                 % Integrates a system of ordinary differential equations usi
 ### Signal filters
 
 ```matlab
+highPassFilter      % First-order high-pass filter using exact discretization
 lowPassFilter       % First-order low-pass filter using exact discretization
-notchFilter         % Second-order notch filter using the RK4-method
+notchFilter         % Second-order notch filter using RK4 discretization or IIR filtering
+sawToothWave        % Sawtooth wave signal which can be used for testing
+waveFreqObserver    % Wave encounter frequency estimator (Belleter, Galeazzi and Fossen 2015)
 ```
 
 ## INS (m-files)
@@ -306,6 +309,7 @@ exHybridPath       % Computation of a hybrid continuous path parametrized by way
 exINS_AHRS         % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 exINS_Euler        % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
 exINS_MEKF         % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
+exINSWaveFilter    % Wave filtering techniques for Inertial Navigation System (INS) measurements
 exIntWindup        % Demonstrates integrator windup and anti-windup when the control law is saturated.
 exKF               % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
 exKT               % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
@@ -335,6 +339,7 @@ exSpline           % Path generation using cubic Hermite spline interpolation
 exSTA              % Adaptive-gain super twisting algorithm (STA) for heading control
 exTurnCircle       % Generates the turning circle for two different ships
 exWageningen       % Computes thrust and torque curves for a propeller using the Wageningen B-series data
+exWaveFreqObserver % Nonlinear observer for estimation of the wave encounter frequency
 exWaveForceRAO     % Wave elevation and generalized 1st-order wave forces from force RAOs using different wave spectra 
 exWaveMotionRAO    % Wave elevation and ship wave-frequency (WF) motions from motion RAOs using different wave spectra
 exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
