@@ -1,10 +1,11 @@
 % This script demonstrates the implementation of a nonlinear wave frequency 
 % observer for estimating the wave encounter frequency from an INS-measured 
-% position signal. The method is based on:
+% position or orientation signal. The method is based on the nonlinear observer:
 %
-% Belleter, D. J., R. Galeazzi and T. I. Fossen (2015). Experimenal 
-%   Verification of a Globally Exponentially Stable Nonlinear Wave Encounter 
-%   Frequency Estimator. Ocean Engineering 97(15), 48–56.
+% Reference:
+%   D. J. Belleter, R. Galeazzi and T. I. Fossen (2015). Experimenal Verification
+%   of a Globally Exponentially Stable Nonlinear Wave Encounter Frequency
+%   Estimator. Ocean Engineering 97(15), 48–56.
 %
 % The observer consists of:
 %   1. A high-pass filter to remove low-frequency components.
@@ -24,8 +25,8 @@ h = 0.05; % Sampling time
 T_final = 200; % Final simulation time in seconds
 
 % Time vector initialization
-t = (0:h:T_final)';             % Time vector from 0 to T_final          
-nTimeSteps = length(t);         % Number of time steps
+t = (0:h:T_final)'; % Time vector from 0 to T_final          
+nTimeSteps = length(t); % Number of time steps
 
 % Wave frequency observer (Belleter, Galeazzi and Fossen, 2015)
 K_f = 1; % Observer gain, typically K_max * A_max is 1 to 50
@@ -47,6 +48,7 @@ u_LF = 1 * sawToothWave(0.1 * t);
 u = u_LF + lsim(H_z, white_noise, t); % LF + WF position
 
 % Nonlinear wave frequency observer
+omega_e = zeros(nTimeSteps,1);
 for k = 1:nTimeSteps
     [x_hp, y_obs] = highPassFilter(x_hp, u(k), 0.3, h);
     [x, omega_obs] = waveFreqObserver(x, y_obs, w_f, K_f, h);
