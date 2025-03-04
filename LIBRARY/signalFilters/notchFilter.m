@@ -1,24 +1,30 @@
 function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h, method)
 % notchFilter is compatible with MATLAB and GNU Octave (www.octave.org).
-% This function implements a 2nd-order notch filter using either:
-% - The RK4 method for state-space propagation.
-% - A direct IIR filter implementation using difference equations.
+% Notch filters can be applied to Inertial Navigation System (INS) measurements
+% to remove the dirst-order wave-inuced motions (wave filtering). This function 
+% implements a 2nd-order notch filter using either:
+%   - A second-order notch filter discretized by uisng the RK4 method.
+%   - A direct IIR filter implementation using difference equations.
 %
-% The filter transfer function is:
+% The second-order notch filter transfer function is:
 %
 %    h_notch(s) = (s^2 + 2*zeta*w_0*s+ w_0^2) / (s^2 + 2*w_0*s + w_0^2)
 %
 % Inputs:
-% xf          - Current state (2x1 vector for RK4, 4x1 for IIR)
-% u           - Input signal to be filtered (scalar)
-% w_0         - Notch frequency
-% zeta        - Damping factor, typical value for a narrow notch is 0.01 to 0.1
-% h           - Sampling time
-% method      - 'RK4' (default) or 'IIR'
+%   xf          - Current state (2x1 vector for RK4, 4x1 for IIR)
+%   u           - Input signal to be filtered (scalar)
+%   w_0         - Notch frequency (from FFT or waveFreqObserver.m)
+%   zeta        - Damping factor, typical value for a narrow notch is 0.01 to 0.1
+%                 for the second-order filter, while the IIR can use 0.5.
+%   h           - Sampling time
+%   method      - 'RK4' (default) or 'IIR'
 %
 % Outputs:
-% xf_next     - Propagated filter state at time k+1
-% y           - Filtered output at time k
+%   xf_next     - Propagated filter state at time k+1
+%   y           - Filtered output at time k
+%
+% Example usage: 
+%   exINSwaveFilter.m
 %
 % Author: Thor I. Fossen
 % Date: 2024-11-27
@@ -53,7 +59,8 @@ switch method
 
     case 'IIR'
 
-        r = exp(-zeta * w_0 * h);  % Stability factor
+        % Stability factor
+        r = exp(-zeta * w_0 * h);  
         
         % IIR coefficients
         b0 = 1;
