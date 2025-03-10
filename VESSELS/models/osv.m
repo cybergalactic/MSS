@@ -109,24 +109,16 @@ if isempty(vessel)
 
     % The added mass matrix MA is derived from the frequency-dependent potential
     % coefficients using a look-alike supply vessel in the MSS toolbox. The data
-    % is stored in the structure <vessel>
-    %   load supply.mat             % Check data by typing vessel
+    % is stored in the structure <vessel>.
+    %   load supply             % Check data by typing vessel
     %   disp(vessel.main)
-    %   plotABC(vessel,'A')
-    %   w_0 = vessel.freqs;         % The minimum frequency w_0 is approximated
-    %   MA = vessel.A(:,:,1);       % as the zero-frequency used to compute MA
-    vessel.MA = 1e10 * [   0.0001    0         0         0         0         0
-        0    0.0003         0    0.0004         0   -0.0006
-        0         0    0.0019         0    0.0233         0
-        0    0.0004         0    0.0051         0   -0.0103
-        0         0    0.0233         0    1.0816         0
-        0   -0.0006         0   -0.0103         0    0.1156 ];
-
-    % Calibration using the values corresponding to the natural frequencies in
-    % heave, roll and pitch, found from visual inspection of the plots
-    vessel.MA(3,3) = 0.8e7;     % plotABC(vessel,'A',3,3,1)
-    vessel.MA(4,4) = 10.2e7;    % plotABC(vessel,'A',4,4,1)
-    vessel.MA(5,5) = 4.2e9;     % plotABC(vessel,'A',5,5,1
+    %   vessel = computeManeuveringModel(vessel, 1, 7, [3, 1.2, 3.3], 1);
+    vessel.MA = 1e9 * [0.0006   0    0    0    0    0
+         0    0.0020         0    0.0031         0   -0.0091
+         0         0    0.0083         0    0.0907         0
+         0    0.0031         0    0.0748         0   -0.1127
+         0         0    0.0907         0    3.9875         0
+         0   -0.0091         0   -0.1127         0    1.2416];
 
     % Mass matrix including hydrodynamic added mass
     vessel.M = vessel.MRB + vessel.MA;
