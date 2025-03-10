@@ -391,9 +391,11 @@ After loading the data files to the workspace using the Matlab command load, the
 ### Hydrodynamics (m-files)
 
 ```matlab
+computeManeuveringModel % Computes equivalent added mass A_eq and damping B_eq from A and B 
 DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
+plotAB_eq           % Plots equivalent Aij and Bij values (maneuvering model approximation)
 plotABC             % Plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
 plotBv              % Plots viscous damping Bvii as a function of frequency 
 plotTF              % Plots the motion or force RAO transfer functions
