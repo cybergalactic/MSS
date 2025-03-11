@@ -75,7 +75,7 @@ function S = waveSpectrum(spectrumType, Parameter, W, PlotFlag)
 %             Reccomended: 1.25 < w0 * sqrt(Hs) < 1.75
 %   p3 = gamma - Peakedness factor (Between 1 and 5, usually 3.3)
 %               Set to zero to use DNV formula
-%   alpha = 0.2 * Hs^2 * w0^4 / g^2
+%   alpha = (5/16) * Hs^2 * w0^4 / g^2
 %   sigma = 0.07  if w < w0, sigma=0.09 otherwise
 %   S(w) = S1 * S2   
 % where
@@ -191,7 +191,7 @@ switch spectrumType
         Hs	  = Parameter(1);
         w0    = Parameter(2);
         gamma = Parameter(3);
-        alpha = 0.2 * Hs^2 * w0^4 / g^2;
+        alpha = (5/16) * Hs^2 * w0^4 / g^2;
 
         % Check gamma value and adjust if necessary
         if gamma < 1 || gamma > 7
