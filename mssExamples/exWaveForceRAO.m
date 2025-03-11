@@ -36,7 +36,7 @@ T_initialTransient = 20;        % Remove initial transient (s)
 % numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
 % numDirctions     - Number of wave directions in directional spectrum M(mu)
 maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s) 
-numFreqIntervals = 50;          % Number of wave frequency intervals (>50)
+numFreqIntervals = 60;          % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
 % Sea state 
