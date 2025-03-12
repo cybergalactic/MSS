@@ -3,11 +3,16 @@ function msi = HMmsi(a_z, w_e)
 % method of O'Hanlon and McCauley (1974).
 %
 % Inputs:
-%   a_z: RMS of vertical acceleration (m/s^2) expressed in NED
+%   a_z: Vector of vertical accelerations (m/s^2) in NED
 %   w_e: Vector of encounter frequencies (rad/s)
 %
 % Outputs:
 %   msi: The percentage of persons that become seasick during a 2-hour voyage
+%
+% References:
+%   - A. R. J. M. Lloyd (1989). Seakeeping Behaviour in Rough Water.
+%   - E. V. Lewis (1989). Principles of Naval Architecture. Vol III.
+%   - J. F. O'Hanlon and M. E. McCauley (1974). Aerospace Medicine.
 %
 % References:
 %   - A. R. J. M. Lloyd (1989). Seakeeping Behaviour in Rough Water.
@@ -25,30 +30,23 @@ function msi = HMmsi(a_z, w_e)
 a_z = a_z(:);
 w_e = w_e(:);
 
-g = 9.81;  % Acceleration due to gravity (m/s^2)
-epsilon = 1e-10; % Avoid log(0) by adding a small epsilon
+% Vertical acceleration RMS-value 
+a_z_rms = sqrt( mean(a_z.^2) );
+
+% Constants
+g = 9.81;  % Gravity (m/s²)
+epsilon = 1e-6; % Small value to prevent log(0)
 
 % Convert encounter frequency from rad/s to Hz
-f_e = w_e / (2 * pi);  
+f_e = w_e / (2 * pi);
 
-% Compute mu_MSI based on O'Hanlon and McCauley's model
-mu_MSI = -0.819 + 2.32 * (log10(f_e + epsilon)).^2; 
+% Compute mu_MSI from O'Hanlon & McCauley model
+mu_MSI = -0.819 + 2.32 * (log10(max(f_e, epsilon))).^2;
 
-% Compute I factor for each frequency
-I = ( -log10(a_z / g) + mu_MSI ) / 0.4;
+% Compute I factor
+I = (-log10(a_z_rms / g) + mu_MSI) / (0.4 * sqrt(2));
 
-% Divide by sqrt(2) to adjust for MATLAB's erf function
-I = I / sqrt(2);
+% Compute MSI using the error function (erf)
+msi = 100 * (0.5 * (1 - erf(I)));
 
-% Compute MSI for each frequency
-msi = zeros(length(w_e), 1);
-for i = 1:length(w_e)
-    if I(i) >= 0
-        msi(i) = 0.5 - 0.5 * erf(I(i));
-    else
-        msi(i) = 0.5 + 0.5 * erf(-I(i));  
-    end
 end
-
-% Convert to percentage
-msi = 100 * msi;
