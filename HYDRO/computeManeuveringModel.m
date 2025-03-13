@@ -62,11 +62,14 @@ else
     B_w = vessel.B;
 end
 
+% Define finer frequency grid for interpolation
+freqs_fine = linspace(0, max(freqs), 100)'; % Increase resolution
+
 % Compute wave spectrum at given frequencies
-S_w = waveSpectrum(spectrumType, Parameter, freqs, PlotFlag); % 1×N vector
+S_w = waveSpectrum(spectrumType, Parameter, freqs_fine, PlotFlag); 
 
 % Compute normalization factor (integral of S)
-denom = trapz(freqs, S_w);
+denom = trapz(freqs_fine, S_w);
 
 % Initialize equivalent matrices
 A_eq = zeros(6,6);
@@ -79,9 +82,13 @@ for i = 1:6
         A_ij_w = squeeze(A_w(i,j,:)); % Ensure it's a column vector
         B_ij_w = squeeze(B_w(i,j,:));
 
+        % Interpolate A_w and B_w onto the finer grid
+        A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip','extrap'); 
+        B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip','extrap');
+
         % Numerically integrate element-wise using trapezoidal rule
-        A_eq(i,j) = trapz(freqs, A_ij_w .* S_w) / denom;
-        B_eq(i,j) = trapz(freqs, B_ij_w .* S_w) / denom;
+        A_eq(i,j) = trapz(freqs_fine, A_interp .* S_w) / denom;
+        B_eq(i,j) = trapz(freqs_fine, B_interp .* S_w) / denom;
     end
 end
 
