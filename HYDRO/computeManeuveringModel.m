@@ -96,9 +96,6 @@ end
 vessel.A_eq = A_eq;
 vessel.B_eq = B_eq;
 
-% Display velocity information
-fprintf('Computed A_eq and B_eq for velocity index %d\n', velno);
-
 % Plots
 if PlotFlag == 1
     plotAB_eq(vessel, 'A', velno);
