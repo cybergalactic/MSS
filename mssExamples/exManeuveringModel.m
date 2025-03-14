@@ -7,7 +7,7 @@
 % response of the vessel under wave excitation.
 
 clear waveForceRAO; % Clear persistent RAO tables
-clearvars;
+clearvars; close all;
 
 %% USER INPUTS
 h  = 0.01; % Sampling time [s]
@@ -23,7 +23,7 @@ numFreqIntervals = 60; % Number of wave frequency intervals (>50)
 % Calculate the wave spectrum power intensity S(Omega) for each frequency
 spectrumNo = 7; % JONSWAP
 Hs = 3;      % Significant wave height (m)
-w0 = 1.0;    % Peak frequency (rad/s)
+w0 = 1.2;    % Peak frequency (rad/s)
 gamma = 3.3; % Peakedness factor
 Parameter = [Hs, w0, gamma];
 
@@ -35,7 +35,7 @@ nTimeSteps = length(t);
 omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
 
 [S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumNo, ...
-    Parameter, numFreqIntervals, omegaMax, 0, 1);
+    Parameter, numFreqIntervals, omegaMax);
 
 % 6-DOF generalized wave forces
 waveData = zeros(nTimeSteps,7); % Pre-allocate table
@@ -46,7 +46,7 @@ for i = 1:nTimeSteps
 end
 
 %% Compute Aeq and Beq for heave, roll and pitch
-vessel.B_total = vessel.B + vessel.Bv; % Add viscous damping
+vessel.B = vessel.B + vessel.Bv; % Add viscous damping
 
 for DOF = 3:5
     vessel = computeManeuveringModel(vessel, 1, spectrumNo, Parameter, 0);
@@ -54,11 +54,13 @@ for DOF = 3:5
     B_eq = vessel.B_eq(DOF,DOF);
 
     %% Compute Memory Function K(t) for Cummins Equation
+    A_w = squeeze(vessel.A(DOF,DOF,:,1));
+
     % Interpolate B(w) to Evenly Spaced Frequency Grid
     freqs = vessel.freqs;
     nFreqInterp = 200; % Higher resolution
     freqs_uniform = linspace(0, max(freqs), nFreqInterp)';
-    B_w = squeeze(vessel.B_total(DOF,DOF,:,1)); % Extract damping for selected DOF
+    B_w = squeeze(vessel.B(DOF,DOF,:,1));
     B_interp = interp1(freqs, B_w, freqs_uniform, 'pchip','extrap');
     B_inf = B_interp(end);
 
@@ -122,44 +124,60 @@ for DOF = 3:5
     eta_eq = lsim(sys_eq, F_ext, t);
 
     if DOF == 4 || DOF == 5 
-    eta_cummins = rad2deg(eta_cummins);
-    eta_eq = rad2deg(eta_eq);
+        eta_cummins = rad2deg(eta_cummins);
+        eta_eq = rad2deg(eta_eq);
+    end
 
-end
+    %% Plot Results
+    DOFtext1 = {'Heave Position (m)', 'Roll Angle (deg)', 'Pitch Angle (deg)'};
+    DOFtext2 = {'Heave Retardation Function K_{33}(t)', ...
+        'Roll Retardation Function K_{44}(t)', 'Pitch Retardation Function K_{55}(t)'};
+    DOFtext3 = {'B_{33}', 'B_{44}', 'B_{55}'};
 
-%% Plot Results
-DOFtext = {'Heave', 'Roll', 'Pitch'};
-figure(1); figure(gcf);
-subplot(3,1,DOF-2)
-plot(t, eta_cummins, 'k', 'LineWidth', 2); hold on;
-plot(t, eta_eq, 'r', 'LineWidth', 2);
-hold off;
-xlabel('Time (s)');
-ylabel('Amplitude');
-legend('Cummins Equation', 'Aeq and Beq Approximation');
-title(DOFtext{DOF-2});
-grid on;
+    figure(1);
+    subplot(3,1,DOF-2)
+    plot(t, eta_cummins, 'k', t, eta_eq, 'r', 'LineWidth', 2);
+    xlabel('Time (s)');
+    ylabel('Amplitude');
+    legend('Cummins Equation', 'Aeq and Beq Approximation');
+    title(DOFtext1{DOF-2});
+    grid;
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','line'),'linewidth',2)
 
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
+    figure(2);
+    subplot(3,1,DOF-2)
+    plot(t,K, 'LineWidth', 2)
+    xlabel('Time (s)');
+    ylabel('Memory Kernel K(t)');
+    title(DOFtext2{DOF-2});
+    grid;
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','line'),'linewidth',2)
 
-figure(2); figure(gcf);
-subplot(3,1,DOF-2)
-plot(t,K, 'LineWidth', 2)
-xlabel('Time (s)');
-ylabel('Memory Kernel K(t)');
-title('Retardation Function K(t)');
-grid;
+    figure(3);
+    subplot(3,1,DOF-2)
+    plot(freqs, A_w,'rx', ...
+        freqs_uniform,A_eq*ones(length(freqs_uniform),1),'b','LineWidth', 2)
+    title(DOFtext3{DOF-2});
+    legend('A(w)','A_{eq}');
+    grid;
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','line'),'linewidth',2)
 
-figure(3); figure(gcf);
-subplot(3,1,DOF-2)
-plot(freqs_uniform,B_interp,freqs,B_w,'x', 'LineWidth', 2)
-title(DOFtext{DOF-2});
-grid;
-
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
+    figure(4);
+    subplot(3,1,DOF-2)
+    plot(freqs_uniform, B_interp,'g', ...
+        freqs, B_w,'rx',...
+        freqs_uniform, B_eq*ones(length(freqs_uniform),1), 'b', ...
+        'LineWidth', 2)
+    title(DOFtext3{DOF-2});
+    legend('Interpolated','B(w)','B_{eq}');
+    grid;
+    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','line'),'linewidth',2)
 
 end
