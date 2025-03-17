@@ -47,7 +47,7 @@ Parameter = [Hs, w0, gamma];
 t = 0:h:T_final;      
 nTimeSteps = length(t);
 
-% Wave spectrum
+% Wave spectrum, one direction
 omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
 
 [S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumNo, ...
@@ -95,7 +95,7 @@ for DOF = 3:5
     M = vessel.MRB(DOF,DOF) + vessel.A(DOF,DOF,end); % Total inertia (includes A_inf)
     C = vessel.C(DOF,DOF);
 
-    % External excitation force
+    % External excitation force, 1st-order wave loads
     F_ext = waveData(:,DOF);
 
     eta_cummins = zeros(nTimeSteps,1);  % Displacement
