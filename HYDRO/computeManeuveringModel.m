@@ -30,8 +30,7 @@ function vessel = computeManeuveringModel(vessel, velno, spectrumType, Parameter
 %   vessel.A_eq - Equivalent added mass matrix
 %   vessel.B_eq - Equivalent damping matrix
 %
-% Example call:
-%    % JONSWAP spectrum with Hs = 3m, w0 = 1.2 rad/s, gamma = 3.3
+% Example call: JONSWAP spectrum with Hs = 3m, w0 = 1.2 rad/s, gamma = 3.3
 %   load supply % other vessels: s175, tanker, fpso, semisub
 %   vessel = computeManeuveringModel(vessel, 1, 7, [3, 1.2, 3.3], 1)
 %   disp(vessel.A_eq)
@@ -63,7 +62,7 @@ else
 end
 
 % Define finer frequency grid for interpolation
-freqs_fine = linspace(0, max(freqs), 100)'; % Increase resolution
+freqs_fine = linspace(min(freqs), max(freqs), 100)'; % Increase resolution
 
 % Compute wave spectrum at given frequencies
 S_w = waveSpectrum(spectrumType, Parameter, freqs_fine, PlotFlag); 
@@ -83,8 +82,8 @@ for i = 1:6
         B_ij_w = squeeze(B_w(i,j,:));
 
         % Interpolate A_w and B_w onto the finer grid
-        A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip','extrap'); 
-        B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip','extrap');
+        A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip'); 
+        B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip');
 
         % Numerically integrate element-wise using trapezoidal rule
         A_eq(i,j) = trapz(freqs_fine, A_interp .* S_w) / denom;
