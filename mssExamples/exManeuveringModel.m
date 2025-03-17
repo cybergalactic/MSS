@@ -26,7 +26,7 @@ clearvars; close all;
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 %% USER INPUTS
-h  = 0.01; % Sampling time [s]
+h  = 0.05; % Sampling time [s]
 T_final = 200; % Final simulation time [s]
 
 load s175; % Load vessel structure
