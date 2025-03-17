@@ -18,6 +18,7 @@ displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 
 clear waveForceRAO; % Clear persistent RAO tables
 clearvars;
+rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 [matFile, spectrumType, spreadingFlag] = simOptions(); % User inputs
 load(which(matFile), 'vessel'); % Load vessel.forceRAO data structure
