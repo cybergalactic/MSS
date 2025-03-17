@@ -22,7 +22,7 @@
 % Revisions: 
 
 clear waveForceRAO; % Clear persistent RAO tables
-clearvars; close all;
+clearvars; 
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 %% USER INPUTS
