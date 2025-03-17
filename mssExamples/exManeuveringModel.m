@@ -1,13 +1,29 @@
-% This function simulates the response of a vessel in waves using Cummins' 
+% This script simulates the response of a vessel in waves using Cummins' 
 % equation and an equivalent maneuvering model. It calculates the wave-induced 
 % forces, solves the full hydrodynamic model including memory effects, and 
 % compares it with a simplified approximation using added mass and damping 
-% coefficients (Aeq, Beq). The wave-induced forces are computed using force RAOs 
-% and the JONSWAP spectrum. The results are plotted to show the time-domain 
-% response of the vessel under wave excitation.
+% coefficients (Aeq, Beq) according to: 
+%
+%   A_eq(i,j) = ∫ A(i,j,ω) S(ω) dω  /  ∫ S(ω) dω
+%   B_eq(i,j) = ∫ B(i,j,ω) S(ω) dω  /  ∫ S(ω) dω
+%
+% where:
+%   - A(i,j,ω) and B(i,j,ω) are the added mass and damping coefficients 
+%     at frequency ω for each matrix element (i,j).
+%   - S(ω) is the wave energy spectrum, computed using waveSpectrum().
+%   - The integrals are evaluated numerically using trapezoidal integration.
+%
+% This ensures that the kinetic energy and power dissipation properties 
+% of the frequency-dependent system are preserved in the equivalent 
+% constant matrices.
+%
+% Author:    Thor I. Fossen
+% Date:      2025-03-10
+% Revisions: 
 
 clear waveForceRAO; % Clear persistent RAO tables
 clearvars; close all;
+rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 %% USER INPUTS
 h  = 0.01; % Sampling time [s]
@@ -59,7 +75,7 @@ for DOF = 3:5
     % Interpolate B(w) to Evenly Spaced Frequency Grid
     freqs = vessel.freqs;
     nFreqInterp = 200; % Higher resolution
-    freqs_uniform = linspace(0, max(freqs), nFreqInterp)';
+    freqs_uniform = linspace(min(freqs), max(freqs), nFreqInterp)';
     B_w = squeeze(vessel.B(DOF,DOF,:,1));
     B_interp = interp1(freqs, B_w, freqs_uniform, 'pchip','extrap');
     B_inf = B_interp(end);
@@ -80,7 +96,6 @@ for DOF = 3:5
     C = vessel.C(DOF,DOF);
 
     % External excitation force
-    %F_ext = 10000000 * sin(w0 * t);
     F_ext = waveData(:,DOF);
 
     eta_cummins = zeros(nTimeSteps,1);  % Displacement
@@ -132,7 +147,8 @@ for DOF = 3:5
     DOFtext1 = {'Heave Position (m)', 'Roll Angle (deg)', 'Pitch Angle (deg)'};
     DOFtext2 = {'Heave Retardation Function K_{33}(t)', ...
         'Roll Retardation Function K_{44}(t)', 'Pitch Retardation Function K_{55}(t)'};
-    DOFtext3 = {'B_{33}', 'B_{44}', 'B_{55}'};
+    DOFtext3 = {'A_{33}(ω)', 'A_{44}(ω)', 'A_{55}(ω)'};
+    DOFtext4 = {'B_{33}(ω)', 'B_{44}(ω)', 'B_{55}(ω)'};
 
     figure(1);
     subplot(3,1,DOF-2)
@@ -161,7 +177,7 @@ for DOF = 3:5
     plot(freqs, A_w,'rx', ...
         freqs_uniform,A_eq*ones(length(freqs_uniform),1),'b','LineWidth', 2)
     title(DOFtext3{DOF-2});
-    legend('A(w)','A_{eq}');
+    legend('A(ω)','A_{eq}');
     grid;
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
@@ -173,8 +189,8 @@ for DOF = 3:5
         freqs, B_w,'rx',...
         freqs_uniform, B_eq*ones(length(freqs_uniform),1), 'b', ...
         'LineWidth', 2)
-    title(DOFtext3{DOF-2});
-    legend('Interpolated','B(w)','B_{eq}');
+    title(DOFtext4{DOF-2});
+    legend('Interpolated','B(ω)','B_{eq}');
     grid;
     set(findall(gcf,'type','text'),'FontSize',14)
     set(findall(gcf,'type','legend'),'FontSize',14)
