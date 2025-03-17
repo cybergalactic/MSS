@@ -316,7 +316,8 @@ exKT               % Computation of the Nomoto gain K and time constant T from a
 exLinspec          % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
 exLQFinHor         % LQ finite time-horizon tracking controller for a mass-damper-spring system
 exLQR              % Computes the LQR gains for a mass-damper system
-exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper system
+exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper systeme
+exManeuveringModel % Maneuvering model from frequency-dependent hydrodynamic coefficients A(ω) and B(ω), and the wave spectrum S(ω).
 exMDS              % Plots the step response of a 2nd-order mass-damper system
 exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
 exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
@@ -391,7 +392,7 @@ After loading the data files to the workspace using the Matlab command load, the
 ### Hydrodynamics (m-files)
 
 ```matlab
-computeManeuveringModel % Computes equivalent added mass A_eq and damping B_eq from A and B 
+computeManeuveringModel % Computes equivalent added mass A_eq and damping B_eq from A(ω) and B(ω)
 DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
