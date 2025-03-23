@@ -28,6 +28,7 @@ rng(1); % Set random generator seed to 1 when generating stochastic waves
 %% USER INPUTS
 h  = 0.05; % Sampling time [s]
 T_final = 200; % Final simulation time [s]
+plotFlag = 0; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
 
 load s175; % Load vessel structure
 U = 0; % Speed (m/s)
@@ -38,10 +39,10 @@ numFreqIntervals = 60; % Number of wave frequency intervals (>50)
    
 % Calculate the wave spectrum power intensity S(Omega) for each frequency
 spectrumNo = 7; % JONSWAP
-Hs = 3;      % Significant wave height (m)
-w0 = 1.2;    % Peak frequency (rad/s)
+Hs = 3; % Significant wave height (m)
+w0 = 1.2;  % Peak frequency (rad/s)
 gamma = 3.3; % Peakedness factor
-Parameter = [Hs, w0, gamma];
+Parameter = [Hs, w0, gamma]; % Spectrum parameters
 
 % Time vector from 0 to T_final     
 t = 0:h:T_final;      
@@ -53,7 +54,7 @@ omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
 [S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumNo, ...
     Parameter, numFreqIntervals, omegaMax);
 
-% 6-DOF generalized wave forces
+% 6-DOF generalized wave forces using firts-order force RAOs
 waveData = zeros(nTimeSteps,7); % Pre-allocate table
 for i = 1:nTimeSteps
     [tau_wave1, waveElevation] = waveForceRAO(t(i), ...
@@ -65,7 +66,7 @@ end
 vessel.B = vessel.B + vessel.Bv; % Add viscous damping
 
 for DOF = 3:5
-    vessel = computeManeuveringModel(vessel, 1, spectrumNo, Parameter, 0);
+    vessel = computeManeuveringModel(vessel, 1, w0, plotFlag);
     A_eq = vessel.A_eq(DOF,DOF);
     B_eq = vessel.B_eq(DOF,DOF);
 
@@ -95,7 +96,7 @@ for DOF = 3:5
     M = vessel.MRB(DOF,DOF) + vessel.A(DOF,DOF,end); % Total inertia (includes A_inf)
     C = vessel.C(DOF,DOF);
 
-    % External excitation force, 1st-order wave loads
+    % External excitation force, 1st-order wave loads 
     F_ext = waveData(:,DOF);
 
     eta_cummins = zeros(nTimeSteps,1);  % Displacement
