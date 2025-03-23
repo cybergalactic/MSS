@@ -1,4 +1,4 @@
-function vessel = computeManeuveringModel(vessel, velno, spectrumType, Parameter, PlotFlag)
+function vessel = computeManeuveringModel(vessel, velno, omega_p, plotFlag)
 % computeManeuveringModel is compatible with MATLAB and GNU Octave (www.octave.org).
 % Computes the equivalent added mass A_eq and damping B_eq matrices by
 % integrating the frequency-dependent hydrodynamic coefficients A(ω) and B(ω) 
@@ -22,26 +22,22 @@ function vessel = computeManeuveringModel(vessel, velno, spectrumType, Parameter
 % Inputs:
 %   vessel       - Structure containing vessel hydrodynamic data (A, B, freqs)
 %   velno        - Velocity index (if speeds exist in vessel). If no speeds, velno = 1
-%   spectrumType - Identifier for wave spectrum type (see waveSpectrum.m)
-%   Parameter    - Spectrum parameters (see waveSpectrum.m)
-%   PlotFlag     - Set to 1 to plot the spectrum and matrix elememts, 0 for no plot
+%   omega_p      - Wave peak frequency for scaling of the model
+%   plotFlag     - Set to 1 to plot the A(ω) and B(ω) matrix elememts, 0 for no plot
 %
 % Outputs:
 %   vessel.A_eq - Equivalent added mass matrix
 %   vessel.B_eq - Equivalent damping matrix
 %
-% Example call: JONSWAP spectrum with Hs = 3m, w0 = 1.2 rad/s, gamma = 3.3
+% Example call: 
 %   load supply % other vessels: s175, tanker, fpso, semisub
-%   vessel = computeManeuveringModel(vessel, 1, 7, [3, 1.2, 3.3], 1)
+%   w_p = 1.2;
+%   vessel = computeManeuveringModel(vessel, 1, w_p, 1)
 %   disp(vessel.A_eq)
 %   disp(vessel.B_eq)
 %
 % Author: Thor I. Fossen
 % Date: 2025-03-10
-
-% Extract frequency data
-freqs = vessel.freqs;      % Frequency array (rad/s)
-N = length(freqs);         % Number of frequency points
 
 % Determine if speed is present in the matrices
 sizeA = size(vessel.A);    % Get size of A matrix
@@ -62,10 +58,12 @@ else
 end
 
 % Define finer frequency grid for interpolation
-freqs_fine = linspace(min(freqs), max(freqs), 100)'; % Increase resolution
+freqs_fine = linspace(min(vessel.freqs), max(vessel.freqs), 100)'; 
 
-% Compute wave spectrum at given frequencies
-S_w = waveSpectrum(spectrumType, Parameter, freqs_fine, PlotFlag); 
+% Compute the PM wave spectrum at given frequencies
+alpha = 8.1e-3 * (9.81)^2;
+beta = 0.74;
+S_w = alpha ./ freqs_fine.^5 .* exp(-beta * (omega_p ./ freqs_fine).^4);
 
 % Compute normalization factor (integral of S)
 denom = trapz(freqs_fine, S_w);
@@ -82,8 +80,8 @@ for i = 1:6
         B_ij_w = squeeze(B_w(i,j,:));
 
         % Interpolate A_w and B_w onto the finer grid
-        A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip'); 
-        B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip');
+        A_interp = interp1(vessel.freqs, A_ij_w, freqs_fine, 'pchip'); 
+        B_interp = interp1(vessel.freqs, B_ij_w, freqs_fine, 'pchip');
 
         % Numerically integrate element-wise using trapezoidal rule
         A_eq(i,j) = trapz(freqs_fine, A_interp .* S_w) / denom;
@@ -96,7 +94,7 @@ vessel.A_eq = A_eq;
 vessel.B_eq = B_eq;
 
 % Plots
-if PlotFlag == 1
+if plotFlag == 1
     plotAB_eq(vessel, 'A', velno);
     plotAB_eq(vessel, 'B', velno);
 end
