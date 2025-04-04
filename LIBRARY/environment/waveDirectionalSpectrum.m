@@ -48,11 +48,11 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 % spectrum type.
 %
 % Examples:
-%   [S_M, Omega] = waveDirectionalSpectrum('Modified PM', [Hs, w0])
-%   [S_M, Omega] = waveDirectionalSpectrum('JONSWAP', [Hs, w0, gamma])
-%   [S_M, Omega] = waveDirectionalSpectrum('Torsethaugen', [Hs, w0])
-%   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], true)
-%   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], true, 24)
+%   [S_M, Omega] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4)
+%   [S_M, Omega] = waveDirectionalSpectrum('JONSWAP', [Hs, w0, gamma], 100, 4)
+%   [S_M, Omega] = waveDirectionalSpectrum('Torsethaugen', [Hs, w0, 100, 4])
+%   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4, true)
+%   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4, true, 24)
 % 
 % Reference:
 %   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
