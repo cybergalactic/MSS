@@ -1,8 +1,8 @@
 % This script simulates the response of a vessel in waves using Cummins' 
 % equation and an equivalent maneuvering model. It calculates the wave-induced 
 % forces, solves the full hydrodynamic model including memory effects, and 
-% compares it with a simplified approximation using added mass and damping 
-% coefficients (Aeq, Beq) according to: 
+% compares it with a simplified approximation using equivalent added mass and 
+% damping coefficients (A_eq, B_eq) according to: 
 %
 %   A_eq(i,j,ω_p,velocity) = ∫ A(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
 %   B_eq(i,j,ω_p,velocity) = ∫ B(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
@@ -54,7 +54,7 @@ omegaMax = vessel.forceRAO.w(end); % Max frequency in RAO dataset
 [S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumNo, ...
     Parameter, numFreqIntervals, omegaMax);
 
-% 6-DOF generalized wave forces using firts-order force RAOs
+% 6-DOF generalized wave forces using first-order force RAOs
 waveData = zeros(nTimeSteps,7); % Pre-allocate table
 for i = 1:nTimeSteps
     [tau_wave1, waveElevation] = waveForceRAO(t(i), ...
