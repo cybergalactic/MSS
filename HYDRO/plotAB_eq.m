@@ -1,9 +1,9 @@
 function plotAB_eq(vessel, mtrx, velNo)
 % plotAB_eq plots all elements A_ij or B_ij versus frequency ω = vessel.freqs 
-% and overlays A_eq or B_eq as a lines for each wave spectrum peak frequency 
-% ω_p = vessel.omega_p. The equivalent added mass A_eq and damping B_eq matrices 
-% are computed by integrating the frequency-dependent hydrodynamic coefficients 
-% A(ω) and B(ω) using the wave spectrum S(ω, ω_p) as a weighting function, 
+% and overlays A_eq or B_eq for each wave spectrum peak frequency ω_p = vessel.omega_p. 
+% The equivalent added mass A_eq and damping B_eq matrices are computed by 
+% integrating the frequency-dependent hydrodynamic coefficients A(ω) and B(ω) 
+% using the wave spectrum S(ω, ω_p) as a weighting function, 
 % see computeManeuveringModel.m.
 
 % Inputs:
@@ -48,12 +48,10 @@ end
 % Frequency and omega_p vectors
 freqs = vessel.freqs(:);
 omega_p = vessel.omega_p(:);
-nfreq = length(freqs);
-nOmega = length(omega_p);
 
 % Extract 3D slice for current velocity
 H_w = H(:,:,:,velNo);
-H_eq_v = H_eq(:,:,:,velNo);  % [6×6×nOmega]
+H_eq = H_eq(:,:,:,velNo);  % [6×6×nOmega]
 
 % ---- LONGITUDINAL ELEMENTS ----
 figure(figno);
@@ -64,21 +62,20 @@ for i = 1:2:5
         subplot(3,3,k);
         
         % Frequency-dependent matrix element and interpolation onto omega_p
-        Hij_freq = squeeze(H_w(i,j,:));
-        Hij_interp = interp1(freqs, Hij_freq, omega_p, 'pchip');
+        Hij = squeeze(H_w(i,j,:));
 
         % Plot interpolated H_w at omega_p
-        plot(omega_p, Hij_interp, 'b-o', 'LineWidth', 1.5); hold on;
+        plot(freqs, Hij, 'b-o', 'LineWidth', 1.5); hold on;
 
         % Plot equivalent H_eq values
-        Hij_eq = squeeze(H_eq_v(i,j,:));
+        Hij_eq = squeeze(H_eq(i,j,:));
         plot(omega_p, Hij_eq, 'r-s', 'LineWidth', 1.5);
 
-        xlabel('\omega_p (rad/s)');
+        xlabel('\omega (rad/s)');
         ylabel(sprintf('%s_{%d%d}', mtrx, i, j));
         title(sprintf('%s - %s_{%d%d} (Vel %d)', titleStr, mtrx, i, j, velNo));
         grid on;
-        legend('Interpolated H(\omega_p)', 'Equivalent H_{eq}', 'Location', 'best');
+        legend('Raw data', 'Equivalent', 'Location', 'best');
         k = k + 1;
     end
 end
@@ -91,19 +88,18 @@ for i = 2:2:6
     for j = 2:2:6
         subplot(3,3,k);
         
-        Hij_freq = squeeze(H_w(i,j,:));
-        Hij_interp = interp1(freqs, Hij_freq, omega_p, 'pchip');
+        Hij= squeeze(H_w(i,j,:));
 
-        plot(omega_p, Hij_interp, 'b-o', 'LineWidth', 1.5); hold on;
+        plot(freqs, Hij, 'b-o', 'LineWidth', 1.5); hold on;
 
-        Hij_eq = squeeze(H_eq_v(i,j,:));
+        Hij_eq = squeeze(H_eq(i,j,:));
         plot(omega_p, Hij_eq, 'r-s', 'LineWidth', 1.5);
 
-        xlabel('\omega_p (rad/s)');
+        xlabel('\omega (rad/s)');
         ylabel(sprintf('%s_{%d%d}', mtrx, i, j));
         title(sprintf('%s - %s_{%d%d} (Vel %d)', titleStr, mtrx, i, j, velNo));
         grid on;
-        legend('Interpolated H(\omega_p)', 'Equivalent H_{eq}', 'Location', 'best');
+        legend('Raw data', 'Equivalent', 'Location', 'best');
         k = k + 1;
     end
 end
