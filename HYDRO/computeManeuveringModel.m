@@ -50,8 +50,16 @@ end
 A_all = vessel.A;
 B_all = vessel.B;
 
+omega_min = min(vessel.freqs);
+omega_max = max(vessel.freqs);
+
+% Avoid omega = 0 to prevent numerical issues in spectrum normalization
+if omega_min == 0
+    omega_min = 1e-6;
+end
+
 % Define finer frequency grid for interpolation
-freqs_fine = linspace(min(vessel.freqs), max(vessel.freqs), 100)';
+freqs_fine = linspace(omega_min, omega_max, 100)';
 nOmega = length(omega_p);
 
 % PM wave spectrum parameters
