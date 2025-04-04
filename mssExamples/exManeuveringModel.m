@@ -28,7 +28,7 @@ rng(1); % Set random generator seed to 1 when generating stochastic waves
 %% USER INPUTS
 h  = 0.05; % Sampling time [s]
 T_final = 200; % Final simulation time [s]
-plotFlag = 0; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
+plotFlag = 1; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
 vesselChoice = 1; % Choose vessel type 1, 2, 3
 
 switch vesselChoice
@@ -53,8 +53,8 @@ maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s)
 numFreqIntervals = 60; % Number of wave frequency intervals (>50)
    
 % Calculate the wave spectrum power intensity S(Omega) for each frequency
-spectrumNo = 7; % JONSWAP
-Hs = 5; % Significant wave height (m)
+spectrumType = 'JONSWAP'; 
+Hs = 4; % Significant wave height (m)
 omega_p = 0.8;  % Wave spectrum peak frequencies (rad/s)
 gamma = 3.3; % Peakedness factor
 Parameter = [Hs, omega_p, gamma]; % Spectrum parameters
@@ -66,7 +66,7 @@ nTimeSteps = length(t);
 % Wave spectrum, one direction
 omegaMax = vessel.forceRAO.w(end); % Max frequency in RAO dataset
 
-[S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumNo, ...
+[S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumType, ...
     Parameter, numFreqIntervals, omegaMax);
 
 % 6-DOF generalized wave forces using first-order force RAOs
@@ -78,6 +78,9 @@ for i = 1:nTimeSteps
 end
 
 %% Compute Aeq and Beq 
+vessel = computeManeuveringModel(vessel, omega_p, plotFlag);
+
+%% Compute Cummins and Maneuvering Model Responses
 freqs = vessel.freqs;
 nFreqInterp = 200;
 freqs_uniform = linspace(min(freqs), max(freqs), nFreqInterp)';
@@ -98,7 +101,6 @@ B_interp_all = zeros(nFreqInterp, 6);
 K_all = zeros(nTimeSteps,6);        % Retardation functions
 
 for DOF = 1:6
-    vessel = computeManeuveringModel(vessel, omega_p, plotFlag);
     A_eq(DOF) = vessel.A_eq(DOF,DOF);
     B_eq(DOF) = vessel.B_eq(DOF,DOF);
 
