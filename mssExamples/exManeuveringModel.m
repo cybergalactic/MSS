@@ -29,9 +29,24 @@ rng(1); % Set random generator seed to 1 when generating stochastic waves
 h  = 0.05; % Sampling time [s]
 T_final = 200; % Final simulation time [s]
 plotFlag = 0; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
+vesselChoice = 1; % Choose vessel type 1, 2, 3
 
-load supply; % Load vessel structure
-U = 0; % Speed (m/s)
+switch vesselChoice
+    case 1
+        load supply; 
+        vesselType = 'Supply Vessel';
+        U = vessel.velocities(1); % Zero speed (m/s)
+    case 2
+        load s175; 
+        vesselType = 'S175 Container Ship';
+        U = vessel.velocities(3); % Non-zero speed (m/s)
+    case 3
+        load tanker; 
+        vesselType = 'Tanker';
+        U = vessel.velocities(1); % Non-zero speed (m/s)        
+end
+fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
+
 psi = 0; % Heading angle (rad)
 beta_wave = deg2rad(50); % Wave direction relative bow, 0 for following sea, 180 for head sea
 maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s) 
@@ -74,8 +89,8 @@ eta_eq = zeros(nTimeSteps,6);       % Displacement (Aeq-Beq)
 eta_dot = zeros(nTimeSteps,6);      % Velocity (Cummins)
 eta_ddot = zeros(nTimeSteps,6);     % Acceleration (Cummins)
 eta_dot_eq = zeros(nTimeSteps,6);   % Velocity (Maneuvering)
-A_eq = zeros(nTimeSteps,6);
-B_eq = zeros(nTimeSteps,6);
+A_eq = zeros(6,1);  
+B_eq = zeros(6,1);
 
 A_w_all = zeros(length(freqs), 6);
 B_w_all = zeros(length(freqs), 6);
