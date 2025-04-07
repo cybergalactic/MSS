@@ -47,8 +47,8 @@ else
     nvel = 1;
 end
 
-A_all = vessel.A;
-B_all = vessel.B;
+A_all = vessel.A; % Added mass
+B_all = vessel.B + vessel.Bv; % Total Damping, sum of potential and viscous damping 
 
 omega_min = min(vessel.freqs);
 omega_max = max(vessel.freqs);
