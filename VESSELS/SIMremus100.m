@@ -110,7 +110,6 @@ T_z = 100;                     % Time constant for integral action in depth cont
 Kp_theta = 5.0;                % Proportional gain for pitch control
 Kd_theta = 2.0;                % Derivative gain for pitch control
 Ki_theta = 0.3;                % Integral gain for pitch control
-K_w = 5.0;                     % Feedback gain for heave velocity
 
 % Heading control parameters (using Nomoto model)
 K_yaw = 5 / 20;                % Gain, max rate of turn over max. rudder angle
@@ -189,7 +188,7 @@ for i = 1:nTimeSteps
        % Depth autopilot using the stern planes (succesive-loop closure)
        theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
        delta_s = -Kp_theta * ssa( theta - theta_d )...        % PID
-           - Kd_theta * q - Ki_theta * theta_int - K_w * w;
+           - Kd_theta * q - Ki_theta * theta_int;
 
        % PID heading angle command, psi_ref
        if t(i) > 200
@@ -214,7 +213,7 @@ for i = 1:nTimeSteps
 
        % Depth autopilot using the stern planes (PID)
        delta_s = -Kp_theta * ssa( theta - theta_d )...
-           - Kd_theta * q - Ki_theta * theta_int - K_w * w;
+           - Kd_theta * q - Ki_theta * theta_int;
 
        % ALOS guidance law
        [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
@@ -308,6 +307,7 @@ if (KinematicsFlag == 1) % Euler angle representation
     eta = simdata(:,17:22);
 else % Transform the unit quaternions to Euler angles
     quaternion = simdata(:,20:23);
+    phi = zeros(nTimeSteps,1); theta = zeros(nTimeSteps,1); psi = zeros(nTimeSteps,1);
     for i = 1:length(t)
         [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
     end
