@@ -1,12 +1,12 @@
-function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
+function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
 % function returns the time derivative xdot of the state vector: 
 %
-%   x = [ u v w p q r x y z phi theta psi ]',     alternatively 
-%   x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' 
+%   x = [ u v w p q r x y z phi theta psi ]', alternatively 
+%   x = [ u v w p q r x y z quat_eta quat_eps1 quat_eps2 quat_eps3 ]' 
 %
 % in addition to the speed U in m/s (optionally). The state vector can be 
 % of dimension 12 (Euler angles) or 13 (unit quaternions):
@@ -26,8 +26,8 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 % 
 % For the unit quaternion representation, the last three arguments of the 
 % x-vector, the Euler angles (phi, theta, psi), are replaced by the unit 
-% quaternion q = [eta, eps1, eps2, eps3]'. This increases the dimension of 
-% the state vector from 12 to 13.
+% quaternion quat = [quat_eta, quat_eps1, quat_eps2, quat_eps3]'. This increases 
+% the dimension of the state vector from 12 to 13.
 %
 % The control inputs are one tail rudder, two stern planes and a single-screw 
 % propeller:
@@ -44,30 +44,32 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 % 
 % Example usage: 
-% 
+%   [~,~,M] = remus100()                            : Return the 6x6 mass matrix M
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c) : 3-D ocean currents
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)     : 2-D ocean currents
 %   [xdot,U] = remus100(x,ui)                       : No ocean currents
-%    xdot    = remus100(x,ui)                       : No ocean currents
+%   xdot = remus100(x,ui)                           : No ocean currents
 %
 % Author:    Thor I. Fossen
 % Date:      2021-05-27
-% Revisions: 2021-08-24  Ocean currents are now expressed in NED 
-%            2021-10-21  imlay61.m is called using the relative velocity
-%            2021-12-30  Added the time derivative of the current velocity
-%            2022-02-01  Updated lift and drag forces
-%            2022-05-06  Calibration of drag and propulsion forces using
-%                        data from Allen et al. (2000)
-%            2022-06-08  Added compability for unit quaternions in 
-%                        addition to the Euler angle representation
-%            2022-10-16  Added vertical currents
-%            2023-05-02  Corrected the rudder area A_r
-%            2023-10-07  Scaled down the propeller roll-induced moment
-%            2024-02-09  Updated rudder and stern-plane areas
-%            2024-02-13  Calibration of the model parameters
-%            2024-06-23  Corrected sign of tau(5). A positive delta_s will 
-%                        result in a negative pitch and negative Z_s. 
-%                        Hence, tau(5) = -x_s * Z_s when x_s < 0.
+% Revisions:
+%   2021-08-24  Ocean currents are now expressed in NED
+%   2021-10-21  imlay61.m is called using the relative velocity
+%   2021-12-30  Added the time derivative of the current velocity
+%   2022-02-01  Updated lift and drag forces
+%   2022-05-06  Calibration of drag and propulsion forces using data from 
+%               Allen et al. (2000)
+%   2022-06-08  Added compatibility for unit quaternions in addition to the 
+%               Euler angle representation
+%   2022-10-16  Added vertical currents
+%   2023-05-02  Corrected the rudder area A_r
+%   2023-10-07  Scaled down the propeller roll-induced moment
+%   2024-02-09  Updated rudder and stern-plane areas
+%   2024-02-13  Calibration of the model parameters
+%   2024-06-23  Corrected sign of tau(5). A positive delta_s will result in a
+%               negative pitch and negative Z_s. Hence, tau(5) = -x_s * Z_s 
+%               when x_s < 0.
+%   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -77,8 +79,12 @@ function [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
-if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end  % No ocean currents
-if (nargin == 4), w_c = 0; end             % No vertical ocean currents
+if nargin == 0  % [~,~,M] = remus100()
+    x = zeros(12,1); ui = zeros(3,1); Vc = 0; betaVc = 0; w_c = 0;
+end
+
+if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end % No ocean currents
+if (nargin == 4), w_c = 0; end % No vertical ocean currents
 
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 if (length(x) ~= 12 && length(x) ~= 13)
@@ -90,9 +96,14 @@ mu = 63.446827;         % Lattitude for Trondheim, Norway (deg)
 g_mu = gravity(mu);     % Gravity vector (m/s2)
 rho = 1026;             % Density of water (m/s2)
 
-% State vectors and control inputs
+% 6x1 velocity vector, yaw angle and control inputs
 nu = x(1:6); 
-eta = x(7:12);
+if length(x) == 12 % Euler angles
+    psi = x(12);
+else % Convert unit quaternion to yaw angle
+    psi = atan2(2*(x(10)*x(13) + x(11)*x(12)), 1 - 2*(x(12)^2 + x(13)^2));
+end
+
 delta_r = ui(1);        % Tail rudder (rad)
 delta_s = ui(2);        % Stern plane (rad)
 n = ui(3)/60;           % Propeller revolution (rps)
@@ -106,11 +117,11 @@ if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
 if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
 
 % Ocean currents expressed in BODY
-u_c = Vc * cos( betaVc - eta(6) );                               
-v_c = Vc * sin( betaVc - eta(6) );   
+u_c = Vc * cos( betaVc - psi );                               
+v_c = Vc * sin( betaVc - psi );   
 
-nu_c = [u_c v_c w_c 0 0 0]';                % Ocean current velocities
-Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]';    % Time derivative of nu_c
+nu_c = [u_c v_c w_c 0 0 0]'; % Ocean current velocities
+Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]'; % Time derivative of nu_c
 
 % Relative velocities/speed, angle of attack and vehicle speed
 nu_r = nu - nu_c;                                 % Relative velocity
@@ -156,19 +167,15 @@ KQ_max = 0.0312;
 % KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja   
 % KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja        
 if n > 0   
-
     % Forward thrust
     X_prop = rho * D_prop^4 * (... 
         KT_0 * abs(n) * n + (KT_max-KT_0)/Ja_max * (Va/D_prop) * abs(n) );        
     K_prop = rho * D_prop^5 * (...
-        KQ_0 * abs(n) * n + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n) );           
-            
+        KQ_0 * abs(n) * n + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n) );                 
 else      
-
     % Reverse thrust (braking)   
     X_prop = rho * D_prop^4 * KT_0 * abs(n) * n; 
-    K_prop = rho * D_prop^5 * KQ_0 * abs(n) * n;
-            
+    K_prop = rho * D_prop^5 * KQ_0 * abs(n) * n;            
 end            
 
 S_fin = 0.00665;         % Fin area
