@@ -130,8 +130,8 @@ U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % Apeed (m/s)
 L_auv = 1.6;             % AUV length (m)
 D_auv = 0.19;            % AUV diamater (m)
 S = 0.7 * L_auv * D_auv; % Planform area S = 70% of rectangle L_auv * D_auv
-a = L_auv/2;             % Spheroid semi-axes a and b
-b = D_auv/2;                  
+a = 1.0096 * L_auv/2;    % Scaled spheroid semi-axes a and b to obtain m = 31.9 kg
+b = 1.0096 * D_auv/2;                   
 r44 = 0.3;               % Added moment of inertia in roll: A44 = r44 * Ix
 r_bG = [ 0 0 0.02 ]';    % CG w.r.t. to the CO
 r_bB = [ 0 0 0 ]';       % CB w.r.t. to the CO
