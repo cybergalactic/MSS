@@ -6,7 +6,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 % function returns the time derivative xdot of the state vector: 
 %
 %   x = [ u v w p q r x y z phi theta psi ]', alternatively 
-%   x = [ u v w p q r x y z quat_eta quat_eps1 quat_eps2 quat_eps3 ]' 
+%   x = [ u v w p q r x y z eta eps1 eps2 eps3 ]' 
 %
 % in addition to the speed U in m/s (optionally). The state vector can be 
 % of dimension 12 (Euler angles) or 13 (unit quaternions):
@@ -26,8 +26,8 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 % 
 % For the unit quaternion representation, the last three arguments of the 
 % x-vector, the Euler angles (phi, theta, psi), are replaced by the unit 
-% quaternion quat = [quat_eta, quat_eps1, quat_eps2, quat_eps3]'. This increases 
-% the dimension of the state vector from 12 to 13.
+% quaternion quat = [eta, eps1, eps2, eps3]'. This increases the dimension of
+%  the state vector from 12 to 13.
 %
 % The control inputs are one tail rudder, two stern planes and a single-screw 
 % propeller:
@@ -133,8 +133,8 @@ S = 0.7 * L_auv * D_auv; % Planform area S = 70% of rectangle L_auv * D_auv
 a = L_auv/2;             % Spheroid semi-axes a and b
 b = D_auv/2;                  
 r44 = 0.3;               % Added moment of inertia in roll: A44 = r44 * Ix
-r_bg = [ 0 0 0.02 ]';    % CG w.r.t. to the CO
-r_bb = [ 0 0 0 ]';       % CB w.r.t. to the CO
+r_bG = [ 0 0 0.02 ]';    % CG w.r.t. to the CO
+r_bB = [ 0 0 0 ]';       % CB w.r.t. to the CO
 
 % Parasitic drag coefficient CD_0, i.e. zero lift and alpha = 0
 % F_drag = 0.5 * rho * Cd * (pi * b^2)   
@@ -195,7 +195,7 @@ zeta5 = 0.8;             % Relative damping ratio in pitch
 T6 = 1;                  % Time constant in yaw (s)
 
 % Rigid-body mass and hydrodynamic added mass
-[MRB,CRB] = spheroid(a,b,nu(4:6),r_bg);
+[MRB,CRB] = spheroid(a,b,nu(4:6),r_bG);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
 % CA-terms in roll, pitch and yaw can destabilize the model if quadratic
@@ -210,7 +210,7 @@ C = CRB + CA;
 m = MRB(1,1); W = m * g_mu; B = W;
 
 % Dissipative forces and moments
-D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bg' r_bb']);
+D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bG' r_bB']);
 D(1,1) = D(1,1) * exp(-3*U_r);   % Vanish at high speed where quadratic
 D(2,2) = D(2,2) * exp(-3*U_r);   % Drag and lift forces dominates
 
@@ -225,7 +225,7 @@ else
 end
 
 % Restoring forces and moments
-g = gRvect(W,B,R,r_bg,r_bb);
+g = gRvect(W,B,R,r_bG,r_bB);
 
 % Horizontal- and vertical-plane relative speed
 U_rh = sqrt( nu_r(1)^2 + nu_r(2)^2 );  
