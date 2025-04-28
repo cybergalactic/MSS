@@ -46,8 +46,8 @@ clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
 close all;                          % Close all open figure windows
 
 %% SIMULATOR CONFIGURATION
-h = 0.05;                           % Sampling time [s]
-T_final = 1400;	                    % Final simulation time [s]
+h = 0.05;                           % Sampling time (s)
+T_final = 1400;	                    % Final simulation time (s)
 
 [ControlFlag, KinematicsFlag] = controlMethod();
 
