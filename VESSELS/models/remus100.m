@@ -104,17 +104,14 @@ else % Convert unit quaternion to yaw angle
     psi = atan2(2*(x(10)*x(13) + x(11)*x(12)), 1 - 2*(x(12)^2 + x(13)^2));
 end
 
-delta_r = ui(1);        % Tail rudder (rad)
-delta_s = ui(2);        % Stern plane (rad)
-n = ui(3)/60;           % Propeller revolution (rps)
+% Amplitude saturation of the control signals
+delta_max = deg2rad(20); % Maximum rudder and stern angles (rad)
+n_max = 1525;            % Maximum propeller speed (RPM)
 
 % Amplitude saturation of the control signals
-n_max = 1525;                                   % Maximum propeller RPM
-max_ui = [deg2rad(20) deg2rad(20) n_max/60]';   % deg, deg, RPS
-
-if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
-if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
-if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
+delta_r = sat(ui(1), delta_max);    % Saturated tail rudder (rad)
+delta_s = sat(ui(2), delta_max);    % Saturated Stern plane (rad)
+n = sat(ui(3),n_max) / 60;          % Saturated propeller speed (rps)
 
 % Ocean currents expressed in BODY
 u_c = Vc * cos( betaVc - psi );                               
