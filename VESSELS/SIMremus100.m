@@ -39,12 +39,13 @@ function SIMremus100()
 %   2024-06-07: Included display of vehicle data using displayVehicleData.m.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4 for the Euler angle representation.
+%   2025-04-25: Improved logic and minor updates.
 
 clearvars;                          % Clear all variables from memory
 clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
 close all;                          % Close all open figure windows
 
-%% USER INPUTS
+%% SIMULATOR CONFIGURATION
 h = 0.05;                           % Sampling time [s]
 T_final = 1400;	                    % Final simulation time [s]
 
@@ -68,11 +69,9 @@ psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
 xf_z_d = zn;                        % Initial low-pass filter state
 
 % State vector initialization
-if KinematicsFlag == 1 
-    % Using Euler angles
+if KinematicsFlag == 1  % Euler angles
     x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
-else
-    % Using quaternion representation
+else % Unit quaternions
     quat = euler2q(phi, theta, psi);
     x = [U; zeros(5,1); xn; yn; zn; quat];
 end
@@ -83,19 +82,22 @@ betaVc = deg2rad(30);          % Horizontal direction (radians)
 wc = 0.1;                      % Vertical speed (m/s)
 
 % Initialize propeller dynamics
-n = 1000;                      % Initial propeller speed (rpm)
-n_d = 1300;                    % Desired propeller speed (rpm)
-rangeCheck(n_d, 0, 1525);      % Check if within operational limits
+n_max = 1525;                  % Maximum propeller speed (RPM)
+n_rate = 0.1;                  % Rate limit (RPM per update)
+n = 1000;                      % Initial propeller speed (RPM)
+n_d = 1300;                    % Desired propeller speed (RPM)
 
 % Time vector initialization
 t = 0:h:T_final;                % Time vector from 0 to T_final          
 nTimeSteps = length(t);         % Number of time steps
 
 %% CONTROL SYSTEM CONFIGURATION
+delta_max = deg2rad(20);       % Maximum rudder and stern angle (rad)
+
 % Setup for depth and heading control
+z_max = 100;                   % Maximum depth (m)
 psi_step = deg2rad(-60);       % Step change in heading angle (rad)
 z_step = 30;                   % Step change in depth, max 100 m
-rangeCheck(z_step,0,100);
 
 % Integral states for autopilots
 z_int = 0;                     % Integral state for depth control
@@ -124,7 +126,7 @@ r_max = deg2rad(5.0);          % Maximum allowable rate of turn (rad/s)
 lambda = 0.1;
 phi_b = 0.1;                   % Boundary layer thickness
 
-if ControlFlag == 1% PID control parameters
+if ControlFlag == 1 % PID control parameters
     K_d = 0.5;                 % Derivative gain for PID controller
     K_sigma = 0;               % Gain for SMC (inactive when using PID)
 else                        
@@ -134,138 +136,135 @@ else
 end
 
 %% ALOS PATH-FOLLOWING PARAMETERS
-Delta_h = 20;               % horizontal look-ahead distance (m)
-Delta_v = 20;               % vertical look-ahead distance (m)
-gamma_h = 0.001;            % adaptive gain, horizontal plane
-gamma_v = 0.001;            % adaptive gain, vertical plane
-M_theta = deg2rad(20);      % maximum value of estimates, alpha_c, beta_c
+Delta_h = 20;               % Horizontal look-ahead distance (m)
+Delta_v = 20;               % Vertical look-ahead distance (m)
+gamma_h = 0.001;            % Adaptive gain, horizontal plane
+gamma_v = 0.001;            % Adaptive gain, vertical plane
+M_theta = deg2rad(20);      % Maximum value of estimates, alpha_c, beta_c
 
 % Additional parameter for straigh-line path following
-R_switch = 5;               % radius of switching circle
+R_switch = 5;               % Radius of switching circle
 K_f = 0.5;                  % LOS observer gain
 
+%% INPUT RANGE CHECK
+rangeCheck(n_d, 0, n_max); 
+rangeCheck(z_step, 0, z_max);
+rangeCheck(U, 0, 5);
+
 %% MAIN LOOP
-simdata = zeros(nTimeSteps, length(x)+10); % Preallocate table for simulation data
-ALOSdata = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
+simData = zeros(nTimeSteps, length(x) + 10); % Preallocate table for simulation data
+alosData = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 
 for i = 1:nTimeSteps
 
     % Measurements 
-    u = x(1);                  % Surge velocity (m/s)
-    v = x(2);                  % Sway velocity (m/s)
-    w = x(3);                  % Heave velocity (m/s)
     q = x(5);                  % Pitch rate (rad/s)
     r = x(6);                  % Yaw rate (rad/s)
     xn = x(7);                 % North position (m)
     yn = x(8);                 % East position (m)
     zn = x(9);                 % Down position (m), depth
 
-   if (KinematicsFlag == 1)
-         phi = x(10); theta = x(11); psi = x(12); % Euler angles
-   else
-         [phi,theta,psi] = q2euler(x(10:13)); % Convert quaternion to Euler angles
+    % Kinematic representation
+    switch KinematicsFlag
+        case 1
+            theta = x(11); psi = x(12); % Euler angles
+        otherwise
+            [~,theta,psi] = q2euler(x(10:13)); % Quaternion to Euler angles
+    end
+
+    % Control systems 
+    switch ControlFlag
+        case {1, 2} % Depth command, z_ref, and heading angle command, psi_ref
+            if t(i) > 200
+                z_ref = z_step;
+                psi_ref = psi_step;
+            else
+                z_ref = 10;
+                psi_ref = deg2rad(0);
+            end
+
+            % LP filtering the depth command
+            Uv = sqrt(x(1)^2+x(3)^2);    % Vertical speed
+            if Uv < 1.0                  % Reduce bandwidth at low speed
+                wnz = wn_d_z / 2;
+            else
+                wnz = wn_d_z;
+            end
+            [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wnz, h);
+
+            % Depth autopilot using the stern planes (succesive-loop closure)
+            theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
+            delta_s = -Kp_theta * ssa( theta - theta_d )...        % PID
+                - Kd_theta * q - Ki_theta * theta_int;
+            delta_s = sat(delta_s, delta_max);
+
+            % Heading autopilot using the tail rudder
+            delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
+                K_d, K_sigma, lambda, phi_b, K_yaw, T_yaw, h);
+            delta_r = sat(delta_r, delta_max);
+
+            % Third-order reference model for the heading angle
+            [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
+                zeta_d_psi, wn_d_psi, h, 1);
+
+        otherwise % ALOS path-following
+            % Heading autopilot using the tail rudder (integral SMC)
+            delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
+                K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
+            delta_r = sat(delta_r, delta_max);
+
+            % Depth autopilot using the stern planes (PID)
+            delta_s = -Kp_theta * ssa( theta - theta_d )...
+                - Kd_theta * q - Ki_theta * theta_int;
+            delta_s = sat(delta_s, delta_max);
+
+            % ALOS guidance law
+            [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
+                ALOS3D(xn, yn, zn, Delta_h, Delta_v, gamma_h, gamma_v,...
+                M_theta, h, R_switch, wpt);
+
+            % ALOS observer
+            [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+            r_d = sat(r_d, r_max);
+
+            % Ocean current dynamics
+            if t(i) > 800
+                Vc_d = 0.65;
+                w_V = 0.05;
+                Vc = exp(-h*w_V) * Vc + (1 - exp(-h*w_V)) * Vc_d;
+            else
+                Vc = 0.5;
+            end
+
+            if t(i) > 500
+                betaVc_d = deg2rad(160);
+                w_beta = 0.1;
+                betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
+            else
+                betaVc = deg2rad(150);
+            end
+
+            betaVc = betaVc + randn / 1000;
+            Vc = Vc + 0.002 * randn;
+
+            % Store ALOS data in table
+            alosData(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
+    end
+
+   % Propeller speed (RPM)
+   if n < n_d
+       n = n + n_rate;
+   elseif n > n_d
+       n = n - n_rate;
    end
+   n = sat(n, n_max);
 
-    % Control system updates based on selected mode
-   if ControlFlag == 1 || ControlFlag == 2   % Depth control 
-
-       % Depth command, z_ref
-       if t(i) > 200
-           z_ref = z_step;
-       else
-           z_ref = 10;
-       end
-
-       % LP filtering the depth command
-       Uv = sqrt(x(1)^2+x(3)^2);    % Vertical speed
-       if Uv < 1.0                  % Reduce bandwidth at low speed
-           wnz = wn_d_z / 2;
-       else
-           wnz = wn_d_z;
-       end
-       [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wnz, h);
-
-       % Depth autopilot using the stern planes (succesive-loop closure)
-       theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
-       delta_s = -Kp_theta * ssa( theta - theta_d )...        % PID
-           - Kd_theta * q - Ki_theta * theta_int;
-
-       % PID heading angle command, psi_ref
-       if t(i) > 200
-           psi_ref = psi_step;
-       else
-           psi_ref = deg2rad(0);
-       end
-
-       % Heading autopilot using the tail rudder
-       delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
-           K_d, K_sigma, lambda, phi_b, K_yaw, T_yaw, h);
-
-       % Third-order reference model for the heading angle
-       [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
-           zeta_d_psi, wn_d_psi, h, 1);
-
-   else % ControlFlag == 3, ALOS path-following
-
-       % Heading autopilot using the tail rudder (integral SMC)
-       delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
-           K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
-
-       % Depth autopilot using the stern planes (PID)
-       delta_s = -Kp_theta * ssa( theta - theta_d )...
-           - Kd_theta * q - Ki_theta * theta_int;
-
-       % ALOS guidance law
-       [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
-           ALOS3D(xn, yn, zn, Delta_h, Delta_v, gamma_h, gamma_v,...
-           M_theta, h, R_switch, wpt);
-
-       % ALOS observer
-       [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
-       [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
-       if abs(r_d) > r_max, r_d = sign(r_d) * r_max; end
-
-       % Ocean current dynamics
-       if t(i) > 800
-           Vc_d = 0.65;
-           w_V = 0.1;
-           Vc = exp(-h*w_V) * Vc + (1 - exp(-h*w_V)) * Vc_d;
-       else
-           Vc = 0.5;
-       end
-
-       if t(i) > 500
-           betaVc_d = deg2rad(160);
-           w_beta = 0.1;
-           betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
-       else
-           betaVc = deg2rad(150);
-       end
-
-       betaVc = betaVc + (pi/180) * randn / 20;
-       Vc = Vc + 0.002 * randn;
-
-       ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
-
-   end
-
-   % Propeller control (rpm)
-   if (n < n_d)
-       n = n + 1;
-   end
-
-   % Amplitude saturation of the control signals
-   n_max = 1525;                                % maximum propeller RPM
-   max_ui = [deg2rad(15) deg2rad(15) n_max]';   % deg, deg, RPM
-
-   if (abs(delta_r) > max_ui(1)), delta_r = sign(delta_r) * max_ui(1); end
-   if (abs(delta_s) > max_ui(2)), delta_s = sign(delta_s) * max_ui(2); end
-   if (abs(n)       > max_ui(3)), n = sign(n) * max_ui(3); end
-
-   ui = [delta_r -delta_s n]';                % Commanded control inputs
+   % Control input vector
+   ui = [delta_r -delta_s n]';            
 
    % Store simulation data in a table
-   simdata(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
+   simData(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
 
    if (KinematicsFlag == 1)
        % Euler angles x = [ u v w p q r x y z phi theta psi ]'
@@ -292,33 +291,33 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 12;
 if isoctave; legendLocation = 'northeast'; end
 
-% simdata = [z_d theta_d psi_d r_d Vc betaVc wc ui' x']
-z_d     = simdata(:,1);
-theta_d = simdata(:,2);
-psi_d   = simdata(:,3);
-r_d     = simdata(:,4);
-Vc      = simdata(:,5);
-betaVc  = simdata(:,6);
-wc      = simdata(:,7);
-u       = simdata(:,8:10);
-nu      = simdata(:,11:16);
+% simData = [z_d theta_d psi_d r_d Vc betaVc wc ui' x']
+z_d     = simData(:,1);
+theta_d = simData(:,2);
+psi_d   = simData(:,3);
+r_d     = simData(:,4);
+Vc      = simData(:,5);
+betaVc  = simData(:,6);
+wc      = simData(:,7);
+u       = simData(:,8:10);
+nu      = simData(:,11:16);
 
 if (KinematicsFlag == 1) % Euler angle representation
-    eta = simdata(:,17:22);
+    eta = simData(:,17:22);
 else % Transform the unit quaternions to Euler angles
-    quaternion = simdata(:,20:23);
+    quaternion = simData(:,20:23);
     phi = zeros(nTimeSteps,1); theta = zeros(nTimeSteps,1); psi = zeros(nTimeSteps,1);
     for i = 1:length(t)
         [phi(i,1),theta(i,1),psi(i,1)] = q2euler(quaternion(i,:));
     end
-    eta = [simdata(:,17:19) phi theta psi];
+    eta = [simData(:,17:19) phi theta psi];
 end
 
-% ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
-y_e = ALOSdata(:,1);
-z_e = ALOSdata(:,2);
-alpha_c_hat = ALOSdata(:,3);
-beta_c_hat = ALOSdata(:,4);
+% alosData = [y_e z_e alpha_c_hat beta_c_hat]
+y_e = alosData(:,1);
+z_e = alosData(:,2);
+alpha_c_hat = alosData(:,3);
+beta_c_hat = alosData(:,4);
 
 uc = Vc .* cos(betaVc);
 vc = Vc .* sin(betaVc);
@@ -388,7 +387,7 @@ legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',.
     'Location',legendLocation)
 subplot(312),plot(t,nu(:,3),t,wc)
 xlabel('Time (s)'),grid
-legend('Vehicle heave velocity (m/s)','Ocean current heave velcoity (m/s)',...
+legend('Vehicle heave velocity (m/s)','Ocean current heave velocity (m/s)',...
     'Location',legendLocation)
 subplot(313),plot(t,rad2deg(betaVc),'r')
 xlabel('Time (s)'),grid
