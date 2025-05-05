@@ -32,32 +32,27 @@ function [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag)
 % Date:      2020-07-10
 % Revisions: 
 %   2020-10-06 - Fixed minor typos
+%   2025-05-06 - Replaced matrix inversion method with orthogonal projection
 
-% Path-tangential angle
-pi_h = atan2(y_t-y_ref, x_t-x_ref);
+% Path vector (NE)
+p1 = [x_ref; y_ref];      % Start waypoint (N, E)
+p2 = [x_t; y_t];          % End waypoint (N, E)
+p  = [x; y];              % Vehicle position (N, E)
+d  = p2 - p1;             % Direction vector (N, E)
 
-cp = cos(pi_h);
-sp = sin(pi_h); 
-tp = tan(pi_h);
+% Orthogonal projection of p onto line (p1, p2)
+t = dot(p - p1, d) / dot(d, d);
+p_p = p1 + t * d;
 
-% Origin of the path-tangential frame is chosen at x_e^p = 0. This gives:
-%   [0 y_e^p]' = R'(pi_h) * [x^n y^n]' - [x_p^n y_p^n]'
-% The straight-line slope is constant:
-%  tan(pi_h) = (y_t^n - y_p^n) / (x_t^n - x_p^n) 
-% Matrix representation:
-% A * z = b  -->  x = inv(A) * b
-A = [cp sp  0
-    -sp cp 1
-     tp -1 0 ];
+% Output reference point
+x_p = p_p(1);  % North
+y_p = p_p(2);  % East
 
-b = [ cp*x + sp*y
-     -sp*x + cp*y
-      tp*x_t - y_t ];
-      
-z = inv(A) * b;
-x_p = z(1); 
-y_p = z(2);
-y_e = z(3);
+% Path heading (angle from North axis)
+pi_h = atan2(d(2), d(1));  % atan2(East, North)
+
+% Cross-track error in NE frame
+y_e = -(x - x_p) * sin(pi_h) + (y - y_p) * cos(pi_h);
 
 if (nargin == 7 && flag == 1)
     axis normal;
