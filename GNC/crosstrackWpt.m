@@ -5,10 +5,10 @@ function y_e = crosstrackWpt(x2, y2, x1, y1, x, y)
 % (x, y) when the path is a straight line from waypoint (x1,y1) to 
 % waypoint (x2,y2).
 %
-% Input:    (x1,y1) and (x2,y2), waypoints  expressed in NED
-%           (x,y), craft North-East positions 
+% Input:    (x1,y1) and (x2,y2): Waypoints  expressed in NED
+%           (x,y): Craft North-East positions 
 %
-% Outputs:  y_e, cross-track error expressed in NED
+% Outputs:  y_e: Cross-track error expressed in NED
 %
 % See also [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag), 
 % which computes the coordinate origin (x_p, y_p) of the path-tangential
@@ -20,8 +20,8 @@ function y_e = crosstrackWpt(x2, y2, x1, y1, x, y)
 %   None
 
 % Path-tanegntial angle with respect to the North axis
-pi_p = atan2(y2-y1, x2-x1);
+pi_h = atan2(y2-y1, x2-x1);
 
 % Cross-track error expressed in NED
-y_e = -(x-x1) * sin(pi_p) + (y-y1) * cos(pi_p);
+y_e = -(x-x1) * sin(pi_h) + (y-y1) * cos(pi_h);
 
