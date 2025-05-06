@@ -23,13 +23,14 @@
 
 clear waveForceRAO; % Clear persistent RAO tables
 clearvars; 
+close all;
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
-%% USER INPUTS
-h  = 0.05; % Sampling time [s]
-T_final = 200; % Final simulation time [s]
-plotFlag = 1; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
-vesselChoice = 1; % Choose vessel type 1, 2, 3
+%% SIMULATOR CONFIGURATION
+h  = 0.05; % Sampling time (s)
+T_final = 200; % Final simulation time (s)
+plotFlag = 0; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
+vesselChoice = 3; % Choose vessel type 1, 2, 3
 
 switch vesselChoice
     case 1
@@ -43,12 +44,12 @@ switch vesselChoice
     case 3
         load tanker; 
         vesselType = 'Tanker';
-        U = vessel.velocities(1); % Non-zero speed (m/s)        
+        U = vessel.velocities(1); % Zero speed (m/s)        
 end
 fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
 
 psi = 0; % Heading angle (rad)
-beta_wave = deg2rad(50); % Wave direction relative bow, 0 for following sea, 180 for head sea
+beta_wave = deg2rad(50); % Wave direction, 0 for following sea, 180 for head sea
 maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s) 
 numFreqIntervals = 60; % Number of wave frequency intervals (>50)
    
@@ -161,6 +162,60 @@ eta_dot_eq(:,4:6) = rad2deg(eta_dot_eq(:,4:6));
 
 %% Plot Results
 figure(1);
+dofNames = {'Wave Force in Surge (N)', 'Wave Force in Sway (N)', 
+    'Wave Force in Heave (N)', 'Wave Moment in Roll (Nm)', 
+    'Wave Moment in Pitch (Nm)', 'Wave Moment in Yaw (Nm)'};
+
+for DOF = 1:6
+    % Left column: Retardation function
+    subplot(6,2,2*DOF - 1)
+    plot(t, K_all(:,DOF), 'b', 'LineWidth', 2)
+    xlabel('Time (s)');
+    ylabel(['K_{' num2str(DOF) num2str(DOF) '}']);
+    title(['Retardation Function  K_{' num2str(DOF) num2str(DOF) '}']);
+    grid on;
+
+    % Right column: 1st-order wave force
+    subplot(6,2,2*DOF)
+    plot(t, waveData(:,DOF), 'r', 'LineWidth', 2)
+    xlabel('Time (s)');
+    ylabel(['\tau_{' num2str(DOF) '}']);
+    title(['1st-Order ' dofNames{DOF}]);
+    grid on;
+end
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
+
+figure(2);
+for DOF = 1:6
+    % --- Added Mass subplot (left column) ---
+    subplot(6,2,2*DOF - 1)
+    plot(freqs, A_w_all(:,DOF), 'rx', ...
+         freqs_uniform, A_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
+    title(['Added Mass A_{' num2str(DOF) num2str(DOF) '}(ω)']);
+    legend('A(ω)', 'A_{eq}', 'Location', 'best');
+    grid on;
+
+    % --- Damping subplot (right column) ---
+    subplot(6,2,2*DOF)
+    plot(freqs_uniform, B_interp_all(:,DOF), 'g', ...
+         freqs, B_w_all(:,DOF), 'rx', ...
+         freqs_uniform, B_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
+    title(['Damping B_{' num2str(DOF) num2str(DOF) '}(ω)']);
+    legend('Interpolated', 'B(ω)', 'B_{eq}', 'Location', 'best');
+    grid on;
+end
+
+set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','legend'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',2)
+
+figure(3);
+eta_dot(:,1) = U + eta_dot(:,1); % Add cruise speed to surge velocity perturbation
+eta_dot_eq(:,1) = U + eta_dot_eq(:,1);
+
 for DOF = 1:6
     subplot(6,1,DOF)
     
@@ -195,45 +250,6 @@ for DOF = 1:6
     end
 
     xlabel('Time (s)');
-    grid;
-end
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
-
-figure(2);
-for DOF = 1:6
-    subplot(6,1,DOF)
-    plot(t, K_all(:,DOF), 'LineWidth', 2)
-    xlabel('Time (s)');
-    ylabel('Memory Kernel K(t)');
-    title(['Retardation Function K_{' num2str(DOF) num2str(DOF) '}(t)']);
-    grid;
-end
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
-
-figure(3);
-for DOF = 1:6
-    subplot(6,1,DOF)
-    plot(freqs, A_w_all(:,DOF), 'rx', ...
-         freqs_uniform, A_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
-    title(['Added Mass A_{' num2str(DOF) num2str(DOF) '}(ω)']);
-    legend('A(ω)', 'A_{eq}');
-    grid;
-end
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
-
-figure(4);
-for DOF = 1:6
-    subplot(6,1,DOF)
-    plot(freqs_uniform, B_interp_all(:,DOF), 'g', ...
-         freqs, B_w_all(:,DOF), 'rx', ...
-         freqs_uniform, B_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
-    title(['Damping B_{' num2str(DOF) num2str(DOF) '}(ω)']);
-    legend('Interpolated', 'B(ω)', 'B_{eq}');
     grid;
 end
 set(findall(gcf,'type','text'),'FontSize',14)
