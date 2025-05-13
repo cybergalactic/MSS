@@ -22,7 +22,10 @@ function SIMremus100()
 % Simulink Models:
 %   demoAUVdepthHeadingControl.slx : Depth and heading control.
 %
-% Reference:
+% References:
+%   E. M. Coates and T. I. Fossen (2025). Aspherical Amplitude–Phase Formulation 
+%       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability
+%       Guarantees, Automatica, Submitted. 
 %   T. I. Fossen & P. Aguiar (2024). A Uniform Semiglobal Exponential  
 %      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
 %      Following. Automatica, 163, 111556. 
@@ -34,12 +37,14 @@ function SIMremus100()
 %   2022-02-01: Autopilots redesign.
 %   2022-05-06: Tuning update for remus100 dynamics.
 %   2022-05-08: Support for quaternion kinematics.
-%   2024-04-02: Simulation options for ALOS path following.
+%   2024-04-02: Simulation options for ALOS path following (Fossen and Aguiar 2024).
 %   2024-04-21: Extended compatibility with GNU Octave.
 %   2024-06-07: Included display of vehicle data using displayVehicleData.m.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4 for the Euler angle representation.
 %   2025-04-25: Improved logic and minor updates.
+%   2025-05-13: Crab angle plots based on spherical representation (Coates and 
+%               Fossen 2025).
 
 clearvars;                          % Clear all variables from memory
 clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
@@ -299,8 +304,10 @@ r_d     = simData(:,4);
 Vc      = simData(:,5);
 betaVc  = simData(:,6);
 wc      = simData(:,7);
-u       = simData(:,8:10);
+ui       = simData(:,8:10);
 nu      = simData(:,11:16);
+u = nu(:,1); v = nu(:,2); w = nu(:,3);
+p = nu(:,4); q = nu(:,5); r = nu(:,6);
 
 if (KinematicsFlag == 1) % Euler angle representation
     eta = simData(:,17:22);
@@ -319,29 +326,33 @@ z_e = alosData(:,2);
 alpha_c_hat = alosData(:,3);
 beta_c_hat = alosData(:,4);
 
+% Ocean current velocities 
 uc = Vc .* cos(betaVc);
 vc = Vc .* sin(betaVc);
-alpha_c = atan( (nu(:,2).*sin(eta(:,4))+nu(:,3).*cos(eta(:,4))) ./ nu(:,1) );
-Uv = nu(:,1) .* sqrt( 1 + tan(alpha_c).^2 );
-beta_c = atan( ( nu(:,2).*cos(eta(:,4))-nu(:,3).*sin(eta(:,4)) ) ./ ...
-    ( Uv .* cos(eta(:,5)-alpha_c) ) );
-alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
-beta  = atan2( (nu(:,2)-vc), (nu(:,1)-uc) );
+
+% Crab angles, AOA and SSA
+U = sqrt(u.^2+v.^2+w.^2); % Speed
+gamma = asin( (u.*sin(theta)-(v.*sin(phi)+w.*cos(phi)).*cos(theta)) ./ U );
+alpha_c = theta - gamma; % Horizontal crab angle
+beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
+    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Vertical crab angle
+alpha = asin( (w-wc) ./ (u-uc) ); % AOA
+beta  = atan2( (v-vc), (u-uc) ); % SSA
 
 %% Generalized velocity
 figure(1);
 if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
-subplot(611),plot(t,nu(:,1))
+subplot(611),plot(t,u)
 xlabel('Time (s)'),title('Surge velocity (m/s)'),grid
-subplot(612),plot(t,nu(:,2))
+subplot(612),plot(t,v)
 xlabel('Time (s)'),title('Sway velocity (m/s)'),grid
-subplot(613),plot(t,nu(:,3))
+subplot(613),plot(t,w)
 xlabel('Time (s)'),title('Heave velocity (m/s)'),grid
-subplot(614),plot(t,(180/pi)*nu(:,4))
+subplot(614),plot(t,(180/pi)*p)
 xlabel('Time (s)'),title('Roll rate (deg/s)'),grid
-subplot(615),plot(t,(180/pi)*nu(:,5))
+subplot(615),plot(t,(180/pi)*q)
 xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
-subplot(616),plot(t,(180/pi)*nu(:,6))
+subplot(616),plot(t,(180/pi)*r)
 xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
@@ -369,11 +380,11 @@ set(findall(gcf,'type','legend'),'FontSize',legendSize)
 %% Control signals
 figure(3);
 if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,scrSz(4)/2,scrSz(3)/3,scrSz(4)/2]);end
-subplot(311),plot(t,rad2deg(u(:,1)))
+subplot(311),plot(t,rad2deg(ui(:,1)))
 xlabel('Time (s)'),title('Rudder command \delta_r (deg)'),grid
-subplot(312),plot(t,rad2deg(u(:,2)))
+subplot(312),plot(t,rad2deg(ui(:,2)))
 xlabel('Time (s)'),title('Stern-plane command \delta_s (deg)'),grid
-subplot(313),plot(t,u(:,3))
+subplot(313),plot(t,ui(:,3))
 xlabel('Time (s)'),title('Propeller speed command n (rpm)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
@@ -396,24 +407,24 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% Sideslip and angle of attack
+%% Crab angles, SSA and AOA
 if ControlFlag == 3
     figure(5);
     if ~isoctave; set(gcf,'Position',[100,scrSz(4)/2,scrSz(3)/3,scrSz(4)]); end
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
-    title('Angle of attack (deg)')
+    title('Vertical crab angle and AOA (deg)')
     xlabel('Time (s)')
     grid
-    legend('\alpha','\alpha_c','\alpha_c estimate','Location',legendLocation)
+    legend('\alpha Angle of attack (AOA)','\alpha_c Vertical crab angle','\alpha_c ALOS estimate','Location',legendLocation)
     subplot(312)
     plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
         t,rad2deg(beta_c_hat),'r')
-    title('Sideslip angle (deg)')
+    title('Horizontal crab angle and SSA (deg)')
     xlabel('Time (s)')
     grid
-    legend('\beta','\beta_c','\beta_c estimate','Location',legendLocation)
+    legend('\beta Sideslip angle (SSA)','\beta_c Horizontal crab angle','\beta_c ALOS estimate','Location',legendLocation)
     subplot(313)
     plot(t,y_e,t,z_e)
     title('Tracking errors (m)'),grid
@@ -482,7 +493,7 @@ vehicleData = {...
     'Max propeller speed', '1525 RPM'};
 displayVehicleData('Remus100 AUV', vehicleData, 'remus100.jpg', 8);
 
-end
+end % SIMremus100
 
 %% FUNCTIONS
 function [ControlFlag, KinematicsFlag] = controlMethod()
