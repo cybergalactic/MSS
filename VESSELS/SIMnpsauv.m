@@ -22,11 +22,14 @@ function SIMnpsauv()
 %   demoNPSAUV.slx : Simulink model demonstrating PID heading control.
 %
 % References:
-%   T. I. Fossen & Aguiar, P. (2024). A Uniform Semiglobal Exponential  
-%     Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
-%     Following. Automatica, 163, 111556. 
-%     https://doi.org/10.1016/j.automatica.2024.111556
-%
+% References:
+%   E. M. Coates and T. I. Fossen (2025). Aspherical Amplitude–Phase Formulation 
+%       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability
+%       Guarantees, Automatica, Submitted. 
+%   T. I. Fossen & P. Aguiar (2024). A Uniform Semiglobal Exponential  
+%      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
+%      Following. Automatica, 163, 111556. 
+%      https://doi.org/10.1016/j.automatica.2024.111556
 %   A. J. Healey and Lienard, D. (1993). Multivariable Sliding Mode Control 
 %     for Autonomous Diving and Steering of Unmanned Underwater Vehicles,
 %     IEEE Journal of Ocean Engineering 18(3):327-339.
@@ -34,8 +37,9 @@ function SIMnpsauv()
 % Author: Thor I. Fossen
 % Date: 2024-06-05
 % Revisions:
-%   2024-07-10: Improved numerical accuracy by replacing Euler's method
-%               with RK4.
+%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4.
+%   2025-05-13: Crab angle plots based on spherical representation (Coates and 
+%               Fossen 2025).
 
 clearvars;                          % Clear all variables from memory
 clear ALOS3D;                       % Clear persistent states in controllers
@@ -260,6 +264,9 @@ u_actual = simdata(:,22:26);
 Vc       = simdata(:,27);
 betaVc   = simdata(:,28);
 wc       = simdata(:,29);
+u = nu(:,1); v = nu(:,2); w = nu(:,3);
+p = nu(:,4); q = nu(:,5); r = nu(:,6);
+
 
 % ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
 y_e = ALOSdata(:,1);
@@ -269,14 +276,15 @@ beta_c_hat = ALOSdata(:,4);
 
 uc = Vc .* cos(betaVc);
 vc = Vc .* sin(betaVc);
-alpha_c = atan( (nu(:,2).*sin(eta(:,4))+nu(:,3).*cos(eta(:,4))) ./ nu(:,1) );
-Uv = nu(:,1) .* sqrt( 1 + tan(alpha_c).^2 );
-beta_c = atan( ( nu(:,2).*cos(eta(:,4))-nu(:,3).*sin(eta(:,4)) ) ./ ...
-    ( Uv .* cos(eta(:,5)-alpha_c) ) );
 
-U_r = sqrt( (nu(:,1)-uc).^2 + (nu(:,2)-vc).^2 + (nu(:,3)-wc).^2) ;
-alpha = atan2( (nu(:,3)-wc), (nu(:,1)-uc) );
-beta  = asin( (nu(:,2)-vc) ./ U_r );
+% Crab angles, AOA and SSA
+U = sqrt(u.^2+v.^2+w.^2); % Speed
+gamma = asin( (u.*sin(theta)-(v.*sin(phi)+w.*cos(phi)).*cos(theta)) ./ U );
+alpha_c = theta - gamma; % Horizontal crab angle
+beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
+    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Vertical crab angle
+alpha = asin( (w-wc) ./ (u-uc) ); % AOA
+beta  = atan2( (v-vc), (u-uc) ); % SSA
 
 %% Generalized velocity
 figure(1);
@@ -350,24 +358,24 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% Sideslip and angle of attack
+%% Crab angles, SSA and AOA
 if ControlFlag == 2
     figure(5);
     if ~isoctave; set(gcf,'Position',[100,scrSz(4)/2,scrSz(3)/3,scrSz(4)]); end
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
-    title('Angle of attack (deg)')
+    title('Vertical crab angle and AOA (deg)')
     xlabel('Time (s)')
     grid
-    legend('\alpha','\alpha_c','\alpha_c estimate','Location',legendLocation)
+    legend('\alpha Angle of attack (AOA)','\alpha_c Vertical crab angle','\alpha_c ALOS estimate','Location',legendLocation)
     subplot(312)
     plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
         t,rad2deg(beta_c_hat),'r')
-    title('Sideslip angle (deg)')
+    title('Horizontal crab angle and SSA (deg)')
     xlabel('Time (s)')
     grid
-    legend('\beta','\beta_c','\beta_c estimate','Location',legendLocation)
+    legend('\beta Sideslip angle (SSA)','\beta_c Horizontal crab angle','\beta_c ALOS estimate','Location',legendLocation)
     subplot(313)
     plot(t,y_e,t,z_e)
     title('Tracking errors (m)'),grid
