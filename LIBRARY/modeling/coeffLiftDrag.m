@@ -92,7 +92,7 @@ if (nargin == 6 && display == 1)
     plot(alpha_opt, max_CL_CD, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r') 
     title('Lift-to-Drag Ratio CL/CD(\alpha)')
     xlabel('\alpha (deg)'), ylabel('CL/CD')
-    legend('CL/CD', ['Optimal \alpha = ', num2str(alpha_opt, '%.2f'), '°'])
+    legend('CL/CD', ['Optimal \alpha = ', num2str(alpha_opt, '%.2f'), ' deg'])
     grid on
     hold off
 end
