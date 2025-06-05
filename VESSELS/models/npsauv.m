@@ -62,7 +62,7 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2024-06-03
-% Revisions: 
+% Revisions: 2025-06-05 : Corrected the sign of Cz (crossflow drag).
 
 if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
 if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
@@ -233,7 +233,7 @@ for xL = -L/2:dxL:L/2   % Cross-flow drag integrals
     Cn = Cn + dxL * drag_term * (v_r + xL * r) / Ucf * xL;
 
 end
-tau_crossflow = (rho/2) * [ 0 -Cy Cz 0 -Cm -Cn]';
+tau_crossflow = (rho/2) * [ 0 -Cy -Cz 0 -Cm -Cn]';
 
 % Restoring forces and moments
 tau_hydrostatic = -gvect(W, B, theta, phi, r_bg, r_bb);
