@@ -1,4 +1,4 @@
- echo off
+  echo off
 % KINDEMO   Demonstration of kinematic computations. Comparative study of
 % Euler angles and unit quaternions.
 %
