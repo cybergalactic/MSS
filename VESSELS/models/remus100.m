@@ -70,6 +70,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %               negative pitch and negative Z_s. Hence, tau(5) = -x_s * Z_s 
 %               when x_s < 0.
 %   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
+%   2025-06-09 Change cross-flow drag to cylinder model (M. Seidl).
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -215,7 +216,7 @@ D(1,1) = D(1,1) * exp(-3*U_r);   % Vanish at high speed where quadratic
 D(2,2) = D(2,2) * exp(-3*U_r);   % Drag and lift forces dominates
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
-tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r);
+tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r,'cylinder');
 
 % Kinematics
 if (length(x) == 13)
