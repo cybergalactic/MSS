@@ -26,23 +26,43 @@
 %
 % Author: Thor I. Fossen
 % Date: 2024-08-20
-% Revisions:
+% Revisions: 
+%   2025-06-17 Modified to accept compass measurements.
 
-%% USER INPUTS
-T_final = 200; % Final simulation time (s)
-f_s = 1000;    % Sampling frequency, equal to the IMU measurement frequency (Hz)
-f_mag = 100;   % Magnetometer measurement frequency (Hz)
+% ==============================================================================
+% Simulation parameters
+% ==============================================================================
+T_final = 250; % Final simulation time (s)
+f_fast = 1000; % High-rate IMU measurement frequency (Hz)
+f_slow = 100; % Low-rate magnetometer/compass measurement frequency (Hz)
 
 % Sampling times in seconds
-h  = 1/f_s; 	 
-h_mag = 1/f_mag;
+h  = 1/f_fast; 	 
 
-% Observer gains
-k1 = 100; % Gain for specific force measurement vector
-k2 = 100; % Gain for magnetic field measurement vector
-Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
-coningSculling = 0; % No compensation of coning and sculling
+% ==============================================================================
+% Observer initialization
+% ==============================================================================
+headingFlag = 1; % 1 for magnetometer, 2 for compass
+coningSculling = 1; % 0 for no compensation, 1 for compensation of coning and sculling
 
+switch headingFlag
+    case 1
+        k1 = 1000; % Gain for specific force measurement vector
+        k2 = 500; % Gain for magnetic field measurement vector
+        Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
+    case 2
+        k1 = 1500; 
+        k2 = 50;
+        Ki = 0.2 * diag([ 1 1 0.5 ]);
+end
+
+% Initialization of observer states
+quat_prd = [1 0 0 0]'; 
+b_ars_prd = [0 0 0]';
+
+% ==============================================================================
+% Initialization of INS signal generator
+% ==============================================================================
 % Magnetic field and latitude for city #1, see magneticField.m
 [m_ref, l, mu, cityName] = magneticField(1);
 
@@ -52,18 +72,13 @@ b_ars = [0.05 0.1 -0.1]';
 % Initial values for signal generator
 x = [zeros(1,6) zeros(1,3) zeros(1,3) b_ars']';	        
 
-% Initialization of observer states
-quat_prd = [1 0 0 0]'; 
-b_ars_prd = [0 0 0]';
-
-% Time vector initialization
-t = 0:h:T_final;                % Time vector from 0 to T_final          
-nTimeSteps = length(t);         % Number of time steps
-
+% ==============================================================================
+% Display simulation parameters
+% ==============================================================================
 disp('-------------------------------------------------------------------');
 disp('MSS toolbox: Nonlinear quaternion-based attitude observer');
-disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
-disp(['IMU magnetic field measurements at ',num2str(f_mag),' Hz']);
+disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
+disp(['IMU magnetic field/compass measurements at ',num2str(f_slow),' Hz']);
 disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
 if coningSculling == 0
     disp('No coning and sculling compensation');
@@ -73,7 +88,11 @@ end
 disp('-------------------------------------------------------------------');
 disp('Simulating...');
 
+% ==============================================================================
 %% MAIN LOOP
+% ==============================================================================
+t = 0:h:T_final;                % Time vector from 0 to T_final          
+nTimeSteps = length(t);         % Number of time steps
 simdata = zeros(nTimeSteps,13); % Pre-allocate table for simulation data 
 
 for i=1:nTimeSteps
@@ -85,10 +104,15 @@ for i=1:nTimeSteps
     psi = x(12);
     b_ars = x(13:15);
 
-    % IMU magnetometer easurements are slower than the sampling time
-    if mod( t(i), h_mag ) == 0
-        imu_meas = [f_imu' w_imu' m_imu'];
-    else  % No magnetometer measurement
+    % Observer correction step runs at slow time
+    if mod( t(i), h_slow ) == 0
+        switch headingFlag
+            case 1 % Magnetometer measurement
+                imu_meas = [f_imu' w_imu' m_imu'];
+            case 2 % Compass measurement
+                imu_meas = [f_imu' w_imu' psi];
+        end
+    else  % No magnetometer/compass measurement
         imu_meas = [f_imu' w_imu'];
     end
 
@@ -100,7 +124,9 @@ for i=1:nTimeSteps
     
 end
 
+% ==============================================================================
 %% PLOTS         
+% ==============================================================================
 phi = simdata(:,1); 
 theta = simdata(:,2); 
 psi = simdata(:,3); 
