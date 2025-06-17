@@ -1,10 +1,11 @@
-function [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref)
+function [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref, signalNo)
 % insSignal is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an INS signal generator for testing of Inertial
 % Navigation Systems (INS).
 %
 % Syntax:
 %   [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref)
+%   [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref, signalNo)
 %
 % Inputs:
 %   x[k]  : A 15-element signal vector structured as follows:
@@ -18,6 +19,7 @@ function [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref)
 %   mu    : Latitude in radians, see magnetifField.m.
 %   m_ref : Reference magnetic field vector expressed in NED,
 %           see magnetifField.m.
+%   signalNo : Integer for choosing test signal, default 1 if argument is omitted
 %
 % Outputs:
 %   x[k+1]     : Propagated signal vector, 15 elements
@@ -35,19 +37,45 @@ function [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref)
 % Revisions:
 %   2024-08-23 : New improved version of the signal generator.
 
+if nargin == 5
+    signalNo = 1;
+end
+
 g_n = [0 0 gravity(mu)]'; % NED gravity vector for lattitude mu
 
-% True specific force: f[k] = a[k] - g
-f_true = @(t, g_n, x) [
-    0.1 * sin(0.1 * t);  
-    0.01 * cos(0.1 * t);
-    0.05 * sin(0.05 * t)] - Rzyx(x(10), x(11), x(12))' * g_n;
+switch signalNo
+    case 1
+        % True specific force: f[k] = a[k] - g
+        f_true = @(t, g_n, x) [
+            0.1 * sin(0.1 * t);
+            0.01 * cos(0.1 * t);
+            0.05 * sin(0.05 * t)
+            ] - Rzyx(x(10), x(11), x(12))' * g_n;
+        
+        % True angular rate: w[k]
+        w_true = @(t) [
+            0.03 * cos(0.2 * t);
+            -0.02 * sin(0.1 * t);
+            0.01 * sin(0.05 * t) 
+            ];
+    case 2
+        % True specific force: f[k] = a[k] - g
+        f_true = @(t, g_n, x) [
+            0.2 * sin(0.07 * t + 0.5) + 0.05 * sin(0.2 * t);
+            0.1 * cos(0.1 * t) + 0.02 * cos(0.3 * t + 0.3);
+            0.15 * sin(0.05 * t + 1.0) + 0.03 * cos(0.2 * t)
+            ] - Rzyx(x(10), x(11), x(12))' * g_n;
 
-% True angular rate: w[k]
-w_true = @(t) [
-    0.03 * cos(0.2 * t);
-   -0.02 * sin(0.1 * t);
-    0.01 * sin(0.05 * t) ] ;
+        % True angular rate: w[k]
+        w_true = @(t) [
+            0.05 * sin(0.3 * t) + 0.01 * cos(0.1 * t + 0.7);
+            0.04 * cos(0.2 * t + 1.2);
+            0.03 * sin(0.15 * t + 0.4)
+            ];
+    otherwise
+        disp('Use integer 1 or 2 for test signal');
+
+end
 
 % Define vehicle dynamics as an inline function
 dynamics = @(x, t) [
