@@ -7,14 +7,15 @@ function [quat, b_ars] = quatObserver( ...
 % nonlinear observer (Grip et al 2013). The observer uses high-rate inertial
 % measurements from a 9-DOF inertial measurement unit (IMU). The function 
 % can be called either as a corrector (with new measurements) or as a 
-% predictor (without new measurements). Additionally, the magnetometer 
-% can operate at a slower rate (typically 100 Hz) compared to the high-rate 
-% specific force and ARS measurements (typically 1000 Hz). 
+% predictor (without new measurements). 
 %
 %   9-DOF measurements:
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu', m_imu'])
-%   6-DOF measurements (no magnetometer measurements):
+%   7-DOF measurements:
+%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
+%          [f_imu', w_imu', psi])
+%   6-DOF measurements (no magnetometer/compass measurements):
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu'])
 % 
@@ -53,6 +54,7 @@ function [quat, b_ars] = quatObserver( ...
 %               angular velocity measurements, and m_imu[k] is a 3x1 vector 
 %               representing the IMU magnetic field measurements. The IMU 
 %               axes are assumed to be oriented forward-starboard-down.
+%               For compass measurements [f_imu', w_imu', psi] is of dimension 7. 
 % coningSculling (OPTIONAL) 1, to apply coning and sculling compensation.
 %                0, is the default value (no compensation). Coning is the 
 %                error from integrating small rotational movements, while 
@@ -86,6 +88,7 @@ function [quat, b_ars] = quatObserver( ...
 % Author:    Thor I. Fossen
 % Date:      2024-08-20
 % Revisions: 
+%   2025-06-17 Modified to accept compass measurements.
 
 if nargin == 8
     coningSculling = 0; % Default, no compensation of coning and sculling
@@ -94,31 +97,35 @@ end
 % Transposed unit quaternion rotation matrix: R_transposed[k]
 R_transposed = Rquat(quat)';
 
-% IMU specific force and ARS measurements: f_imu[k] and w_imu[k]
+% High-rate IMU specific force and ARS measurements: f_imu[k] and w_imu[k]
 f_imu = imu_meas(1:3)';
 w_imu = imu_meas(4:6)';
 
-v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
-v1 = f_imu / norm(f_imu); % Normalized specific force measurement
-
-% Nonlinear injection terms
-sigma1 = k1 * cross(v1, R_transposed * v01) ;
-sigma2 = zeros(3,1);
-
-% If new magnetometer measurements: [f_imu' w_imu' m_imu'] has dimension 9
+% Nonlinear injection terms (low rate)
 if length(imu_meas) == 9
-    % Magnetic field IMU measurements: m_imu[k]
-    m_imu = imu_meas(7:9)';
-
-    v02 = m_ref / norm(m_ref); % Normalized magnetic field reference vector
-    v2 =  m_imu / norm(m_imu); % Normalized magnetic field measurement
-
-    % Nonlinear injection term for magnetic field
+    % If new magnetometer measurements: [f_imu' w_imu' m_imu'] 
+    m_imu = imu_meas(7:9)'; % Magnetic field IMU measurements: m_imu[k] in BODY
+    v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+    v1 = f_imu / norm(f_imu); % Normalized specific force measurement
+    v02 = m_ref / norm(m_ref); % Normalized magnetic field reference vector in NED
+    v2 =  m_imu / norm(m_imu); % Normalized magnetic field measurement in BODY
+    sigma1 = k1 * cross(v1, R_transposed * v01);
     sigma2 = k2 * cross(v2, R_transposed * v02);
-end
+    sigma = sigma1 + sigma2;
 
-% Nonlinear injection term for specific force and magnetic field
-sigma = sigma1 + sigma2;
+elseif length(imu_meas) == 7 
+    % If new compass measurement: [f_imu' w_imu' psi]  
+    psi = imu_meas(7);  % Compass measurement: psi[k]
+    v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+    v1 = f_imu / norm(f_imu); % Normalized specific force measurement
+    sigma1 = k1 * cross(v1, R_transposed * v01);
+    sigma2 = k2 * cross([cos(psi); -sin(psi); 0], R_transposed * [1; 0; 0]);
+    sigma = sigma1 + sigma2;
+
+else
+    % No correction
+    sigma = zeros(3,1);
+end
 
 % State propagation: quat[k+1] is computed using the matrix exponential, 
 % which serves as the exponential map for matrix Lie groups, ensuring an 
