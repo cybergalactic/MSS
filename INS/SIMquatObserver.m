@@ -32,18 +32,19 @@
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 250; % Final simulation time (s)
+T_final = 200; % Final simulation time (s)
 f_fast = 1000; % High-rate IMU measurement frequency (Hz)
 f_slow = 100; % Low-rate magnetometer/compass measurement frequency (Hz)
 
 % Sampling times in seconds
-h  = 1/f_fast; 	 
+h_fast = 1/f_fast; % State propagation	 
+h_slow = 1/f_slow; % Corrector
 
 % ==============================================================================
 % Observer initialization
 % ==============================================================================
 headingFlag = 1; % 1 for magnetometer, 2 for compass
-coningSculling = 1; % 0 for no compensation, 1 for compensation of coning and sculling
+coningSculling = 0; % 0 for no compensation, 1 for compensation of coning and sculling
 
 switch headingFlag
     case 1
@@ -67,7 +68,7 @@ b_ars_prd = [0 0 0]';
 [m_ref, l, mu, cityName] = magneticField(1);
 
 % IMU biases
-b_ars = [0.05 0.1 -0.1]';
+b_ars = [0.05 0.05 -0.1]';
    
 % Initial values for signal generator
 x = [zeros(1,6) zeros(1,3) zeros(1,3) b_ars']';	        
@@ -98,7 +99,7 @@ simdata = zeros(nTimeSteps,13); % Pre-allocate table for simulation data
 for i=1:nTimeSteps
     
     % INS signal generator 
-    [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref);
+    [x, f_imu, w_imu, m_imu] = insSignal(x, h_fast, t(i), mu, m_ref);
     phi = x(10); 
     theta = x(11);
     psi = x(12);
@@ -107,9 +108,9 @@ for i=1:nTimeSteps
     % Observer correction step runs at slow time
     if mod( t(i), h_slow ) == 0
         switch headingFlag
-            case 1 % Magnetometer measurement
+            case 1 % Heading from magnetometer measurement
                 imu_meas = [f_imu' w_imu' m_imu'];
-            case 2 % Compass measurement
+            case 2 % Heading from compass measurement
                 imu_meas = [f_imu' w_imu' psi];
         end
     else  % No magnetometer/compass measurement
@@ -117,7 +118,7 @@ for i=1:nTimeSteps
     end
 
     [quat_prd, b_ars_prd] = quatObserver( ...
-        quat_prd, b_ars_prd, h, Ki, k1, k2, m_ref, imu_meas, coningSculling);
+        quat_prd, b_ars_prd, h_fast, Ki, k1, k2, m_ref, imu_meas, coningSculling);
        
     % Store simulation data in a table 
     simdata(i,:) = [phi theta psi b_ars' quat_prd' b_ars_prd']; 
