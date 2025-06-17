@@ -103,9 +103,9 @@ w_imu = imu_meas(4:6)';
 
 % Nonlinear injection terms (low rate)
 if length(imu_meas) == 9
-    % If new magnetometer measurements: [f_imu' w_imu' m_imu'] 
+    % If new IMU measuremenst + magnetometer: [f_imu' w_imu' m_imu'] 
     m_imu = imu_meas(7:9)'; % Magnetic field IMU measurements: m_imu[k] in BODY
-    v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+    v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
     v02 = m_ref / norm(m_ref); % Normalized magnetic field reference vector in NED
     v2 =  m_imu / norm(m_imu); % Normalized magnetic field measurement in BODY
@@ -114,12 +114,14 @@ if length(imu_meas) == 9
     sigma = sigma1 + sigma2;
 
 elseif length(imu_meas) == 7 
-    % If new compass measurement: [f_imu' w_imu' psi]  
+    % If new IME measurements + compass: [f_imu' w_imu' psi]  
     psi = imu_meas(7);  % Compass measurement: psi[k]
-    v01 = [0 0 -1]'; % Normalized NED reference vector (measuring -g at rest)
+    v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
+    v02 = [1; 0; 0];  % Normalized heading reference vector in NED
+    v2 = [cos(psi); -sin(psi); 0];  % Normalized heading measurement vector in BODY
     sigma1 = k1 * cross(v1, R_transposed * v01);
-    sigma2 = k2 * cross([cos(psi); -sin(psi); 0], R_transposed * [1; 0; 0]);
+    sigma2 = k2 * cross(v2, R_transposed * v02);
     sigma = sigma1 + sigma2;
 
 else
