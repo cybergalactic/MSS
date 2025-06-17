@@ -9,10 +9,10 @@ function SIMaidedINSquat()
 % The ESKF uses high-rate inertial measurements from a 9-DOF inertial measurement
 % unit (IMU). The ESKF can be called either as a corrector (with new measurements) 
 % or as a predictor (without new measurements). The high-rate IMU frequency is
-% equal to the sampling frequency f_s (typically 1000 Hz). Additionally, the 
+% equal to the sampling frequency f_fast (typically 1000 Hz). Additionally, the 
 % magnetometer or compass can operate at a slower rate (typically 100 Hz). The 
-% position measurement frequency f_pos (typically 5 Hz) must be smaller or equal 
-% to the sampling frequency f_s. 
+% position measurement frequency f_slow (typically 5 Hz) must be smaller or equal 
+% to the sampling frequency f_fast. 
 %
 % Dependencies:
 %   ins_mekf_psi.m  - Feedback ESKF for INS aided by position measurements 
@@ -34,27 +34,33 @@ function SIMaidedINSquat()
 %   2024-09-09 : New logic for slow position and magnetometer/compass measurements
 clearvars;
 
-%% USER INPUTS
+% ==============================================================================
+% Simulation parameters
+% ==============================================================================
 T_final = 100; % Final simulation time (s)
-f_s    = 1000; % Sampling frequency, equal to the IMU measurement frequency (Hz)
-f_mag  = 100;  % Magnetometer measurement frequency (Hz)
-f_pos = 5;     % Position measurement frequency (Hz)
+f_fast = 1000; % High-rate IMU meaurement frequency (Hz)
+f_mag = 100;  % Magnetometer measurement frequency (Hz)
+f_slow = 5;  % Slow-rate position measurement frequency (Hz)
 
 % Sampling times in seconds
-h  = 1/f_s; 	
-h_pos = 1/f_pos; 
+h  = 1/f_fast; 	
+h_slow = 1/f_slow; 
 h_mag = 1/f_mag;
 
+% ==============================================================================
 % Initialization of the INS signal generator
+% ==============================================================================
 [m_ref, ~, mu, cityName] = magneticField(1); % Magntic field and latitude for city #1
-b_acc = [0.1 0.3 -0.1]'; % IMU biases
-b_ars = [0.05 0.1 -0.05]';
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial states for signal generator
+b_acc = [0.1 0.3 -0.1]'; %  IMU accelerometer bias
+b_ars = [0.05 0.1 -0.05]'; %  % IMU ARS bias
+x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial states 
 
 % Display simulation options
-[attitudeFlag, velFlag] = displayMethod(cityName);       
+[attitudeFlag, velFlag] = displayMethod(cityName); 
 
-% Initialization of ESKF covariance matrix
+% ==============================================================================
+% Initialization of ESKF covariance matrices
+% ==============================================================================
 P_prd = eye(15);
 
 % Process noise weights: vel, acc_bias, w, ars_bias
@@ -74,7 +80,9 @@ else
     Rd = diag([1 1 1  1 1 1  1 1 1  0.001]); % pos, vel, acc, psi
 end
 
+% ==============================================================================
 % Initialization of the INS states
+% ==============================================================================
 p_ins = [0 0 0]'; 
 v_ins = [0 0 0]';
 b_acc_ins = [0 0 0]';
@@ -82,13 +90,14 @@ q_ins = euler2q(0, 0, 0);
 b_ars_ins = [0 0 0]';
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 
-% Time vector initialization
+% ==============================================================================
+%% MAIN LOOP
+% ==============================================================================
 t = 0:h:T_final;                % Time vector from 0 to T_final          
 nTimeSteps = length(t);         % Number of time steps
 
-%% MAIN LOOP
 simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
-posdata = zeros(floor(T_final * f_pos), 4); % Pre-allocate table for position data
+posdata = zeros(floor(T_final * f_slow), 4); % Pre-allocate table for position data
 pos_index = 0; % Initialize index for posdata
 
 for i=1:nTimeSteps
@@ -97,7 +106,7 @@ for i=1:nTimeSteps
     [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref);
    
      % IMU magnetometer and compass measurements are slower than the sampling time
-    if mod( t(i), h_mag ) == 0
+    if abs( mod(t(i), h_mag) ) < 1e-10
         imu_meas = [f_imu' w_imu' m_imu']; % 9-DOF IMU measurements
         y_psi = x(12); % Compass measurement
     else 
@@ -106,7 +115,7 @@ for i=1:nTimeSteps
     end
     
     % Position measurements are slower than the sampling time
-    if mod( t(i), h_pos ) == 0
+    if abs( mod(t(i), h_slow) ) < 1e-10
         % Aiding
         pos_index = pos_index + 1; 
         y_pos = x(1:3) + 0.05 * randn(3,1); % Position measurements
@@ -148,7 +157,9 @@ for i=1:nTimeSteps
     
 end
 
+% ==============================================================================
 %% PLOTS
+% ==============================================================================
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 12;
          
@@ -171,22 +182,22 @@ subplot(311)
 h1 = plot(t_m,y_m,'xr'); hold on;
 h2 = plot(t,x_hat(:,1:3),'b'); hold off;
 xlabel('time (s)'),title('Position [m]'),grid
-legend([h1(1),h2(1)],['Measurement at ', num2str(f_pos), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_slow), ' Hz'],...
+    ['Estimate at ', num2str(f_fast), ' Hz'] );
 
 subplot(312)
 h1 = plot(t,x(:,4:6),'r'); hold on;
 h2 = plot(t,x_hat(:,4:6),'b'); hold off;
 xlabel('time (s)'),title('Velocity [m/s]'),grid
-legend([h1(1),h2(1)],['True velocity at ', num2str(f_s), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['True velocity at ', num2str(f_fast), ' Hz'],...
+    ['Estimate at ', num2str(f_fast), ' Hz'] );
 
 subplot(313)
 h1 = plot(t,x(:,7:9),'r'); hold on;
 h2 = plot(t,x_hat(:,7:9),'b'); hold off;
 xlabel('time (s)'),title('Acc bias'),grid
-legend([h1(1),h2(1)],['True acc bias at ', num2str(f_s), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['True acc bias at ', num2str(f_fast), ' Hz'],...
+    ['Estimate at ', num2str(f_fast), ' Hz'] );
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
@@ -199,21 +210,23 @@ subplot(211)
 h1 = plot(t,rad2deg( x(:,10:12) ),'r'); hold on;
 h2 = plot(t,rad2deg( Theta ),'b'); hold off;
 xlabel('time (s)'),title('Angle [deg]'),grid
-legend([h1(1),h2(1)],['Measurement at ', num2str(f_s), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['Measurement at ', num2str(f_fast), ' Hz'],...
+    ['Estimate at ', num2str(f_fast), ' Hz'] );
 
 subplot(212)
 h1 = plot(t,x(:,13:15),'r'); hold on;
 h2 = plot(t,x_hat(:,14:16),'b'); hold off;
 xlabel('time (s)'),title('ARS bias'),grid
-legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_s), ' Hz'],...
-    ['Estimate at ', num2str(f_s), ' Hz'] );
+legend([h1(1),h2(1)],['True ARS bias at ', num2str(f_fast), ' Hz'],...
+    ['Estimate at ', num2str(f_fast), ' Hz'] );
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
+% ==============================================================================
 %% RADIO BUTTONS, FLAGS AND DISPLAY
+% ==============================================================================
 function [attitudeFlag, velFlag] = displayMethod(cityName)
 
     f = figure('Position', [400, 400, 400, 300], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
@@ -255,11 +268,11 @@ function [attitudeFlag, velFlag] = displayMethod(cityName)
     disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
     disp('Unit quaternion attitude parametrization (MEKF): 2 x Gibbs vector');
     if (velFlag == 1)
-        disp(['INS aided by position at ',num2str(f_pos), ' Hz']);
+        disp(['INS aided by position at ',num2str(f_slow), ' Hz']);
     else
-        disp(['INS aided by position and velocity at ',num2str(f_pos),' Hz']);
+        disp(['INS aided by position and velocity at ',num2str(f_slow),' Hz']);
     end
-    disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_s),' Hz']);
+    disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
     if (attitudeFlag == 2)
         disp(['IMU magnetometer measurements at ',num2str(f_mag), ' Hz']);
     else
