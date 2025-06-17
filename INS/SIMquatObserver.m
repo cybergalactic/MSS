@@ -67,7 +67,7 @@ b_ars_prd = [0 0 0]';
 % Initialization of INS signal generator
 % ==============================================================================
 % Magnetic field and latitude for city #1, see magneticField.m
-[m_ref, l, mu, cityName] = magneticField(1);
+[m_ref, l, mu, cityName] = magneticField(4);
 
 % IMU biases
 b_ars = [0.05 0.05 -0.1]';
@@ -100,8 +100,8 @@ simdata = zeros(nTimeSteps,13); % Pre-allocate table for simulation data
 
 for i=1:nTimeSteps
     
-    % INS signal generator 
-    [x, f_imu, w_imu, m_imu] = insSignal(x, h_fast, t(i), mu, m_ref);
+    % INS signal generator, using test signal no. 2 
+    [x, f_imu, w_imu, m_imu] = insSignal(x, h_fast, t(i), mu, m_ref, 2);
     phi = x(10); 
     theta = x(11);
     psi = x(12);
