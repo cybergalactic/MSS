@@ -6,7 +6,8 @@
 % (IMU). The observer can be called either as a corrector (with new 
 % measurements) or as a predictor (without new measurements). Additionally, 
 % the magnetometer can operate at a slower rate (typically 100 Hz) compared to 
-% the high-rate specific force and ARS measurements (typically 1000 Hz). 
+% the high-rate specific force and ARS measurements (typically 1000 Hz). It 
+% is also possible to use a scalar compass measurement.
 %
 % Dependencies:
 %   quatObserver.m  - Nonlinear attiitude observer using reference vectors
@@ -18,9 +19,10 @@
 %       Quaternion-Based Attitude Estimation. American Control Conference, 
 %       Washington DC, USA, IEEE Xplore, pp. 272-279. 
 %       doi.org/10.1109/ACC.2013.6579849
+%
 %  R. Mahony, T. Hamel and J.-M. Pflimlin (2008). Nonlinear Complementary 
 %       Filters on the Special Orthogonal Group. IEEE Trans. on Aut. Control 53(5)
-%
+
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. 2nd Edition, Wiley.
 %
@@ -43,7 +45,7 @@ h_slow = 1/f_slow; % Corrector
 % ==============================================================================
 % Observer initialization
 % ==============================================================================
-headingFlag = 1; % 1 for magnetometer, 2 for compass
+headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
 coningSculling = 0; % 0 for no compensation, 1 for compensation of coning and sculling
 
 switch headingFlag
@@ -52,9 +54,9 @@ switch headingFlag
         k2 = 500; % Gain for magnetic field measurement vector
         Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
     case 2
-        k1 = 1500; 
-        k2 = 50;
-        Ki = 0.2 * diag([ 1 1 0.5 ]);
+        k1 = 1500; % Gain for specific force measurement vector
+        k2 = 50; % Gain for compass measurement 
+        Ki = 0.2 * diag([ 1 1 0.5 ]); % Integral gain matrix for ARS bias estimation
 end
 
 % Initialization of observer states
@@ -92,8 +94,8 @@ disp('Simulating...');
 % ==============================================================================
 %% MAIN LOOP
 % ==============================================================================
-t = 0:h:T_final;                % Time vector from 0 to T_final          
-nTimeSteps = length(t);         % Number of time steps
+t = 0:h_fast:T_final; % Time vector from 0 to T_final          
+nTimeSteps = length(t); % Number of time steps
 simdata = zeros(nTimeSteps,13); % Pre-allocate table for simulation data 
 
 for i=1:nTimeSteps
@@ -160,7 +162,7 @@ xlabel('Time (s)'),title('Yaw angle [deg]'),grid
 legend('\psi', '\psi_{prd}');
 
 set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
 % Figure 2
@@ -181,6 +183,6 @@ xlabel('Time (s)'),title('ARS yaw bias'),grid
 legend('bz_{ars}', 'bz_{ars_prd}');
 
 set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',12)
 
