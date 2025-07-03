@@ -169,7 +169,7 @@ dofNames = {'Wave Force in Surge (N)', 'Wave Force in Sway (N)',
 for DOF = 1:6
     % Left column: Retardation function
     subplot(6,2,2*DOF - 1)
-    plot(t, K_all(:,DOF), 'b', 'LineWidth', 2)
+    plot(t, K_all(:,DOF), 'b', 'LineWidth', 1.5)
     xlabel('Time (s)');
     ylabel(['K_{' num2str(DOF) num2str(DOF) '}']);
     title(['Retardation Function  K_{' num2str(DOF) num2str(DOF) '}']);
@@ -177,23 +177,22 @@ for DOF = 1:6
 
     % Right column: 1st-order wave force
     subplot(6,2,2*DOF)
-    plot(t, waveData(:,DOF), 'r', 'LineWidth', 2)
+    plot(t, waveData(:,DOF), 'r', 'LineWidth', 1.5)
     xlabel('Time (s)');
     ylabel(['\tau_{' num2str(DOF) '}']);
     title(['1st-Order ' dofNames{DOF}]);
     grid on;
 end
 
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
 figure(2);
 for DOF = 1:6
     % --- Added Mass subplot (left column) ---
     subplot(6,2,2*DOF - 1)
     plot(freqs, A_w_all(:,DOF), 'rx', ...
-         freqs_uniform, A_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
+         freqs_uniform, A_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 1.5)
     title(['Added Mass A_{' num2str(DOF) num2str(DOF) '}(ω)']);
     legend('A(ω)', 'A_{eq}', 'Location', 'best');
     grid on;
@@ -202,56 +201,69 @@ for DOF = 1:6
     subplot(6,2,2*DOF)
     plot(freqs_uniform, B_interp_all(:,DOF), 'g', ...
          freqs, B_w_all(:,DOF), 'rx', ...
-         freqs_uniform, B_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 2)
+         freqs_uniform, B_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 1.5)
     title(['Damping B_{' num2str(DOF) num2str(DOF) '}(ω)']);
     legend('Interpolated', 'B(ω)', 'B_{eq}', 'Location', 'best');
     grid on;
 end
 
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
 figure(3);
-eta_dot(:,1) = U + eta_dot(:,1); % Add cruise speed to surge velocity perturbation
-eta_dot_eq(:,1) = U + eta_dot_eq(:,1);
 
-for DOF = 1:6
-    subplot(6,1,DOF)
-    
-    if ismember(DOF, [1, 2, 6])
-        % Plot velocities
-        plot(t, eta_dot(:,DOF), 'k', t, eta_dot_eq(:,DOF), 'r', 'LineWidth', 2);
-        ylabel('Velocity');
-        legend('Cummins Equation', 'Aeq and Beq Approximation');
-        
-        switch DOF
-            case 1
-                title('Surge Velocity (m/s)');
-            case 2
-                title('Sway Velocity (m/s)');
-            case 6
-                title('Yaw Velocity (deg/s)');
-        end
-    else
-        % Plot positions
-        plot(t, eta_cummins(:,DOF), 'k', t, eta_eq(:,DOF), 'r', 'LineWidth', 2);
-        ylabel('Amplitude');
-        legend('Cummins Equation', 'Aeq and Beq Approximation');
-        
-        switch DOF
-            case 3
-                title('Vertical (Heave) Position (m)');
-            case 4
-                title('Roll Angle (deg)');
-            case 5
-                title('Pitch Angle (deg)');
-        end
+% Add cruise speed to surge‐velocity perturbations
+eta_dot(:,1)     = U + eta_dot(:,1);
+eta_dot_eq(:,1)  = U + eta_dot_eq(:,1);
+
+% Mapping of DOFs to subplot positions
+velDOFs = [1 2 6];          % velocities → left column
+posDOFs = [3 4 5];          % positions  → right column
+
+%% -----  LEFT COLUMN : velocities (DOFs 1,2,6)  -----
+for k = 1:3
+    DOF = velDOFs(k);
+    subplot(3,2,(k-1)*2 + 1);                       % (row k, col 1)
+
+    plot(t, eta_dot(:,DOF),    'b', ...
+         t, eta_dot_eq(:,DOF), 'r', 'LineWidth',1.5);
+
+    ylabel('Velocity');
+    legend('Cummins Equation', ...
+           'A_{eq} and B_{eq} approx.');
+
+    switch DOF
+        case 1, title('Surge Velocity (m/s)');
+        case 2, title('Sway Velocity (m/s)');
+        case 6, title('Yaw Velocity (deg/s)');
     end
 
     xlabel('Time (s)');
-    grid;
+    grid on;
 end
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',14)
-set(findall(gcf,'type','line'),'linewidth',2)
+
+%% -----  RIGHT COLUMN : positions (DOFs 3,4,5)  -----
+for k = 1:3
+    DOF = posDOFs(k);
+    subplot(3,2,k*2);                              % (row k, col 2)
+
+    plot(t, eta_cummins(:,DOF), 'b', ...
+         t, eta_eq(:,DOF),      'r', 'LineWidth',1.5);
+
+    ylabel('Amplitude');
+    legend('Cummins Equation', ...
+           'A_{eq} and B_{eq} approx.');
+
+    switch DOF
+        case 3, title('Vertical (Heave) Position (m)');
+        case 4, title('Roll Angle (deg)');
+        case 5, title('Pitch Angle (deg)');
+    end
+
+    xlabel('Time (s)');
+    grid on;
+end
+
+% Uniform font sizing
+set(findall(gcf,'type','text'),   'FontSize',12)
+set(findall(gcf,'type','legend'), 'FontSize',10)
