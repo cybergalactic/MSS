@@ -2,22 +2,24 @@ function vessel = computeManeuveringModel(vessel, omega_p, plotFlag)
 % computeManeuveringModel is compatible with MATLAB and GNU Octave (www.octave.org).
 % Computes the equivalent added mass vessel.A_eq(:,:,k,n) and damping
 % vessel.B_eq(:,:,k,n) matrices for each omega_p(k) and velocity(n) by integrating
-% the frequency-dependent hydrodynamic coefficients A(ω) and B(ω) using the wave
-% spectrum S(ω,ω_p) as a weighting function.
+% the frequency-dependent hydrodynamic matrices A_U(ω) and B_U(ω) using the wave
+% spectrum S(ω) as a weighting function.
 %
 % The equivalent matrices are computed as:
 %
-%   A_eq(i,j,ω_p,velocity) = ∫ A(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
-%   B_eq(i,j,ω_p,velocity) = ∫ B(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
+%   A_eq = ∫ A_U(ω) S_N(ω) dω 
+%   B_eq = ∫ B_U(ω) S_N(ω) dω 
 %
-% where:
-%   - A(i,j,ω,velocity) and B(i,j,ω,velocity) are the added mass and damping
-%     coefficients at frequency and velocity for each matrix element (i,j).
-%   - S(ω,ω_p) is the wave energy spectrum.
-%   - The integrals are evaluated numerically using trapezoidal integration.
+% where
 %
-% This ensures that the kinetic energy and power dissipation properties
-% of the frequency-dependent system are preserved in the equivalent
+%   S(ω)                 : Wave energy spectrum
+%   S_N(ω) = S(ω) / m_0  : Normalized wave spectrum
+%   m_0 = ∫ S(ω) dω      : Zero spectral moment
+%   A_U(ω) and B_U(ω)    : Added mass and damping matrices at speed U
+%  
+% The integrals are evaluated numerically using trapezoidal integration.
+% This ensures that the kinetic energy and power dissipation properties 
+% of the frequency-dependent system are preserved in the equivalent 
 % constant matrices.
 %
 % Inputs:
@@ -78,8 +80,13 @@ for velNo = 1:nvel
     % Loop over all omega_p
     for k = 1:nOmega
         op = omega_p(k);
-        S_w = alpha ./ freqs_fine.^5 .* exp(-beta * (op ./ freqs_fine).^4);
-        denom = trapz(freqs_fine, S_w);
+
+        % Zero spectral moment m_0
+        S = alpha ./ freqs_fine.^5 .* exp(-beta * (op ./ freqs_fine).^4);
+        m_0 = trapz(freqs_fine, S);
+
+        % Normalized wave spectrum
+        S_N = S / m_0; 
 
         % Loop over DOFs
         for i = 1:6
@@ -90,8 +97,8 @@ for velNo = 1:nvel
                 A_interp = interp1(vessel.freqs, A_ij_w, freqs_fine, 'pchip');
                 B_interp = interp1(vessel.freqs, B_ij_w, freqs_fine, 'pchip');
 
-                Aeq_all(i,j,k,velNo) = trapz(freqs_fine, A_interp .* S_w) / denom;
-                Beq_all(i,j,k,velNo) = trapz(freqs_fine, B_interp .* S_w) / denom;
+                Aeq_all(i,j,k,velNo) = trapz(freqs_fine, A_interp .* S_N);
+                Beq_all(i,j,k,velNo) = trapz(freqs_fine, B_interp .* S_N);
             end
         end
     end
