@@ -1,21 +1,32 @@
-% This script simulates the response of a vessel in waves using Cummins' 
-% equation and an equivalent maneuvering model. It calculates the wave-induced 
-% forces, solves the full hydrodynamic model including memory effects, and 
-% compares it with a simplified approximation using equivalent added mass and 
-% damping coefficients (A_eq, B_eq) according to: 
+% This script simulates the response of a vessel in waves using Cummins (1962) 
+% equation and an equivalent maneuvering model (Fossen, 2025). It calculates 
+% the wave-induced forces using 1st-order force RAOs, solves the full hydrodynamic 
+% model including memory effects, and compares it with a simplified approximation 
+% using constant equivalent added mass and damping matrices (A_eq, B_eq) according 
+% according to: 
 %
-%   A_eq(i,j,ω_p,velocity) = ∫ A(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
-%   B_eq(i,j,ω_p,velocity) = ∫ B(i,j,ω,velocity) S(ω,ω_p(k)) dω / ∫ S(ω,ω_p(k)) dω
+%   A_eq = ∫ A_U(ω) S_N(ω) dω
+%   B_eq = ∫ B_U(ω) S_N(ω) dω 
 %
-% where:
-%   - A(i,j,ω,velocity) and B(i,j,ω,velocity) are the added mass and damping 
-%     coefficients at frequency and velocity for each matrix element (i,j).
-%   - S(ω,ω_p) is the wave energy spectrum.
-%   - The integrals are evaluated numerically using trapezoidal integration.
+% where
 %
+%   S(ω)                 : Wave energy spectrum
+%   S_N(ω) = S(ω) / m_0  : Normalized wave spectrum
+%   m_0 = ∫ S(ω) dω      : Zero spectral moment
+%   A_U(ω) and B_U(ω)    : Added mass and damping matrices at speed U
+%  
+% The integrals are evaluated numerically using trapezoidal integration.
 % This ensures that the kinetic energy and power dissipation properties 
 % of the frequency-dependent system are preserved in the equivalent 
 % constant matrices.
+%
+% References:
+%   Cummins, W. E. (1962). The impulse response function and ship motions. 
+%   Schiffstechnik, 9(47), 101–109.
+%
+%   Fossen, T. I. (2025). Maneuvering Coefficient Estimation from Frequency-
+%   Dependent Added Mass and Damping: A Power-Based Approach. 
+%   Ocean Engineering, 341, 122494.
 %
 % Author:    Thor I. Fossen
 % Date:      2025-03-10
@@ -49,15 +60,17 @@ end
 fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
 
 psi = 0; % Heading angle (rad)
-beta_wave = deg2rad(50); % Wave direction, 0 for following sea, 180 for head sea
+beta_wave = deg2rad(135); % Wave direction, 0 for following sea, 180 for head sea
 maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s) 
 numFreqIntervals = 60; % Number of wave frequency intervals (>50)
-   
-% Calculate the wave spectrum power intensity S(Omega) for each frequency
-spectrumType = 'JONSWAP'; 
+
+% Sea state
 Hs = 4; % Significant wave height (m)
 omega_p = 0.8;  % Wave spectrum peak frequencies (rad/s)
-gamma = 3.3; % Peakedness factor
+
+% First-order force RAOs: Calculate the wave spectrum S(Omega) for each frequency
+spectrumType = 'JONSWAP'; 
+gamma = 3.3; % Peakedness factor 
 Parameter = [Hs, omega_p, gamma]; % Spectrum parameters
 
 % Time vector from 0 to T_final     
@@ -78,7 +91,13 @@ for i = 1:nTimeSteps
     waveData(i,:) = [tau_wave1' waveElevation];
 end
 
-%% Compute Aeq and Beq 
+%% Compute Aeq and Beq using simplified normalized wave spectrum
+% Quieck approzximation shifting omega_p to the encounter frquency. 
+% TODO: The method in Fossen (2025) evaluating the spectrum in the encounter
+% frequency domain by computing the Jacobian will be mych more accuarte in
+% particular in following seas. 
+g = 9.81;
+omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave); 
 vessel = computeManeuveringModel(vessel, omega_p, plotFlag);
 
 %% Compute Cummins and Maneuvering Model Responses
@@ -194,6 +213,7 @@ for DOF = 1:6
     plot(freqs, A_w_all(:,DOF), 'rx', ...
          freqs_uniform, A_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 1.5)
     title(['Added Mass A_{' num2str(DOF) num2str(DOF) '}(ω)']);
+    xlabel('Frequency (rad/s)')
     legend('A(ω)', 'A_{eq}', 'Location', 'best');
     grid on;
 
@@ -203,6 +223,7 @@ for DOF = 1:6
          freqs, B_w_all(:,DOF), 'rx', ...
          freqs_uniform, B_eq(DOF)*ones(length(freqs_uniform),1), 'b', 'LineWidth', 1.5)
     title(['Damping B_{' num2str(DOF) num2str(DOF) '}(ω)']);
+    xlabel('Frequency (rad/s)')
     legend('Interpolated', 'B(ω)', 'B_{eq}', 'Location', 'best');
     grid on;
 end
