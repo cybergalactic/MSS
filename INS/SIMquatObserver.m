@@ -3,11 +3,13 @@
 % Mahony et al. (2008) using the vector-cross product representation of Grip 
 % et al. (2013) with attitude-rate sensor (ARS) bias estimation. The observer 
 % uses high-rate inertial measurements from a 9-DOF inertial measurement unit 
-% (IMU). The observer can be called either as a corrector (with new 
-% measurements) or as a predictor (without new measurements). Additionally, 
-% the magnetometer can operate at a slower rate (typically 100 Hz) compared to 
-% the high-rate specific force and ARS measurements (typically 1000 Hz). It 
-% is also possible to use a scalar compass measurement.
+% (IMU). The observer can be called either as a corrector (with new measurements) 
+% or as a predictor (without new measurements). The corrector runs at the 
+% slowest IMU sensor rate (typically, f_slow is 50 to 100 Hz for a commercial IMU 
+% magnetometer), while the observer runs at the high-rate IMU measurement 
+% frequency (typically, f_fast is 500 to 2000 Hz). It is also possible to use a 
+% scalar compass measurement (megnetic compass, gyrocompass, GNSS compass, etc.)
+%  instead of the 3-axis magnetometer measurements.
 %
 % Dependencies:
 %   quatObserver.m  - Nonlinear attiitude observer using reference vectors
@@ -15,16 +17,16 @@
 %  
 % References:
 %   H. F. Grip, T. I. Fossen, T. A. Johansen, and A. Saberi (2013). 
-%       Nonlinear Observer for GNSS-Aided Inertial Navigation with 
-%       Quaternion-Based Attitude Estimation. American Control Conference, 
-%       Washington DC, USA, IEEE Xplore, pp. 272-279. 
-%       doi.org/10.1109/ACC.2013.6579849
+%      Nonlinear Observer for GNSS-Aided Inertial Navigation with 
+%      Quaternion-Based Attitude Estimation. American Control Conference, 
+%      Washington DC, USA, IEEE Xplore, pp. 272-279. 
+%      doi.org/10.1109/ACC.2013.6579849
 %
 %  R. Mahony, T. Hamel and J.-M. Pflimlin (2008). Nonlinear Complementary 
-%       Filters on the Special Orthogonal Group. IEEE Trans. on Aut. Control 53(5)
-
+%      Filters on the Special Orthogonal Group. IEEE Trans. on Aut. Control 53(5)
+%
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. 2nd Edition, Wiley.
+%      Motion Control. 2nd Edition, Wiley.
 %
 % Author: Thor I. Fossen
 % Date: 2024-08-20
