@@ -114,7 +114,7 @@ if length(imu_meas) == 9
     sigma = sigma1 + sigma2;
 
 elseif length(imu_meas) == 7 
-    % IMU measurements with scalar compass meausrement: [f_imu' w_imu' psi]  
+    % IMU measurements with scalar compass measurement: [f_imu' w_imu' psi]  
     psi = imu_meas(7);  % Compass measurement: psi[k]
     v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
