@@ -149,17 +149,17 @@ figure(1); figure(gcf);
 subplot(311)
 plot(t, rad2deg(phi),t, rad2deg(phi_prd)); 
 xlabel('Time (s)'),title('Roll angle [deg]'),grid
-legend('\phi', '\phi_{prd}');
+legend('\phi', '\phi (estimate)');
 
 subplot(312)
 plot(t, rad2deg(theta),t, rad2deg(theta_prd)); 
 xlabel('Time (s)'),title('Pitch angle [deg]'),grid
-legend('\theta', '\theta_{prd}');
+legend('\theta', '\theta (estimate)');
 
 subplot(313)
 plot(t, rad2deg(psi),t, rad2deg(psi_prd)); 
 xlabel('Time (s)'),title('Yaw angle [deg]'),grid
-legend('\psi', '\psi_{prd}');
+legend('\psi', '\psi (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
@@ -170,17 +170,17 @@ figure(2); figure(gcf);
 subplot(311)
 plot(t, b_ars(:,1),t, b_ars_prd(:,1)); 
 xlabel('Time (s)'),title('ARS roll bias'),grid
-legend('bx_{ars}', 'bx_{ars_prd}');
+legend('b_{x,ars}', 'b_{x,ars} (estimate)');
 
 subplot(312)
 plot(t, b_ars(:,2),t, b_ars_prd(:,2)); 
 xlabel('Time (s)'),title('ARS pitch bias'),grid
-legend('by_{ars}', 'by_{ars_prd}');
+legend('b_{y,ars}', 'b_{y,ars} (estimate)');
 
 subplot(313)
 plot(t, b_ars(:,3),t, b_ars_prd(:,3)); 
 xlabel('Time (s)'),title('ARS yaw bias'),grid
-legend('bz_{ars}', 'bz_{ars_prd}');
+legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
