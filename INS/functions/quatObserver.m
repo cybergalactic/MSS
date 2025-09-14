@@ -1,5 +1,4 @@
-function [quat, b_ars] = quatObserver( ...
-    quat, b_ars, h, Ki, k1, k2, m_ref, imu_meas)
+function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_meas)
 % quatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
