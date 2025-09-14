@@ -1,5 +1,5 @@
 function [quat, b_ars] = quatObserver( ...
-    quat, b_ars, h, Ki, k1, k2, m_ref, imu_meas, coningSculling)
+    quat, b_ars, h, Ki, k1, k2, m_ref, imu_meas)
 % quatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
@@ -55,13 +55,6 @@ function [quat, b_ars] = quatObserver( ...
 %               representing the IMU magnetic field measurements. The IMU 
 %               axes are assumed to be oriented forward-starboard-down.
 %               For compass measurements [f_imu', w_imu', psi] is of dimension 7. 
-% coningSculling (OPTIONAL) 1, to apply coning and sculling compensation.
-%                0, is the default value (no compensation). Coning is the 
-%                error from integrating small rotational movements, while 
-%                sculling is the error from combining rotational movements 
-%                with linear accelerations during integration. The effects
-%                are small when using high-rate measurements (1000 Hz).
-%                Compensation is important for slower update rates.
 %
 % Outputs:  
 %   quat[k+1]  - 4x1 vector representing the updated unit quaternion estimate
@@ -89,10 +82,6 @@ function [quat, b_ars] = quatObserver( ...
 % Date:      2024-08-20
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
-
-if nargin == 8
-    coningSculling = 0; % Default, no compensation of coning and sculling
-end
 
 % Transposed unit quaternion rotation matrix: R_transposed[k]
 R_transposed = Rquat(quat)';
@@ -130,26 +119,18 @@ else
 end
 
 % State propagation: quat[k+1] is computed using the matrix exponential, 
-% which serves as the exponential map for matrix Lie groups, ensuring an 
-% exact discretization of the quaternion differential equation: 
+% which serves as the exponential map for matrix Lie groups, ensuring exact
+% discretization with 1st-order hold of the quaternion differential equation: 
 %   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
-% You can replace the build-in Matlab function expm.m with the custom-made 
+% You can replace the built-in Matlab function expm.m with the custom-made 
 % MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
 
 % Angular velocity with bias compensation 'b_ars' and injection term 'sigma'
 w_estimated = w_imu - b_ars + sigma; 
 
-if coningSculling == 0
-    % No coning and sculling compensation 
-    quat = expm( Tquat(w_estimated) * h ) * quat; % Quaternion propagation
-    quat = quat / norm(quat);  % Normalization
-else
-    % Midtpoint method for compensating coning and sculling effects 
-    quat_midpoint = expm( Tquat(w_estimated) * h/2) * quat;
-    quat_midpoint = quat_midpoint / norm(quat_midpoint);
-    quat = expm( Tquat(w_estimated) * h/2 ) * quat_midpoint;
-    quat = quat / norm(quat);  % Normalization
-end
+% Exponential map with a 1st-order hold on w (exact if w constant on the step)
+quat = expm( Tquat(w_estimated) * h ) * quat; 
+quat = quat / norm(quat);  % Normalization
 
 % State propagation: b_ars[k+1]
 b_ars = b_ars - h * Ki * sigma; % Attitude rate sensor (ARS) bias
