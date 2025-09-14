@@ -9,7 +9,7 @@
 % magnetometer), while the observer runs at the high-rate IMU measurement 
 % frequency (typically, f_fast is 500 to 2000 Hz). It is also possible to use a 
 % scalar compass measurement (megnetic compass, gyrocompass, GNSS compass, etc.)
-%  instead of the 3-axis magnetometer measurements.
+% instead of the 3-axis magnetometer measurements.
 %
 % Dependencies:
 %   quatObserver.m  - Nonlinear attiitude observer using reference vectors
@@ -48,7 +48,6 @@ h_slow = 1/f_slow; % Corrector
 % Observer initialization
 % ==============================================================================
 headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
-coningSculling = 0; % 0 for no compensation, 1 for compensation of coning and sculling
 
 switch headingFlag
     case 1
@@ -85,11 +84,6 @@ disp('MSS toolbox: Nonlinear quaternion-based attitude observer');
 disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
 disp(['IMU magnetic field/compass measurements at ',num2str(f_slow),' Hz']);
 disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
-if coningSculling == 0
-    disp('No coning and sculling compensation');
-else
-    disp('Coning and sculling compensation by the midtpoint method');
-end
 disp('-------------------------------------------------------------------');
 disp('Simulating...');
 
@@ -122,7 +116,7 @@ for i=1:nTimeSteps
     end
 
     [quat_prd, b_ars_prd] = quatObserver( ...
-        quat_prd, b_ars_prd, h_fast, Ki, k1, k2, m_ref, imu_meas, coningSculling);
+        quat_prd, b_ars_prd, h_fast, Ki, k1, k2, m_ref, imu_meas);
        
     % Store simulation data in a table 
     simdata(i,:) = [phi theta psi b_ars' quat_prd' b_ars_prd']; 
