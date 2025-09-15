@@ -53,11 +53,11 @@ switch headingFlag
     case 1
         k1 = 1000; % Gain for specific force measurement vector
         k2 = 500; % Gain for magnetic field measurement vector
-        Ki = 0.2 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
+        Ki = 0.1 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
     case 2
         k1 = 1500; % Gain for specific force measurement vector
         k2 = 50; % Gain for compass measurement 
-        Ki = 0.2 * diag([ 1 1 0.5 ]); % Integral gain matrix for ARS bias estimation
+        Ki = 0.1 * diag([ 1 1 1 ]); % Integral gain matrix for ARS bias estimation
 end
 
 % Initialization of observer states
