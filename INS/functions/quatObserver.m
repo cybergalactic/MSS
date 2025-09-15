@@ -46,14 +46,16 @@ function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_mea
 %               expressed in NED. The reference signal m_ref = R^n_b * m_imu 
 %               can be computed during initial calibration, see 
 %               staticRollPitchYaw.m
-%  imu_meas[k] = [f_imu', w_imu', m_imu'] is 1x9 vector with components
-%               [fx, fy, fz, wx, wy, wz, mx, my, mz]. More specific, 
-%               f_imu[k] is a 3x1 vector representing the IMU specific force 
-%               measurements, w_imu[k] is a 3x1 vector representing the IMU 
-%               angular velocity measurements, and m_imu[k] is a 3x1 vector 
-%               representing the IMU magnetic field measurements. The IMU 
-%               axes are assumed to be oriented forward-starboard-down.
-%               For compass measurements [f_imu', w_imu', psi] is of dimension 7. 
+%  imu_meas[k] - Measurement vector:
+%                  [f_imu', w_imu', m_imu'] (9×1) accel, gyro, mag
+%                  [f_imu', w_imu', psi]    (7×1) accel, gyro, compass yaw
+%                  [f_imu', w_imu']         (6×1) accel, gyro only
+%               f_imu[k] : 3x1 High-rate IMU specific force measurements.
+%               w_imu[k] : 3x1 High-rate IMU angular velocity measurements. 
+%               m_imu[k] : 3x1 Low-rate IMU magnetic field measurements. 
+%               psi[k]   : 1x1 Low-rate compass measurement.
+% 
+%               The IMU axes are assumed to be oriented forward-starboard-down.
 %
 % Outputs:  
 %   quat[k+1]  - 4x1 vector representing the updated unit quaternion estimate
@@ -106,8 +108,9 @@ elseif length(imu_meas) == 7
     psi = imu_meas(7);  % Compass measurement: psi[k]
     v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
-    v02 = [1; 0; 0];  % Normalized heading reference vector in NED
-    v2 = [cos(psi); -sin(psi); 0];  % Normalized heading measurement vector in BODY
+    
+    v02 = [cos(psi);  sin(psi); 0]; % Normalized heading reference vector in NED
+    v2  = [1; 0; 0]; % Normalized heading measurement vector in BODY
     sigma1 = k1 * cross(v1, R_transposed * v01);
     sigma2 = k2 * cross(v2, R_transposed * v02);
     sigma = sigma1 + sigma2;
