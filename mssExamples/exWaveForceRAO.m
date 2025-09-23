@@ -56,7 +56,7 @@ if strcmp(spectrumType ,'JONSWAP')
    spectrumParameters = [Hs, w0, gamma];
 end
 
-% Reshape vessel data o use 0 to maxFreq
+% Reshape vessel data to use 0 to maxFreq
 if vessel.forceRAO.w(end) > maxFreq
     w_index = find(vessel.forceRAO.w > maxFreq, 1) - 1;
     vessel.forceRAO.w = vessel.forceRAO.w(1:w_index); % frequency vector
