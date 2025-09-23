@@ -51,9 +51,11 @@ function [X,Xuu,Xu] = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 %
 % Author:    Thor I. Fossen
 % Date:      2021-12-17  
-% Revisions: 2022-02-01 corrected (1-k) to (1+k) in Xuu 
+% Revisions: 
+%   2022-02-01 : Corrected (1-k) to (1+k) in the formula for Xuu 
+%   2025-09-23 : New blending function using tanh
 
-alpha = 5;  % blending function coefficient
+u_cross = 2; % Crossover speed linear to quadratic damping (m/s)
 
 % Linear damping coefficient
 Xudot = -addedMassSurge(m,L,rho);
@@ -61,14 +63,12 @@ Xu = -(m - Xudot) / T1;
 
 % Quadratic damping coefficient
 if (nargin == 9)  
-    
-    % steady state condition: -Xuu * u_max^2 = thrust_max
+    % Steady state condition: -Xuu * u_max^2 = thrust_max
     Xuu = - thrust_max / u_max^2;
     
 else
-
-    nu_kin = 1e-6;                                % kinematic viscosity
-    k = 0.1;                                      % correction factor
+    nu_kin = 1e-6;                                % Kinematic viscosity
+    k = 0.1;                                      % Correction factor
     eps = 1e-10;                                
     Rn = (L / nu_kin) * abs(u_r);                 % Reynolds number
     Cf = 0.075 / (log10(Rn + eps) -  2)^2;        % ITTC resistance curve
@@ -78,39 +78,38 @@ else
 end
 
 % Blending function
-sigma = exp( -alpha * u_r^2 );
+sigma = 1 - tanh(u_r / u_cross); 
 
 % Damping force in surge
-X = sigma * Xu * u_r + (1 - sigma) * Xuu * abs(u_r) * u_r;
+X = sigma .* Xu .* u_r + (1 - sigma) .* Xuu .* abs(u_r) .* u_r;
 
 % Plot damping terms when flag = 1
-legendLocation = 'best';
-if isoctave; legendLocation = 'northeast'; end
-
 if (flag == 1)
     u = 0:0.1:u_max+1;
-    sigma = exp( -alpha * u.^2 );
+
+    sigma = 1 - tanh(u / u_cross);   
+ 
     T_max = -Xuu * u_max^2;
-    d_lin = -sigma .* Xu;
-    d_quad = - (1 - sigma) .* Xuu .* abs(u);
-    figure(gcf)
-    subplot(211)
-    plot(u,(d_lin+d_quad).*u,'-',u_max,T_max,'*','linewidth',2), grid
+    d_lin = -sigma * Xu /2;
+    d_quad = - (1 - sigma) * Xuu;
+    
+    subplot(211); figure(gcf)
+    plot(u,d_lin.*u, u,d_quad.*u.^2, u,d_lin.*u+d_quad.*u.^2, u_max,T_max,'*')
+    grid
     xlabel('Speed (m(s)')
     ylabel('Force (N)')
-    legend('Linear + quadratic damping force (N)',...
-        'Max speed/thrust','Location',legendLocation);
+    legend('Linear damping (N)','Quadratic damping (N)','Linear + Quadratic damping (N)',...
+        'Max speed/thrust');
     title('X = sigma * Xu * u + (1 - sigma) * Xuu * abs(u) * u')
+    
     subplot(212)
-    u = 0:0.1:3;
-    sigma = exp( -alpha * u.^2 );
-    plot(u,-sigma * Xu,u,-(1 - sigma) .* Xuu .* abs(u),'linewidth',2), grid;
+    plot(u,sigma), grid;
     xlabel('Speed (m(s)')
-    legend('Linear damping coefficient: -Xu',...
-        'Quadratic damping term: -Xuu * |u|','Location',legendLocation);
+    legend('Blending function');
+
     set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
-    set(findall(gcf,'type','legend'),'FontSize',14)
+    set(findall(gcf,'type','text'),'FontSize',12)
+    set(findall(gcf,'type','legend'),'FontSize',10)
 end
 
 end
