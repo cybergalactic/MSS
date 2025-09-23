@@ -21,7 +21,11 @@ if strcmp(mtrx, 'A')
     figno = 100;
     titleStr = 'Added Mass';
 elseif strcmp(mtrx, 'B')
-    H = vessel.B;
+    if isfield(vessel, 'Bv')
+        H = vessel.B + vessel.Bv;
+    else
+        H = vessel.B;
+    end
     H_eq = vessel.B_eq;
     figno = 200;
     titleStr = 'Damping';
