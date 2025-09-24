@@ -52,8 +52,8 @@ function [X,Xuu,Xu] = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 % Author:    Thor I. Fossen
 % Date:      2021-12-17  
 % Revisions: 
-%   2022-02-01 : Corrected (1-k) to (1+k) in the formula for Xuu 
-%   2025-09-23 : New blending function using tanh
+%   2022-02-01 : Corrected (1-k) to (1+k) in the formula for Xuu. 
+%   2025-09-23 : New blending function using tanh.
 
 u_cross = 2; % Crossover speed linear to quadratic damping (m/s)
 
@@ -71,8 +71,7 @@ else
     k = 0.1;                                      % Correction factor
     eps = 1e-10;                                
     Rn = (L / nu_kin) * abs(u_r);                 % Reynolds number
-    Cf = 0.075 / (log10(Rn + eps) -  2)^2;        % ITTC resistance curve
-    
+    Cf = 0.075 / (log10(Rn + eps) -  2)^2;        % ITTC resistance curve  
     Xuu = -0.5 * rho * S * (1+k) * Cf;
     
 end
@@ -98,8 +97,8 @@ if (flag == 1)
     grid
     xlabel('Speed (m(s)')
     ylabel('Force (N)')
-    legend('Linear damping (N)','Quadratic damping (N)','Linear + Quadratic damping (N)',...
-        'Max speed/thrust');
+    legend('Linear damping (N)','Quadratic damping (N)', ...
+        'Linear + Quadratic damping (N)', 'Max speed/thrust');
     title('X = sigma * Xu * u + (1 - sigma) * Xuu * abs(u) * u')
     
     subplot(212)
