@@ -41,13 +41,12 @@ function [X,Xuu,Xu] = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 %
 % Examples:
 %  Quadratic damping based on the ITTC resistance curve:
-%
-%  X = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max)
+%     X = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max)
 %
 %  Quadratic damping obtained from the steady-state condition 
-%  -Xuu * u_max^2 = thrust_max using the optional input thrust_max:
+%     -Xuu * u_max^2 = thrust_max using the optional input thrust_max:
 %
-%  X = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
+%     X = forceSurgeDamping(flag,u_r,m,S,L,T1,rho,u_max,thrust_max)
 %
 % Author:    Thor I. Fossen
 % Date:      2021-12-17  
@@ -93,17 +92,20 @@ if (flag == 1)
     d_quad = - (1 - sigma) * Xuu;
     
     subplot(211); figure(gcf)
-    plot(u,d_lin.*u, u,d_quad.*u.^2, u,d_lin.*u+d_quad.*u.^2, u_max,T_max,'*')
+    plot(u,d_lin.*u,'r', u,d_quad.*u.^2,'b',u,d_lin.*u+d_quad.*u.^2,'k', ...
+        [0 u_max],[T_max T_max],'g',[u_max u_max],[0 T_max],'g', ...
+        u_max,T_max,'*g','MarkerSize',10)
     grid
     xlabel('Speed (m(s)')
     ylabel('Force (N)')
     legend('Linear damping (N)','Quadratic damping (N)', ...
         'Linear + Quadratic damping (N)', 'Max speed/thrust');
-    title('X = sigma * Xu * u + (1 - sigma) * Xuu * abs(u) * u')
+    title('X = \sigma * Xu*u + (1 - \sigma) * Xuu*abs(u)*u')
     
     subplot(212)
     plot(u,sigma), grid;
     xlabel('Speed (m(s)')
+    title('\sigma')
     legend('Blending function');
 
     set(findall(gcf,'type','line'),'linewidth',2)
