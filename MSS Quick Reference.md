@@ -146,6 +146,7 @@ eulerang            % Computes the Euler angle transformation matrices J, Rzyx a
 flat2llh            % Longitude, latitude, and height from flat-earth positions x, y, and z
 llh2ecef            % ECEEF positions x, y, and z from longitude, latitude, and height
 llh2flat            % Flat-Earth positions x, y, and z from longitude, latitude, and height
+modalFromMDG        % Compute modal properties (time const., natural freqs., damping ratios) of a linear 6-DOF model
 R2euler             % Euler angles from rotation matrix elements
 Rll                 % Euler angle rotation matrix Rll for longitude and latitude
 Rquat               % Unit quaternion rotation matrix R in SO(3)
