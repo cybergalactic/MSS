@@ -91,7 +91,7 @@ nTimeSteps = length(t);         % Number of time steps
 % Pseudoinverse (Fossen 2021, Section 11.2.2)
 % [delta_r, delta_s, delta_bp, delta_bs] = B_pseudo * [tau5, tau6]
 W = diag([5 5 1 1]);   % 5 times more expensive to use delta_r and delta_s
-B_pseudo = inv(W) * B_delta' * inv(B_delta * inv(W) * B_delta');
+B_pseudo = invQR(W) * B_delta' * inv(B_delta * invQR(W) * B_delta');
 
 %% CONTROL SYSTEM CONFIGURATION
 % Setup for depth and heading control
@@ -212,10 +212,12 @@ for i = 1:nTimeSteps
 
     end
 
-    % MIMO PID controller for pitch and roll moments
-    tau5 = -Kp(1,1) * ssa( theta - theta_d ) -Kd(1,1) * q ...
-        - Ki(1,1) * theta_int;
-    tau6 = -Kp(2,2) * ssa( psi - psi_d ) -Kd(2,2) * r ...
+    % MIMO PID controller for pitch and yaw
+    BG_z = 0.061; % BG_z = z_g - z_b
+    W_auv = 53400; % W_auv = m * g
+    tau5 = W_auv * BG_z * sin(theta) - Kp(1,1) * ssa(theta - theta_d) ...
+        - Kd(1,1) * q - Ki(1,1) * theta_int;
+    tau6 = -Kp(2,2) * ssa(psi - psi_d) - Kd(2,2) * r ...
         - Ki(2,2) * psi_int;
 
     % Propeller command (RPM)
