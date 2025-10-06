@@ -45,6 +45,8 @@ function SIMremus100()
 %   2025-04-25: Improved logic and minor updates.
 %   2025-05-13: Crab angle plots based on spherical representation (Coates and 
 %               Fossen 2025).
+%   2025-10-06: Redesigned the depth controller using outer-loop gradient
+%               descent (inversion-free backstepping with exact sin(theta) term)
 
 clearvars;                          % Clear all variables from memory
 clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
@@ -114,9 +116,13 @@ z_d = zn;                      % Initial depth target (m)
 wn_d_z = 0.02;                 % Natural frequency for depth control
 Kp_z = 0.1;                    % Proportional gain for depth
 T_z = 100;                     % Time constant for integral action in depth control
-Kp_theta = 5.0;                % Proportional gain for pitch control
-Kd_theta = 2.0;                % Derivative gain for pitch control
-Ki_theta = 0.3;                % Integral gain for pitch control
+k_grad = 0.1;                  % Gain for computation of theta_d
+
+[~,~,Mauv] = remus100();       % Remus 100 mass matrix
+w_theta = 0.8;                 % Natural frequency in pitch (rad/s)
+Kp_theta = Mauv(5,5) * w_theta^2; % Proportional gain for pitch control
+Kd_theta = Mauv(5,5) * 2 * 0.8 * w_theta; % Derivative gain for pitch control
+Ki_theta = Kp_theta * w_theta / 10; % Integral gain for pitch control
 
 % Heading control parameters (using Nomoto model)
 K_yaw = 5 / 20;                % Gain, max rate of turn over max. rudder angle
@@ -162,7 +168,9 @@ alosData = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 
 for i = 1:nTimeSteps
 
-    % Measurements 
+    % Measurements
+    u = x(1);                  % Surge velocity
+    w = x(3);                  % Heave velocity (m/s)
     q = x(5);                  % Pitch rate (rad/s)
     r = x(6);                  % Yaw rate (rad/s)
     xn = x(7);                 % North position (m)
@@ -188,20 +196,36 @@ for i = 1:nTimeSteps
                 psi_ref = deg2rad(0);
             end
 
-            % LP filtering the depth command
-            Uv = sqrt(x(1)^2+x(3)^2);    % Vertical speed
-            if Uv < 1.0                  % Reduce bandwidth at low speed
-                wnz = wn_d_z / 2;
-            else
-                wnz = wn_d_z;
-            end
-            [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wnz, h);
-
-            % Depth autopilot using the stern planes (succesive-loop closure)
-            theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
-            delta_s = -Kp_theta * ssa( theta - theta_d )...        % PID
-                - Kd_theta * q - Ki_theta * theta_int;
+           % Depth autopilot using the stern planes 
+            delta_s = -Kp_theta * ssa(theta - theta_d)...   % PID
+               - Kd_theta * q - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
+
+            % LP filtering the depth command
+            [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wn_d_z, h);
+
+            % Depth kinematics: z_dot = w - u * sin(theta)
+            % Desired depth error dynamics: 
+            %   e_z_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+            %
+            % Substitute z_dot and rearrange terms:
+            %   w - u * sin(theta) - z_d_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+            %
+            % Define the outer residual sigma such that sigma = 0 implies e_z = 0:
+            %   s = w - u*sin(theta) - z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
+            s = w - u * sin(theta) + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
+
+            % The partial derivative of u * sin(theta) with respect to theta is:
+            %   d(u * sin(theta)) / d(theta) = u * cos(theta)
+            %
+            % Hence, a gradient-descent update on theta that drives s -> 0 is:
+            %   theta_d_dot = k_gradient * sign(u) * cos(theta) * s
+            %
+            % When the inner loop forces theta -> theta_d, this makes:
+            %   s_dot = -k_grad * sign(u) * cos(theta)^2 * s
+            %
+            % which is exponentially stable.
+            theta_d = theta_d + k_grad * sign(u) * h * cos(theta) * s;            
 
             % Heading autopilot using the tail rudder
             delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
