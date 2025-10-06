@@ -40,6 +40,8 @@ function SIMnpsauv()
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4.
 %   2025-05-13: Crab angle plots based on spherical representation (Coates and 
 %               Fossen 2025).
+%   2025-10-06: Redesigned the depth controller using outer-loop gradient
+%               descent (inversion-free backstepping with exact sin(theta) term)
 
 clearvars;                          % Clear all variables from memory
 clear ALOS3D;                       % Clear persistent states in controllers
@@ -91,7 +93,7 @@ nTimeSteps = length(t);         % Number of time steps
 % Pseudoinverse (Fossen 2021, Section 11.2.2)
 % [delta_r, delta_s, delta_bp, delta_bs] = B_pseudo * [tau5, tau6]
 W = diag([5 5 1 1]);   % 5 times more expensive to use delta_r and delta_s
-B_pseudo = inv(W) * B_delta' * inv(B_delta * inv(W) * B_delta');
+B_pseudo = invQR(W) * B_delta' * invQR(B_delta * invQR(W) * B_delta');
 
 %% CONTROL SYSTEM CONFIGURATION
 % Setup for depth and heading control
@@ -109,10 +111,11 @@ z_d = zn;                      % Initial depth target (m)
 wn_d_z = 0.02;                 % Natural frequency for depth control
 Kp_z = 0.1;                    % Proportional gain for depth
 T_z = 100;                     % Time constant for integral action in depth control
+k_grad = 0.1;                  % Gain for computation of theta_d
 
 % Closed-loop pitch and heading control parameters (rad/s)
 zeta_theta = 1.0;              % Damping ratio for pitch control (-)
-wn_theta = 1.2;                % Natural frequency for pitch control (rad/s)
+wn_theta = 1.0;                % Natural frequency for pitch control (rad/s)
 zeta_psi = 1.0;                % Damping ratio for yaw control (-)
 wn_psi = 0.8;                  % Natural frequency for yaw control (rad/s)
 
@@ -149,7 +152,7 @@ for i = 1:nTimeSteps
     % Measurement updates
     u = x(1);                  % Surge velocity (m/s)
     %v = x(2);                 % Sway velocity (m/s)
-    %w = x(3);                 % Heave velocity (m/s)
+    w = x(3);                  % Heave velocity (m/s)
     q = x(5);                  % Pitch rate (rad/s)
     r = x(6);                  % Yaw rate (rad/s)
     xn = x(7);                 % North position (m)
@@ -174,17 +177,31 @@ for i = 1:nTimeSteps
             z_ref = 10;
         end
 
-        % LP filtering the depth command
-        Uv = sqrt( x(1)^2 + x(3)^2);    % Vertical speed
-        if Uv < 1.0                     % Reduce bandwidth at low speed
-            wnz = wn_d_z / 2;
-        else
-            wnz = wn_d_z;
-        end
-        z_d = exp(-h*wnz) * z_d + (1 - exp(-h*wnz)) * z_ref;
+        % Depth kinematics: z_dot = w - u * sin(theta)
+        % Desired depth error dynamics:
+        %   e_z_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+        %
+        % Substitute z_dot and rearrange terms:
+        %   w - u * sin(theta) - z_d_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+        %
+        % Define the outer residual sigma such that sigma = 0 implies e_z = 0:
+        %   s = w - u*sin(theta) - z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
+        s = w - u * sin(theta) + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
-        % Depth autopilot pitch command (succesive-loop closure)
-        theta_d = Kp_z * ( (zn - z_d) + (1/T_z) * z_int );     % PI
+        % The partial derivative of u * sin(theta) with respect to theta is:
+        %   d(u * sin(theta)) / d(theta) = u * cos(theta)
+        %
+        % Hence, a gradient-descent update on theta that drives s -> 0 is:
+        %   theta_d_dot = k_gradient * sign(u) * cos(theta) * s
+        %
+        % When the inner loop forces theta -> theta_d, this makes:
+        %   s_dot = -k_grad * sign(u) * cos(theta)^2 * s
+        %
+        % which is exponentially stable.
+        theta_d = theta_d + k_grad * sign(u) * h * cos(theta) * s;
+
+        % LP filtering the depth command
+        z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;
 
         % PID heading angle command, psi_ref
         if t(i) > 200
