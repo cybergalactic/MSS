@@ -204,29 +204,26 @@ for i = 1:nTimeSteps
             % LP filtering the depth command
             [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wn_d_z, h);
 
-            % Depth kinematics: z_dot = w * cos(theta) - u * sin(theta)
-            % Desired depth error dynamics: 
-            %   e_z_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+            % Depth kinematics: z_dot = -u * sin(theta) + w * cos(theta) 
+            %                         := alpha_z + sigma
+            % Virtual control:
+            %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
             %
-            % Substitute z_dot and rearrange terms:
-            %   w*cos(theta) - u*sin(theta) - z_d_dot = -Kp_z * (e_z - (1/T_z) * z_int)
-            %
-            % Define the outer residual sigma such that sigma = 0 implies e_z = 0:
-            %   s = w*cos(theta) - u*sin(theta) - z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
-            s = w*cos(theta) - u*sin(theta) + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
+            % Outer-loop depth control residual sigma = 0 implies e_z = 0
+            sigma = -u * sin(theta) + w * cos(theta) ...
+                + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
-            % Gradient-descent update on theta that drives s to 0:            
-            %   ds/d(theta) ~= -w*sin(theta) - u*cos(theta) := -g_theta
-            %   theta_d_dot = -k_grad * ds/d(theta) * s 
-            %               = k_grad * g_theta * s
-            if abs(w/u) > 0.1
+            % Gradient-descent update using J = 1/2 * sigma^2 to drive sigma to 0:            
+            %   dJ/d(theta) = - u * cos(theta) - w * sin(theta) 
+            %   theta_d_dot = -k_grad * dJ/d(theta) * sigma 
+            if abs(w/u) > 0.176 % theta > 10 deg
                 % Large dive speeds
-                g_theta = u * cos(theta) + w * sin(theta);
+                gradJ = -(u * cos(theta) + w * sin(theta));
             else
-                % Simplified gradient when w << u
-                g_theta = sign(u * cos(theta) + w * sin(theta)) * cos(theta);
+                % Simplified gradient when theta < 10 deg
+                gradJ = -sign(u);
             end
-            theta_d = theta_d + h * k_grad * g_theta * s; 
+            theta_d = theta_d - h * k_grad * gradJ * sigma; 
             
             % Heading autopilot using the tail rudder
             delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
