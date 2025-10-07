@@ -226,7 +226,7 @@ for i = 1:nTimeSteps
                 % Simplified gradient when w << u
                 g_theta = sign(u * cos(theta) + w * sin(theta)) * cos(theta);
             end
-            theta_d = theta_d + k_grad * h * g_theta * s; 
+            theta_d = theta_d + h * k_grad * g_theta * s; 
             
             % Heading autopilot using the tail rudder
             delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
