@@ -177,28 +177,29 @@ for i = 1:nTimeSteps
             z_ref = 10;
         end
 
-        % Depth kinematics: z_dot = w - u * sin(theta)
+        % Depth kinematics: z_dot = w * cos(theta) - u * sin(theta)
         % Desired depth error dynamics:
         %   e_z_dot = -Kp_z * (e_z - (1/T_z) * z_int)
         %
         % Substitute z_dot and rearrange terms:
-        %   w - u * sin(theta) - z_d_dot = -Kp_z * (e_z - (1/T_z) * z_int)
+        %   w*cos(theta) - u*sin(theta) - z_d_dot = -Kp_z * (e_z - (1/T_z) * z_int)
         %
         % Define the outer residual sigma such that sigma = 0 implies e_z = 0:
-        %   s = w - u*sin(theta) - z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
-        s = w - u * sin(theta) + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
+        %   s = w*cos(theta) - u*sin(theta) - z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
+        s = w*cos(theta) - u*sin(theta) + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
-        % The partial derivative of u * sin(theta) with respect to theta is:
-        %   d(u * sin(theta)) / d(theta) = u * cos(theta)
-        %
-        % Hence, a gradient-descent update on theta that drives s -> 0 is:
-        %   theta_d_dot = k_gradient * sign(u) * cos(theta) * s
-        %
-        % When the inner loop forces theta -> theta_d, this makes:
-        %   s_dot = -k_grad * sign(u) * cos(theta)^2 * s
-        %
-        % which is exponentially stable.
-        theta_d = theta_d + k_grad * sign(u) * h * cos(theta) * s;
+        % Gradient-descent update on theta that drives s to 0:
+        %   ds/d(theta) ~= -w*sin(theta) - u*cos(theta) := -g_theta
+        %   theta_d_dot = -k_grad * ds/d(theta) * s
+        %               = k_grad * g_theta * s
+        if abs(w/u) > 0.1
+            % Large dive speeds
+            g_theta = u * cos(theta) + w * sin(theta);
+        else
+            % Simplified gradient when w << u
+            g_theta = sign(u * cos(theta) + w * sin(theta)) * cos(theta);
+        end
+        theta_d = theta_d + k_grad * h * g_theta * s;
 
         % LP filtering the depth command
         z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;
