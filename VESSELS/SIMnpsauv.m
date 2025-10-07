@@ -199,7 +199,7 @@ for i = 1:nTimeSteps
             % Simplified gradient when w << u
             g_theta = sign(u * cos(theta) + w * sin(theta)) * cos(theta);
         end
-        theta_d = theta_d + k_grad * h * g_theta * s;
+        theta_d = theta_d + h * k_grad * g_theta * s;
 
         % LP filtering the depth command
         z_d = exp(-h*wn_d_z) * z_d + (1 - exp(-h*wn_d_z)) * z_ref;
