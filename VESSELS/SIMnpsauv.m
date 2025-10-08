@@ -114,8 +114,8 @@ T_z = 100;                     % Time constant for integral action in depth cont
 k_grad = 0.1;                  % Gain for computation of theta_d
 
 % Closed-loop pitch and heading control parameters (rad/s)
-zeta_theta = 1.0;              % Damping ratio for pitch control (-)
-wn_theta = 1.0;                % Natural frequency for pitch control (rad/s)
+zeta_theta = 0.8;              % Damping ratio for pitch control (-)
+wn_theta = 0.6;                % Natural frequency for pitch control (rad/s)
 zeta_psi = 1.0;                % Damping ratio for yaw control (-)
 wn_psi = 0.8;                  % Natural frequency for yaw control (rad/s)
 
