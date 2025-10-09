@@ -97,7 +97,7 @@ B_pseudo = invQR(W) * B_delta' * invQR(B_delta * invQR(W) * B_delta');
 
 %% CONTROL SYSTEM CONFIGURATION
 % Setup for depth and heading control
-psi_step = deg2rad(-60);       % Step change in heading angle (rad)
+psi_step = deg2rad(-40);       % Step change in heading angle (rad)
 z_step = 30;                   % Step change in depth, max 1000 m
 rangeCheck(z_step,0,1000);
 
@@ -116,12 +116,12 @@ k_grad = 0.1;                  % Gain for computation of theta_d
 % Closed-loop pitch and heading control parameters (rad/s)
 zeta_theta = 0.8;              % Damping ratio for pitch control (-)
 wn_theta = 0.6;                % Natural frequency for pitch control (rad/s)
-zeta_psi = 1.0;                % Damping ratio for yaw control (-)
-wn_psi = 0.8;                  % Natural frequency for yaw control (rad/s)
+zeta_psi = 0.8;                % Damping ratio for yaw control (-)
+wn_psi = 1.0;                  % Natural frequency for yaw control (rad/s)
 
 % Heading autopilot reference model parameters
 zeta_d_psi = 1.0;              % Damping ratio for yaw control (-)
-wn_d_psi = 0.1;                % Natural frequency for yaw control (rad/s)
+wn_d_psi = 0.05;               % Natural frequency for yaw control (rad/s)
 r_max = deg2rad(10.0);         % Maximum turning rate (rad/s)
 
 % MIMO PID pole-placement algorithm (Algorithm 15.2 in Fossen 2021)
@@ -151,7 +151,7 @@ for i = 1:nTimeSteps
 
     % Measurement updates
     u = x(1);                  % Surge velocity (m/s)
-    %v = x(2);                 % Sway velocity (m/s)
+    v = x(2);                  % Sway velocity (m/s)
     w = x(3);                  % Heave velocity (m/s)
     q = x(5);                  % Pitch rate (rad/s)
     r = x(6);                  % Yaw rate (rad/s)
@@ -177,8 +177,8 @@ for i = 1:nTimeSteps
             z_ref = 10;
         end
 
-        % Depth kinematics: z_dot = -u * sin(theta) + w * cos(theta)
-        %                         := alpha_z + sigma
+        % Depth kinematics: 
+        %   z_dot = -u * sin(theta) + w * cos(theta) := alpha_z + sigma
         % Virtual control:
         %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
         %
@@ -228,9 +228,9 @@ for i = 1:nTimeSteps
     end
 
     % MIMO PID controller for pitch and yaw moments
-    tau5 = -Kp(1,1) * ssa( theta - theta_d ) -Kd(1,1) * q ...
+    tau5 = -Kp(1,1) * ssa(theta - theta_d) -Kd(1,1) * q...
         - Ki(1,1) * theta_int;
-    tau6 = -Kp(2,2) * ssa( psi - psi_d ) -Kd(2,2) * r ...
+    tau6 = -Kp(2,2) * ssa(psi - psi_d) -Kd(2,2) * r...
         - Ki(2,2) * psi_int;
 
     % Propeller command (RPM)
@@ -240,7 +240,7 @@ for i = 1:nTimeSteps
 
     % Control inputs
     u_com = [ (1/u^2) * B_pseudo * [tau5 tau6]'
-        n                                    ];
+               n                               ];
     max_u = [deg2rad(20); deg2rad(20); deg2rad(20); deg2rad(20); 1500];
     u_com = sat(u_com, max_u);
 
@@ -256,9 +256,9 @@ for i = 1:nTimeSteps
     x = rk4(@npsauv, h, x, u_com, Vc, betaVc, wc);  % AUV dynamics 
 
     % Euler's integration method (k+1)
-    z_int = z_int + h * ( zn - z_d );
-    theta_int = theta_int + h * ssa( theta - theta_d );
-    psi_int = psi_int + h * ssa( psi - psi_d );
+    z_int = z_int + h * (zn - z_d);
+    theta_int = theta_int + h * ssa(theta - theta_d);
+    psi_int = psi_int + h * ssa(psi - psi_d);
 
 end
 
@@ -464,7 +464,7 @@ end
 %% FUNCTIONS
 function ControlFlag = controlMethod()
 
-f = figure('Position', [400, 400, 400, 200], ...
+f = figure('Position', [400, 400, 600, 200], ...
     'Name', 'Control Method', ...
     'MenuBar', 'none', ...
     'NumberTitle', 'off', ...
@@ -479,8 +479,8 @@ bg1 = uibuttongroup('Parent', f, ...
 radio1 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
     'FontSize',13, 'String', ...
-    'PID pole-placement control', ...
-    'Position', [10 40 500 30], ...
+    'PID pole-placement for heading and gradient-based depth control', ...
+    'Position', [10 40 600 30], ...
     'Tag', '1');
 radio2 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
