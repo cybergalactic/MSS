@@ -15,6 +15,8 @@ displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 % Author:    Thor I. Fossen
 % Date:      2024-07-15
 % Revisions: 
+%    2025-10-21 RAO interpolations and look-up tables are evaluated at a 
+%               maximum rate of 10 Hz. 
 
 clear waveForceRAO; % Clear persistent RAO tables
 clearvars;
@@ -25,9 +27,11 @@ load(which(matFile), 'vessel'); % Load vessel.forceRAO data structure
 disp(['Loaded the force RAO structure "vessel.forceRAO" (', matFile, ')'])
 
 % Simulation parameters
-h = 0.05;                       % Time step (s)
+h = 0.02;                       % Time step (s)
 T_final = 200;                  % Duration of the simulation (s)
 T_initialTransient = 20;        % Remove initial transient (s)
+RAO_update_period = 0.1;        % Compute RAO every ar 10 Hz
+nextRAOtime = 0;                % Next RAO update time
 
 % COMMENT: Adding a spreading function involves summing waves from different 
 % directions. Initially, these waves can interfere constructively, causing
@@ -79,9 +83,13 @@ for i = 1:length(t)
     U = 5;                             % Time-varying ship speed (m/s)
     psi = deg2rad(sin(0.1 * t(i)));    % Time-varying heading angle (rad)
 
-    % 6-DOF generalized wave forces
-    [tau_wave1, waveElevation] = waveForceRAO(t(i), ...
-        S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
+    % 6-DOF generalized wave forces (compute RAO only every 0.1 second)
+    if t(i) >= nextRAOtime
+        [tau_wave1, waveElevation] = waveForceRAO(t(i), ...
+            S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
+
+        nextRAOtime = nextRAOtime + RAO_update_period;
+    end
 
     simdata(i,:) = [tau_wave1' waveElevation];
 
