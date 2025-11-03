@@ -75,6 +75,10 @@ if isempty(RAO_im_values_interpolated)
 
     % Interpolate Re and Im parts of RAO to be valid for all Omega values.
     % Repeat this for all wave directions k = 1:numAngles
+    rng(12345,"twister")
+    numDirections = length(mu);
+    randomPhases = 2 * pi * rand(numFreqIntervals, numDirections);
+
     RAO_re_values_interpolated = cell(1, 6);
     RAO_im_values_interpolated = cell(1, 6);
     for DOF = 1:6
@@ -94,10 +98,6 @@ if isempty(RAO_im_values_interpolated)
         RAO_im_values_interpolated{DOF} = RAO_im_values;
 
     end
-
-    % Fixed seed for reproducibility of random phase angles
-    rng(12345,"twister")
-    randomPhases = 2 * pi * rand(numFreqIntervals, 1);
 
 end
 
