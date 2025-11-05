@@ -34,6 +34,8 @@
 
 clearvars;
 
+headingFlag = 2; % 1 for 3-axis magnetometer, 2 for scalar compass
+
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
@@ -48,15 +50,20 @@ h_slow = 1/f_slow; % Corrector
 % ==============================================================================
 % Observer initialization
 % ==============================================================================
-headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
+% Initial state estimates
+quat_prd = [1 0 0 0]'; % 4x1 initial unit quaternion vector 
+b_ars_prd = [0 0 0]'; % 3x1 initial ARS bias vector 
 
-Qd = 1 * diag([1 1 1 1 1 1]); % Gibbs vector and ARS bias noise covariance matrix
-Rd = 1 * eye(6); % Gravity and magnetic field/compass measurement covariance matrix
-P_prd = 1 * eye(6);
+% MEKF state vector: x = [ax_g ay_g az_g bx_ars by_ars bz_ars]' (Gibbs vector/ARS bias)
+Qd = diag([1 1 1 1 1 1]); % 6x6 process noise covariance matrix
+P_prd = 1 * eye(6); % % 6x6 initial state covariance matrix
 
-% Initialization of state vectors and covariance matrix
-quat_prd = [1 0 0 0]'; 
-b_ars_prd = [0 0 0]';
+ % Measurement covariance matrix
+if headingFlag == 1
+    Rd = diag([1 1 1 1 1 1]); % 3x1 gravity vector and 3x1  magnetic field vectors 
+else 
+    Rd = diag([1 1 1 1]); % 3x1 gravity vector and 1x1 compass measurement 
+end
 
 % ==============================================================================
 % Initialization of INS signal generator
@@ -85,8 +92,8 @@ disp('Simulating...');
 %% MAIN LOOP
 % ==============================================================================
 t = 0:h_fast:T_final;                % Fast time vector
-k = 0;                               % Slow-sample index
 next_meas_time = 0;                  % Time for next corrector call
+k = 1;                               % Slow-sample index
 N_slow = floor(T_final/h_slow) + 1;  % Number of slow samples
 
 % Pre-allocate slow-rate storage (1 row per slow sample)
@@ -119,14 +126,14 @@ for i=1:length(t)
         do_correct = false;
     end
 
+    % Call the MEKF quaternion estimator
     [quat_prd, b_ars_prd, P_prd] = quatMEKF( ...
         quat_prd, b_ars_prd, P_prd, h_fast, Qd, Rd, m_ref, imu_meas);
        
-    % Store slow-rate data 
+    % Store data at slow rate
     if do_correct
-        k = k + 1;
-        t_meas(k,1) = t(i);
         simdata(k,:) = [phi theta psi  b_ars'  quat_prd'  b_ars_prd'];
+        k = k + 1;
     end
 
 end
