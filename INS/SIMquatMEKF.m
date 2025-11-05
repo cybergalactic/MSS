@@ -121,7 +121,7 @@ for i=1:length(t)
         next_meas_time = next_meas_time + h_slow;
         do_correct = true;
 
-    else % No magnetometer/compass measurement this fast step
+    else % No magnetometer/compass measurement 
         imu_meas  = [f_imu' w_imu'];
         do_correct = false;
     end
@@ -132,7 +132,7 @@ for i=1:length(t)
        
     % Store data at slow rate
     if do_correct
-        simdata(k,:) = [phi theta psi  b_ars'  quat_prd'  b_ars_prd'];
+        simdata(k,:) = [phi theta psi b_ars' quat_prd' b_ars_prd'];
         k = k + 1;
     end
 
@@ -159,17 +159,17 @@ end
 % Figure 1
 figure(1); figure(gcf);
 subplot(311)
-plot(t_slow, rad2deg(phi),t_slow, rad2deg(phi_prd)); 
+plot(t_slow, rad2deg(phi),t_slow,rad2deg(phi_prd)); 
 xlabel('Time (s)'),title('Roll angle [deg]'),grid
 legend('\phi', '\phi (estimate)');
 
 subplot(312)
-plot(t_slow, rad2deg(theta),t_slow, rad2deg(theta_prd)); 
+plot(t_slow, rad2deg(theta),t_slow,rad2deg(theta_prd)); 
 xlabel('Time (s)'),title('Pitch angle [deg]'),grid
 legend('\theta', '\theta (estimate)');
 
 subplot(313)
-plot(t_slow, rad2deg(psi),t_slow, rad2deg(psi_prd)); 
+plot(t_slow, rad2deg(psi),t_slow,rad2deg(psi_prd)); 
 xlabel('Time (s)'),title('Yaw angle [deg]'),grid
 legend('\psi', '\psi (estimate)');
 
@@ -180,17 +180,17 @@ set(findall(gcf,'type','legend'),'FontSize',12)
 % Figure 2
 figure(2); figure(gcf);
 subplot(311)
-plot(t_slow, b_ars(:,1),t_slow, b_ars_prd(:,1)); 
+plot(t_slow, b_ars(:,1),t_slow,b_ars_prd(:,1)); 
 xlabel('Time (s)'),title('ARS roll bias'),grid
 legend('b_{x,ars}', 'b_{x,ars} (estimate)');
 
 subplot(312)
-plot(t_slow, b_ars(:,2),t_slow, b_ars_prd(:,2)); 
+plot(t_slow, b_ars(:,2),t_slow,b_ars_prd(:,2)); 
 xlabel('Time (s)'),title('ARS pitch bias'),grid
 legend('b_{y,ars}', 'b_{y,ars} (estimate)');
 
 subplot(313)
-plot(t_slow, b_ars(:,3),t_slow, b_ars_prd(:,3)); 
+plot(t_slow, b_ars(:,3),t_slow,b_ars_prd(:,3)); 
 xlabel('Time (s)'),title('ARS yaw bias'),grid
 legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
