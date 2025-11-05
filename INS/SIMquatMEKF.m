@@ -39,7 +39,7 @@ headingFlag = 2; % 1 for 3-axis magnetometer, 2 for scalar compass
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 150; % Final simulation time (s)
+T_final = 60; % Final simulation time (s)
 f_fast = 1000; % High-rate IMU measurement frequency (Hz)
 f_slow = 100; % Low-rate magnetometer/compass measurement frequency (Hz)
 
