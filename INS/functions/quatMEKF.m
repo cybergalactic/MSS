@@ -76,68 +76,84 @@ I3 = eye(3);
 % High-rate IMU measurements: w_imu[k]
 w_imu = imu_meas(4:6)';
 
-% Measurements (low rate)
-if length(imu_meas) == 9        % 9‑DOF case: [f_imu' w_imu' m_imu']
-    f_imu = imu_meas(1:3)';
-    v1  = f_imu / norm(f_imu);    
-    v01 = [0 0 -1]';
-
-    m_imu = imu_meas(7:9)'; 
-    v2  = m_imu / norm(m_imu);    
-    v02 = m_ref / norm(m_ref);
-
-    Cd  = [ Smtrx(R_transposed*v01) O3
-            Smtrx(R_transposed*v02) O3 ];
-
-elseif length(imu_meas) == 7     % 7‑DOF case: [f_imu' w_imu' psi]
-    f_imu = imu_meas(1:3)';
-    v01 = [0 0 -1]';
-    v1  = f_imu / norm(f_imu);
-    
-    psi = imu_meas(7);
-    v02 = [cos(psi); sin(psi); 0];
-    v2  = [1; 0; 0];
-
-    Cd  = [ Smtrx(R_transposed*v01) O3
-            Smtrx(R_transposed*v02) O3];
- 
-end
-
-% Discrete-time ESKF 
+% Discrete-time ESKF matrices
 A = [ -Smtrx(w_imu) -I3
                 O3   O3 ];
-   
-Ad = expm_taylor(A * h); 
+
+Ad = expm_taylor(A * h);
 
 Ed = h *[ -I3 O3
            O3 I3  ];
 
-% Determine whether to do the Kalman correction
+% Measurements (low rate)
 if length(imu_meas) == 6  % No magentic field/compass measurements
-    P_hat = P_prd;  
-else                           
+    P_hat = P_prd;
+
+else
+
+    if length(imu_meas) == 9        % 9‑DOF case: [f_imu' w_imu' m_imu']
+        f_imu = imu_meas(1:3)';
+        v1  = f_imu / norm(f_imu);
+        v01 = [0 0 -1]';
+
+        m_imu = imu_meas(7:9)';
+        v2  = m_imu / norm(m_imu);
+        v02 = m_ref / norm(m_ref);
+
+        % Measurement matrix
+        Cd  = [ Smtrx(R_transposed*v01) O3    % Gravity measurement vector
+            Smtrx(R_transposed*v02) O3 ]; % Magentif field measurement vector
+
+        % Innovation vector
+        delta_y = [ v1 - R_transposed * v01
+            v2 - R_transposed * v02];
+
+    elseif length(imu_meas) == 7     % 7‑DOF case: [f_imu' w_imu' psi]
+        f_imu = imu_meas(1:3)';
+        v01 = [0 0 -1]';
+        v1  = f_imu / norm(f_imu);
+
+        psi = imu_meas(7);
+
+        a = (2/quat(1)) * [quat(2) quat(3) quat(4)]'; % 2 x Gibbs vector
+        u_y = 2 * ( a(1)*a(2) + 2*a(3) );
+        u_x = ( 4 + a(1)^2 - a(2)^2 - a(3)^2 );
+        u = u_y / u_x;
+        du = 1 / (1 + u^2);
+        c_psi = du * (1 / ( 4 + a(1)^2 - a(2)^2 - a(3)^2 )^2 ) * ...
+            [ -2*((a(1)^2 + a(3)^2 - 4)*a(2) + a(2)^3 + 4*a(1)*a(3))
+            2*((a(2)^2 - a(3)^2 + 4)*a(1) + a(1)^3 + 4*a(2)*a(3))
+            4*((a(3)^2 + a(1)*a(2)*a(3) + a(1)^2 - a(2)^2 + 4)) ];
+
+        % Measurement matrix
+        Cd = [ Smtrx(R_transposed*v01) O3    % Gravity measurement vector
+               c_psi'          zeros(1,3) ]; % Compass measurement
+
+        % Innovation vector
+        delta_y = [v1 - R_transposed * v01
+                   ssa(psi - atan2(u_y, u_x))];
+
+    end
+
     % KF gain: K[k])
     K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd);
     IKC = eye(size(P_prd)) - K * Cd;
-    
-    % Innovation vector
-    delta_y = [ v1 - R_transposed * v01
-                v2 - R_transposed * v02];
 
     % Corrector: delta_x_hat[k] and P_hat[k]
     delta_x_hat = K * delta_y;
     P_hat = IKC * P_prd * IKC' + K * Rd * K';
-    
-	% Form error quaternion from 2 x Gibbs vector: delta_q_hat[k]
-	delta_a = delta_x_hat(1:3);
-	delta_q_hat = 1 / sqrt(4 + delta_a' * delta_a) * [2; delta_a];
-    
+
+    % Form error quaternion from 2 x Gibbs vector: delta_q_hat[k]
+    delta_a = delta_x_hat(1:3);
+    delta_q_hat = 1 / sqrt(4 + delta_a' * delta_a) * [2; delta_a];
+
     % ARS bias reset
-	b_ars = b_ars + delta_x_hat(4:6);  
+    b_ars = b_ars + delta_x_hat(4:6);
 
     % Multiplicative quaternion update (maintains unit norm)
-    quat = quatprod(quat , delta_q_hat);        % Schur product    
-    quat = quat / norm(quat);                   % Normalization    
+    quat = quatprod(quat , delta_q_hat);        % Schur product
+    quat = quat / norm(quat);                   % Normalization
+
 
 end
 
