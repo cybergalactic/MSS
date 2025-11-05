@@ -35,6 +35,8 @@
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
 
+headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
+
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
@@ -49,8 +51,6 @@ h_slow = 1/f_slow; % Corrector
 % ==============================================================================
 % Observer initialization
 % ==============================================================================
-headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
-
 switch headingFlag
     case 1
         k1 = 1000; % Gain for specific force measurement vector
@@ -92,11 +92,16 @@ disp('Simulating...');
 % ==============================================================================
 %% MAIN LOOP
 % ==============================================================================
-t = 0:h_fast:T_final; % Time vector from 0 to T_final          
-nTimeSteps = length(t); % Number of time steps
-simdata = zeros(nTimeSteps,13); % Pre-allocate table for simulation data 
+t = 0:h_fast:T_final;                % Time vector from 0 to T_final
+next_meas_time = 0;                  % Time for next corrector call
+k = 1;                               % Slow-sample index
+N_slow = floor(T_final/h_slow) + 1;  % Number of slow samples
 
-for i=1:nTimeSteps
+% Pre-allocate slow-rate storage (1 row per slow sample)
+% Columns: [phi theta psi  b_ars(3)  quat_prd(4)  b_ars_prd(3)]
+simdata = zeros(N_slow,13); 
+
+for i=1:length(t)
     
     % INS signal generator, using test signal no. 2 
     [x, f_imu, w_imu, m_imu] = insSignal(x, h_fast, t(i), mu, m_ref, 2);
@@ -106,28 +111,38 @@ for i=1:nTimeSteps
     b_ars = x(13:15);
 
     % Observer correction step runs at slow time
-    if mod( t(i), h_slow ) == 0
+    if t(i) + 1e-10 >= next_meas_time
         switch headingFlag
             case 1 % Heading from magnetometer measurement
                 imu_meas = [f_imu' w_imu' m_imu'];
             case 2 % Heading from compass measurement
                 imu_meas = [f_imu' w_imu' psi];
         end
-    else  % No magnetometer/compass measurement
-        imu_meas = [f_imu' w_imu'];
+
+        next_meas_time = next_meas_time + h_slow;
+        do_correct = true;
+
+    else % No magnetometer/compass measurement 
+        imu_meas  = [f_imu' w_imu'];
+        do_correct = false;
     end
 
+    % Call the nonlinear quaternion observer
     [quat_prd, b_ars_prd] = quatObserver( ...
         quat_prd, b_ars_prd, h_fast, Ki, k1, k2, m_ref, imu_meas);
-       
-    % Store simulation data in a table 
-    simdata(i,:) = [phi theta psi b_ars' quat_prd' b_ars_prd']; 
-    
+
+    % Store data at slow rate
+    if do_correct
+        simdata(k,:) = [phi theta psi b_ars' quat_prd' b_ars_prd'];
+        k = k + 1;
+    end
+
 end
 
 % ==============================================================================
 %% PLOTS         
 % ==============================================================================
+t_slow = (0:h_slow:T_final)';
 phi = simdata(:,1); 
 theta = simdata(:,2); 
 psi = simdata(:,3); 
@@ -135,27 +150,27 @@ b_ars = simdata(:,4:6);
 quat_prd = simdata(:,7:10); 
 b_ars_prd = simdata(:,11:13); 
 
-phi_prd = zeros(length(t),1); 
-theta_prd = zeros(length(t),1); 
-psi_prd = zeros(length(t),1);
-for i = 1:length(t)
+phi_prd = zeros(N_slow,1); 
+theta_prd = zeros(N_slow,1); 
+psi_prd = zeros(N_slow,1);
+for i = 1:N_slow
     [phi_prd(i), theta_prd(i), psi_prd(i)] = q2euler(quat_prd(i,:));
 end
 
 % Figure 1
 figure(1); figure(gcf);
 subplot(311)
-plot(t, rad2deg(phi),t, rad2deg(phi_prd)); 
+plot(t_slow, rad2deg(phi),t_slow,rad2deg(phi_prd)); 
 xlabel('Time (s)'),title('Roll angle [deg]'),grid
 legend('\phi', '\phi (estimate)');
 
 subplot(312)
-plot(t, rad2deg(theta),t, rad2deg(theta_prd)); 
+plot(t_slow, rad2deg(theta),t_slow,rad2deg(theta_prd)); 
 xlabel('Time (s)'),title('Pitch angle [deg]'),grid
 legend('\theta', '\theta (estimate)');
 
 subplot(313)
-plot(t, rad2deg(psi),t, rad2deg(psi_prd)); 
+plot(t_slow,rad2deg(psi),t_slow,rad2deg(psi_prd)); 
 xlabel('Time (s)'),title('Yaw angle [deg]'),grid
 legend('\psi', '\psi (estimate)');
 
@@ -166,17 +181,17 @@ set(findall(gcf,'type','legend'),'FontSize',12)
 % Figure 2
 figure(2); figure(gcf);
 subplot(311)
-plot(t, b_ars(:,1),t, b_ars_prd(:,1)); 
+plot(t_slow,b_ars(:,1),t_slow,b_ars_prd(:,1)); 
 xlabel('Time (s)'),title('ARS roll bias'),grid
 legend('b_{x,ars}', 'b_{x,ars} (estimate)');
 
 subplot(312)
-plot(t, b_ars(:,2),t, b_ars_prd(:,2)); 
+plot(t_slow, b_ars(:,2),t_slow,b_ars_prd(:,2)); 
 xlabel('Time (s)'),title('ARS pitch bias'),grid
 legend('b_{y,ars}', 'b_{y,ars} (estimate)');
 
 subplot(313)
-plot(t, b_ars(:,3),t, b_ars_prd(:,3)); 
+plot(t_slow,b_ars(:,3),t_slow,b_ars_prd(:,3)); 
 xlabel('Time (s)'),title('ARS yaw bias'),grid
 legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
