@@ -11,6 +11,8 @@
 % scalar compass measurement (megnetic compass, gyrocompass, GNSS compass, etc.)
 % instead of the 3-axis magnetometer measurements.
 %
+% See also: SIMquatMEKF.m (MEKF for attitude estimation)
+%
 % Dependencies:
 %   quatObserver.m  - Nonlinear attiitude observer using reference vectors
 %   magneticField.m - Magnetic field vectors for different cities
