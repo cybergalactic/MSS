@@ -45,8 +45,8 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 .../MSS/VESSELS/
 
 ```matlab
-SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control
-SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure
+SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control.
+SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure.
 SIMfrigate      % Simulate frigate.m using a PID heading autopilot
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
 SIMotter        % Simulate otter.m with heading control and 2-D LOS straight-line path course control
@@ -107,7 +107,7 @@ nomoto               % Generates Bode plots for the 1st- and 2nd-order Nomoto mo
 order3               % Path generation using cubic polynomials (see demoWaypointGuidance.slx)
 order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
 PIDnonlinearMIMO     % Nonlinear MIMO PID regulator for dynamic positioning (DP)
-refModel             % Third-order reference model for position, velocity and acceleration
+refModel             % Third-order reference model for position, velocity, and acceleration
 RefModelPolyExp      % Transition from x_start to x_final using a polynomial or an exponential curve 
 staticRollPitchYaw   % Static roll, pitch, and yaw angles from IMU specific force and magnetometer measurements
 ```
@@ -220,7 +220,7 @@ rk4                 % Integrates a system of ordinary differential equations usi
 highPassFilter      % First-order high-pass filter using exact discretization
 lowPassFilter       % First-order low-pass filter using exact discretization
 notchFilter         % Second-order notch filter using RK4 discretization or IIR filtering
-sawToothWave        % Sawtooth wave signal which can be used for testing
+sawToothWave        % Sawtooth wave signal, which can be used for testing
 waveFreqObserver    % Wave encounter frequency estimator (Belleter, Galeazzi and Fossen 2015)
 ```
 
@@ -233,6 +233,7 @@ waveFreqObserver    % Wave encounter frequency estimator (Belleter, Galeazzi and
 SIMaidedINSeuler     % Simulate the ESKF for aided INS using Euler angles
 SIMaidedINSheave     % Simulate the ESKF for aided INS in heave using pressure measurements
 SIMaidedINSquat      % Simulate the ESKF for aided INS using unit quaternions (MEKF representation)
+SIMquatMEKF          % Simulate the MEKF quaternion-based attitude observer for 9-DOF IMU measurements
 SIMquatObserver      % Simulate the nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 ```
 
@@ -248,6 +249,7 @@ ins_mekf_psi         % Error-state Kalman filter (ESKF) for an INS aided by posi
 insSignal            % INS signal generator for testing of Kalman filters and observers
 magneticField        % NED magnetic field reference vectors 'm_ref' for different cities
 quatObserver         % Nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
+quatMEKF             % MEKF quaternion-based attitude observer for 9-DOF IMU measurements
 ```
 
 ## Simulink 
@@ -293,7 +295,7 @@ MAN_ForceRAO.slx   % Simulink template for the unified maneuvering model where w
 ```matlab
 1) KinDemo     % Euler angle and quaternion kinematics
 2) ManDemo     % Maneuvering trials
-3) StabDemo    % Straight-line, directional and positional motion stability
+3) StabDemo    % Straight-line, directional, and positional motion stability
 4) WaveDemo    % Wave spectra demonstrations
 ```
 
@@ -317,7 +319,7 @@ exKT               % Computation of the Nomoto gain K and time constant T from a
 exLinspec          % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
 exLQFinHor         % LQ finite time-horizon tracking controller for a mass-damper-spring system
 exLQR              % Computes the LQR gains for a mass-damper system
-exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper systeme
+exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper system
 exManeuveringModel % Maneuvering model from frequency-dependent hydrodynamic coefficients A(ω) and B(ω), and the wave spectrum S(ω).
 exMDS              % Plots the step response of a 2nd-order mass-damper system
 exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
@@ -344,7 +346,7 @@ exWageningen       % Computes thrust and torque curves for a propeller using the
 exWaveFreqObserver % Nonlinear observer for estimation of the wave encounter frequency
 exWaveForceRAO     % Wave elevation and generalized 1st-order wave forces from force RAOs using different wave spectra 
 exWaveMotionRAO    % Wave elevation and ship wave-frequency (WF) motions from motion RAOs using different wave spectra
-exWindForce        % Plots the wind coefficients by Isherwoods (1972) 
+exWindForce        % Plots the wind coefficients by Isherwood (1972) 
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
 
@@ -359,7 +361,7 @@ vessel2ss          % computes the fluid-memory transfer functions and stores the
 wamit2vessel       % Reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
 ```
 
-### Data files (mat-files that can be loaded to workspace and used by Simulink templates)
+### Data files (mat-files that can be loaded to the workspace and used by Simulink templates)
 
 ```matlab
 fpso, fpsoABC       % WAMIT data for a FPSO
@@ -414,10 +416,9 @@ Demo_FDIRadMod_WA     % FDI using hydrodynamic data, including infinite-frequenc
 
 ### Utils
 ```matlab
-EditAB                 % Function preparing the data for identification, selecting frequency range, and removing wild-points
+EditAB                 % Function: preparing the data for identification, selecting frequency range, and removing wild-points
 FDIRadMod              % Identify the SISO transfer function corresponding to the coupling specified
 fit_siso_fresp         % Fit a continuous SISO transfer function to the frequency response data
 ident_retardation_FD   % Identification of a parametric radiation convolution model K(s) = P(s)/Q(s)
 ident_retardation_FDna % Identification of a parametric model A(jw) = B(w)/(jw) - A(w) 
 ```
-
