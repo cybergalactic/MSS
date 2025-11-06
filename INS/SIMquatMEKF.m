@@ -48,7 +48,7 @@ h_fast = 1/f_fast; % State propagation
 h_slow = 1/f_slow; % Corrector
 
 % ==============================================================================
-% Observer initialization
+% MEKF initialization
 % ==============================================================================
 % Initial state estimates
 quat_prd = [1 0 0 0]'; % 4x1 initial unit quaternion vector 
@@ -175,7 +175,7 @@ legend('\psi', '\psi (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
-set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',1)
 
 % Figure 2
 figure(2); figure(gcf);
@@ -196,5 +196,5 @@ legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
-set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
