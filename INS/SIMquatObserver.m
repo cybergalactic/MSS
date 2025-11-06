@@ -35,12 +35,12 @@
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
 
-headingFlag = 1; % 1 for 3-axis magnetometer, 2 for scalar compass
+headingFlag = 2; % 1 for 3-axis magnetometer, 2 for scalar compass
 
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 200; % Final simulation time (s)
+T_final = 100; % Final simulation time (s)
 f_fast = 1000; % High-rate IMU measurement frequency (Hz)
 f_slow = 100; % Low-rate magnetometer/compass measurement frequency (Hz)
 
@@ -176,7 +176,7 @@ legend('\psi', '\psi (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
-set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
 % Figure 2
 figure(2); figure(gcf);
@@ -197,5 +197,5 @@ legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',12)
-set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
