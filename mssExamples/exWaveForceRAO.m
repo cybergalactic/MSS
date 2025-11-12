@@ -17,21 +17,22 @@ displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 % Revisions: 
 %    2025-10-21 RAO interpolations and look-up tables are evaluated at a 
 %               maximum rate of 10 Hz. 
-%    2025-11-12 Added spheriod-shaped AUV with analytical RAO compuation.
+%    2025-11-12 Added spheriod-shaped AUV with analytical RAO computations.
 
-clear waveForceRAO; % Clear persistent RAO tables
 clearvars;
+clear waveForceRAO; % Clear persistent RAO tables
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
-[matFile, spectrumType, spreadingFlag] = simOptions(); % User inputs
+[matFile, spectrumType, spreadingFlag] = simOptions(); % GUI inputs
 vessel = loadOrComputeVessel(matFile); % Load or compute vessel.forceRAO
 
+% ------------------------------------------------------------------------------
 % Simulation parameters
-h = 0.02;                       % Time step (s)
-T_final = 200;                  % Duration of the simulation (s)
-T_initialTransient = 20;        % Remove initial transient (s)
+% ------------------------------------------------------------------------------
+h = 0.02;                       % Time step [s]
+T_final = 200;                  % Duration of the simulation [s]
+T_initialTransient = 20;        % Remove initial transient [s]
 RAO_update_period = 0.1;        % Compute RAO at 10 Hz
-nextRAOtime = 0;                % Next RAO update time
 
 % COMMENT: Adding a spreading function involves summing waves from different 
 % directions. Initially, these waves can interfere constructively, causing
@@ -45,10 +46,13 @@ numFreqIntervals = 100;         % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
 % Sea state 
-Hs = 3; % Significant wave height (m)
-w0 = 1; % Wave spectrum modal (peak) frequency
+Hs = 3; % Significant wave height [m]
+w0 = 1; % Wave spectrum modal (peak) frequency [rad/s]
 beta_wave = deg2rad(140); % Wave direction relative bow, 0 deg for following sea
 
+% ------------------------------------------------------------------------------
+% Compute wave directional spectrum
+% ------------------------------------------------------------------------------
 spectrumParameters = [Hs, w0];
 if strcmp(spectrumType ,'JONSWAP')
    gamma = 3.3; 
@@ -58,7 +62,7 @@ end
 % Reshape vessel data to use 0 to maxFreq
 if vessel.forceRAO.w(end) > maxFreq
     w_index = find(vessel.forceRAO.w > maxFreq, 1) - 1;
-    vessel.forceRAO.w = vessel.forceRAO.w(1:w_index); % frequency vector
+    vessel.forceRAO.w = vessel.forceRAO.w(1:w_index); % Frequency vector
     for DOF = 1:length(vessel.forceRAO.amp)
         vessel.forceRAO.amp{DOF} = vessel.forceRAO.amp{DOF}(1:w_index, :, :);
         vessel.forceRAO.phase{DOF} = vessel.forceRAO.phase{DOF}(1:w_index, :, :);
@@ -70,8 +74,11 @@ omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
 [S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumType, ...
     spectrumParameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections);
 
-%% MAIN LOOP
+% ------------------------------------------------------------------------------
+% MAIN LOOP
+% ------------------------------------------------------------------------------
 t = 0:h:T_final+T_initialTransient-1;  % Time vector
+nextRAOtime = 0;                % Next RAO update time
 simdata = zeros(length(t),7);          % Pre-allocate table
 for i = 1:length(t)
 
@@ -90,7 +97,9 @@ for i = 1:length(t)
 
 end
 
-%% PLOTS
+% ------------------------------------------------------------------------------
+% PLOTS
+% ------------------------------------------------------------------------------
 figure(1); clf;
 
 % Time-series
@@ -151,24 +160,23 @@ if ~isoctave
         num2str(rad2deg(beta_wave)), '° and H_s = ', num2str(Hs), ' m']);
 end
 
-
-%% FUNCTIONS
+% ------------------------------------------------------------------------------
+% FUNCTIONS
+% ------------------------------------------------------------------------------
 function vessel = loadOrComputeVessel(matFile)
 if strcmp(matFile, 'AUV_FUNCTION')
-    disp('Computing RAOs for spheroid-shaped AUV ...');
-
-    % Example AUV parameters (adjust as needed)
-    a = 1.2;                % semi-major axis [m]
-    b = 0.3;                % semi-minor axis [m]
+    % Example AUV parameters 
+    a = 1.2;                % Semi-major axis [m]
+    b = 0.3;                % Semi-minor axis [m]
     BG = 0.05;              % B–G distance [m]
-    zeta_roll  = 0.05;      % relative damping ratio in roll
-    zeta_pitch = 0.1;       % relative damping ratio in pitch
-    zn = 5;                 % nominal submergence (m)
-    maxDepth = 50;          % maximum depth [m]
+    zeta_roll  = 0.05;      % Relative damping ratio in roll
+    zeta_pitch = 0.1;       % Relative damping ratio in pitch
+    zn = 5;                 % Nominal submergence (m)
+    maxDepth = 50;          % Maximum depth [m]
 
     vessel.main.g = 9.81;
-    vessel = spheroidRAO(vessel, a, b, BG, zeta_roll, zeta_pitch, zn, maxDepth, 0);
-    disp('Generated vessel.forceRAO structure from function spheroidShapedAUV().');
+    vessel = spheroidRAO(vessel,a,b,BG,zeta_roll,zeta_pitch,zn,maxDepth,0);
+    disp('Generated vessel.forceRAO structure from function spheroidRAO().');
 
 else
     load(which(matFile), 'vessel');
@@ -176,6 +184,7 @@ else
 end
 end
 
+% ------------------------------------------------------------------------------
 
 function [matFile, spectrumType, spreadingFlag] = simOptions()
 
@@ -270,7 +279,6 @@ uicontrol('Style', 'pushbutton', ...
     'Callback', @(src, evt) uiresume(f));
 
 uiwait(f); % Wait for uiresume to be called on figure handle
-
 
 % Determine which ship was selected
 selectedShip = findobj(bg1, 'Style', 'radiobutton', 'Value', 1);
