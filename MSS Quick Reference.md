@@ -163,14 +163,15 @@ quest6dof           % 6-DOF vector eta = [x,y,z,phi,theta,psi] from three marker
 ### Environment
 
 ```matlab
-blendermann94       % Computes the wind forces and wind coefficients using Blendermann (1994)
+blendermann94       % Compute the wind forces and wind coefficients using Blendermann (1994)
 encounter           % Encounter frequency as a function of wave peak frequency, vessel speed, and wave direction
-hs2vw               % Converts significant wave height into an equivalent wind speed
-isherwood72         % Computes the wind forces and coefficients based on Isherwood (1972) 
+hs2vw               % Convert significant wave height into an equivalent wind speed
+isherwood72         % Compute the wind forces and coefficients based on Isherwood (1972) 
+spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped AUV in waves.
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
-waveForceRAO        % Computes the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
-waveMotionRAO       % Computes the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
+waveForceRAO        % Compute the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
+waveMotionRAO       % Compute the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 wavespec            % Obsolete, use waveSpectrum instead.
 waveSpectrum        % Function computing state-of-the-art wave spectra
