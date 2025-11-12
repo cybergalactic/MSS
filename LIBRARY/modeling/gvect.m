@@ -5,7 +5,7 @@ function g = gvect(W,B,theta,phi,r_bg,r_bb)
 % For floating vessels, use Gmtrx.m.
 % 
 % Inputs: 
-%  W, B: weight and buoyancy (kg)
+%  W, B: weight and buoyancy (N)
 %  phi,theta: roll and pitch angles (rad)
 %  r_bg = [x_g y_g z_g]: location of the CG with respect to the CO (m)
 %  r_bb = [x_b y_b z_b]: location of the CB with respect to th CO (m)
