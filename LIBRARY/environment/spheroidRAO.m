@@ -21,12 +21,12 @@ function vessel = spheroidRAO(vessel,a,b,BG,zeta_roll,zeta_pitch,zn,maxDepth,ver
 % OUTPUTS:
 %   vessel     - Updated structure containing computed Response Amplitude
 %                Operators (RAOs) and hydrodynamic coefficients:
-%                  vessel.forceRAO.w      - Wave frequency vector [rad/s]
-%                  vessel.forceRAO.beta   - Wave heading angles [deg]
-%                  vessel.forceRAO.amp    - |H_i(ω,β)| amplitude matrices
-%                  vessel.forceRAO.phase  - Phase matrices [rad]
-%                  vessel.forceRAO.Re     - Real(H_i(ω,β))
-%                  vessel.forceRAO.Im     - Imag(H_i(ω,β))
+%                  vessel.forceRAO.w        - Wave frequency vector [rad/s]
+%                  vessel.forceRAO.headings - Wave heading angles [deg]
+%                  vessel.forceRAO.amp      - |H_i(ω,β)| amplitude matrices
+%                  vessel.forceRAO.phase    - Phase matrices [rad]
+%                  vessel.forceRAO.Re       - Real(H_i(ω,β))
+%                  vessel.forceRAO.Im       - Imag(H_i(ω,β))
 %
 % EXAMPLES:
 %   vessel = spheroidRAO(vessel,a,b,BG,zeta_roll,zeta_pitch,zn,maxDepth);
@@ -178,23 +178,23 @@ end
 vessel.forceRAO = struct();
 vessel.forceRAO.w = omega;  % [rad/s]
 
-numDOF   = 6;
+numDOF = 6;
 
 amp   = cell(1,numDOF);
 phase = cell(1,numDOF);
 ReH   = cell(1,numDOF);
 ImH   = cell(1,numDOF);
 
+% Define consistent 0–350° headings (36 directions)
+vessel.headings = 0:10:350;  % [deg]
+
 for i = 1:numDOF
     % Extract complex RAOs for all directions (0–180)
     H_half = squeeze(H_dir(i,:,:));   % size: n_omega × n_beta
 
-    % Mirror to 360° using complex conjugate symmetry
+    % Mirror to 360° using complex conjugate symmetry:
     % H(ω, β+180°) = conj(H(ω, β))
     H_full = [H_half, conj(fliplr(H_half(:,2:end-1)))];
-
-    % Corresponding heading array
-    beta_full = [beta_list, 180+fliplr(beta_list(2:end-1))];
 
     % Store components
     amp{i}   = abs(H_full);
@@ -203,11 +203,11 @@ for i = 1:numDOF
     ImH{i}   = imag(H_full);
 end
 
-vessel.forceRAO.beta = beta_full;   % [deg] 0–360°
-vessel.forceRAO.amp  = amp;
+% Store final results
+vessel.forceRAO.amp   = amp;
 vessel.forceRAO.phase = phase;
-vessel.forceRAO.Re   = ReH;
-vessel.forceRAO.Im   = ImH;
+vessel.forceRAO.Re    = ReH;
+vessel.forceRAO.Im    = ImH;
 
 % ------------------------------------------------------------------------------
 % Plot all 6 DOFs 
