@@ -40,8 +40,6 @@ function vessel = spheroidRAO(vessel,a,b,BG,zeta_roll,zeta_pitch,zn,maxDepth,ver
 % Data:         2025-11-12
 % Revisions:
 
-clc; close all;
-
 if nargin < 9
     verbose = false;  % Default: no plotting
 end
@@ -50,6 +48,12 @@ g   = 9.81; % Acceleration of gravity (m/s2)
 rho = 1025; % Density of water (kg/m3)
 depth = zn; % Submergence of spheroid [m]
 h_w = maxDepth; % Total water depth [m]  
+
+% Coupling from heave excitation into pitch moment is very small for a 
+% symmetric prolate spheroid. The factor k_heave2pitch ≈ 0.01 gives a 
+% realistic weak pitch excitation (1% of heave), preventing unrealistically 
+% large roll/pitch RAOs due to symmetric geometry.
+k_heave2pitch = 0.01;
 
 if depth > h_w
     error('The vehicle submergence must satisfy: depth < h_w where h_w is the max depth')
@@ -61,7 +65,6 @@ end
 r44 = 0.4;
 A = imlay61(a,b,zeros(6,1),r44);
 MRB = spheroid(a,b,[0; 0; 0;],[0; 0; 0]);
-M = MRB + A;
 m = MRB(1,1);
 W = m * g;
 
@@ -84,9 +87,9 @@ k = dispersion_relation(omega, h_w, g);  % solve ω² = g k tanh(k h)
 decay = cosh(k.*(h_w - depth)) ./ cosh(k.*h_w);
 
 % Base excitation amplitudes (Froude–Krylov forces)
-F1 = rho * g * pi * b^2 .* decay;     % surge
+F1 = rho * g * pi * b^2 .* decay;   % surge
 F3 = rho * g * pi * b^2 .* decay;   % heave
-F5 = 0.1 * F3;                    % pitch (small)
+F5 = k_heave2pitch * F3;            % pitch (small)
 
 beta_list = 0:10:180;
 beta_rad  = deg2rad(beta_list);
@@ -117,8 +120,8 @@ for ib = 1:length(beta_rad)
     H = zeros(6,n);
 
     for i = 1:6
-        Mii  = M(i,i);
-        Aii0 = abs(A(i,i));
+        Mii = MRB(i,i);
+        Aii0 = A(i,i);
         Cii  = C(i,i);
 
         if Cii == 0
@@ -126,7 +129,7 @@ for ib = 1:length(beta_rad)
             % Non-oscillatory DOFs: surge, sway, yaw → constant A and B
             % ------------------------------------------------------------------
             Aii_omega = repmat(Aii0, 1, n);
-            Bii_omega = repmat(0.05 * Mii, 1, n);  % small linear damping
+            Bii_omega = repmat(0.1 * (Mii+Aii0), 1, n);  % small linear damping
 
         else
             % ------------------------------------------------------------------
@@ -144,8 +147,10 @@ for ib = 1:length(beta_rad)
         end
 
         % Store for plotting
-        A_freq(i,:) = Aii_omega;
-        B_freq(i,:) = Bii_omega;
+        if ib == 1
+            A_freq(i,:) = Aii_omega;
+            B_freq(i,:) = Bii_omega;
+        end
 
         % Compute complex RAO
         H(i,:) = F(i,:) ./ (Cii - omega.^2 .* (Mii + Aii_omega) + ...
@@ -159,12 +164,12 @@ if verbose
     fprintf('\nNatural Frequencies and Damping Ratios (Approx.):\n');
     fprintf('--------------------------------------------------\n');
     for i = 1:6
-        Mii = M(i,i);
-        Aii0 = abs(A(i,i));
+        Mii = MRB(i,i);
+        Aii0 = A(i,i);
         Cii = C(i,i);
         if Cii > 0
             omega_n = sqrt(Cii / (Mii + Aii0));
-            Bii1 = 2*zeta(i)*(Mii + Aii0); % from definition
+            Bii1 = 2*zeta(i)*(Mii + Aii0)*omega_n;
             zeta_eff = Bii1 / (2*(Mii + Aii0)*omega_n);
             fprintf('%-6s: ω_n = %5.3f rad/s, ζ_eff = %.3f\n', ...
                 labels{i}, omega_n, zeta_eff);
@@ -192,9 +197,10 @@ for i = 1:numDOF
     % Extract complex RAOs for all directions (0–180)
     H_half = squeeze(H_dir(i,:,:));   % size: n_omega × n_beta
 
-    % Mirror to 360° using complex conjugate symmetry:
-    % H(ω, β+180°) = conj(H(ω, β))
-    H_full = [H_half, conj(fliplr(H_half(:,2:end-1)))];
+    % Mirror to 180–360°:
+    % H(ω,β) = conj(H(ω,360°–β))
+    H_mirror = conj(fliplr(H_half(:, 2:end-1)));  
+    H_full   = [H_half, H_mirror];
 
     % Store components
     amp{i}   = abs(H_full);
@@ -224,7 +230,7 @@ if verbose
         ylabel(sprintf('|H_%d|', i));
         title(labels{i});
     end
-    sgtitle('RAOs of a Submerged Prolate Spheroid (0-360 deg');
+    sgtitle('RAOs of a Submerged Prolate Spheroid (0-180 deg)');
 end
 
 % ------------------------------------------------------------------------------
