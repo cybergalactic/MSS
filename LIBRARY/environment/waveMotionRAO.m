@@ -48,8 +48,8 @@ persistent RAO_re_values_interpolated RAO_im_values_interpolated randomPhases;
 g = vessel.main.g; 
 
 % Vesssel RAO data
-freqs = vessel.motionRAO.w;  % RAO wave frequencies
-raoAngles = vessel.headings; % RAO wave direction angles
+freqs = vessel.motionRAO.w;  % RAO wave frequencies (rad/s)
+raoAngles = vessel.headings; % RAO wave direction angles (rad)
 
 % Initial computation and interpolation of real and imaginary RAO tables
 if isempty(RAO_im_values_interpolated)
