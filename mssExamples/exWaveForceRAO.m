@@ -19,7 +19,7 @@ displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 %               maximum rate of 10 Hz. 
 %    2025-11-12 Added spheriod-shaped AUV with analytical RAO computations.
 
-clearvars;
+clearvars; close all;
 clear waveForceRAO; % Clear persistent RAO tables
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
@@ -30,7 +30,7 @@ vessel = loadOrComputeVessel(matFile); % Load or compute vessel.forceRAO
 % Simulation parameters
 % ------------------------------------------------------------------------------
 h = 0.02;                       % Time step [s]
-T_final = 200;                  % Duration of the simulation [s]
+T_final = 100;                  % Duration of the simulation [s]
 T_initialTransient = 20;        % Remove initial transient [s]
 RAO_update_period = 0.1;        % Compute RAO at 10 Hz
 
@@ -78,7 +78,7 @@ omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
 % MAIN LOOP
 % ------------------------------------------------------------------------------
 t = 0:h:T_final+T_initialTransient-1;  % Time vector
-nextRAOtime = 0;                % Next RAO update time
+nextRAOtime = 0;                       % Next RAO update time
 simdata = zeros(length(t),7);          % Pre-allocate table
 for i = 1:length(t)
 
@@ -166,16 +166,12 @@ end
 function vessel = loadOrComputeVessel(matFile)
 if strcmp(matFile, 'AUV_FUNCTION')
     % Example AUV parameters 
-    a = 1.2;                % Semi-major axis [m]
-    b = 0.3;                % Semi-minor axis [m]
-    BG = 0.05;              % B–G distance [m]
-    zeta_roll  = 0.05;      % Relative damping ratio in roll
-    zeta_pitch = 0.1;       % Relative damping ratio in pitch
-    zn = 5;                 % Nominal submergence (m)
-    maxDepth = 50;          % Maximum depth [m]
+    a = 1.2;                   % Semi-major axis [m]
+    b = 0.3;                   % Semi-minor axis [m]
+    zn = 5.0;                 % Nominal submergence (m)
 
     vessel.main.g = 9.81;
-    vessel = spheroidRAO(vessel,a,b,BG,zeta_roll,zeta_pitch,zn,maxDepth,0);
+    vessel = spheroidRAO(vessel,a,b,zn,0);
     disp('Generated vessel.forceRAO structure from function spheroidRAO().');
 
 else
