@@ -18,11 +18,12 @@ function vessel = spheroidRAO(vessel,a,b,zn,verbose)
 %
 % OUTPUT (stored in vessel.forceRAO):
 %   vessel.forceRAO.w        : wave frequencies ω [rad/s]
-%   vessel.forceRAO.angles   : wave headings β (0–350°)
 %   vessel.forceRAO.Re{dof}  : real(FK)   [N or Nm]
 %   vessel.forceRAO.Im{dof}  : imag(FK)=0
 %   vessel.forceRAO.amp{dof} : |FK(ω,β)|
 %   vessel.forceRAO.phase{dof}: FK phase = 0
+%   vessel.headings : wave headings from 0° to 350° in 10° steps, stored in
+%                     stored in radians (36 unique directions).
 %
 % FK is 6 × Nω × Nβ:
 %   DOFs: 1=surge, 2=sway, 3=heave, 4=roll, 5=pitch, 6=yaw
@@ -142,8 +143,6 @@ for dof = 1:6
     FK_full(dof,:,20:36) = fk_sign(dof) * FK_half(dof,:,src);
 end
 
-vessel.headings = (0:10:350)';
-
 for dof = 1:6
     vessel.forceRAO.Re{dof} = squeeze(FK_full(dof,:,:));
     vessel.forceRAO.Im{dof} = zeros(size(vessel.forceRAO.Re{dof}));
@@ -155,7 +154,7 @@ end
 % Populate MSS-compatible RAO structure
 % ------------------------------------------------------------------------------
 vessel.forceRAO.w = omega;
-vessel.headings = (0:10:350)';   % 36 headings
+vessel.headings = deg2rad(0:10:350)';    % 36 headings (stored in radians)
 
 for dof = 1:6
     H = squeeze(FK_full(dof,:,:));   % [Nω × Nβ]
