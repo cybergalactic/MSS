@@ -40,7 +40,7 @@ g = vessel.main.g;
 
 % Vesssel RAO data
 freqs = vessel.forceRAO.w;   % RAO wave frequencies (rad/s)
-raoAngles = deg2rad(vessel.headings); % RAO wave direction angles (rad)
+raoAngles = vessel.headings; % RAO wave direction angles (rad)
 
 % Initial computation and interpolation of real and imaginary RAO tables
 if isempty(RAO_im_values_interpolated)
