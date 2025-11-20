@@ -2,7 +2,11 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
     phi, theta, p_0, p)
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) in heave. The Inertial Navigation System (INS) is aided by pressure 
-% measurements. Usage scenarios are detailed in SIMaidedINSheave, demonstrating 
+% measurements:
+% 
+%   p = p_0 + rho * g * z
+% 
+% Usage scenarios are detailed in SIMaidedINSheave, demonstrating 
 % the implementation of the Kalman filter loop using the corrector-predictor 
 % representation:
 %
@@ -43,7 +47,7 @@ if isempty(ins)
     % Constants
     ins.g = 9.81; % Gravity in m/s^2
     ins.rho = 1025; % Density of water in kg/m^3
-    ins.T_acc = 1000; % Acceleration bias time constant in seconds
+    ins.T_acc = 100; % Acceleration bias time constant in seconds
 
     % Discrete-time ESKF matrices
     ins.A = [ 0 1  0   
