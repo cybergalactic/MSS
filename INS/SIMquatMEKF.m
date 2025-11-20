@@ -52,17 +52,17 @@ h_slow = 1/f_slow; % Corrector
 % ==============================================================================
 % Initial state estimates
 quat_prd = [1 0 0 0]'; % 4x1 initial unit quaternion vector 
-b_ars_prd = [0 0 0]'; % 3x1 initial ARS bias vector 
+b_ars_prd = [0 0 0]';  % 3x1 initial ARS bias vector 
 
 % MEKF state vector: x = [ax_g ay_g az_g bx_ars by_ars bz_ars]' (Gibbs vector/ARS bias)
-Qd = diag([1 1 1 1 1 1]); % 6x6 process noise covariance matrix
+Qd = diag([1 1 1 0.001 0.001 0.001]); % 6x6 process noise covariance matrix
 P_prd = 1 * eye(6); % % 6x6 initial state covariance matrix
 
  % Measurement covariance matrix
 if headingFlag == 1
     Rd = diag([1 1 1 1 1 1]); % 3x1 gravity vector and 3x1  magnetic field vectors 
 else 
-    Rd = diag([1 1 1 1]); % 3x1 gravity vector and 1x1 compass measurement 
+    Rd = diag([10 10 10 1]); % 3x1 gravity vector and 1x1 compass measurement 
 end
 
 % ==============================================================================
