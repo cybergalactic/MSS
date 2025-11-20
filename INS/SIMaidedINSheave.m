@@ -1,11 +1,14 @@
 function SIMaidedINSheave()
 % SIMaidedINSheave is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates an Inertial Navigation System (INS) aided by pressure 
-% measurements using the Error-State Kalman Filter (ESKF). 
+% measurements: 
 % 
-% The position measurement frequency f_pos (typically 10 to 100 Hz) can be chosen 
-% smaller or equal to the sampling frequency f_s (typically 1000 Hz), which is 
-% equal to the Inertial Measurement Unit (IMU) measurement frequency. 
+%   p = p_0 + rho * g * z
+%
+% using the Error-State Kalman Filter (ESKF). The pressuren measurement frequency 
+% f_pos (typically 10 to 100 Hz) can be chosen smaller or equal to the sampling 
+% frequency f_s (typically 1000 Hz), which is equal to the Inertial Measurement 
+% Unit (IMU) measurement frequency. 
 %
 % Dependencies:
 %   ins_heave.m     - Feedback ESKF for INS aided by pressure measurements. 
@@ -60,7 +63,7 @@ nTimeSteps = length(t); % Number of time steps
 
 %% MAIN LOOP
 simdata = zeros(nTimeSteps,6); % Pre-allocate table for simulation data
-posdata = zeros(floor(T_final * f_pos), 2); % Pre-allocate table for pos data
+posdata = zeros(floor(T_final * f_pos), 2); % Pre-allocate table for pos. data
 pos_index = 0; % Initialize index for posdata
 
 for i=1:nTimeSteps
@@ -70,17 +73,17 @@ for i=1:nTimeSteps
     phi = x(10); % roll angle
     theta = x(11); % pitch angle
 
-    % Positions measurements are slower than the sampling time
+    % Pressure measurements are slower than the sampling time
     if t(i) > t_slow
         % Aiding
         pos_index = pos_index + 1; 
-        posdata(pos_index, :) = [t(i), x(3)]; % Store position measurements 
+        posdata(pos_index, :) = [t(i), x(3)]; % Store position 
         p = p_0 + rho * g * x(3) + 0.1 * randn; % Pressure measurement
 
         [x_ins, P_prd] = ins_heave(...
             x_ins, P_prd, h, Qd, Rd, f_imu, phi, theta, p_0, p);
 
-        % Update the time for the next slow position measurement
+        % Update the time for the next slow pressure measurement
         t_slow = t_slow + h_pos;  
     else  
         % No aiding
@@ -96,7 +99,7 @@ end
 x     = simdata(:,1:3); % High-rate IMU data
 x_hat = simdata(:,4:6); 
 
-t_m = posdata(:,1); % Slow-rate position data
+t_m = posdata(:,1);     % Slow-rate measurements
 y_m = posdata(:,2);
 
 figure(1); 
