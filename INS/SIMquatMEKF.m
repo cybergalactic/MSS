@@ -80,12 +80,12 @@ x = [zeros(1,6) zeros(1,3) zeros(1,3) b_ars']';
 % ==============================================================================
 % Display simulation parameters
 % ==============================================================================
-disp('-------------------------------------------------------------------');
+disp('---------------------------------------------------------------------------------');
 disp('MSS toolbox: Multiplicative Extended Kalman Filter (MEKF) for attitude estimation');
 disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
 disp(['IMU magnetic field/compass measurements at ',num2str(f_slow),' Hz']);
 disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
-disp('-------------------------------------------------------------------');
+disp('---------------------------------------------------------------------------------');
 disp('Simulating...');
 
 % ==============================================================================
