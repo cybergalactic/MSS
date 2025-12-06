@@ -93,9 +93,9 @@ if (length(x) ~= 12 && length(x) ~= 13)
 end
 
 % Constants
-mu = 63.446827;         % Lattitude for Trondheim, Norway (deg)
-g_mu = gravity(mu);     % Gravity vector (m/s2)
-rho = 1026;             % Density of water (m/s2)
+mu = deg2rad(63.446827); % Lattitude for Trondheim, Norway (deg)
+g_mu = gravity(mu);      % Gravity vector (m/s2)
+rho = 1026;              % Density of water (m/s2)
 
 % 6x1 velocity vector, yaw angle and control inputs
 nu = x(1:6); 
