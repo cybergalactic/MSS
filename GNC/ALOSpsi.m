@@ -1,4 +1,4 @@
-function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
+function [psi_ref,y_e,beta_c_hat,k_active] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
 % ALOSpsi is compatible with MATLAB and GNU Octave (www.octave.org). The
 % function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt) 
 % ALOSpsi computes the desired heading angle, psi_ref, and cross-track
@@ -41,8 +41,10 @@ function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
 %     dist = sqrt(   ( wpt.pos.x(k+1) - wpt.pos.x(k) )^2 
 %                  + ( wpt.pos.y(k+1) - wpt.pos.y(k) )^2 )
 % Outputs:  
-%    psi_ref: LOS heading angle (rad)
-%    y_e:     cross-track error (m)
+%    psi_ref:    LOS heading angle (rad)
+%    y_e:        Cross-track error (m)
+%    beta_c_hat: Estimate of crab angle (rad)
+%    k_active:   Index for active waypoint
 %
 % Reference:
 %   T. I. Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law 
@@ -56,13 +58,17 @@ function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
 %  
 % Author:    Thor I. Fossen
 % Date:      2023-03-23
-% Revisions: 2024-04-01 - Added compability to LOSobserver.m
+% Revisions: 
+%   2024-04-01 - Added compability to LOSobserver.m
+%   2025-12-07 - Added optional outputs beta_c_hat and k_active
 
 persistent k;        % active waypoint index, initialized by 'clear ALOSpsi'
 persistent xk yk;    % active waypoint (xk, yk) corresponding to integer k
 persistent beta_hat; % estimate of the crab angle
 
-%% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
+% ------------------------------------------------------------------------------
+% Initialization of (xk, yk) and (xk_next, yk_next), and integral state 
+% ------------------------------------------------------------------------------
 if isempty(k)
 
     % Check if R_switch is smaller than the minimum distance between the waypoints
@@ -83,8 +89,9 @@ if isempty(k)
 
 end
 
-
-%% Read next waypoint (xk_next, yk_next) from wpt.pos 
+% ------------------------------------------------------------------------------
+% Read next waypoint (xk_next, yk_next) from wpt.pos 
+% ------------------------------------------------------------------------------
 n = length(wpt.pos.x);
 if k < n                        % if there are more waypoints, read next one 
     xk_next = wpt.pos.x(k+1);  
@@ -96,7 +103,9 @@ else                            % else, continue with last bearing
     yk_next = wpt.pos.y(n) + R * sin(bearing); 
 end
 
-%% Compute the path-tangnetial angle w.r.t. North
+% ------------------------------------------------------------------------------
+% Compute the path-tangential angle w.r.t. north
+% ------------------------------------------------------------------------------
 pi_h = atan2( (yk_next-yk), (xk_next-xk) ); 
 
 % Along-track and cross-track errors (x_e, y_e) 
@@ -112,10 +121,15 @@ if ( (d - x_e < R_switch) && (k < n) )
     fprintf('  (x%1.0f, y%1.0f) = (%.2f, %.2f) \n',k,k,xk,yk);
 end
 
+% ------------------------------------------------------------------------------
 % ALOS guidance law
+% ------------------------------------------------------------------------------
 psi_ref = pi_h - beta_hat - atan( y_e/Delta_h ); 
 
-% Propagation of states to time k+1
+beta_c_hat = beta_hat; % Return crab angle estimate
+k_active = k; % Return active waypoint index
+
+% Propagation of crab angle estimate to time k+1
 beta_hat = beta_hat + h * gamma_h * Delta_h * y_e / sqrt( Delta_h^2 + y_e^2 );
 
 end
