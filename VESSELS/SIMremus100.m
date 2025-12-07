@@ -1,58 +1,67 @@
 function SIMremus100()
 % SIMremus100 is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
-% under depth and heading control while exposed to ocean currents. It 
-% supports both Euler angle and unit quaternion kinematics representations 
-% and features advanced control strategies including PID pole-placement, 
-% integral sliding mode control for heading, and Adaptive Line-of-Sight 
-% (ALOS) guidance for 3-D path following.
+% under depth and heading control while exposed to ocean currents. It supports 
+% both Euler angle and unit quaternion kinematics representations and features 
+% advanced control strategies including PID pole-placement, integral sliding 
+% mode control for heading, and Adaptive Line-of-Sight (ALOS) guidance for 2-D 
+% and 3-D path following. For 2-D path following the desired pitch angle is 
+% computed using a gradient-based outer-loop depth control law (gradient descent 
+% on the depth tracking error).
 %
 % Dependencies:
 %   remus100.m            - Dynamics of the Remus 100 AUV
 %   integralSMCheading.m  - Integral sliding mode control for heading
 %   refModel.m            - Reference model for autopilot systems
-%   ALOS.m                - ALOS guidance algorithm for path following
+%   ALOSpsi.m             - 2-D ALOS guidance algorithm for path following
+%   ALOS3D.m              - 3-D ALOS guidance algorithm for path following
 %   LOSobserver.m         - Observer for LOS guidance 
-%   lowPassFilter.m       - Low-pass filter
 %   q2euler.m, ssa.m      - Utilities for quaternion to Euler conversion 
 %                           and angle wrapping
-%   displayVehicleData    - Display the vehicle data and an image of the
-%                           vehicle
+%   displayVehicleData    - Display the vehicle data and an image of the vehicle
 %
 % Simulink Models:
 %   demoAUVdepthHeadingControl.slx : Depth and heading control.
 %
 % References:
-%   E. M. Coates and T. I. Fossen (2025). Aspherical Amplitude–Phase Formulation 
+%   E. M. Coates and T. I. Fossen (2025). A Spherical Amplitude–Phase Formulation 
 %       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability
 %       Guarantees, Automatica, Submitted. 
 %   T. I. Fossen & P. Aguiar (2024). A Uniform Semiglobal Exponential  
 %      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
 %      Following. Automatica, 163, 111556. 
 %      https://doi.org/10.1016/j.automatica.2024.111556
-
+%   T. I. Fossen and E. M. Coates (2026). Adaptive Line-of-Sight Guidance Laws 
+%      for Path Following of Underwater Vehicles. In: "An Introduction to Marine 
+%      Robotics: From Mission Specification to System Development and Operations 
+%      at Sea", Chapter 10, Springer Verlag, 2006, In Progress. 
+%
 % Author: Thor I. Fossen
 % Date: 2021-06-28
 % Revisions:
 %   2022-02-01: Autopilots redesign.
 %   2022-05-06: Tuning update for remus100 dynamics.
 %   2022-05-08: Support for quaternion kinematics.
-%   2024-04-02: Simulation options for ALOS path following (Fossen and Aguiar 2024).
+%   2024-04-02: Simulation options for 3-D ALOS path following (Fossen and 
+%               Aguiar 2024).
 %   2024-04-21: Extended compatibility with GNU Octave.
 %   2024-06-07: Included display of vehicle data using displayVehicleData.m.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4 for the Euler angle representation.
 %   2025-04-25: Improved logic and minor updates.
-%   2025-05-13: Crab angle plots based on spherical representation (Coates and 
-%               Fossen 2025).
-%   2025-10-06: Redesigned the depth controller using outer-loop gradient
-%               descent (inversion-free backstepping with exact sin(theta) term)
+%   2025-05-13: Crab angle plots based on spherical amplitude-phase 
+%               representation (Coates and Fossen 2025).
+%   2025-10-06: Redesigned the depth controller using outer-loop gradient descent.
+%   2025-12-07: Added control method for gradient-based depth control and 2-D ALOS
+%               (Fossen and Coates, 2026).
 
-clearvars;                          % Clear all variables from memory
-clear integralSMCheading ALOS3D;    % Clear persistent states in controllers
-close all;                          % Close all open figure windows
+clearvars;                               % Clear all variables from memory
+clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
+close all;                               % Close all open figure windows
 
-%% SIMULATOR CONFIGURATION
+% ==============================================================================
+% SIMULATOR CONFIGURATION
+% ==============================================================================
 h = 0.05;                           % Sampling time (s)
 T_final = 1400;	                    % Final simulation time (s)
 
@@ -73,7 +82,6 @@ U = 1;                              % Initial speed (m/s)
 % Initial control and state setup
 theta_d = 0; q_d = 0;               % Initial pitch references
 psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
-xf_z_d = zn;                        % Initial low-pass filter state
 
 % State vector initialization
 if KinematicsFlag == 1  % Euler angles
@@ -98,7 +106,9 @@ n_d = 1300;                    % Desired propeller speed (RPM)
 t = 0:h:T_final;                % Time vector from 0 to T_final          
 nTimeSteps = length(t);         % Number of time steps
 
-%% CONTROL SYSTEM CONFIGURATION
+% ==============================================================================
+% CONTROL SYSTEM CONFIGURATION
+% ==============================================================================
 delta_max = deg2rad(20);       % Maximum rudder and stern angle (rad)
 
 % Setup for depth and heading control
@@ -112,8 +122,8 @@ theta_int = 0;                 % Integral state for pitch control
 psi_int = 0;                   % Integral state for yaw control
 
 % Depth controller (suceessive-loop closure)
-z_d = zn;                      % Initial depth target (m)
-wn_d_z = 0.02;                 % Natural frequency for depth control
+z_d = zn;                      % Initial desired depth (m)
+zdot_d = 0;                    % Initial desired vertical velocity (m/s)
 Kp_z = 0.1;                    % Proportional gain for depth
 T_z = 100;                     % Time constant for integral action in depth control
 k_grad = 0.1;                  % Gain for computation of theta_d
@@ -123,6 +133,11 @@ w_theta = 0.8;                 % Natural frequency in pitch (rad/s)
 Kp_theta = Mauv(5,5) * w_theta^2; % Proportional gain for pitch control
 Kd_theta = Mauv(5,5) * 2 * 0.8 * w_theta; % Derivative gain for pitch control
 Ki_theta = Kp_theta * w_theta / 10; % Integral gain for pitch control
+
+wn_d_z = 0.05;                   % Natural frequency for depth control
+w_max = 3.0;                     % Maximum dive speed (m/s)
+theta_max = deg2rad(30.0);       % Maximum pitch angle (rad)
+LP.z_d = makeLowPass(wn_d_z, h); % Low-pass filter object
 
 % Heading control parameters (using Nomoto model)
 K_yaw = 5 / 20;                % Gain, max rate of turn over max. rudder angle
@@ -140,13 +155,14 @@ phi_b = 0.1;                   % Boundary layer thickness
 if ControlFlag == 1 % PID control parameters
     K_d = 0.5;                 % Derivative gain for PID controller
     K_sigma = 0;               % Gain for SMC (inactive when using PID)
-else                        
-    % SMC control parameters
+else                % SMC control parameters
     K_d = 0;                   % Derivative gain inactive in SMC mode
     K_sigma = 0.05;            % Sliding mode control gain
 end
 
-%% ALOS PATH-FOLLOWING PARAMETERS
+% ==============================================================================
+% ALOS PATH-FOLLOWING PARAMETERS
+% ==============================================================================
 Delta_h = 20;               % Horizontal look-ahead distance (m)
 Delta_v = 20;               % Vertical look-ahead distance (m)
 gamma_h = 0.001;            % Adaptive gain, horizontal plane
@@ -157,12 +173,16 @@ M_theta = deg2rad(20);      % Maximum value of estimates, alpha_c, beta_c
 R_switch = 5;               % Radius of switching circle
 K_f = 0.5;                  % LOS observer gain
 
-%% INPUT RANGE CHECK
+% ==============================================================================
+% INPUT RANGE CHECK
+% ==============================================================================
 rangeCheck(n_d, 0, n_max); 
 rangeCheck(z_step, 0, z_max);
 rangeCheck(U, 0, 5);
 
-%% MAIN LOOP
+% ==============================================================================
+% MAIN LOOP
+% ==============================================================================
 simData = zeros(nTimeSteps, length(x) + 10); % Preallocate table for simulation data
 alosData = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 
@@ -188,7 +208,9 @@ for i = 1:nTimeSteps
 
     % Control systems 
     switch ControlFlag
-        case {1, 2} % Depth command, z_ref, and heading angle command, psi_ref
+
+        case {1, 2}  % Gradient-based depth control and heading autopilot
+            % Depth command, z_ref, and heading angle command, psi_ref
             if t(i) > 200
                 z_ref = z_step;
                 psi_ref = psi_step;
@@ -202,15 +224,14 @@ for i = 1:nTimeSteps
                - Kd_theta * q - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
-            % LP filtering the depth command
-            [xf_z_d, z_d] = lowPassFilter(xf_z_d, z_ref, wn_d_z, h);
-
             % Depth kinematics: 
             %   z_dot = -u * sin(theta) + w * cos(theta) := alpha_z + sigma
             % Virtual control:
             %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
             %
             % Outer-loop depth control residual sigma = 0 implies e_z = 0
+            z_d = LP.z_d(z_ref); % LP filtering the depth command
+
             sigma = -u * sin(theta) + w * cos(theta) ...
                 + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
@@ -218,24 +239,57 @@ for i = 1:nTimeSteps
             %   dJ/d(theta) = - u*cos(theta) - w*sin(theta)
             %   theta_d_dot = -k_grad * dJ/d(theta) * sigma 
             if abs(w/u) > 0.176 % theta > 10 deg
-                % Large dive speeds
                 gradJ = -(u * cos(theta) + w * sin(theta));
-            else
-                % Simplified gradient when theta < 10 deg
+            else % Simplified gradient when theta < 10 deg
                 gradJ = -sign(u);
             end
-            theta_d = theta_d - h * k_grad * gradJ * sigma; 
-            
+
+            % Propagate gradient-based depth command (k+1)
+            theta_d = theta_d - h * k_grad * gradJ * sigma;
+            theta_d = sat(theta_d, theta_max);
+
             % Heading autopilot using the tail rudder
             delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
                 K_d, K_sigma, lambda, phi_b, K_yaw, T_yaw, h);
             delta_r = sat(delta_r, delta_max);
 
-            % Third-order reference model for the heading angle
+            % Propagate reference model for heading angle (k+1)
             [psi_d, r_d, a_d] = refModel(psi_d, r_d, a_d, psi_ref, r_max,...
                 zeta_d_psi, wn_d_psi, h, 1);
 
-        otherwise % ALOS path-following
+        case 3 % 2-D ALOS guidance law
+           % Depth autopilot using the stern planes 
+            delta_s = -Kp_theta * ssa(theta - theta_d)...   % PID
+               - Kd_theta * q - Ki_theta * theta_int;
+            delta_s = sat(delta_s, delta_max);
+
+            % Heading autopilot using the tail rudder (integral SMC)
+            delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
+                K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
+            delta_r = sat(delta_r, delta_max);
+
+            % 2-D ALOS guidance law 
+            [psi_ref,~,~,k_active] = ALOSpsi(xn,yn,Delta_h,gamma_h,h,R_switch,wpt);
+            z_ref = wpt.pos.z(k_active); % Use z-coordinate as depth reference
+
+            % Gradient-based depth command (down position)
+            sigma = -u * sin(theta) + w * cos(theta) ...
+                + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
+
+            gradJ = -(u * cos(theta) + w * sin(theta));
+
+            % Propagate gradient-based depth command (k+1)
+            theta_d = theta_d - h * k_grad * gradJ * sigma;
+            theta_d = sat(theta_d, theta_max);
+            
+            % Propagate ALOS observer (k+1)
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+            r_d = sat(r_d, r_max);
+
+            % Propagate reference model for desired depth (k+1)
+            [z_d,zdot_d,a_d] = refModel(z_d,zdot_d,a_d,z_ref,w_max,1.0,wn_d_z,h,0);
+
+        otherwise % Control flag 4 (3-D ALOS path-following)
             % Heading autopilot using the tail rudder (integral SMC)
             delta_r = integralSMCheading(psi, r, psi_d, r_d, a_d, ...
                 K_d, K_sigma, 1, phi_b, K_yaw, T_yaw, h);
@@ -246,12 +300,12 @@ for i = 1:nTimeSteps
                 - Kd_theta * q - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
-            % ALOS guidance law
+            % 3-D ALOS guidance law
             [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
                 ALOS3D(xn, yn, zn, Delta_h, Delta_v, gamma_h, gamma_v,...
                 M_theta, h, R_switch, wpt);
 
-            % ALOS observer
+            % Propagate ALOS observers
             [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
             r_d = sat(r_d, r_max);
@@ -314,7 +368,9 @@ for i = 1:nTimeSteps
 
 end
 
-%% PLOTS
+% ==============================================================================
+% PLOTS
+% ==============================================================================
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 12;
 if isoctave; legendLocation = 'northeast'; end
@@ -362,7 +418,9 @@ beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
 alpha = asin( (w-wc) ./ (u-uc) ); % AOA
 beta  = atan2( (v-vc), (u-uc) ); % SSA
 
-%% Generalized velocity
+% ------------------------------------------------------------------------------
+% Generalized velocity
+% ------------------------------------------------------------------------------
 figure(1);
 if ~isoctave; set(gcf,'Position',[1, 1, scrSz(3)/3, scrSz(4)]); end
 subplot(611),plot(t,u)
@@ -381,7 +439,9 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% Heave position and Euler angles
+% ------------------------------------------------------------------------------
+% Heave position and Euler angles
+% ------------------------------------------------------------------------------
 figure(2);
 if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/3, scrSz(4)]); end
 if ControlFlag == 3; z_d = eta(:,3); end
@@ -400,7 +460,9 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% Control signals
+% ------------------------------------------------------------------------------
+% Control signals
+% ------------------------------------------------------------------------------
 figure(3);
 if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,scrSz(4)/2,scrSz(3)/3,scrSz(4)/2]);end
 subplot(311),plot(t,rad2deg(ui(:,1)))
@@ -412,7 +474,9 @@ xlabel('Time (s)'),title('Propeller speed command n (rpm)'),grid
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 
-%% Ocean currents and speed
+% ------------------------------------------------------------------------------
+% Ocean currents and speed
+% ------------------------------------------------------------------------------
 figure(4);
 if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,1,scrSz(3)/3,scrSz(4)/2]);end
 subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
@@ -430,8 +494,10 @@ set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
-%% Crab angles, SSA and AOA
-if ControlFlag == 3
+% ------------------------------------------------------------------------------
+% Crab angles, SSA and AOA
+% ------------------------------------------------------------------------------
+if ControlFlag == 4 % 3-D ALOS
     figure(5);
     if ~isoctave; set(gcf,'Position',[100,scrSz(4)/2,scrSz(3)/3,scrSz(4)]); end
     subplot(311)
@@ -458,8 +524,10 @@ if ControlFlag == 3
     set(findall(gcf,'type','legend'),'FontSize',legendSize)
 end
 
-%% 2-D position plots with waypoints
-if ControlFlag == 3
+% ------------------------------------------------------------------------------
+% 2-D position plots with waypoints
+% ------------------------------------------------------------------------------
+if ControlFlag == 3 || ControlFlag == 4 % 2-D and 3-D ALOS
     figure(6);
     if ~isoctave;set(gcf,'Position',[300,200,scrSz(3)/3,scrSz(4)/2]);end
     subplot(211);
@@ -490,8 +558,10 @@ if ControlFlag == 3
     set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
 end
 
-%% 3-D position plot with waypoints
-if ControlFlag == 3
+% ------------------------------------------------------------------------------
+% 3-D position plot with waypoints
+% ------------------------------------------------------------------------------
+if ControlFlag == 4 % 3-D ALOS
     figure(7);
     plot3(eta(:,2),eta(:,1),eta(:,3))
     hold on;
@@ -518,109 +588,157 @@ displayVehicleData('Remus100 AUV', vehicleData, 'remus100.jpg', 8);
 
 end % SIMremus100
 
-%% FUNCTIONS
+% ==============================================================================
+% FUNCTIONS
+% ==============================================================================
 function [ControlFlag, KinematicsFlag] = controlMethod()
 
-f = figure('Position', [400, 400, 700, 400], ...
+f = figure('Position', [400, 400, 900, 500], ...
     'Name', 'Control Method and Kinematic Representation', ...
     'MenuBar', 'none', ...
     'NumberTitle', 'off', ...
     'WindowStyle', 'modal');
 
-% Add button group for control methods
+% ------------------------------------------------------------------------------
+% Control methods
+% ------------------------------------------------------------------------------
 bg1 = uibuttongroup('Parent', f, ...
-    'Position', [0.02 0.6 0.96 0.3], ...
+    'Position', [0.02 0.55 1.0 0.4], ...
     'Title', 'Control Methods', ...
-    'FontSize',14, ...
-    'FontWeight','bold');
+    'FontSize', 14, ...
+    'FontWeight', 'bold');
+
 radio1 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
-    'FontSize',13, ...
-    'String', 'PID pole-placement for heading and gradient-based depth control', ...
-    'Position', [10 70 700 30], ...
-    'Tag', '1');
+    'FontSize', 13, ...
+    'String', 'Gradient-based depth control and PID pole-placement for heading control', ...
+    'Position', [10 125 800 30], ...
+    'Tag', '1', ...
+    'Value', 1);  % default
+
 radio2 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
-    'FontSize',13, 'String', ...
-    'Integral sliding mode control (SMC) for heading and gradient-based depth control', ...
-    'Position', [10 40 700 30], ...
+    'FontSize', 13, ...
+    'String', 'Gradient-based depth control and integral sliding-mode control (SMC) for heading control', ...
+    'Position', [10 90 800 30], ...
     'Tag', '2');
+
 radio3 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
-    'FontSize',13, 'String', ...
-    'ALOS guidance law for 3-D path following', ...
-    'Position', [10 10 500 30], ...
+    'FontSize', 13, ...
+    'String', 'Gradient-based depth control, SMC heading control, and ALOS guidance law for 2-D path following', ...
+    'Position', [10 55 800 30], ...
     'Tag', '3');
 
-% Add button group for kinematics options
+radio4 = uicontrol(bg1, ...
+    'Style', 'radiobutton', ...
+    'FontSize', 13, ...
+    'String', 'Successive-loop depth control, SMC heading control, and ALOS guidance law for 3-D path following', ...
+    'Position', [10 20 800 30], ...
+    'Tag', '4');
+
+% ------------------------------------------------------------------------------
+% Kinematics
+% ------------------------------------------------------------------------------
 bg2 = uibuttongroup('Parent', f, ...
     'Position', [0.02 0.3 0.96 0.25], ...
     'Title', 'Kinematics Representation', ...
-    'FontSize',14, ...
-    'FontWeight','bold');
-radio4 = uicontrol(bg2, ...
-    'Style', 'radiobutton', ...
-    'FontSize', 13, 'String', ...
-    'Euler angles', ...
-    'Position', [10 45 500 30], ...
-    'Tag', '1', ...
-    'Value', 0);
+    'FontSize', 14, ...
+    'FontWeight', 'bold');
+
 radio5 = uicontrol(bg2, ...
     'Style', 'radiobutton', ...
-    'FontSize', 13, 'String', ...
-    'Unit quaternions', ...
+    'FontSize', 13, ...
+    'String', 'Euler angles', ...
+    'Position', [10 50 500 30], ...
+    'Tag', '1', ...
+    'Value', 0);
+
+radio6 = uicontrol(bg2, ...
+    'Style', 'radiobutton', ...
+    'FontSize', 13, ...
+    'String', 'Unit quaternions', ...
     'Position', [10 15 500 30], ...
     'Tag', '2', ...
-    'Value', 1);
+    'Value', 1);  % default: quaternions
 
-% Add OK button to confirm selections
+% ------------------------------------------------------------------------------
+% OK button
+% ------------------------------------------------------------------------------
 uicontrol('Style', 'pushbutton', ...
     'String', 'OK', ...
     'FontSize', 13, ...
     'Position', [20 50 100 40], ...
     'Callback', @(src, evt) uiresume(f));
 
-uiwait(f); % Wait for uiresume to be called on figure handle
+uiwait(f); % Wait until OK is pressed
 
-% Determine which control method was selected
+% ------------------------------------------------------------------------------
+% Read control method
+% ------------------------------------------------------------------------------
 if get(radio1, 'Value') == 1
     ControlFlag = str2double(get(radio1, 'Tag'));
 elseif get(radio2, 'Value') == 1
     ControlFlag = str2double(get(radio2, 'Tag'));
-else
+elseif get(radio3, 'Value') == 1
     ControlFlag = str2double(get(radio3, 'Tag'));
-end
-
-% Determine which kinematics option was selected
-if get(radio4, 'Value') == 1
-    KinematicsFlag = str2double(get(radio4, 'Tag'));
 else
-    KinematicsFlag = str2double(get(radio5, 'Tag'));
+    ControlFlag = str2double(get(radio4, 'Tag'));
 end
 
-close(f);  % Close the figure after obtaining the selections
+% ------------------------------------------------------------------------------
+% Read kinematics option 
+% ------------------------------------------------------------------------------
+if get(radio5, 'Value') == 1
+    % Euler angles
+    KinematicsFlag = str2double(get(radio5, 'Tag'));
+else
+    % Unit quaternions
+    KinematicsFlag = str2double(get(radio6, 'Tag'));
+end
 
-disp('-------------------------------------------------------------');
+close(f);  % Close the figure
+
+% ------------------------------------------------------------------------------
+% Summary text
+% ------------------------------------------------------------------------------
+disp('-----------------------------------------------------------------------');
 disp('MSS toolbox: Remus 100 AUV');
 
-if (KinematicsFlag == 1)
-    disp('Euler angle representation (12 states)');
+if KinematicsFlag == 1
+    disp('Kinematics:          Euler angle representation (12 states)');
 else
-    disp('Unit quaternion representation (13 states)');
+    disp('Kinematics:          Unit quaternion representation (13 states)');
 end
 
-if (ControlFlag == 1)
-    disp('Heading autopilot: PID pole-placement control');
-    disp('Depth autopilot:   Successive-loop closure');
-elseif (ControlFlag == 2)
-    disp('Heading autopilot: Integral sliding mode control (SMC)');
-    disp('Depth autopilot:   Successive-loop closure');
-else
-    disp('Heading autopilot: Integral sliding mode control (SMC)');
-    disp('Depth autopilot:   Successive-loop closure');
-    disp('Path-following:    ALOS guidance law for 3-D path following')
+switch ControlFlag
+    case 1
+        % Method 1
+        disp('Heading autopilot:   PID pole-placement control');
+        disp('Depth autopilot:     Gradient-based depth control');
+
+    case 2
+        % Method 2
+        disp('Heading autopilot:   Integral sliding-mode control (SMC)');
+        disp('Depth autopilot:     Gradient-based depth control');
+
+    case 3
+        % Method 3: 2-D ALOS in the horizontal plane
+        disp('Heading autopilot:   Integral sliding-mode control (SMC)');
+        disp('Depth autopilot:     Gradient-based depth control');
+        disp('Path-following:      ALOS guidance law for 2-D path following');
+
+    case 4
+        % Method 4: 3-D ALOS with spherical representation
+        disp('Heading autopilot:   Integral sliding-mode control (SMC)');
+        disp('Depth autopilot:     Successive-loop closure (PI-controller)');
+        disp('Path-following:      ALOS guidance law for 3-D path following');
+
+    otherwise
+        disp('Unknown ControlFlag setting');
 end
-disp('-------------------------------------------------------------');
+
+disp('------------------------------------------------------------------------');
 disp('Simulating...');
 
 end
