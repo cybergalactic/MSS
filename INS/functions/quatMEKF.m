@@ -91,7 +91,7 @@ if length(imu_meas) == 6  % No magentic field/compass measurements
 
 else
 
-    if length(imu_meas) == 9        % 9‑DOF case: [f_imu' w_imu' m_imu']
+    if length(imu_meas) == 9                 % 9‑DOF case: [f_imu' w_imu' m_imu']
         f_imu = imu_meas(1:3)';
         v1  = f_imu / norm(f_imu);
         v01 = [0 0 -1]';
@@ -102,13 +102,13 @@ else
 
         % Measurement matrix
         Cd  = [ Smtrx(R_transposed*v01) O3    % Gravity measurement vector
-            Smtrx(R_transposed*v02) O3 ]; % Magentif field measurement vector
+                Smtrx(R_transposed*v02) O3 ]; % Magentic field measurement vector
 
         % Innovation vector
         delta_y = [ v1 - R_transposed * v01
             v2 - R_transposed * v02];
 
-    elseif length(imu_meas) == 7     % 7‑DOF case: [f_imu' w_imu' psi]
+    elseif length(imu_meas) == 7              % 7‑DOF case: [f_imu' w_imu' psi]
         f_imu = imu_meas(1:3)';
         v01 = [0 0 -1]';
         v1  = f_imu / norm(f_imu);
