@@ -27,7 +27,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 % For the unit quaternion representation, the last three arguments of the 
 % x-vector, the Euler angles (phi, theta, psi), are replaced by the unit 
 % quaternion quat = [eta, eps1, eps2, eps3]'. This increases the dimension of
-%  the state vector from 12 to 13.
+% the state vector from 12 to 13.
 %
 % The control inputs are one tail rudder, two stern planes and a single-screw 
 % propeller:
