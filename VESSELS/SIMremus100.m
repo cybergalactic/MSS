@@ -4,8 +4,8 @@ function SIMremus100()
 % under depth and heading control while exposed to ocean currents. It supports 
 % both Euler angle and unit quaternion kinematics representations and features 
 % advanced control strategies including PID pole-placement, integral sliding 
-% mode control for heading, and Adaptive Line-of-Sight (ALOS) guidance for 2-D 
-% and 3-D path following. For 2-D path following the desired pitch angle is 
+% mode control for heading, and Adaptive Line-of-Sight (ALOS) guidance for 2.5-D 
+% and 3-D path following. For 2.5-D path following the desired pitch angle is 
 % computed using a gradient-based outer-loop depth control law (gradient descent 
 % on the depth tracking error).
 %
@@ -52,7 +52,7 @@ function SIMremus100()
 %   2025-05-13: Crab angle plots based on spherical amplitude-phase 
 %               representation (Coates and Fossen 2025).
 %   2025-10-06: Redesigned the depth controller using outer-loop gradient descent.
-%   2025-12-07: Added control method for gradient-based depth control and 2-D ALOS
+%   2025-12-07: Added control method for gradient-based depth control and 2.5-D ALOS
 %               (Fossen and Coates, 2026).
 
 clearvars;                               % Clear all variables from memory
@@ -444,7 +444,7 @@ set(findall(gcf,'type','legend'),'FontSize',legendSize)
 % ------------------------------------------------------------------------------
 figure(2);
 if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/3, scrSz(4)]); end
-if ControlFlag == 3; z_d = eta(:,3); end
+if ControlFlag == 3 || ControlFlag == 4; z_d = eta(:,3); end
 subplot(411),plot(t,eta(:,3),t,z_d)
 xlabel('Time (s)'),title('Heave position (m)'),grid
 legend('True','Desired')
@@ -495,7 +495,7 @@ set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % ------------------------------------------------------------------------------
-% Crab angles, SSA and AOA
+% Crab angles, SSA and AoA
 % ------------------------------------------------------------------------------
 if ControlFlag == 4 % 3-D ALOS
     figure(5);
@@ -527,7 +527,7 @@ end
 % ------------------------------------------------------------------------------
 % 2-D position plots with waypoints
 % ------------------------------------------------------------------------------
-if ControlFlag == 3 || ControlFlag == 4 % 2-D and 3-D ALOS
+if ControlFlag == 3 || ControlFlag == 4 % 2.5-D and 3-D ALOS
     figure(6);
     if ~isoctave;set(gcf,'Position',[300,200,scrSz(3)/3,scrSz(4)/2]);end
     subplot(211);
@@ -626,7 +626,7 @@ radio2 = uicontrol(bg1, ...
 radio3 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
     'FontSize', 13, ...
-    'String', 'Gradient-based depth control, SMC heading control, and ALOS guidance law for 2-D path following', ...
+    'String', 'Gradient-based depth control, SMC heading control, and ALOS guidance law for 2.5-D path following', ...
     'Position', [10 55 800 30], ...
     'Tag', '3');
 
@@ -726,7 +726,7 @@ switch ControlFlag
         % Method 3: 2-D ALOS in the horizontal plane
         disp('Heading autopilot:   Integral sliding-mode control (SMC)');
         disp('Depth autopilot:     Gradient-based depth control');
-        disp('Path-following:      ALOS guidance law for 2-D path following');
+        disp('Path-following:      ALOS guidance law for 2.5-D path following');
 
     case 4
         % Method 4: 3-D ALOS with spherical representation
