@@ -409,13 +409,13 @@ beta_c_hat = alosData(:,4);
 uc = Vc .* cos(betaVc);
 vc = Vc .* sin(betaVc);
 
-% Crab angles, AOA and SSA
+% Crab angles, AoA and SSA
 U = sqrt(u.^2+v.^2+w.^2); % Speed
 gamma = asin( (u.*sin(theta)-(v.*sin(phi)+w.*cos(phi)).*cos(theta)) ./ U );
 alpha_c = theta - gamma; % Horizontal crab angle
 beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
     u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Vertical crab angle
-alpha = asin( (w-wc) ./ (u-uc) ); % AOA
+alpha = asin( (w-wc) ./ (u-uc) ); % AoA
 beta  = atan2( (v-vc), (u-uc) ); % SSA
 
 % ------------------------------------------------------------------------------
@@ -503,10 +503,10 @@ if ControlFlag == 4 % 3-D ALOS
     subplot(311)
     plot(t,rad2deg(alpha),'g',t,rad2deg(alpha_c),'b',...
         t,rad2deg(alpha_c_hat),'r')
-    title('Vertical crab angle and AOA (deg)')
+    title('Vertical crab angle and AoA (deg)')
     xlabel('Time (s)')
     grid
-    legend('\alpha Angle of attack (AOA)','\alpha_c Vertical crab angle','\alpha_c ALOS estimate','Location',legendLocation)
+    legend('\alpha Angle of attack (AoA)','\alpha_c Vertical crab angle','\alpha_c ALOS estimate','Location',legendLocation)
     subplot(312)
     plot(t,rad2deg(beta),'g',t,rad2deg(beta_c),'b',...
         t,rad2deg(beta_c_hat),'r')
@@ -520,7 +520,7 @@ if ControlFlag == 4 % 3-D ALOS
     xlabel('Time (s)')
     legend('Cross-track error y_e^p','Vertical-track error z_e^p')
     set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','text'),'FontSize',12)
     set(findall(gcf,'type','legend'),'FontSize',legendSize)
 end
 
@@ -554,7 +554,7 @@ if ControlFlag == 3 || ControlFlag == 4 % 2.5-D and 3-D ALOS
     grid on;
     legend('Actual path', 'Waypoints', 'Location', legendLocation);
     set(findall(gcf, 'type', 'line'), 'LineWidth', 2);
-    set(findall(gcf, 'type', 'text'), 'FontSize', 14);
+    set(findall(gcf, 'type', 'text'), 'FontSize', 12);
     set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
 end
 
@@ -572,7 +572,7 @@ if ControlFlag == 4 % 3-D ALOS
     legend('Actual path','Waypoints','Location',legendLocation),grid
     set(gca, 'ZDir', 'reverse');
     set(findall(gcf,'type','line'),'linewidth',2)
-    set(findall(gcf,'type','text'),'FontSize',14)
+    set(findall(gcf,'type','text'),'FontSize',12)
     set(findall(gcf,'type','legend'),'FontSize',legendSize)
     view(-25, 30);  % view(AZ,EL)
 end
@@ -627,7 +627,7 @@ radio3 = uicontrol(bg1, ...
     'Style', 'radiobutton', ...
     'FontSize', 13, ...
     'String', 'Gradient-based depth control, SMC heading control, and ALOS guidance law for 2.5-D path following', ...
-    'Position', [10 55 800 30], ...
+    'Position', [10 55 850 30], ...
     'Tag', '3');
 
 radio4 = uicontrol(bg1, ...
