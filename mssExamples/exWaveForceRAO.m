@@ -168,7 +168,7 @@ if strcmp(matFile, 'AUV_FUNCTION')
     % Example AUV parameters 
     a = 1.2;                   % Semi-major axis [m]
     b = 0.3;                   % Semi-minor axis [m]
-    zn = 5.0;                 % Nominal submergence (m)
+    zn = 5.0;                  % Nominal submergence (m)
 
     vessel.main.g = 9.81;
     vessel = spheroidRAO(vessel,a,b,zn,0);
