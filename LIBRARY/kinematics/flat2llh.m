@@ -8,11 +8,12 @@ function [l,mu,h] = flat2llh(xn,yn,zn,l0,mu0,h_ref)
 %
 % Author:    Thor I. Fossen
 % Date:      20 July 2018
-% Revisions: 2023-02-04 updatet the formulas for latitude and longitude
+% Revisions: 
+%   2023-02-04 Updatet the formulas for latitude and longitude
 %
 % Reference: 
 % J. Farrell (2008). Aided Navigation: GPS with High Rate Sensors, 
-% McGraw-Hill Professional, ISBN 9780071493291
+%   McGraw-Hill Professional, ISBN 9780071493291
 
 % WGS-84 parameters
 a = 6378137;             % Semi-major axis (equitorial radius)
@@ -27,5 +28,5 @@ dmu = xn / ( Rm + h_ref);                   % delta latitude dmu = mu - mu0
 dl  = yn / ( ( Rn + h_ref ) * cos(mu0) );   % delta longitude dl = l - l0
 
 l = ssa(l0 + dl);
-mu = ssa(mu0 + dmu);
+mu = mu0 + dmu;
 h = h_ref - zn;
