@@ -125,7 +125,7 @@ Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]'; % Time derivative of nu_c
 nu_r = nu - nu_c;                                 % Relative velocity
 alpha = atan2( nu_r(3), nu_r(1) );                % Angle of attack (rad)
 U_r = sqrt( nu_r(1)^2 + nu_r(2)^2 + nu_r(3)^2 );  % Relative speed (m/s)
-U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % Apeed (m/s)
+U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % Speed (m/s)
 
 % AUV model parameters; Fossen (2021, Section 8.4.2) and Allen et al. (2000)
 L_auv = 1.6;             % AUV length (m)
@@ -212,8 +212,8 @@ m = MRB(1,1); W = m * g_mu; B = W;
 
 % Dissipative forces and moments
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bG' r_bB']);
-D(1,1) = D(1,1) * exp(-3*U_r);   % Vanish at high speed where quadratic
-D(2,2) = D(2,2) * exp(-3*U_r);   % Drag and lift forces dominates
+U_g = sqrt( nu(1)^1 + nu(2)^2 ); % Speed over ground
+D(1,1) = D(1,1) * exp(-3 * U_g); % Vanish at high speed 
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r,'cylinder');
