@@ -2,7 +2,7 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 % Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
 % state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
-% delta_s delta_bp delta_bs n]', speed U in m/s (optionally), the 6x6 mass 
+% delta_s delta_bp delta_bs n_p]', speed U in m/s (optionally), the 6x6 mass 
 % matrix M (optionally), and the 2x4 input matrix B_delta (optionally) in 
 % pitch and yaw for an Autonomous Underwater Vehicle (AUV) at the Naval 
 % Postgraduate School (Healey and Lienard (1993). The length of the AUV is 
@@ -24,7 +24,7 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %   delta_s:  Stern plane                 (rad)
 %   delta_bp: Port bow plane              (rad)
 %   delta_bs: Starboard bow plane         (rad)
-%   n:        Propeller shaft speed       (rpm)
+%   n_p       Propeller speed             (rpm)
 %
 % Input commands:
 %   ui = [ delta_r_com delta_s_com delta_bp_com delta_bs_com n_com ]'  
@@ -100,7 +100,7 @@ delta_r  = u_actual(1);            % Actual control inputs
 delta_s  = u_actual(2);
 delta_bp = u_actual(3);
 delta_bs = u_actual(4);
-n        = u_actual(5) / 60 * 2*pi;
+n_p      = u_actual(5) / 60 * 2*pi;
 
 % AUV parameters
 L   = 5.3;    g   = 9.81;
@@ -177,11 +177,11 @@ M = MRB + MA;
 % Control forces and moments
 Cd0   = 0.00385;
 eps_prop = 1e-10;  % Avoid dividing by zero
-prop  = 0.012 * n / (u + eps_prop); 
+prop  = 0.012 * n_p / (u + eps_prop); 
 Xprop = Cd0 * ( abs(prop) * prop - 1 );
 Ct    = 0.008 * L^2 * abs(prop) * prop / 2;
 Ct1   = 0.008 * L^2 / 2;
-epsilon = -1 + sign(n)/sign(u + eps_prop) * ...
+epsilon = -1 + sign(n_p)/sign(u + eps_prop) * ...
     ( sqrt(Ct+1)-1 ) / ( sqrt(Ct1+1)-1 + eps_prop );
 
 tau1 = r3 * (Xrdr*u_r*r*delta_r + (Xqds*delta_s + Xqdb2*delta_bp +...
