@@ -15,13 +15,13 @@
 clear CX CY CK CN
 
 gam_deg = (0:10:180)';
-gamma_r = deg2rad(gam_deg);
-V_r = 20;
+gamma_rw = deg2rad(gam_deg);
+V_rw = 20;
 
 %% CASE 1 - Blendermann (1994) 
 CDt       = 0.85;
-CDl_AF{1} = 0.55;     % gamma_r = 0
-CDl_AF{2} = 0.65;     % gamma_r = pi
+CDl_AF{1} = 0.55;     % gamma_rw = 0
+CDl_AF{2} = 0.65;     % gamma_rw = pi
 delta     = 0.60;
 kappa     = 1.4;
 AFw       = 160.7;
@@ -31,7 +31,7 @@ sL        = 1.48;
 sH        = 5.1;
 vessel_no = 13;
 
-[tau_w,CX,CY,CK,CN] = blendermann94(gamma_r,V_r,AFw,ALw,sH,sL,Loa,vessel_no);
+[tau_w,CX,CY,CK,CN] = blendermann94(gamma_rw,V_rw,AFw,ALw,sH,sL,Loa,vessel_no);
 
 %% Plots
 XDATA = [0 30 60 90 120 150 180];
@@ -86,9 +86,9 @@ S	      = 100;   % Length of perimeter of lateral projection of model (m)
 		           % Excluding waterline and slender bodies such as masts and ventilators (m)
 C	      = 50;    % Distance from bow of centroid of lateral projected area (m)
 M	      = 2;     % Number of distinct groups of masts or king posts seen in lateral
-		           % Projection; king posts close against the bridge front are not included
+		           % projection; king posts close against the bridge front are not included
 
-[tau_wind,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M);
+[tau_wind,CX,CY,CN] = isherwood72(gamma_rw,V_rw,Loa,B,ALw,AFw,A_SS,S,C,M);
 CK = 0 * CX;
 
 % Plots
