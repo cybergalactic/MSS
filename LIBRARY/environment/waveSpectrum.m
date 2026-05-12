@@ -102,10 +102,10 @@ function S = waveSpectrum(spectrumType, Parameter, W, PlotFlag)
 % [2] Ochi, M.K. (1998) "Ocean Waves, The stochastic Approach"
 %     Cambridge Ocean Technology Series, Vol 6,
 %     Cambridge University Press.
-% [3] Sørensen, A.J. (2005) "Marine Cybernetics: Modelling and Control"
-%     Lecture Notes for TMR4241 Marine Control Systems, NTNU, 2005.
+% [3] DNV-RP-C205: Environmental Conditions and Environmental Loads. Recommended 
+%     Practice, Edition 2025-04, amended 2026-03. DNV, Høvik, Norway. 
 % [4] K. Torsethaugen (1996): "Model for a Doubly Peaked Wave Spectra"
-%      Sintef report no.: STF22 A96204 prepared for Norsk Hydro.
+%     Sintef report no.: STF22 A96204 prepared for Norsk Hydro.
 % [5] T.I. Fossen (2021) "Handbook of Marine Craft Hydrodynamics and Motion
 %     Control. John Wiley & Sons Ltd., Chichester, UK.  
 % [6] Lewis E.V. "Principles of Naval Architecture volume  III
