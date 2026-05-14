@@ -17,10 +17,6 @@ function plotTF(vessel,type,x_axis,velno)
 % Date:      2005-11-26
 % Revisions: 
 
-velocities = vessel.velocities;
-
-nvel  = length(velocities);
-
 if nargin == 3
     velno = 1;
 elseif nargin > 4
@@ -58,21 +54,20 @@ if dim(2) ~= 36
     return
 end
 
-
-% surge
+% Surge
 figure(figno)
 arg = S1*amp{1}(:,:,velno);
 phs = (180/pi)*unwrap(phase{1}(:,:,velno));
 
 if strcmp(x_axis,'rads')
    xarg = w;
-   xtxt = 'wave frequency (rad/s)';
+   xtxt = 'Wave frequency (rad/s)';
 elseif strcmp(x_axis,'s')
     xarg = 2*pi./w;
-    xtxt = 'period (s)';
+    xtxt = 'Period (s)';
 else
     xarg = w/(2*pi);
-    xtxt = 'wave frequency (Hz)';    
+    xtxt = 'Wave frequency (Hz)';    
 end
 
 subplot(211)
@@ -89,7 +84,11 @@ xlabel(xtxt)
 ylabel(ytxt2)
 grid
 
-% sway
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+
+% Sway
 figure(figno+1)
 arg = S1*amp{2}(:,:,velno);
 phs = (180/pi)*unwrap(phase{2}(:,:,velno));
@@ -108,7 +107,11 @@ xlabel(xtxt)
 ylabel(ytxt2)
 grid
 
-% heave
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+
+% Heave
 figure(figno+2)
 arg = S1*amp{3}(:,:,velno);
 phs = (180/pi)*unwrap(phase{3}(:,:,velno));
@@ -127,7 +130,11 @@ xlabel(xtxt)
 ylabel(ytxt2)
 grid
 
-%  roll
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+
+%  Roll
 figure(figno+3)
 arg = S2*amp{4}(:,:,velno);
 phs = (180/pi)*unwrap(phase{4}(:,:,velno));
@@ -146,7 +153,11 @@ xlabel(xtxt)
 ylabel(ytxt2)
 grid
 
-% pitch
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+
+% Pitch
 figure(figno+4)
 arg = S2*amp{5}(:,:,velno);
 phs = (180/pi)*unwrap(phase{5}(:,:,velno));
@@ -165,11 +176,15 @@ xlabel(xtxt)
 ylabel(ytxt2)
 grid
 
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+
+% Yaw
 figure(figno+5)
 arg = S2*amp{6}(:,:,velno);
 phs = (180/pi)*unwrap(phase{6}(:,:,velno));
 
-% yaw
 subplot(211)
 plot(xarg,arg(:,1),xarg,arg(:,4),xarg,arg(:,7),xarg,arg(:,10),xarg,arg(:,13),xarg,arg(:,16),xarg,arg(:,19))
 title(strcat(txt,' YAW'))
@@ -183,3 +198,7 @@ legend('0 deg','30 deg','60 deg','90 deg','120 deg','150 deg','180 deg')
 xlabel(xtxt)
 ylabel(ytxt2)
 grid
+
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',10)
+set(findall(gcf,'type','line'),'linewidth',1.5)
