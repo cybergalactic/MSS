@@ -62,7 +62,7 @@ SIMzeefakkel    % Simulate zeefakkel.m using a PID heading autopilot
 ```
 
 ### Craft models
-.../MSS/CRAFT/models/
+.../MSS/CRAFT/
 
 ```matlab
 clarke83        % Linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
