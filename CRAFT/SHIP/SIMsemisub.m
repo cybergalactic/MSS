@@ -1,5 +1,5 @@
-function SIMrig()
-% SIMrig is compatibel with MATLAB and GNU Octave (www.octave.org). This
+function SIMsemisub()
+% SIMsemisub is compatibel with MATLAB and GNU Octave (www.octave.org). This
 % script simulates a semisubmersible with two pontoons and four columns. 
 % The model matrices MRB, MA, D and G are generated using the utility script 
 % 'rig.m', which calls the data file 'data_rig.m'. 

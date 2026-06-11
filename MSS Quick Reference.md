@@ -9,7 +9,7 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 ```
 
 ## Table of Contents
-- [VESSELS (m-files)](#vessels-m-files)
+- [CRAFT (m-files)](#craft-m-files)
   - [Marine craft simulators](#marine-craft-simulators)
   - [Marine craft models](#marine-craft-models)
 - [GNC (m-files)](#gnc-m-files)
@@ -39,10 +39,10 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Utils](#utils)
 ---
 
-## VESSELS (m-files)
+## CRAFT (m-files)
 
-### Marine craft simulators
-.../MSS/VESSELS/
+### Craft simulators
+.../MSS/CRAFT/
 
 ```matlab
 SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control.
@@ -61,8 +61,8 @@ SIMtanker       % Simulate tanker.m under PD control
 SIMzeefakkel    % Simulate zeefakkel.m using a PID heading autopilot
 ```
 
-### Marine craft models
-.../MSS/VESSELS/models/
+### Craft models
+.../MSS/CRAFT/models/
 
 ```matlab
 clarke83        % Linear maneuvering model parametrized using (L,B,T) found from linear regression of model tests (Clarke et al. 1983)
