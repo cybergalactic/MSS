@@ -1,11 +1,11 @@
-function [xdot,U, M, B_prop] = otter(x,n,mp,rp,V_c,beta_c)
+function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c)
 % Compatible with MATLAB and the free software GNU Octave (www.octave.org)
-% [xdot,U] = otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s 
-% (optionally), the 6x6 mass matrix M (optionally), and the 2x4 input 
-% matrix B_prop (optionally) in pitch and yaw and the time derivative of 
-% the state vector: 
-% 
-% x = [ u v w p q r x y z phi theta psi ]' 
+% [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c) returns the
+% time derivative xdot of the state vector, the speed U in m/s, the 6x6
+% mass matrix M, the 2x2 propeller input matrix B_prop, and the physical
+% propeller shaft-speed limits n_min and n_max.
+%
+%  x = [ u v w p q r x y z phi theta psi ]'
 % 
 % for the Maritime Robotics Otter USV, see www.maritimerobotics.com. 
 % The length of the USV is L = 2.0 m, while the state vector is defined as:
@@ -42,15 +42,22 @@ function [xdot,U, M, B_prop] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % Example usage:
 %
-%   [~, ~, M, B_prop] = otter()        : Return the 6x6 mass matrix M and 
-%                                        the 2x2 input matrix B_prop
-%   [xdot, U] = otter(x,n,mp,rp)       : Return xdot and U, no ocean currents
-%   xdot = otter(x,n,mp,rp)            : Return xdot, no ocean currents
-%   xdot = otter(x,n,mp,rp,V_c,beta_c) : Return xdot, 2-D currents
+%   [~,~,M,B_prop,n_min,n_max] = otter()
+%       Return the 6x6 mass matrix M, the 2x2 input matrix B_prop, and the
+%       propeller speed limits n_min and n_max.
+%
+%   [xdot,U] = otter(x,n,mp,rp)
+%       Return xdot and U, no ocean currents.
+%
+%   xdot = otter(x,n,mp,rp)
+%       Return xdot, no ocean currents.
+%
+%   xdot = otter(x,n,mp,rp,V_c,beta_c)
+%       Return xdot, 2-D currents.
 %
 % M-file Simulators:
 %   SIMotter.m : Script demonstrating 3-D ALOS path-following control.
-%   ExOtter.m  : Example script demonstrating the 5-state EKF for estimation 
+%   exOtter.m  : Example script demonstrating the 5-state EKF for estimation 
 %                of COG, COG, and course rate when using a course autopilot.
 % 
 % Simulink Simulators:
@@ -58,18 +65,18 @@ function [xdot,U, M, B_prop] = otter(x,n,mp,rp,V_c,beta_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
-% Revisions: 
+% Revisions:
 %   2021-04-25 : Added call to new function crossFlowDrag.m..
 %   2021-07-22 : Added a new state for the trim moment.
-%   2021-12-17 : New method Xudot = -addedMassSurge(m,L,rho). 
+%   2021-12-17 : New method Xudot = -addedMassSurge(m,L,rho).
 %   2023-03-28 : Trim state is replaced by payload mp and rp.
 %   2023-10-14 : Added ocean current acceleration terms.
 %   2024-02-03 : Recalibration of damping terms.
 %   2024-02-28 : Corrected the trim condition for eta.
 %   2024-04-20 : Added compatibility to GNU Octave.
-%   2024-04-20 : Added compatibility to GNU Octave.
-%   2024-06-05 : Added two new output arguments for M and B_prop
-%   2026-04-20 : Correct payload lever arm moment of inertia
+%   2024-06-05 : Added two new output arguments for M and B_prop.
+%   2026-04-20 : Correct payload lever arm moment of inertia.
+%   2026-06-27 : Added output arguments for propeller speed limits n_min and n_max.
 
 if nargin == 0
     x = zeros(12,1); n = zeros(2,1); mp=25; rp = zeros(3,1); V_c=0; beta_c=0;
@@ -199,8 +206,8 @@ Kp = -2 * 0.2 * w4 * M(4,4);
 Mq = -2 * 0.4 * w5 * M(5,5);
 Nr = -M(6,6) / T_yaw;         % specified using the time constant in T_yaw
 
-% 2-DOF constant input matrix B_prop for the propellers in sway and yaw,
-% accessable by: [~,~,M, B_prop] = otter()
+% 2-DOF constant input matrix B_prop for the propellers in surge and yaw,
+% accessible by: [~,~,M,B_prop,n_min,n_max] = otter()
 if nargin == 0
     B_prop = k_pos * [...
         1 1                 
@@ -210,19 +217,15 @@ else
 end
 
 % Control forces and moments, with saturated propeller speed
+n = satlim(n, n_min, n_max);
+
 Thrust = zeros(2,1);
-for i = 1:1:2
-    if n(i) > n_max           % saturation, physical limits
-       n(i) = n_max; 
-    elseif n(i) < n_min
-       n(i) = n_min; 
-   end
-    
-   if n(i) > 0                          
-     Thrust(i) = k_pos * n(i) * abs(n(i));    % positive thrust (N) 
-   else
-     Thrust(i) = k_neg * n(i) * abs(n(i));    % negative thrust (N) 
-   end
+for i = 1:2
+    if n(i) > 0
+        Thrust(i) = k_pos * n(i) * abs(n(i)); % positive thrust (N)
+    else
+        Thrust(i) = k_neg * n(i) * abs(n(i)); % negative thrust (N)
+    end
 end
 
 % Control forces and moments

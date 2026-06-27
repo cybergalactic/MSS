@@ -3,7 +3,7 @@ function SIMotter()
 % This script simulates the Otter Uncrewed Surface Vehicle (USV) under 
 % various control strategies to handle path following in the presence of 
 % ocean currents. This script allows the user to select from several control
-% methods and simulatesthe USV's performance using a cubic Hermite spline
+% methods and simulates the USV's performance using a cubic Hermite spline
 % or straight-line paths.
 %
 % The simulation covers:
@@ -48,6 +48,7 @@ function SIMotter()
 %   2024-04-21: Enhanced compatibility with GNU Octave.
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4.
+%   2026-06-27: Added propeller speed saturation using limits from otter.m.
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -91,7 +92,7 @@ idx_start = 1;                   % Initial index for Hermite spline
     hermiteSpline(wpt, Umax, h); % Compute Hermite spline for path following
 
 % Otter USV input matrix
-[~,~,M, B_prop] = otter();
+[~,~,M,B_prop,n_min,n_max] = otter();
 Binv = invQR(B_prop);            % Invert input matrix for control allocation
 
 % PID heading autopilot parameters (Nomoto model: M(6,6) = T/K)
@@ -182,16 +183,21 @@ for i = 1:nTimeSteps
     % Control allocation
     u = Binv * [tau_X; tau_N];      % Compute control inputs for propellers
     n_c = sign(u) .* sqrt(abs(u));  % Convert to required propeller speeds
+    n_c = satlim(n_c, n_min, n_max);  % Saturate propeller command  
 
     % Store simulation data
     simdata(i, :) = [x', r_d, psi_d];
 
     % RK4 method x(k+1)
-    x = rk4(@otter, h, x, n,mp,rp,V_c,beta_c);
+    x = rk4(@otter, h, x, n, mp, rp, V_c, beta_c);
 
-    % Euler's method
-    n = n + h/T_n * (n_c - n);              % Update propeller speeds
-    z_psi = z_psi + h * ssa(psi - psi_d);   % Update integral state
+    % Propeller dynamics n(k+1)
+    n = n + h/T_n * (n_c - n);        % Euler's method
+    n = satlim(n, n_min, n_max);      % Saturate actual propeller speed after update
+
+    % Heading integral state z(k+1)
+    z_psi = z_psi + h * ssa(psi - psi_d); % Euler's method
+
 end
 
 %% PLOTS
