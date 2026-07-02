@@ -1,38 +1,43 @@
-% ExSpline is compatibel with MATLAB and GNU Octave (www.octave.org). 
+% exSpline is compatibel with MATLAB and GNU Octave (www.octave.org). 
 % Cubic Hermite and spline interpolation of waypoints.
 %
 % Author:    Thor I. Fossen
-% Date:      6 July 2002
+% Date:      2002-07-06
 % Revisions: 
 
-% way-point database
+% Waypoints 
 wpt.pos.x   = [0 100 500 700 1000];
 wpt.pos.y   = [0 100 100 200 160];
-wpt.time    = [0 40 60 80 100];
+wpt.varpi   = [0 40 60 80 100];
 
-t = 0:1:max(wpt.time);                % time
-x_p = pchip(wpt.time,wpt.pos.x,t);    % cubic Hermite inerpolation
-y_p = pchip(wpt.time,wpt.pos.y,t);
-x_s = spline(wpt.time,wpt.pos.x,t);   % spline interpolation
-y_s = spline(wpt.time,wpt.pos.y,t);
+varpi = 0:1:max(wpt.varpi);            % Path variable
+x_p = pchip(wpt.varpi,wpt.pos.x,t);    % Cubic Hermite itnerpolation
+y_p = pchip(wpt.varpi,wpt.pos.y,t);
+x_s = spline(wpt.varpi,wpt.pos.x,t);   % Spline interpolation
+y_s = spline(wpt.varpi,wpt.pos.y,t);
 
-% graphics
+%% Plots
 subplot(311)
-plot(wpt.time,wpt.pos.x,'ro',t,x_p,'b','linewidth',2)
-hold on, plot(t,x_s,'k'),hold off
-grid, ylabel('x_d(t)')
-legend('way-points','pchip','spline')
+plot(wpt.varpi,wpt.pos.x,'ro',varpi,x_p,'b')
+hold on, plot(varpi,x_s,'k--'), hold off
+grid, ylabel('x_d(\varpi)')
+xlabel('Path parameter \varpi')
+legend('Waypoints','pchip','spline')
 
 subplot(312)
-plot(wpt.time,wpt.pos.y,'ro',t,y_p,'b','linewidth',2)
-hold on, plot(t,y_s,'k'),hold off
-grid, ylabel('y_d(t)')
-legend('way-points','pchip','spline')
+plot(wpt.varpi,wpt.pos.y,'ro',varpi,y_p,'b')
+hold on, plot(varpi,y_s,'k--'), hold off
+grid, ylabel('y_d(\varpi)')
+xlabel('Path parameter \varpi')
+legend('Waypoints','pchip','spline')
 
 subplot(313)
-plot(wpt.pos.y,wpt.pos.x,'ro',y_p,x_p,'b','linewidth',2)
-hold on, plot(y_s,x_s,'k'),hold off
+plot(wpt.pos.y,wpt.pos.x,'ro',y_p,x_p,'b')
+hold on, plot(y_s,x_s,'k--'),hold off
 grid, xlabel('East (y_d)'),ylabel('North (x_d)')
-legend('way-points','pchip','spline')
+legend('Waypoints','pchip','spline')
     
+set(findall(gcf,'type','text'),'FontSize',12)
+set(findall(gcf,'type','legend'),'FontSize',12)
+set(findall(gcf,'type','line'),'linewidth',1.5)
     
