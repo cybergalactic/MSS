@@ -1,18 +1,22 @@
 function p_e = crosstrackWpt3D(p2, p1, p)
-% crosstrackWpt3D is compatible with MATLAB and GNU Octave (www.octave.org). 
-% p_e = crosstrackWpt3D(p2, p1, p) computes the 3-D tracking errors
-% 
+% crosstrackWpt3D is compatible with MATLAB and GNU Octave (www.octave.org).
+% p_e = crosstrackWpt3D(p2, p1, p) computes the 3-D tracking-error vector
+%
 %   p_e = R_y' * R_z' * (p - p1)
-%  
-% expressed in a path-tangential reference frame P for a craft loacted at 
-% the NED position p = [x y z] when the path is a straight line between 
-% the waypoints p1 = [x1 y1 z1] and p2 = [x2 y2 z2] expressed in NED.
 %
-% Input:    p1 = [x1 y1 z1] and p2 = [x2 y2 z2], waypoints  expressed in NED
-%           p  = [x y z], craft NED position vector
+% expressed in the path-tangential reference frame P for a craft located at
+% the NED position p = [x y z]', where the path is the straight line from
+% waypoint p1 = [x1 y1 z1]' to waypoint p2 = [x2 y2 z2]'. The waypoints are
+% expressed in NED.
 %
-% Outputs:  p_e = [x_e y_e z_e]', along-, cross-, and vertical-track errors
-%           expressed in the path-tangential frame P
+% Inputs:
+%   p1 = [x1 y1 z1]' : Start waypoint expressed in NED
+%   p2 = [x2 y2 z2]' : End waypoint expressed in NED
+%   p  = [x y z]'    : Craft position expressed in NED
+%
+% Output:
+%   p_e = [x_e y_e z_e]' : Along-, cross-, and vertical-track errors
+%                          expressed in the path-tangential frame P
 %
 % Author:    Thor I. Fossen
 % Date:      2023-10-03
