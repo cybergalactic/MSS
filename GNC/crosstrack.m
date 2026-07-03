@@ -1,11 +1,10 @@
 function [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag)
 % crosstrack is compatible with MATLAB and GNU Octave (www.octave.org). 
 % [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag) computes 
-% the coordinate origin (x_p, y_p) of the path-tangential reference frame.
-% The straight-line path goes from reference point (x_ref, y_ref) to the 
-% target position (x_p, y_p). The cross-track error y_e for a craft at
-% located at (x, y) is the length of the orthogonal vector between the 
-% origin (x_p, y_p) and (x, y). 
+% the coordinate origin (x_p, y_p) of the path-tangential reference frame,
+% obtained as the orthogonal projection of the craft position (x, y) onto
+% the straight-line path from (x_ref, y_ref) to (x_t, y_t). The cross-track 
+% error y_e for a craft located at (x, y) is the signed distance from the path.
 %
 % Inputs:    
 %   (x_t, y_t)          : North-East target positions
@@ -23,7 +22,7 @@ function [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag)
 %
 % For GNC applications it is not necessary to compute (xp, yp) implying
 % that visualization and matrix inversion can be avoided. Hence, it is
-% reccomended to use the computational more efficient functions:
+% recommended to use the computationally more efficient functions:
 %
 %   2-D waypoints: crosstrackWpt(x2, y2, x1, y1, x, y)
 %   3-D waypoints: crosstrackWpt3([x2, y2, z2], [x1, y1, z1], [x, y, z]) 
@@ -57,18 +56,20 @@ y_e = -(x - x_p) * sin(pi_h) + (y - y_p) * cos(pi_h);
 if (nargin == 7 && flag == 1)
     axis normal;
     figure(gcf)
-    plot(y,x,'ro',y_ref,x_ref,'ko',y_t,x_t,'yo',y_p,x_p,'ks',...
-        'linewidth',2,'MarkerFaceColor','c','MarkerSize',15)
+    plot(y,x,'ko','LineWidth',2,'MarkerFaceColor','k','MarkerSize',12)
     hold on
-    quiver(y_ref,x_ref,y_t-y_ref,x_t-x_ref,0,'-b','linewidth',2)
-    quiver(y_p,x_p,y-y_p,x-x_p,0,'-r','linewidth',2)
+    plot(y_ref,x_ref,'k>','MarkerFaceColor','c','MarkerSize',12,'LineWidth',2)
+    plot(y_t,x_t,'rx','MarkerSize',12,'LineWidth',2)
+    plot(y_p,x_p,'ks','MarkerFaceColor','c','MarkerSize',12,'LineWidth',2)
+    plot([y_ref y_t],[x_ref x_t],'k-','LineWidth',2)
+    plot([y_p y],[x_p x],'r-.','LineWidth',2)
     hold off
     grid;
-    xlabel('East')
-    ylabel('North')
+    xlabel('East [m]')
+    ylabel('North [m]')
     axis equal;
-    legend('Vehicle position', 'Start position','Target position','Origin',...
-        'Path','Cross-track error','FontSize',12)
+    legend('Marine craft', 'Start','Target','Projection point',...
+        'Path','Cross-track error','FontSize',12,'Location','Best')
 end
 
 end
