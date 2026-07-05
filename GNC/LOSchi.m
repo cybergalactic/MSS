@@ -14,7 +14,7 @@ function [chi_ref, y_e] = LOSchi(x, y, Delta_h, R_switch, wpt)
 %
 %  [chi_d, omega_chi_d] = LOSobserver(chi_d omega_chi_d,chi_ref,h,K_f,T_f)
 %
-% where chi_d is the desired course angle and omega_chi_d isthe desired 
+% where chi_d is the desired course angle and omega_chi_d is the desired 
 % course rate.  
 %
 % Initialization:
@@ -39,7 +39,7 @@ function [chi_ref, y_e] = LOSchi(x, y, Delta_h, R_switch, wpt)
 %    chi_ref: LOS course angle (rad)
 %    y_e:     cross-track error (m)
 %
-% For heading control use the functions LOSpsi.m and ILOSpsi.m.
+% For heading control use the functions ILOSpsi.m and ALOSpsi.m.
 % See also: crosstracHermiteLOS.m
 %
 % Ref. T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
