@@ -3,7 +3,7 @@ function [LOSangle, idx_start, y_e] = ...
     x, y, h, Delta_h, pp_x, pp_y, idx_start, N_horizon, gamma_h)
 % Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % crosstrackHermiteLOS computes the Line-Of-Sight (LOS) angle for path 
-% followingin a cubic Hermite spline path through a 2xn table of waypoints. 
+% following in a cubic Hermite spline path through a 2xn table of waypoints. 
 % This function determines the desired course angle (chi_ref) or yaw angle 
 % (psi_ref) using LOS guidance law.
 %
