@@ -1,8 +1,8 @@
 function [LOSangle, idx_start, y_e] = ...
-    crosstrackHermiteLOS(w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
+    ALOSpsiHermite(w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     x, y, h, Delta_h, pp_x, pp_y, idx_start, N_horizon, gamma_h)
 % Compatible with MATLAB and the free software GNU Octave (www.octave.org).
-% crosstrackHermiteLOS computes the Line-Of-Sight (LOS) angle for path 
+% ALOSpsiHermite computes the line-of-sight (LOS) angle for path 
 % following in a cubic Hermite spline path through a 2xn table of waypoints. 
 % This function determines the desired course angle (chi_ref) or yaw angle 
 % (psi_ref) using LOS guidance law.
@@ -12,11 +12,11 @@ function [LOSangle, idx_start, y_e] = ...
 % psi_ref,is computed based on adaptive LOS guidance.
 %
 % Usage:
-%   [chi_d, idx_start, y_e] = crosstrackHermiteLOS(w_path, x_path, y_path, 
+%   [chi_d, idx_start, y_e] = ALOSpsiHermite(w_path, x_path, y_path, 
 %      dx_path, dy_path, pi_h, x, y, h, Delta_h, pp_x, pp_y, idx_start, 
 %      N_horizon)
 %
-%   [psi_d, idx_start, y_e] = crosstrackHermiteLOS(w_path, x_path, y_path, 
+%   [psi_d, idx_start, y_e] = ALOSpsiHermite(w_path, x_path, y_path, 
 %      dx_path, dy_path, pi_h, x, y, h, Delta_h, pp_x, pp_y, idx_start, 
 %      N_horizon, gamma_h)
 %
@@ -54,7 +54,7 @@ function [LOSangle, idx_start, y_e] = ...
 % positioning systems in marine and aerial vehicles.
 %
 % References:
-%   T. I Fossen (2023). An Adaptive Line-of-sight (ALOS) Guidance Law 
+%   T. I Fossen (2023). An Adaptive Line-of-Sight (ALOS) Guidance Law 
 %   for Path Following of Aircraft and Marine Craft. IEEE Transactions on 
 %   Control Systems Technology 31(6),2887-2894. 
 %   https://doi.org/10.1109/TCST.2023.3259819

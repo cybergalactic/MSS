@@ -90,9 +90,9 @@ acc2rollpitch        % Static roll and pitch angles from IMU specific force meas
 allocPseudoinverse   % Unconstrained control allocation
 ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
 ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+ALOSpsiHermite       % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrack           % Computes the path-tangential origin and cross-track error for a target
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
-crosstrackHermiteLOS % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
 EKF_5states          % Estimation of SOG, COG, and course rate from NED positions or latitude-longitude
 getPathSignal        % Generates the coefficients for subpaths between given waypoints

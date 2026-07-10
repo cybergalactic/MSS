@@ -17,11 +17,10 @@ function SIMotter()
 % Dependencies:
 %   otter.m                 - Dynamics of the Otter USV
 %   refModel.m              - Reference model for autopilot systems
-%   ALOSpsi.m               - ALOS guidance algorithm for path following
-%   ILOSpsi.m               - ILOS guidance algorithm for path following
+%   ILOSpsi.m               - ILOS guidance for waypoint path following
+%   ALOSpsi.m               - ALOS guidance for waypoint path following
+%   ALOSpsiHermite          - ALOS guidance using cubic Hermite splines
 %   hermiteSpline.m         - Cubic Hermite spline computations
-%   crosstrackHermiteLOS.m  - Cross-track error and LOS guidance law for
-%                             cubic Hermite splines
 %   LOSobserver.m           - Observer for LOS guidance 
 %   controlMethods.m        - Menu for choosing control law. 
 %
@@ -52,7 +51,7 @@ function SIMotter()
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
-clear ALOSpsi ILOSpsi crosstrackHermiteLOS  % Clear persistent variables
+clear ALOSpsi ILOSpsi ALOSpsiHermite        % Clear persistent variables
 
 %% USER INPUTS
 h  = 0.05;                       % Sampling time [s]
@@ -132,7 +131,7 @@ nTimeSteps = length(t);         % Number of time steps
 methods = {'PID heading autopilot, no path following',...
            'ALOS path-following control using straight lines and waypoint switching',...
            'ILOS path-following control using straight lines and waypoint switching',...
-           'ALOS path-following control using Hermite splines'};
+           'ALOS path-following control using cubic Hermite splines'};
 ControlFlag = controlMethod(methods);
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
@@ -168,7 +167,7 @@ for i = 1:nTimeSteps
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
 
         case 4  % ALOS heading autopilot, cubic Hermite spline interpolation
-            [psi_ref, idx_start] = crosstrackHermiteLOS(w_path, x_path, ...
+            [psi_ref, idx_start] = ALOSpsiHermite(w_path, x_path, ...
                 y_path, dx, dy, pi_h, xn, yn, h, Delta_h, pp_x, pp_y, ...
                 idx_start, N_horizon, gamma_h);
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
@@ -351,7 +350,7 @@ function displayControlMethod(ControlFlag, R_switch, Delta_h)
             disp(['Circle of acceptance: R =  ', num2str(R_switch), ' m']);
             disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
         case 4
-            disp('ALOS path-following control using Hermite splines');
+            disp('ALOS path-following control using cubic Hermite splines');
             disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
     end
     disp('--------------------------------------------------------------------');
