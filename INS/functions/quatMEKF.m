@@ -6,18 +6,18 @@ function [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, i
 % Multiplicative Extended Kalman Filter (MEKF) for quaternion attitude 
 % estimation (Markley and Crassidis, 2014). The MEKF uses high-rate inertial
 % measurements from a 9-DOF inertial measurement unit (IMU). The function 
-% can be called either as a corrector (with new measurements) or as a 
-% predictor (without new measurements). 
+% supports both predictor mode (IMU only) and corrector mode (IMU with 
+% aiding measurements).
 %
-%   9-DOF measurements:
-%      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
-%          [f_imu', w_imu', m_imu'])
-%   7-DOF measurements:
-%      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
-%          [f_imu', w_imu', psi])
-%   6-DOF measurements (no magnetometer/compass measurements):
+%   Predictor (6-DOF IMU: specific force and ARS)
 %      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
 %          [f_imu', w_imu'])
+%   Corrector (7-DOF: specific force, ARS, and compass heading)
+%      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
+%          [f_imu', w_imu', psi])
+%   Corrector (9-DOF: specific force, ARS, and magnetometer)
+%      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
+%          [f_imu', w_imu', m_imu'])
 % 
 % The quaternion product injection term is implemented using two reference 
 % vectors v01 (gravity) and v02 (magnetic field or compass).
@@ -102,7 +102,7 @@ else
 
         % Measurement matrix
         Cd  = [ Smtrx(R_transposed*v01) O3    % Gravity measurement vector
-                Smtrx(R_transposed*v02) O3 ]; % Magentic field measurement vector
+                Smtrx(R_transposed*v02) O3 ]; % Magnetic field measurement vector
 
         % Innovation vector
         delta_y = [ v1 - R_transposed * v01
