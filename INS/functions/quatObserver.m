@@ -3,20 +3,19 @@ function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_mea
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
 % b_ars[k+1] of the attitude rate sensor (ARS) in a high-performance 
-% nonlinear observer (Grip et al 2013). The observer uses high-rate inertial
-% measurements from a 9-DOF inertial measurement unit (IMU). The function 
-% can be called either as a corrector (with new measurements) or as a 
-% predictor (without new measurements). 
+% nonlinear observer (Mahony, Hamel and Pflimlin, 2008) (Grip et al 2013). 
+% The function  supports both predictor mode (IMU only) and corrector mode 
+% (IMU with aiding measurements).
 %
-%   9-DOF measurements:
-%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
-%          [f_imu', w_imu', m_imu'])
-%   7-DOF measurements:
-%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
-%          [f_imu', w_imu', psi])
-%   6-DOF measurements (no magnetometer/compass measurements):
+%   Predictor (6-DOF IMU: specific force and ARS)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu'])
+%   Corrector (7-DOF: specific force, ARS, and compass heading)
+%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
+%          [f_imu', w_imu', psi])
+%   Corrector (9-DOF: specific force, ARS, and magnetometer)
+%      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
+%          [f_imu', w_imu', m_imu'])
 % 
 % The injection term is implemented using two reference vectors
 %   sigma = k1 * v1 x R'(quat) * v01 + k2 * v2 x R'(quat) * v02
