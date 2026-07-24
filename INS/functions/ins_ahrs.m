@@ -1,39 +1,39 @@
 function [x_ins, P_prd] = ins_ahrs( ...
-    x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
+    x_ins, P_prd, mu, h, Qd, Rd, T_acc, f_imu, y_ahrs, y_pos, y_vel)
 % ins_ahrs is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) specifically for Inertial Navigation Systems (INS) that are 
 % augmented by an attitude heading reference systems (AHRS) and aided by 
-% positional data. Attitude is parametrized using the 3-parameter Euler 
+% positional data. Attitude is parameterized using the 3-parameter Euler 
 % angle representation, which is singular for theta = +- 90 deg.
 %
-% Usage scenarios are detailed in examples SIMaidedINSeuler and ExINS_AHRS, 
-% demonstrating the implementation of the Kalman filter loop using the 
-% corrector-predictor representation:
+% Usage scenarios are detailed in SIMaidedINSeuler, demonstrating the 
+% implementation of the Kalman filter loop using the corrector-predictor 
+% representation:
 %
 %   - With new slow position measurements:
 %       [x_ins,P_prd] = ins_ahrs(...
-%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos)
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, y_ahrs, y_pos)
 %       [x_ins,P_prd] = ins_ahrs(...
-%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, w_imu, y_ahrs, y_pos, y_vel)
+%           x_ins, P_prd, mu, h, Qd, Rd, f_imu, y_ahrs, y_pos, y_vel)
 %
 %   - Without new position measurements (no aiding):
-%       [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs)
+%       [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,y_ahrs)
 %
-% This function models the INS errors in a 15-dimensional state space, 
+% This function models the INS errors in a 9-dimensional state space, 
 % including position, velocity, biases, and attitude errors:
 %
 %   delta_x[k+1] = f(delta_x[k], u[k], w[k])
 %     delta_y[k] = h(delta_x[k], u[k]) + varepsilon[k]
 %
 % Inputs:
-%   x_ins[k] : INS state vector at step k, includes position, velocity, 
-%              accelerometer biases, attitude (Euler angles), and gyro biases.
-%   P_prd[k] : 15x15 covariance matrix of the prediction step.
+%   x_ins[k] : INS state vector at step k, includes position, velocity, and
+%              accelerometer biases.
+%   P_prd[k] : 9x9 covariance matrix of the prediction step.
 %   mu       : Latitude in radians, used to calculate Earth's gravity vector.
 %   h        : Sampling time in seconds.
-%   Qd, Rd   : Process and measurement noise covariance matrices for the 
-%              Kalman filter.
+%   Qd, Rd   : Process and measurement noise covariance matrices for the ESKF.
+%   T_acc    : Acceleration bias time constant in seconds.
 %   f_imu[k] : Specific force measurements from the IMU.
 %   w_imu[k] : Angular rate measurements from the IMU.
 %   y_ahrs[k]: Attitude measurements (roll, pitch, yaw) from the AHRS.
@@ -45,66 +45,49 @@ function [x_ins, P_prd] = ins_ahrs( ...
 %   P_prd[k+1] : Updated prediction covariance matrix after propagation.
 %
 % References:
-%   T. I. Fossen (2021). "Handbook of Marine Craft Hydrodynamics and Motion 
-%   Control," 2nd edition, John Wiley & Sons, Ltd., Chichester, UK.
+%   T. I. Fossen (2027). "Handbook of Marine Craft Hydrodynamics and Motion 
+%   Control," 3rd edition, John Wiley & Sons, Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
 % Date: 2020-03-21
 % Revisions: 
-%   2021-12-21: Improved numerical accuracy by replacing Euler's method
-%               with exact discretization in the INS PVA propagation.
-%   2024-08-31: Using invQR.m instead of inv.m
+%   2026-06-14: Formulate the observer as 9-state estimator.
 
-% Bias time constants (user specified)
-T_acc = 1000; 
-T_ars = 500; 
-
-%% ESKF states and matrices
+%% INS states and matrices
 p_ins = x_ins(1:3);          % INS states
 v_ins = x_ins(4:6);
 b_acc_ins = x_ins(7:9);
-theta_ins = x_ins(10:12);
-b_ars_ins = x_ins(13:15);
 
-% Gravity vector
-g_n = [0 0 gravity(mu)]';    % WGS-84 gravity model
+% WGS-84 gravity vector expressed in NED
+g_n = [0 0 gravity(mu)]'; 
 
-% Constants 
+% Constant matrices
 O3 = zeros(3,3);
 I3 = eye(3);
 
-% Transformation matrices
+% Euler angle rotation matrix
 R = Rzyx(y_ahrs(1), y_ahrs(2), y_ahrs(3));
-T = Tzyx(y_ahrs(1), y_ahrs(2)); 
 
-% Bias compensated IMU measurements
+% Bias compensated specific force
 f_ins = f_imu - b_acc_ins;
-w_ins = w_imu - b_ars_ins;
 
-% Discrte-time ESKF matrices
-A = [ O3 I3  O3           O3  O3
-      O3 O3 -R            O3  O3
-      O3 O3 -(1/T_acc)*I3 O3  O3
-      O3 O3  O3           O3 -T
-      O3 O3  O3           O3 -(1/T_ars)*I3 ];
+% Discrete-time ESKF matrices
+A = [ O3 I3  O3       
+      O3 O3 -R 
+      O3 O3 -(1/T_acc) * I3 ];
    
-% Ad = eye(15) + h * A + 0.5 * (h * A)^2 + ...
-Ad = expm_taylor(A * h); 
+Ad = expm(A * h); 
 
 if (nargin == 10)
-    Cd = [ I3 O3 O3 O3 O3        % NED positions (x, y, z)
-           O3 O3 O3 I3 O3];      % Euler angles (phi, theta, psi)
+    Cd = [ I3 O3 O3 ];       % NED positions (x, y, z)
 else
-    Cd = [ I3 O3 O3 O3 O3        % NED positions (x, y, z)
-           O3 I3 O3 O3 O3        % NED velocities       
-           O3 O3 O3 I3 O3];      % Euler angles (phi, theta, psi)
+    Cd = [ I3 O3 O3          % NED positions (x, y, z)
+           O3 I3 O3 ];       % NED velocities (vN, vE, vD)       
 end
        
-Ed = h *[  O3 O3    O3 O3
-          -R  O3    O3 O3
-           O3 I3    O3 O3
-           O3 O3   -T  O3
-           O3 O3    O3 I3  ];
+Ed = h * [  O3 O3
+           -R  O3
+            O3 I3 ];
 
 %% Kalman filter algorithm       
 if (nargin == 9)             % No aiding
@@ -114,18 +97,17 @@ if (nargin == 9)             % No aiding
 else                         % INS aiding 
     
     % ESKF gain: K[k]
-    K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd);
-    IKC = eye(15) - K * Cd;
+    K = P_prd * Cd' / (Cd * P_prd * Cd' + Rd);
+    IKC = eye(9) - K * Cd;
     
     % Estimation error: eps[k]
-    eps_pos   = y_pos - p_ins;
-    eps_theta = ssa(y_ahrs - theta_ins);  % smallest signed angle   
+    eps_pos = y_pos - p_ins;
     
     if (nargin == 10)
-        eps = [eps_pos; eps_theta];
+        eps = eps_pos;
     else
         eps_vel = y_vel - v_ins;
-        eps = [eps_pos; eps_vel; eps_theta];        
+        eps = [eps_pos; eps_vel];        
     end
     
     % Corrector: delta_x_hat[k] and P_hat[k]
@@ -135,9 +117,7 @@ else                         % INS aiding
     % INS reset: x_ins[k]
 	p_ins = p_ins + delta_x_hat(1:3);           % Reset INS position
 	v_ins = v_ins + delta_x_hat(4:6);           % Reset INS velocity
-	b_acc_ins = b_acc_ins + delta_x_hat(7:9);   % Reset INS ACC bias
-	theta_ins = theta_ins + delta_x_hat(10:12); % Reset INS attitude
-	b_ars_ins = b_ars_ins + delta_x_hat(13:15); % Reset INS ARS bias   
+	b_acc_ins = b_acc_ins + delta_x_hat(7:9);   % Reset INS ACC bias  
     
 end
 
@@ -145,12 +125,11 @@ end
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % INS propagation: x_ins[k+1]
-a_ins = R * f_ins + g_n;                             % Linear acceleration
-p_ins = p_ins + h * v_ins + h^2/2 * a_ins;           % Exact discretization
-v_ins = v_ins + h * a_ins;                           % Exact discretization
-theta_ins = theta_ins + h * T * w_ins;               % Euler's method
+a_ins = R * f_ins + g_n;                        % Linear acceleration
+p_ins = p_ins + h * v_ins + h^2/2 * a_ins;      % Position
+v_ins = v_ins + h * a_ins;                      % Linear velocity
 
-x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
+x_ins = [p_ins; v_ins; b_acc_ins];
 
  
 end

@@ -1,323 +1,681 @@
 function SIMaidedINSeuler()
 % SIMaidedINSeuler is compatible with MATLAB and GNU Octave (www.octave.org).
-% This script simulates an Inertial Navigation System (INS) aided by position 
-% measurements using the Error-State Kalman Filter (ESKF). The attitude is 
-% parametrized using Euler angles (Fossen, 2021, Chapter 14.4).  
-% 
-% The position measurement frequency f_slow (typically 5 Hz) can be chosen smaller 
-% or equal to the sampling frequency f_fast (typically 1000 Hz), which is equal to 
-% the Inertial Measurement Unit (IMU) measurement frequency. 
+%
+% This function simulates two error-state Kalman filter (ESKF) architectures 
+% for an inertial navigation system (INS):
+%
+%   1. A 15-state ESKF in which attitude and ARS bias are estimated using
+%      IMU, compass, position, and optionally velocity measurements.
+%
+%   2. A 9-state ESKF in which attitude is supplied by an external
+%      attitude and heading reference system (AHRS). The ESKF estimates
+%      position, velocity, and accelerometer bias using position and
+%      optionally velocity measurements.
+%
+% Attitude is parameterized using Euler angles (Fossen, 2027, Chapter 14).
+%
+% The aiding frequency f_slow can be selected independently of the high-rate 
+% IMU frequency f_fast, subject to f_slow <= f_fast.
 %
 % Dependencies:
-%   ins_euler.m     - Feedback ESKF for INS aided by position measurements 
-%                     y_pos and compass measurements y_psi. The velocity aiding 
-%                     signal y_vel is optionally. 
-%   ins_ahrs.m      - Feedback ESKF for INS aided by position measurements 
-%                     y_pos and attitude measurements (roll, pitch and yaw 
-%                      angles). The velocity aiding signal y_vel is optionally.
-%   magneticField.m - Magnetic field vectors for different cities.
-%  
+%   ins_euler.m
+%       Feedback ESKF for an INS aided by compass and position  measurements. 
+%       Velocity aiding is optional.
+%
+%   ins_ahrs.m
+%       Feedback ESKF for an INS aided by an external AHRS and position
+%       measurements. Velocity aiding is optional.
+%
+%   insSignal.m
+%       INS signal generator.
+%
+%   magneticField.m
+%       Magnetic-field reference vectors and latitude for selected cities.
+%
 % References:
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-%    Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
+%   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%   Motion Control, 3rd edition, John Wiley & Sons, Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
 % Date: 2021-04-26
 % Revisions:
-%   2024-08-20 : Using the updated insSignal.m generator.
-%   2024-11-02 : Improved logic for slow position data
+%   2024-08-20: Using the updated insSignal.m generator.
+%   2024-11-02: Improved logic for slow position data.
+%   2026-07-14: Added support for both the 15-state compass-aided ESKF
+%               and the 9-state AHRS-assisted ESKF.
 
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 100; % Final simulation time (s)
-f_fast = 1000; % High-rate IMU meaurement frequency (Hz)
-f_slow = 5; % Slow-rate position measurement frequency (Hz)
+T_final = 100;        % Final simulation time (s)
+f_fast  = 1000;       % IMU and filter propagation frequency (Hz)
+f_slow  = 5;          % Position/velocity aiding frequency (Hz)
 
-% Sampling times
-h  = 1/f_fast; 	 
-h_slow = 1/f_slow; 
+h      = 1 / f_fast;  % High-rate IMU and ESKF sampling time
+h_slow = 1 / f_slow;  % Low-rate aiding sampling time
+
+testSignalNo = 1;     % INS test signal - 1: constant bias, 2: time-varying bias
+
+% ==============================================================================
+% Initialization of the ESKF 
+% ==============================================================================
+p_0 = 1.0; % Initial covariance matrix: P_prd = p_0 * I_nxn
+
+% Measurement standard deviations
+sigma_pos = 0.05;       % Position [m]
+sigma_vel = 0.01;       % Velocity [m/s]
+sigma_psi = deg2rad(1); % Compass heading [rad]
+sigma_g   = 0.1;        % Normalized gravity-vector residual
+
+% Process noise
+q_f     = 1e-3;         % Specific-force process noise
+q_b_acc = 1e-5;         % Accelerometer bias process noise
+q_w     = 1e-3;         % Angular-rate process noise
+q_b_ars = 1e-5;         % ARS bias process noise
+
+% Bias time constants
+T_acc = 300;            % Acceleration bias time constant [s]
+T_ars = 300;            % Angular rate bias time constant [s]
 
 % ==============================================================================
 % Initialization of the INS signal generator
 % ==============================================================================
-[m_ref, ~,mu,cityName] = magneticField(1); % Magntic field and latitude for city #1
-b_acc = [0.1 0.3 -0.1]'; % IMU biases
-b_ars = [0.05 0.1 -0.05]';
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']'; % Initial states for signal generator        
+[m_ref, ~, mu, cityName] = magneticField(1);
 
-% Display simulation options
-[attitudeFlag, velFlag] = displayMethod(cityName);
+% True IMU biases used by the signal generator
+b_acc = [0.1  0.3  -0.1]';
+b_ars = [0.05 0.1  -0.05]';
+
+% Signal-generator state:
+% [position; velocity; accelerometer bias; Euler angles; ARS bias]
+x_true = [zeros(1,6), b_acc', zeros(1,3), b_ars']';
+
+% Select attitude source and optional velocity aiding
+[attitudeMethod, aidingMethod] = displayMethod(cityName, f_fast, f_slow);
 
 % ==============================================================================
-% Initialization of ESKF covariance matrices
+% Initialization of the ESKF covariance matrices
 % ==============================================================================
-P_prd = eye(15);
+switch attitudeMethod
 
-if (attitudeFlag == 1) % Compass    
-    % Process noise weights: vel, acc_bias, w_nb, ars_bias
-    Qd = diag([0.1 0.1 0.1  0.001 0.001 0.001  0.1 0.1 0.1  0.001 0.001 0.001]);   
-    if (velFlag == 1)
-        % Position and compass aiding
-        Rd = diag([0.1 0.1 0.1  1 1 1  0.001]); % pos, acc, compass
-    else % velFlag == 2
-        % Position/velocity aiding + compass
-        Rd = diag([1 1 1  1 1 1  1 1 1  0.001]); % pos, vel, acc, psi
-    end
-else % attitudeFlag == 2 (AHRS)
-    if (velFlag == 1) 
-       Rd = diag([1 1 1  1 1 1]); % pos, euler_angles
-       Qd = diag([1 1 1  1 1 1  10 10 10  0.01 0.01 0.01]);
-    else 
-       Rd = diag([10 10 10 1 1 1 0.1 0.1 0.1]); % pos, vel, euler_angles
-       Qd = diag([1 1 1  1 1 1  0.1 0.1 0.1  0.01 0.01 0.01]); 
-    end
+    case 'compass'
+        % Initialize the 15-state ESKF covariance matrices
+        % delta_x = [delta_p; delta_v; delta_b_acc; delta_theta; delta_b_ars]
+        P_prd_compass = p_0 * eye(15);
+
+        Qd = diag([ ...
+            q_f q_f q_f ...
+            q_b_acc q_b_acc q_b_acc ...
+            q_w q_w q_w ...
+            q_b_ars q_b_ars q_b_ars ]);
+
+        % Measurement noise:
+        switch aidingMethod
+
+            case 'position'
+                % [position; normalized specific force; compass heading]
+                Rd = diag([ ...
+                    sigma_pos^2 sigma_pos^2 sigma_pos^2 ...
+                    sigma_g^2   sigma_g^2   sigma_g^2 ...
+                    sigma_psi^2 ]);
+
+            case 'position_velocity'
+                % [position; velocity; normalized specific force; compass heading]
+                Rd = diag([ ...
+                    sigma_pos^2 sigma_pos^2 sigma_pos^2 ...
+                    sigma_vel^2 sigma_vel^2 sigma_vel^2 ...
+                    sigma_g^2   sigma_g^2   sigma_g^2 ...
+                    sigma_psi^2 ]);
+
+            otherwise
+                error('Unknown aiding method: %s', aidingMethod)
+        end
+
+    case 'ahrs'
+
+        % Initialize the 9-state ESKF covariance matrices
+        % delta_x = [delta_p; delta_v; delta_b_acc]
+        P_prd_ahrs = p_0 * eye(9);
+
+        % Process noise
+        Qd = diag([ ...
+            q_f q_f q_f ...
+            q_b_acc q_b_acc q_b_acc ]);
+
+        switch aidingMethod
+            case 'position'
+
+                % Measurement noise: position
+                Rd = sigma_pos^2 * eye(3);
+
+            case 'position_velocity'
+
+                % Measurement noise: position and velocity
+                Rd = diag([ ...
+                    sigma_pos^2 sigma_pos^2 sigma_pos^2 ...
+                    sigma_vel^2 sigma_vel^2 sigma_vel^2 ]);
+
+            otherwise
+                error('Unknown aiding method: %s', aidingMethod)
+
+        end
+
+    otherwise
+        error('Unknown attitude method: %s', attitudeMethod)
 end
 
 % ==============================================================================
 % Initialization of the INS states
 % ==============================================================================
-p_ins = [0 0 0]'; 
-v_ins = [0 0 0]';
-b_acc_ins = [0 0 0]';
-theta_ins = [0, 0, 0]';
-b_ars_ins = [0 0 0]';
-x_ins = [p_ins; v_ins; b_acc_ins; theta_ins; b_ars_ins];
+p_ins     = zeros(3,1);
+v_ins     = zeros(3,1);
+b_acc_ins = zeros(3,1);
+theta_ins = zeros(3,1);
+b_ars_ins = zeros(3,1);
 
-% Time vector initialization
-t_slow = 0; % Initialize the time for the next slow measurement
-t = 0:h:T_final; % Time vector from 0 to T_final          
-nTimeSteps = length(t); % Number of time steps
+switch attitudeMethod
+
+    case 'compass'
+        % State propagated by ins_euler.m (15 states)
+        x_ins_compass = [ ...
+            p_ins;
+            v_ins;
+            b_acc_ins;
+            theta_ins;
+            b_ars_ins];
+
+    case 'ahrs'
+        % State propagated by ins_ahrs.m (9 states)
+        x_ins_ahrs = [ ...
+            p_ins;
+            v_ins;
+            b_acc_ins];
+end
+
+% ==============================================================================
+% Multirate scheduling
+% ==============================================================================
+% At most one slow measurement is processed per fast time step.
+if f_slow > f_fast
+    error('The aiding frequency f_slow must satisfy f_slow <= f_fast.');
+end
+
+slowIndex = 0; % Zero-based index of the next nominal slow measurement
+
+% Tolerance for floating-point comparisons of coincident sample times
+tol = 10 * eps(max(1, T_final));
+
+% ==============================================================================
+% Time and data initialization
+% ==============================================================================
+t = 0:h:T_final;
+nTimeSteps = length(t);
+maxSlowSamples = floor(T_final / h_slow) + 1;
+
+trueData = zeros(nTimeSteps, 15); % True states: % [p; v; b_acc; theta; b_ars]
+navEstimateData = zeros(nTimeSteps, 9); % Navigation estimates: % [p; v; b_acc]
+
+% Attitude data. In compass mode these are ESKF estimates; in AHRS mode
+% they are the external AHRS measurements used by the navigation filter
+attitudeData = zeros(nTimeSteps, 3);
+
+% ARS-bias estimates exist only for the compass-aided 15-state ESKF
+arsBiasEstimateData = nan(nTimeSteps, 3);
+
+% Slow position measurements
+positionData = zeros(maxSlowSamples, 4);
+positionIndex = 0;
 
 % ==============================================================================
 %% MAIN LOOP
 % ==============================================================================
-simdata = zeros(nTimeSteps,30); % Pre-allocate table for simulation data
-posdata = zeros(floor(T_final * f_slow), 4); % Pre-allocate table for position data
-pos_index = 0; % Initialize index for posdata
+for i = 1:nTimeSteps
 
-for i=1:nTimeSteps
-    
     % INS signal generator
-    [x, f_imu, w_imu] = insSignal(x, h, t(i), mu, m_ref);
-    y_psi = x(12);
-    y_ahrs = x(10:12);
-    
-    % Positions measurements are slower than the sampling time
-    if abs(mod(t(i), h_slow)) < 1e-10
-        % Aiding
-        pos_index = pos_index + 1; 
-        y_pos = x(1:3) + 0.05 * randn(3,1); % Position measurements
-        y_vel = x(4:6) + 0.01 * randn(3,1); % Optionally velocity meas.
-        posdata(pos_index, :) = [t(i), y_pos']; % Store position measurements 
+    [x_true, f_imu, w_imu] = insSignal(x_true, h, t(i), mu, m_ref, testSignalNo);
 
-        if (attitudeFlag == 1) % Compass
-            if (velFlag == 1)
-                % Position aiding + compass aiding
-                [x_ins,P_prd] = ins_euler(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos);
-            else
-                % Position/velocity aiding + compass aiding
-                [x_ins,P_prd] = ins_euler(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos,y_vel);
-            end
-        else % attitudeFlag == 2 (AHRS)
-            if (velFlag == 1)
-                [x_ins,P_prd] = ins_ahrs(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos);
-            else
-                [x_ins,P_prd] = ins_ahrs(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs,y_pos,y_vel);
-            end
-        end
-        
-        % Update the time for the next slow position measurement
-        t_slow = t_slow + h_slow; 
+    % Compass and AHRS outputs
+    y_psi  = x_true(12);
+    y_ahrs = x_true(10:12);
 
-    else  
-        % No aiding
-        if (attitudeFlag == 1) 
-            % Compass
-            [x_ins,P_prd] = ins_euler(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);
-        else 
-            % AHRS
-            [x_ins,P_prd] = ins_ahrs(x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_ahrs);
+    % Determine whether a new slow aiding measurement is available
+    newSlowMeasurement = t(i) + tol >= slowIndex * h_slow;
+
+    if newSlowMeasurement
+
+        slowIndex = slowIndex + 1;
+        positionIndex = positionIndex + 1;
+
+        y_pos = x_true(1:3) + 0.05 * randn(3,1);
+        y_vel = x_true(4:6) + 0.01 * randn(3,1);
+
+        positionData(positionIndex,:) = [t(i), y_pos'];
+
+        switch attitudeMethod
+            case 'compass'
+
+                switch aidingMethod
+
+                    case 'position'
+                        [x_ins_compass, P_prd_compass] = ins_euler( ...
+                            x_ins_compass,P_prd_compass,mu,h,Qd,Rd, ...
+                            T_acc,T_ars,[f_imu' w_imu'],y_psi,y_pos);
+
+                    case 'position_velocity'
+
+                        [x_ins_compass, P_prd_compass] = ins_euler( ...
+                            x_ins_compass,P_prd_compass,mu,h,Qd,Rd, ...
+                            T_acc,T_ars,[f_imu' w_imu'],y_psi,y_pos,y_vel);
+                end
+
+            case 'ahrs'
+
+                switch aidingMethod
+                    case 'position'
+
+                        [x_ins_ahrs, P_prd_ahrs] = ins_ahrs( ...
+                            x_ins_ahrs,P_prd_ahrs,mu,h,Qd,Rd, ...
+                            T_acc,f_imu,y_ahrs,y_pos);
+
+                    case 'position_velocity'
+
+                        [x_ins_ahrs, P_prd_ahrs] = ins_ahrs( ...
+                            x_ins_ahrs,P_prd_ahrs,mu,h,Qd,Rd, ...
+                            T_acc,f_imu,y_ahrs,y_pos,y_vel);
+                end
+
         end
+
+    else
+
+        % No new low-rate position or velocity aiding measurement
+        switch attitudeMethod
+            case 'compass'
+
+                [x_ins_compass, P_prd_compass] = ins_euler( ...
+                    x_ins_compass,P_prd_compass,mu,h,Qd,Rd, ...
+                    T_acc,T_ars,[f_imu' w_imu'],y_psi);
+
+            case 'ahrs'
+
+                [x_ins_ahrs, P_prd_ahrs] = ins_ahrs( ...
+                    x_ins_ahrs,P_prd_ahrs,mu,h,Qd,Rd,T_acc,f_imu,y_ahrs);
+        end
+
     end
 
-    % Store simulation data in a table (for testing)
-    simdata(i,:) = [x' x_ins'];
+    % Store simulation data
+    trueData(i,:) = x_true';
+
+    switch attitudeMethod
+
+        case 'compass'
+            navEstimateData(i,:)      = x_ins_compass(1:9)';
+            attitudeData(i,:)         = x_ins_compass(10:12)';
+            arsBiasEstimateData(i,:)  = x_ins_compass(13:15)';
+        
+        case 'ahrs'
+            navEstimateData(i,:) = x_ins_ahrs';
+            attitudeData(i,:) = y_ahrs';
+    end
 
 end
 
+% Remove unused preallocated rows
+positionData = positionData(1:positionIndex,:);
+
 % ==============================================================================
-% PLOTS
+%%  PLOTS
 % ==============================================================================
-scrSz = get(0, 'ScreenSize'); % Get screen dimensions
+scrSz = get(0, 'ScreenSize');
+
 legendSize = 10;
-colors = {'b','g','k'};
-         
-x     = simdata(:,1:15); % High-rate IMU data
-x_hat = simdata(:,16:30); 
+colors = {'b', 'g', 'k'};
 
-t_m = posdata(:,1); % Slow-rate position measurements
-y_m = posdata(:,2:4);
+xTrue = trueData;
+xNav  = navEstimateData;
 
-% Figure 1
-figure(1); 
-if ~isoctave; set(gcf,'Position',[1,1,0.4*scrSz(3),scrSz(4)]); end
+t_m = positionData(:,1);
+y_m = positionData(:,2:4);
 
-subplot(311)
-hTrue = plot(t_m, y_m, 'xr');
+% ==============================================================================
+% Figure 1: Translational navigation states
+% ==============================================================================
+figure(1);
+clf
+
+if ~isoctave
+    set(gcf, 'Position', [1, 1, 0.4 * scrSz(3), scrSz(4)]);
+end
+
+% ------------------------------------------------------------------------------
+% Position
+% ------------------------------------------------------------------------------
+subplot(3,1,1)
+
+hMeas = plot(t_m, y_m, 'xr');
 hold on
-hX = plot(t, x_hat(:,1), colors{1});
-hY = plot(t, x_hat(:,2), colors{2});
-hZ = plot(t, x_hat(:,3), colors{3});
-hAll = [hX, hY, hZ, hTrue(1)];
+
+hX = plot(t, xNav(:,1), colors{1});
+hY = plot(t, xNav(:,2), colors{2});
+hZ = plot(t, xNav(:,3), colors{3});
+
+hAll = [hX, hY, hZ, hMeas(1)];
+
 hold off
-xlabel('Time [s]'); title('Position [m]'); grid on
+xlabel('Time [s]')
+title('Position [m]')
+grid on
+
 labels = { ...
     ['Estimate x_N at ', num2str(f_fast), ' Hz'], ...
     ['Estimate y_E at ', num2str(f_fast), ' Hz'], ...
     ['Estimate z_D at ', num2str(f_fast), ' Hz'], ...
-    ['Position measurements at ', num2str(f_slow), ' Hz'] };
-legend(hAll, labels);
+    ['Position measurements at ', num2str(f_slow), ' Hz']};
 
-subplot(312)
-hTrue = plot(t,x(:,4:6),'r');
+legend(hAll, labels)
+
+% ------------------------------------------------------------------------------
+% Velocity
+% ------------------------------------------------------------------------------
+subplot(3,1,2)
+
+hTrue = plot(t, xTrue(:,4:6), 'r');
 hold on
-hX = plot(t, x_hat(:,4), colors{1});
-hY = plot(t, x_hat(:,5), colors{2});
-hZ = plot(t, x_hat(:,6), colors{3});
+
+hX = plot(t, xNav(:,4), colors{1});
+hY = plot(t, xNav(:,5), colors{2});
+hZ = plot(t, xNav(:,6), colors{3});
+
 hAll = [hX, hY, hZ, hTrue(1)];
+
 hold off
-xlabel('Time [s]'),title('Velocity [m/s]'),grid
-labels = { ... 
+xlabel('Time [s]')
+title('Velocity [m/s]')
+grid on
+
+labels = { ...
     ['Estimate v_N at ', num2str(f_fast), ' Hz'], ...
     ['Estimate v_E at ', num2str(f_fast), ' Hz'], ...
     ['Estimate v_D at ', num2str(f_fast), ' Hz'], ...
     ['True velocity at ', num2str(f_fast), ' Hz']};
-legend(hAll, labels);
 
-subplot(313)
-hTrue = plot(t,x(:,7:9),'r');
+legend(hAll, labels)
+
+% ------------------------------------------------------------------------------
+% Accelerometer bias
+% ------------------------------------------------------------------------------
+subplot(3,1,3)
+
+hTrue = plot(t, xTrue(:,7:9), 'r');
 hold on
-hX = plot(t, x_hat(:,7), colors{1});
-hY = plot(t, x_hat(:,8), colors{2});
-hZ = plot(t, x_hat(:,9), colors{3});
+
+hX = plot(t, xNav(:,7), colors{1});
+hY = plot(t, xNav(:,8), colors{2});
+hZ = plot(t, xNav(:,9), colors{3});
+
 hAll = [hX, hY, hZ, hTrue(1)];
+
 hold off
-xlabel('Time [s]'),title('Acceleration bias [m/s^2]'),grid
-labels = { ... 
-    ['Estimate b_{x, acc} at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate b_{y, acc} at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate b_{z, acc} at ', num2str(f_fast), ' Hz'], ...
-    ['True acceleration bias at ', num2str(f_fast), ' Hz']};
-legend(hAll, labels);
+xlabel('Time [s]')
+title('Accelerometer bias [m/s^2]')
+grid on
 
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',legendSize)
+labels = { ...
+    ['Estimate b_{x,acc} at ', num2str(f_fast), ' Hz'], ...
+    ['Estimate b_{y,acc} at ', num2str(f_fast), ' Hz'], ...
+    ['Estimate b_{z,acc} at ', num2str(f_fast), ' Hz'], ...
+    ['True accelerometer bias at ', num2str(f_fast), ' Hz']};
 
-% Figure 2 
-figure(2); 
-if ~isoctave;set(gcf,'Position',[0.4*scrSz(3),1,0.4*scrSz(3),scrSz(4)]); end
+legend(hAll, labels)
 
-subplot(211)
-hTrue = plot(t,rad2deg(x(:,10:12)),'r');
-hold on
-hX = plot(t,rad2deg(x_hat(:,10)), colors{1});
-hY = plot(t,rad2deg(x_hat(:,11)), colors{2});
-hZ = plot(t,rad2deg(x_hat(:,12)), colors{3});
-hAll = [hX, hY, hZ, hTrue(1)];
-hold off
-xlabel('Time [s]'),title('Euler angles [deg]'),grid
-labels = { ... 
-    ['Estimate \phi at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate \theta at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate \psi at ', num2str(f_fast), ' Hz'], ...
-    ['True Euler angles at ', num2str(f_fast), ' Hz']};
-legend(hAll, labels);
-
-subplot(212)
-hTrue = plot(t,rad2deg(x(:,13:15)),'r');
-hold on
-hX = plot(t,rad2deg(x_hat(:,13)), colors{1});
-hY = plot(t,rad2deg(x_hat(:,14)), colors{2});
-hZ = plot(t,rad2deg(x_hat(:,15)), colors{3});
-hAll = [hX, hY, hZ, hTrue(1)];
-hold off
-xlabel('Time [s]'),title('Angular rate bias [deg/s]'),grid
-labels = { ... 
-    ['Estimate a_{x, ars} at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate a_{y, ars} at ', num2str(f_fast), ' Hz'], ...
-    ['Estimate a_{z, ars} at ', num2str(f_fast), ' Hz'], ...
-    ['True ARS bias at ', num2str(f_fast), ' Hz']};
-legend(hAll, labels);
-
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
-set(findall(gcf,'type','legend'),'FontSize',legendSize)
+set(findall(gcf, 'Type', 'line'),   'LineWidth', 1.5)
+set(findall(gcf, 'Type', 'text'),   'FontSize', 12)
+set(findall(gcf, 'Type', 'legend'), 'FontSize', legendSize)
 
 % ==============================================================================
-%% RADIO BUTTONS, FLAGS AND DISPLAY
+% Figure 2: Attitude and ARS bias
 % ==============================================================================
-function [attitudeFlag, velFlag] = displayMethod(cityName)
+figure(2);
+clf
 
-    f = figure('Position', [400, 400, 450, 300], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
+if ~isoctave
+    set(gcf, 'Position', ...
+        [0.4 * scrSz(3), 1, 0.4 * scrSz(3), scrSz(4)]);
+end
 
-    % Add button group for control methods
-    bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.65 0.96 0.3], 'Title', 'Attitude Aiding','FontSize',14,'FontWeight','bold');
-    radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Compass', 'Position', [10 40 500 30], 'Tag', '1');
-    radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',13, 'String', 'Attitude and heading reference system (AHRS)', 'Position', [10 10 500 30], 'Tag', '2');
-    set(radio1, 'Value', 1); % Set default value
+switch attitudeMethod
+    case 'compass'
 
-    % Add button group for velocity aiding options
-    bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.35 0.96 0.3], 'Title', 'Velocity Aiding','FontSize',14,'FontWeight','bold');
-    radio3 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'No Velocity Aiding', 'Position', [10 35 500 30], 'Tag', '1');
-    radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 13, 'String', 'Velocity Aiding', 'Position', [10 5 500 30], 'Tag', '2');
-    set(radio3, 'Value', 1); % Set default value
+        % --------------------------------------------------------------------------
+        % Euler-angle estimates from the 15-state ESKF
+        % --------------------------------------------------------------------------
 
-    % Add OK button to confirm selections
-    uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 13, 'Position', [20 30 100 40], 'Callback', @(src, evt) uiresume(f));
+        subplot(2,1,1)
 
-    uiwait(f); % wait for uiresume to be called on figure handle
+        hTrue = plot(t, rad2deg(xTrue(:,10:12)), 'r');
+        hold on
 
-    % Determine which attitude method was selected
-    if get(radio1, 'Value') == 1
-        attitudeFlag = str2double(get(radio1, 'Tag'));
-    else
-        attitudeFlag = str2double(get(radio2, 'Tag'));
-    end
+        hPhi   = plot(t, rad2deg(attitudeData(:,1)), colors{1});
+        hTheta = plot(t, rad2deg(attitudeData(:,2)), colors{2});
+        hPsi   = plot(t, rad2deg(attitudeData(:,3)), colors{3});
 
-    % Determine if velocity aiding was selected
-    if get(radio3, 'Value') == 1
-        velFlag  = str2double(get(radio3, 'Tag'));
-    else
-        velFlag  = str2double(get(radio4, 'Tag'));
-    end
+        hAll = [hPhi, hTheta, hPsi, hTrue(1)];
 
-    close(f);  % close the figure after obtaining the selections
+        hold off
+        xlabel('Time [s]')
+        title('Euler angles [deg]')
+        grid on
 
-    disp('-------------------------------------------------------------------');
-    disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
-    disp('Attitude parametrization: Euler angles');
-    if (velFlag == 1)
-        disp(['INS aided by position at ',num2str(f_slow), ' Hz']);
-    else
-        disp(['INS aided by position and velocity at ',num2str(f_slow),' Hz']);
-    end
-    disp(['IMU measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
-    if (attitudeFlag == 1)
-        disp(['Compass measurements at ',num2str(f_fast), ' Hz']);
-    else
-        disp(['Three-axis AHRS measurements at ',num2str(f_fast), ' Hz']);
-    end
-    disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
-    disp('-------------------------------------------------------------------');
-    disp('Simulating...');
+        labels = { ...
+            ['Estimate \phi at ', num2str(f_fast), ' Hz'], ...
+            ['Estimate \theta at ', num2str(f_fast), ' Hz'], ...
+            ['Estimate \psi at ', num2str(f_fast), ' Hz'], ...
+            ['True Euler angles at ', num2str(f_fast), ' Hz']};
+
+        legend(hAll, labels)
+
+        % --------------------------------------------------------------------------
+        % ARS-bias estimates from the 15-state ESKF
+        % --------------------------------------------------------------------------
+        subplot(2,1,2)
+
+        hTrue = plot(t, rad2deg(xTrue(:,13:15)), 'r');
+        hold on
+
+        hX = plot(t, rad2deg(arsBiasEstimateData(:,1)), colors{1});
+        hY = plot(t, rad2deg(arsBiasEstimateData(:,2)), colors{2});
+        hZ = plot(t, rad2deg(arsBiasEstimateData(:,3)), colors{3});
+
+        hAll = [hX, hY, hZ, hTrue(1)];
+
+        hold off
+        xlabel('Time [s]')
+        title('Angular-rate bias [deg/s]')
+        grid on
+
+        labels = { ...
+            ['Estimate b_{x,ars} at ', num2str(f_fast), ' Hz'], ...
+            ['Estimate b_{y,ars} at ', num2str(f_fast), ' Hz'], ...
+            ['Estimate b_{z,ars} at ', num2str(f_fast), ' Hz'], ...
+            ['True ARS bias at ', num2str(f_fast), ' Hz']};
+
+        legend(hAll, labels)
+
+    case 'ahrs'
+
+        % --------------------------------------------------------------------------
+        % Attitude supplied by the external AHRS
+        % --------------------------------------------------------------------------
+        hTrue = plot(t, rad2deg(xTrue(:,10:12)), 'r');
+        hold on
+
+        hPhi   = plot(t, rad2deg(attitudeData(:,1)), colors{1});
+        hTheta = plot(t, rad2deg(attitudeData(:,2)), colors{2});
+        hPsi   = plot(t, rad2deg(attitudeData(:,3)), colors{3});
+
+        hAll = [hPhi, hTheta, hPsi, hTrue(1)];
+
+        hold off
+        xlabel('Time [s]')
+        title('AHRS Euler angles [deg]')
+        grid on
+
+        labels = { ...
+            ['AHRS \phi at ', num2str(f_fast), ' Hz'], ...
+            ['AHRS \theta at ', num2str(f_fast), ' Hz'], ...
+            ['AHRS \psi at ', num2str(f_fast), ' Hz'], ...
+            ['True Euler angles at ', num2str(f_fast), ' Hz']};
+
+        legend(hAll, labels)
 
 end
 
+set(findall(gcf, 'Type', 'line'),   'LineWidth', 1.5)
+set(findall(gcf, 'Type', 'text'),   'FontSize', 12)
+set(findall(gcf, 'Type', 'legend'), 'FontSize', legendSize)
+
+
+% ==============================================================================
+% Radio buttons, flags, and display
+% ==============================================================================
+function [attitudeMethod, aidingMethod] = displayMethod( ...
+    cityName, f_fast, f_slow)
+
+    f = figure( ...
+        'Position',    [400, 400, 500, 320], ...
+        'Name',        'Strapdown Aided INS', ...
+        'MenuBar',     'none', ...
+        'NumberTitle', 'off', ...
+        'WindowStyle', 'modal');
+
+    % --------------------------------------------------------------------------
+    % Attitude source
+    % --------------------------------------------------------------------------
+    bg1 = uibuttongroup( ...
+        'Parent',     f, ...
+        'Position',   [0.02, 0.64, 0.96, 0.32], ...
+        'Title',      'Attitude Source', ...
+        'FontSize',   14, ...
+        'FontWeight', 'bold');
+
+    radioCompass = uicontrol( ...
+        bg1, ...
+        'Style',    'radiobutton', ...
+        'FontSize', 13, ...
+        'String',   'Compass-aided 15-state ESKF', ...
+        'Position', [10, 45, 470, 30], ...
+        'Tag',      'compass');
+
+    radioAHRS = uicontrol( ...
+        bg1, ...
+        'Style',    'radiobutton', ...
+        'FontSize', 13, ...
+        'String',   'External AHRS with 9-state ESKF', ...
+        'Position', [10, 12, 470, 30], ...
+        'Tag',      'ahrs');
+
+    set(radioCompass, 'Value', 1);
+
+    % --------------------------------------------------------------------------
+    % Aiding measurements
+    % --------------------------------------------------------------------------
+    bg2 = uibuttongroup( ...
+        'Parent',     f, ...
+        'Position',   [0.02, 0.32, 0.96, 0.28], ...
+        'Title',      'Aiding Measurements', ...
+        'FontSize',   14, ...
+        'FontWeight', 'bold');
+
+    radioPosition = uicontrol( ...
+        bg2, ...
+        'Style',    'radiobutton', ...
+        'FontSize', 13, ...
+        'String',   'Position aiding', ...
+        'Position', [10, 35, 470, 30], ...
+        'Tag',      'position');
+
+    radioPositionVelocity = uicontrol( ...
+        bg2, ...
+        'Style',    'radiobutton', ...
+        'FontSize', 13, ...
+        'String',   'Position and velocity aiding', ...
+        'Position', [10, 5, 470, 30], ...
+        'Tag',      'position_velocity');
+
+    set(radioPosition, 'Value', 1);
+
+    % --------------------------------------------------------------------------
+    % Confirmation button
+    % --------------------------------------------------------------------------
+    uicontrol( ...
+        'Style',    'pushbutton', ...
+        'String',   'OK', ...
+        'FontSize', 13, ...
+        'Position', [20, 25, 100, 40], ...
+        'Callback', @(src, event) uiresume(f));
+
+    uiwait(f);
+
+    % Determine the selected attitude source
+    if get(radioCompass, 'Value') == 1
+        attitudeMethod = get(radioCompass, 'Tag');
+    else
+        attitudeMethod = get(radioAHRS, 'Tag');
+    end
+
+    % Determine the selected aiding measurements
+    if get(radioPosition, 'Value') == 1
+        aidingMethod = get(radioPosition, 'Tag');
+    else
+        aidingMethod = get(radioPositionVelocity, 'Tag');
+    end
+
+    close(f);
+
+    % --------------------------------------------------------------------------
+    % Display simulation configuration
+    % --------------------------------------------------------------------------
+    disp('-------------------------------------------------------------------')
+    disp('MSS toolbox: Error-state feedback Kalman filter')
+    disp('Attitude parameterization: Euler angles')
+
+    switch aidingMethod
+        case 'position'
+            disp([ ...
+                'INS aided by position measurements at ', ...
+                num2str(f_slow), ' Hz'])
+
+        case 'position_velocity'
+            disp([ ...
+                'INS aided by position and velocity measurements at ', ...
+                num2str(f_slow), ' Hz'])
+    end
+
+    disp([ ...
+        'IMU measurements and ESKF propagation at ', ...
+        num2str(f_fast), ' Hz'])
+
+    switch attitudeMethod
+        case 'compass'
+            disp('Architecture: 15-state ESKF with compass aiding')
+            disp([ ...
+                'Compass measurements at ', ...
+                num2str(f_fast), ' Hz'])
+
+        case 'ahrs'
+            disp('Architecture: 9-state ESKF using an external AHRS')
+            disp([ ...
+                'Three-axis AHRS measurements at ', ...
+                num2str(f_fast), ' Hz'])
+    end
+
+    disp([ ...
+        'Magnetic-field reference vector for ', ...
+        cityName, ' (>> type magneticField)'])
+
+    disp('-------------------------------------------------------------------')
+    disp('Simulating...')
 end
 
+end

@@ -3,8 +3,7 @@ function SIMaidedINSquat()
 % This script simulates an Inertial Navigation System (INS) aided by position 
 % measurements using the Error-State Kalman Filter (ESKF). The attitude is 
 % parametrized using unit quaternions and the error states are represented 
-% by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) 
-% (Fossen, 2021, Chapter 14.4).  
+% by Gibbs vector in a Multiplicative Extended Kalman Filter (MEKF) (Fossen, 2027).  
 %
 % The ESKF uses high-rate inertial measurements from a 9-DOF inertial measurement
 % unit (IMU). The ESKF can be called either as a corrector (with new measurements) 
@@ -24,46 +23,50 @@ function SIMaidedINSquat()
 %   magneticField.m - Magnetic field vectors for different cities.
 %  
 % References:
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-%    Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
+%   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and Motion 
+%    Control, 3rd edition, John Wiley & Sons. Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
 % Date: 2024-04-26
 % Revisions:
 %   2024-08-20 : Using the updated insSignal.m generator
 %   2024-09-09 : New logic for slow position and magnetometer/compass measurements
-%   2025-11-11 : Added application modes and pseudomeasurement for average
+%   2025-11-11 : Added application modes and pseudo-measurement for average
 %                sea level
 clearvars;
 
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 100; % Final simulation time (s)
-f_fast = 1000; % High-rate IMU meaurement frequency (Hz)
+T_final = 60; % Final simulation time (s)
+f_fast = 1000; % High-rate IMU measurement frequency (Hz)
 f_mag = 100; % Magnetometer measurement frequency (Hz)
 f_slow = 5; % Slow-rate position measurement frequency (Hz)
 
-% Sampling times in seconds
-h  = 1/f_fast; 	
-h_slow = 1/f_slow; 
-h_mag = 1/f_mag;
+h      = 1 / f_fast;  % High-rate IMU and ESKF sampling time
+h_slow = 1 / f_slow;  % Low-rate aiding sampling time
+h_mag = 1/ f_mag;     % Magnetometer sampling time
+
+testSignalNo = 1;     % INS test signal - 1: constant bias, 2: time-varying bias
 
 % ==============================================================================
 % Initialization of the INS signal generator
 % ==============================================================================
-[m_ref, ~, mu, cityName] = magneticField(1); % Magntic field and latitude for city #1
-b_acc = [0.1 0.3 -0.1]'; %  IMU accelerometer bias
-b_ars = [0.05 0.1 -0.05]'; %  % IMU ARS bias
-x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	% Initial states 
+[m_ref,~,mu,cityName] = magneticField(1); % Magnetic field for city #1
+b_acc = [0.1 0.3 -0.1]'; % IMU accelerometer bias
+b_ars = [0.05 0.1 -0.05]'; % IMU ARS bias
+
+% Signal-generator state: [position; velocity; accelerometer bias; Euler angles; ARS bias]
+x = [zeros(1,6) b_acc' zeros(1,3) b_ars']';	
 
 % Display simulation options
-[attitudeFlag,velFlag,applicationFlag,pseudoFlag] = displayMethod(cityName); 
+[attitudeFlag,velFlag,applicationFlag,pseudoFlag] = ...
+    displayMethod(cityName,f_slow,f_fast,f_mag); 
 
 % ==============================================================================
 % Initialization of ESKF covariance matrices
 % ==============================================================================
-P_prd = eye(15);
+P_prd = 10 * eye(15);
 
 % Process noise weights: vel, acc_bias, w, ars_bias
 Qd = diag([0.01 0.01 0.01  0.01 0.01 0.01  0.1 0.1 0.1  0.001 0.001 0.001]);
@@ -79,12 +82,16 @@ Rd.magnetometer = 0.01 * diag([1 1 1]);
 Rd.compass = 0.01;
 
 % Application-based aiding
-Rd.gravityRefVector = 1 * diag([1 1 1]); % Gravity reference vector (hovering/stationkeeping)
-Rd.pseduoMeasSeaLevel = 0.01; % Pseduomeasurement for average sea level
+Rd.gravityRefVector = 10 * diag([1 1 1]); % Gravity reference vector (stationkeeping)
+Rd.pseudoMeasSeaLevel = 0.01; % Pseudo-measurement for average sea level
 
 % Configuration flags used by ins_mekf.m
 Rd.applicationFlag = applicationFlag;
 Rd.pseudoFlag = pseudoFlag;
+
+% Bias time constants
+T_acc = 300;            % Acceleration bias time constant [s]
+T_ars = 300;            % Angular rate bias time constant [s]
 
 % ==============================================================================
 % Initialization of the INS states
@@ -98,72 +105,109 @@ x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
 if pseudoFlag, x_ins = [x_ins; 0]; end % Additional sea level state
 
 % ==============================================================================
-%% MAIN LOOP
+% Multirate scheduling
+% ==============================================================================
+% At most one measurement from each slow sensor is processed per fast step.
+if f_slow > f_fast
+    error('The aiding frequency f_slow must satisfy f_slow <= f_fast.');
+end
+
+if f_mag > f_fast
+    error('The heading frequency f_mag must satisfy f_mag <= f_fast.');
+end
+
+slowIndex = 0;   % Index of the next nominal position measurement
+headingIndex = 0; % Index of the next nominal heading measurement
+
+% Tolerance for floating-point comparisons of coincident sample times
+tol = 10 * eps(max(1, T_final));
+
+% ==============================================================================
+% Time and data initialization
 % ==============================================================================
 t = 0:h:T_final;                % Time vector from 0 to T_final          
 nTimeSteps = length(t);         % Number of time steps
-simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
-if pseudoFlag, simdata = zeros(nTimeSteps,32); end
-posdata = zeros(floor(T_final * f_slow), 4); % Pre-allocate table for position data
-pos_index = 0; % Initialize index for posdata
 
+simdata = zeros(nTimeSteps,31); % Pre-allocate table for simulation data
+if pseudoFlag
+    simdata = zeros(nTimeSteps,32);
+end
+
+% Include measurements at t = 0 and, when applicable, t = T_final
+N_slow = floor(T_final/h_slow) + 1;
+posdata = zeros(N_slow,4); % Pre-allocate table for position data
+positionIndex = 0; % Initialize index for posdata
+
+% ==============================================================================
+%% MAIN LOOP
+% ==============================================================================
 for i=1:nTimeSteps
     
     % INS signal generator 
-    [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref);
+    [x, f_imu, w_imu, m_imu] = insSignal(x, h, t(i), mu, m_ref, testSignalNo);
    
-     % IMU magnetometer and compass measurements are slower than the sampling time
-    if abs( mod(t(i), h_mag) ) < 1e-10
-        imu_meas = [f_imu' w_imu' m_imu']; % 9-DOF IMU measurements
-        y_psi = x(12); % Compass measurement
-    else 
-        imu_meas = [f_imu' w_imu']; % No magnetometer measurements
-        y_psi = []; % No compass measurement
+    % Determine whether a new magnetometer/compass measurement is available
+    newHeadingMeasurement = ...
+        t(i) + tol >= headingIndex * h_mag;
+
+    if newHeadingMeasurement
+        headingIndex = headingIndex + 1;
+
+        imu_meas = [f_imu' w_imu' m_imu'];
+        y_psi = x(12);
+
+    else
+        imu_meas = [f_imu' w_imu'];
+        y_psi = [];
     end
 
-    % Position measurements are slower than the sampling time
-    if abs(mod(t(i), h_slow)) < 1e-10
-        % AIDING
-        pos_index = pos_index + 1;
+    % Determine whether a new slow position measurement is available
+    newSlowMeasurement = t(i) + tol >= slowIndex * h_slow;
+
+    if newSlowMeasurement
+
+        slowIndex = slowIndex + 1;
+        positionIndex = positionIndex + 1;
+
         y_pos = x(1:3) + 0.05 * randn(3,1);
         y_vel = x(4:6) + 0.01 * randn(3,1);
-        posdata(pos_index, :) = [t(i), y_pos'];
+        posdata(positionIndex,:) = [t(i), y_pos'];
 
-        if attitudeFlag == 2   
-            % MAGNETOMETER 
+        if attitudeFlag == 2
+            % MAGNETOMETER MEASUREMENT
             if ~velFlag
                 % Position aiding + magnetometer
                 [x_ins,P_prd] = ins_mekf(...
-                    x_ins,P_prd,mu,h,Qd,Rd,imu_meas,m_ref,y_pos);
+                    x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,imu_meas,m_ref,y_pos);
             else
                 % Position/velocity aiding + magnetometer
                 [x_ins,P_prd] = ins_mekf(...
-                    x_ins,P_prd,mu,h,Qd,Rd,imu_meas,m_ref,y_pos,y_vel);
+                    x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,imu_meas,m_ref,y_pos,y_vel);
             end
 
         else  
-            % COMPASS
+            % COMPASS MEASUREMENT
             if ~velFlag
                 % Position aiding + compass
                 [x_ins,P_prd] = ins_mekf_psi(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos);
+                    x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,f_imu,w_imu,y_psi,y_pos);
             else
                 % Position/velocity aiding + compass
                 [x_ins,P_prd] = ins_mekf_psi(...
-                    x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi,y_pos,y_vel);
+                    x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,f_imu,w_imu,y_psi,y_pos,y_vel);
             end
         end
 
     else
-        % NO AIDING 
+        % NO NEW POSITION OR VELOCITY MEASUREMENTS
         if attitudeFlag == 2
             % Magnetometer
-            [x_ins,P_prd] = ins_mekf(...
-                x_ins,P_prd,mu,h,Qd,Rd,[f_imu', w_imu', m_imu'],m_ref);
+            [x_ins,P_prd] = ins_mekf( ...
+                x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,imu_meas,m_ref);
         else
             % Compass
             [x_ins,P_prd] = ins_mekf_psi(...
-                x_ins,P_prd,mu,h,Qd,Rd,f_imu,w_imu,y_psi);
+                x_ins,P_prd,mu,h,Qd,Rd,T_acc,T_ars,f_imu,w_imu,y_psi);
         end
     end
 
@@ -172,8 +216,10 @@ for i=1:nTimeSteps
     
 end
 
+posdata = posdata(1:positionIndex,:); % Remove unused preallocated rows
+
 % ==============================================================================
-% PLOTS
+%% PLOTS
 % ==============================================================================
 scrSz = get(0, 'ScreenSize'); % Get screen dimensions
 legendSize = 10;
@@ -243,8 +289,8 @@ labels = { ...
     ['True acceleration bias at ', num2str(f_fast), ' Hz']};
 legend(hAll, labels);
 
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % Figure 2
@@ -283,83 +329,84 @@ labels = { ...
     ['True ARS bias at ', num2str(f_fast), ' Hz']};
 legend(hAll, labels);
 
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % ==============================================================================
 %% RADIO BUTTONS, FLAGS AND DISPLAY
 % ==============================================================================
-function [attitudeFlag,velFlag,applicationFlag,pseudoFlag] = displayMethod(cityName)
+    function [attitudeFlag,velFlag,applicationFlag,pseudoFlag] = displayMethod( ...
+            cityName,f_slow,f_fast,f_mag)
 
-    f = figure('Position', [400, 300, 550, 600], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
+        f = figure('Position', [400, 300, 550, 600], 'Name', 'Strapdown Aided INS', 'MenuBar', 'none', 'NumberTitle', 'off', 'WindowStyle', 'modal');
 
-    % Add button group for control methods
-    bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.67 0.96 0.3], 'Title', 'Compass Aiding','FontSize',14,'FontWeight','bold');
-    radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',12, 'String', 'Compass', 'Position', [10 120 500 30], 'Tag', '1');
-    radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',12, 'String', 'Magnetometer', 'Position', [10 90 500 30], 'Tag', '2');
-    set(radio2, 'Value', 1); % Set default value
+        % Add button group for control methods
+        bg1 = uibuttongroup('Parent', f, 'Position', [0.02 0.67 0.96 0.3], 'Title', 'Compass Aiding','FontSize',14,'FontWeight','bold');
+        radio1 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',12, 'String', 'Compass', 'Position', [10 120 500 30], 'Tag', '1');
+        radio2 = uicontrol(bg1, 'Style', 'radiobutton', 'FontSize',12, 'String', 'Magnetometer', 'Position', [10 90 500 30], 'Tag', '2');
+        set(radio2, 'Value', 1); % Set default value
 
-    % Add button group for velocity aiding options
-    bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.49 0.96 0.3], 'Title', 'Velocity Aiding','FontSize',14,'FontWeight','bold');
-    radio3 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No Velocity Aiding', 'Position', [10 120 500 30], 'Tag', 'false');
-    radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Velocity Aiding', 'Position', [10 90 500 30], 'Tag', 'true');
-    set(radio3, 'Value', 1);     % Default = NO velcoity measurement
+        % Add button group for velocity aiding options
+        bg2 = uibuttongroup('Parent', f, 'Position', [0.02 0.49 0.96 0.3], 'Title', 'Velocity Aiding','FontSize',14,'FontWeight','bold');
+        radio3 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No Velocity Aiding', 'Position', [10 120 500 30], 'Tag', 'false');
+        radio4 = uicontrol(bg2, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Velocity Aiding', 'Position', [10 90 500 30], 'Tag', 'true');
+        set(radio3, 'Value', 1);     % Default = NO velcoity measurement
 
-    % Add button group for application-based aiding
-    bg3 = uibuttongroup('Parent', f, 'Position', [0.02 0.31 0.96 0.3], 'Title', 'Application-Based Aiding Mode','FontSize',14,'FontWeight','bold');
-    radio5 = uicontrol(bg3, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No gravity Reference Vector Measurement (Large Roll/Pitch Angles)', 'Position', [10 120 500 30], 'Tag', 'false');
-    radio6 = uicontrol(bg3, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Gravity Reference Vector Measurement (Small Roll/Pitch Angles)', 'Position', [10 90 500 30], 'Tag', 'true');
-    set(radio5, 'Value', 1);   % Default = NO aiding
+        % Add button group for application-based aiding
+        bg3 = uibuttongroup('Parent', f, 'Position', [0.02 0.31 0.96 0.3], 'Title', 'Application-Based Aiding Mode','FontSize',14,'FontWeight','bold');
+        radio5 = uicontrol(bg3, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No gravity Reference Vector Measurement (Large Roll/Pitch Angles)', 'Position', [10 120 500 30], 'Tag', 'false');
+        radio6 = uicontrol(bg3, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Gravity Reference Vector Measurement (Small Roll/Pitch Angles)', 'Position', [10 90 500 30], 'Tag', 'true');
+        set(radio5, 'Value', 1);   % Default = NO aiding
 
-    % Add button group for pseudomeasurement constraint
-    bg4 = uibuttongroup('Parent', f, 'Position', [0.02 0.12 0.96 0.3], 'Title', 'Pseudomeasurement (Average Sea Surface zⁿ ≈ 0)','FontSize',14,'FontWeight','bold');
-    radio7 = uicontrol(bg4, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No Pseudomeasurement', 'Position', [10 120 500 30], 'Tag', 'false');
-    radio8 = uicontrol(bg4, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Enable Pseudomeasurement', 'Position', [10 90 500 30], 'Tag', 'true');
-    set(radio7, 'Value', 1);   % Default = NO pseudomeasurement
+        % Add button group for pseudomeasurement constraint
+        bg4 = uibuttongroup('Parent', f, 'Position', [0.02 0.12 0.96 0.3], 'Title', 'Pseudomeasurement (Average Sea Surface zⁿ ≈ 0)','FontSize',14,'FontWeight','bold');
+        radio7 = uicontrol(bg4, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'No Pseudomeasurement', 'Position', [10 120 500 30], 'Tag', 'false');
+        radio8 = uicontrol(bg4, 'Style', 'radiobutton', 'FontSize', 12, 'String', 'Enable Pseudomeasurement', 'Position', [10 90 500 30], 'Tag', 'true');
+        set(radio7, 'Value', 1);   % Default = NO pseudomeasurement
 
-    % Add OK button to confirm selections
-    uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 12, 'Position', [20 30 100 40], 'Callback', @(src, evt) uiresume(f));
+        % Add OK button to confirm selections
+        uicontrol('Style', 'pushbutton', 'String', 'OK', 'FontSize', 12, 'Position', [20 30 100 40], 'Callback', @(src, evt) uiresume(f));
 
-    uiwait(f); % wait for uiresume to be called on figure handle
+        uiwait(f); % wait for uiresume to be called on figure handle
 
-    attitudeFlag    = str2double(get(findobj(bg1,'Value',1),'Tag'));
-    velFlag         = strcmp(get(findobj(bg2,'Value',1),'Tag'), 'true');
-    applicationFlag = strcmp(get(findobj(bg3,'Value',1),'Tag'), 'true');
-    pseudoFlag      = strcmp(get(findobj(bg4,'Value',1),'Tag'), 'true');
+        attitudeFlag    = str2double(get(findobj(bg1,'Value',1),'Tag'));
+        velFlag         = strcmp(get(findobj(bg2,'Value',1),'Tag'), 'true');
+        applicationFlag = strcmp(get(findobj(bg3,'Value',1),'Tag'), 'true');
+        pseudoFlag      = strcmp(get(findobj(bg4,'Value',1),'Tag'), 'true');
 
-    close(f);  % close the figure after obtaining the selections
+        close(f);  % close the figure after obtaining the selections
 
-    disp('-------------------------------------------------------------------');
-    disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
-    disp('Unit quaternion attitude parametrization (MEKF): 2 x Gibbs vector');
-   
-    if ~velFlag
-        disp(['INS aided by position at ',num2str(f_slow), ' Hz']);
-    else
-        disp(['INS aided by position and velocity at ',num2str(f_slow),' Hz']);
+        disp('-------------------------------------------------------------------');
+        disp('MSS toolbox: Error-state (indirect) feedback Kalman filter');
+        disp('Unit quaternion attitude parametrization (MEKF): 2 x Gibbs vector');
+
+        if ~velFlag
+            disp(['INS aided by position at ',num2str(f_slow), ' Hz']);
+        else
+            disp(['INS aided by position and velocity at ',num2str(f_slow),' Hz']);
+        end
+
+        disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
+
+        if (attitudeFlag == 2)
+            disp(['IMU magnetometer measurements at ',num2str(f_mag), ' Hz']);
+            disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
+        else
+            disp(['Compass measurements at ',num2str(f_mag), ' Hz']);
+        end
+
+        if applicationFlag
+            disp('Gravity reference vector (hover/stationkeeping)');
+        end
+
+        if pseudoFlag
+            disp('Pseudomeasurement for average sea surface (zⁿ ≈ 0)');
+        end
+
+        disp('-------------------------------------------------------------------');
+        disp('Simulating...');
+
     end
-
-    disp(['IMU inertial measurements (specific force and ARS) at ',num2str(f_fast),' Hz']);
-    
-    if (attitudeFlag == 2)
-        disp(['IMU magnetometer measurements at ',num2str(f_mag), ' Hz']);
-        disp(['Magnetic field reference vector for ', cityName, ' (>> type magneticField)']);
-    else
-        disp(['Compass measurements at ',num2str(f_mag), ' Hz']);
-    end
-
-    if applicationFlag
-        disp('Gravity reference vector (hover/stationkeeping)');
-    end  
-
-    if pseudoFlag
-        disp('Pseudomeasurement for average sea surface (zⁿ ≈ 0)');
-    end 
-
-    disp('-------------------------------------------------------------------');
-    disp('Simulating...');
-
-end
 
 end

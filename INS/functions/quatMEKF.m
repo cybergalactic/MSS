@@ -1,4 +1,5 @@
-function [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, imu_meas)
+function [quat, b_ars, P_prd] = quatMEKF( ...
+    quat, b_ars, P_prd, h, Qd, Rd, T_ars, m_ref, imu_meas)
 % quatMEKF is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
@@ -9,13 +10,13 @@ function [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, i
 % supports both predictor mode (IMU only) and corrector mode (IMU with 
 % aiding measurements).
 %
-%   Predictor (6-DOF IMU: specific force and ARS)
+%   % Predictor (6-DOF IMU only)
 %      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
 %          [f_imu', w_imu'])
-%   Corrector (7-DOF: specific force, ARS, and compass heading)
+%   % Corrector (6-DOF IMU + compass aiding)
 %      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
 %          [f_imu', w_imu', psi])
-%   Corrector (9-DOF: specific force, ARS, and magnetometer)
+%   % Corrector (9-DOF IMU + magnetometer aiding)
 %      [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, ... 
 %          [f_imu', w_imu', m_imu'])
 % 
@@ -30,7 +31,10 @@ function [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, i
 %   P_prd[k]  - 6x6 error-state covariance matrix 
 %   h         - Sampling time for the observer update 
 %   Qd        - 6x6 process covariance matrix
-%   Rd        - 6x6 measurement covariance matrix
+%   Rd        - Measurement covariance matrix:
+%                   6x6 for gravity and magnetometer aiding,
+%                   4x4 for gravity and compass aiding.
+%   T_ars     - Angular rate bias time constant in seconds.
 %   m_ref     - 3x1 vector representing the reference magnetic field vector
 %               expressed in NED. The reference signal m_ref = R^n_b * m_imu 
 %               can be computed during initial calibration, see 
@@ -59,15 +63,16 @@ function [quat, b_ars, P_prd] = quatMEKF(quat, b_ars, P_prd, h, Qd, Rd, m_ref, i
 %       Attitude Determination and Control, Volume 33 of Space Technology 
 %       Library. Springer-Verlag, New York.
 %
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. 2nd Edition, Wiley.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and
+%       Motion Control. 3rd Edition, Wiley.
 %
 % Author:    Thor I. Fossen
 % Date:      2025-11-05
 % Revisions: 
 
 % Transposed unit quaternion rotation matrix: R_transposed[k]
-R_transposed = Rquat(quat)';
+R = Rquat(quat);
+R_transposed = R';
 
 % Constants 
 O3 = zeros(3,3);
@@ -76,22 +81,14 @@ I3 = eye(3);
 % High-rate IMU measurements: w_imu[k]
 w_imu = imu_meas(4:6)';
 
-% Discrete-time ESKF matrices
-A = [ -Smtrx(w_imu) -I3
-                O3   O3 ];
-
-Ad = expm_taylor(A * h);
-
-Ed = h *[ -I3 O3
-           O3 I3  ];
-
 % Measurements (low rate)
-if length(imu_meas) == 6  % No magentic field/compass measurements
+if numel(imu_meas) == 6  % No magnetic field/compass measurements
+
     P_hat = P_prd;
 
 else
 
-    if length(imu_meas) == 9                 % 9‑DOF case: [f_imu' w_imu' m_imu']
+    if numel(imu_meas) == 9                  % 9‑DOF case: [f_imu' w_imu' m_imu']
         f_imu = imu_meas(1:3)';
         v1  = f_imu / norm(f_imu);
         v01 = [0 0 -1]';
@@ -105,25 +102,16 @@ else
                 Smtrx(R_transposed*v02) O3 ]; % Magnetic field measurement vector
 
         % Innovation vector
-        delta_y = [ v1 - R_transposed * v01
-            v2 - R_transposed * v02];
+        delta_y = [ v1 - R_transposed*v01
+                    v2 - R_transposed*v02];
 
-    elseif length(imu_meas) == 7              % 7‑DOF case: [f_imu' w_imu' psi]
+    elseif numel(imu_meas) == 7               % 7‑DOF case: [f_imu' w_imu' psi]
         f_imu = imu_meas(1:3)';
         v01 = [0 0 -1]';
         v1  = f_imu / norm(f_imu);
 
         psi = imu_meas(7);
-
-        a = (2/quat(1)) * [quat(2) quat(3) quat(4)]'; % 2 x Gibbs vector
-        u_y = 2 * ( a(1)*a(2) + 2*a(3) );
-        u_x = ( 4 + a(1)^2 - a(2)^2 - a(3)^2 );
-        u = u_y / u_x;
-        du = 1 / (1 + u^2);
-        c_psi = du * (1 / ( 4 + a(1)^2 - a(2)^2 - a(3)^2 )^2 ) * ...
-            [ -2*((a(1)^2 + a(3)^2 - 4)*a(2) + a(2)^3 + 4*a(1)*a(3))
-            2*((a(2)^2 - a(3)^2 + 4)*a(1) + a(1)^3 + 4*a(2)*a(3))
-            4*((a(3)^2 + a(1)*a(2)*a(3) + a(1)^2 - a(2)^2 + 4)) ];
+        c_psi = [0, R(3,2), R(3,3)]' / ( R(3,2)^2 + R(3,3)^2 );
 
         % Measurement matrix
         Cd = [ Smtrx(R_transposed*v01) O3    % Gravity measurement vector
@@ -131,11 +119,10 @@ else
 
         % Innovation vector
         delta_y = [v1 - R_transposed * v01
-                   ssa(psi - atan2(u_y, u_x))];
-
+                   ssa(psi - atan2(R(2,1), R(1,1)))];
     end
 
-    % KF gain: K[k])
+    % Kalman gain: K[k])
     K = P_prd * Cd' * invQR(Cd * P_prd * Cd' + Rd);
     IKC = eye(size(P_prd)) - K * Cd;
 
@@ -143,7 +130,7 @@ else
     delta_x_hat = K * delta_y;
     P_hat = IKC * P_prd * IKC' + K * Rd * K';
 
-    % Form error quaternion from 2 x Gibbs vector: delta_q_hat[k]
+    % Convert 2 x Gibbs vector to an error quaternion: delta_q_hat[k]
     delta_a = delta_x_hat(1:3);
     delta_q_hat = 1 / sqrt(4 + delta_a' * delta_a) * [2; delta_a];
 
@@ -151,13 +138,25 @@ else
     b_ars = b_ars + delta_x_hat(4:6);
 
     % Multiplicative quaternion update (maintains unit norm)
-    quat = quatprod(quat , delta_q_hat);        % Schur product
+    quat = quatprod(quat, delta_q_hat);         % Quaternion error injection
     quat = quat / norm(quat);                   % Normalization
-
 
 end
 
-% Covariance prediction: P_prd[k+1]
+% ==============================================================================
+% Discrete-time ESKF state and process noise matrices Ad and Ed
+% ==============================================================================
+A = [ -Smtrx(w_imu-b_ars) -I3
+       O3                 -1/T_ars * I3 ];
+
+Ad = expm(A * h);
+
+Ed = h *[ -I3 O3
+           O3 I3 ];
+
+% ==============================================================================
+% Predictor: P_prd[k+1]
+% ==============================================================================
 P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 
 % quat[k+1] is computed using the matrix exponential, which serves as the 
@@ -166,7 +165,7 @@ P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 %    quat _dot = Tquat(w_imu-b_ars) * quat 
 % You can replace the build-in Matlab function expm.m with the custom-made 
 % MSS function expm_squaresPade.m for this computation.
-quat  = expm( Tquat(w_imu-b_ars) * h ) * quat ;   
+quat  = expm(Tquat(w_imu-b_ars) * h) * quat ;   
 quat = quat / norm(quat);                        % Normalization
 
 end

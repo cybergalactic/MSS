@@ -1,4 +1,4 @@
-function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_meas)
+function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 % quatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
@@ -7,20 +7,20 @@ function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_mea
 % The function  supports both predictor mode (IMU only) and corrector mode 
 % (IMU with aiding measurements).
 %
-%   Predictor (6-DOF IMU: specific force and ARS)
+%   % Predictor (6-DOF IMU only)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu'])
-%   Corrector (7-DOF: specific force, ARS, and compass heading)
+%   % Corrector (6-DOF IMU + compass aiding)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu', psi])
-%   Corrector (9-DOF: specific force, ARS, and magnetometer)
+%   % Corrector (9-DOF IMU with magnetometer aiding)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu', m_imu'])
 % 
 % The injection term is implemented using two reference vectors
 %   sigma = k1 * v1 x R'(quat) * v01 + k2 * v2 x R'(quat) * v02
 %
-% Continuous-time observer (Grip et al. 2013)(Fossen 2021, Eqs. 14.48-14.50)
+% Continuous-time observer 
 %   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
 %   b_ars_dot = -Ki * sigma
 %
@@ -75,8 +75,8 @@ function [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, imu_mea
 %       Quaternion-Based Attitude Estimation. American Control Conference, 
 %       Washington DC, USA, IEEE Xplore, pp. 272-279. 
 %       doi.org/10.1109/ACC.2013.6579849
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. 2nd Edition, Wiley.
+%   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%       Motion Control. 3rd Edition, Wiley.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-08-20

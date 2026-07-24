@@ -1,5 +1,5 @@
-function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
-    phi, theta, p_0, p)
+function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, T_acc, mu, rho, ...
+    f_imu, phi, theta, p_0, p)
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) in heave. The Inertial Navigation System (INS) is aided by pressure 
 % measurements:
@@ -10,12 +10,13 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
 % the implementation of the Kalman filter loop using the corrector-predictor 
 % representation:
 %
-%   - With new slow pressure measurements:
-%       [x_ins,P_prd] = ins_heave(...
-%           x_ins, P_prd, h, Qd, Rd, f_imu_z, phi, theta, p_0, p)
+%   - With a new pressure measurement:
+%       [x_ins,P_prd] = ins_heave( ...
+%           x_ins, P_prd, h, Qd, Rd, T_acc, mu, rho, f_imu, phi, theta, p_0, p)
 %
-%   - Without new pressure measurements (no aiding):
-%       [x_ins,P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu_z, phi, theta)
+%   - Without a new pressure measurement:
+%       [x_ins,P_prd] = ins_heave( ...
+%           x_ins, P_prd, h, Qd, Rd, T_acc, mu, rho, f_imu, phi, theta)
 %
 % This function models the INS errors in heave, including the down position, 
 % down velocity, and acceleration bias errors:
@@ -29,6 +30,9 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
 %   P_prd[k]   : 3x3 covariance matrix of the prediction step.
 %   h          : Sampling time in seconds
 %   Qd, Rd     : Process and measurement noise covariance matrices
+%   T_acc      : Acceleration bias time constant in seconds.
+%   mu         : Latitude in radians, used to calculate the gravity vector
+%   rho        : Water density in kg/m^3
 %   f_imu[k]   : 3 x 1 IMU acceleration in the body frame
 %   phi[k]     : Roll angle from AHRS in radians
 %   theta[k]   : Pitch angle from AHRS in radians
@@ -36,30 +40,32 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, f_imu, ...
 %   p[k]       : Measured pressure in Pa (aiding measurement)
 %
 % Outputs:
-%   x_prd      : 3x1 Predicted state vector
-%   P_prd      : 3x3 Predicted covariance matrix
+%   x_ins[k+1] : Updated and propagated 3x1 INS state vector.
+%   P_prd[k+1] : Predicted 3x3 error covariance matrix.
 
-persistent ins; % Persistent data structure 'ins'
+persistent ins    % Persistent data structure local to ins_heave
 
 % Initialization of INS parameters. Compute the INS parameters only once
 % to avoid that the ESKF repeats the computation in the loop at each time step
 if isempty(ins)
-    % Constants
-    ins.g = 9.81; % Gravity in m/s^2
-    ins.rho = 1025; % Density of water in kg/m^3
-    ins.T_acc = 100; % Acceleration bias time constant in seconds
 
-    % Discrete-time ESKF matrices
+    ins.g = gravity(mu); % Acceleration of gravity in m/s^2
+    
+    % Continuous-time ESKF system matrix
     ins.A = [ 0 1  0   
               0 0 -1           
-              0 0 -1/ins.T_acc ];
+              0 0 -1 / T_acc ];
 
-    ins.Ad = expm_taylor(ins.A * h);
+    % Discrete-time ESKF matrices
+    ins.Ad = expm(ins.A * h);
     ins.Cd = [1 0 0];
     ins.Ed = h * [ 0 0
                   -1 0
                    0 1 ];
 end
+
+% Ensure that f_imu is a column vector
+f_imu = f_imu(:);
 
 %% ESKF states
 z_ins = x_ins(1);       % Vertical position (NED)
@@ -71,20 +77,20 @@ f_D = -f_imu(1) *  cos(phi) * sin(theta) ...
     + f_imu(2) * sin(phi) ...
     + f_imu(3) * cos(phi) * cos(theta);
 
-% Bias compensated vertical acceleration
-a_z_ins = f_D - b_acc_ins + ins.g; 
-
 %% Kalman filter algorithm       
-if (nargin == 8)  
+if (nargin == 11)  
+
     % No aiding    
-    P_hat = P_prd;    
+    P_hat = P_prd;  
+
 else  
+
     % ESKF gain: K[k]
     K = P_prd * ins.Cd' / (ins.Cd * P_prd * ins.Cd' + Rd);
     IKC = eye(3) - K * ins.Cd;
 
     % Estimation error: eps_z[k]
-    z_meas = (p - p_0) / (ins.rho * ins.g); % p = p_0 + rho * g * z
+    z_meas = (p - p_0) / (rho * ins.g); % p = p_0 + rho * g * z
     eps_z = z_meas - z_ins;
 
     % Corrector: delta_x_hat[k] and P_hat[k]
@@ -94,15 +100,17 @@ else
     % INS reset: x_ins[k]
 	z_ins = z_ins + delta_x_hat(1);           % Reset INS position
 	v_z_ins = v_z_ins + delta_x_hat(2);       % Reset INS velocity
-	b_acc_ins = b_acc_ins + delta_x_hat(3);   % Reset INS ACC bias	
+	b_acc_ins = b_acc_ins + delta_x_hat(3);   % Reset INS ACC bias
+
 end
 
 % Predictor: P_prd[k+1]
 P_prd = ins.Ad * P_hat * ins.Ad' + ins.Ed * Qd * ins.Ed';
 
 % INS propagation: x_ins[k+1]
-z_ins = z_ins + h * v_z_ins + h^2/2 * a_z_ins;  % Exact discretization
-v_z_ins = v_z_ins + h * a_z_ins;                % Exact discretization
+a_z_ins = f_D - b_acc_ins + ins.g;
+z_ins = z_ins + h * v_z_ins + h^2/2 * a_z_ins;  
+v_z_ins = v_z_ins + h * a_z_ins;                
 
 x_ins = [z_ins v_z_ins b_acc_ins]';
 

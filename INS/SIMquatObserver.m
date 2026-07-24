@@ -14,7 +14,7 @@
 % See also: SIMquatMEKF.m (MEKF for attitude estimation)
 %
 % Dependencies:
-%   quatObserver.m  - Nonlinear attiitude observer using reference vectors
+%   quatObserver.m  - Nonlinear attitude observer using reference vectors
 %   magneticField.m - Magnetic field vectors for different cities
 %  
 % References:
@@ -25,28 +25,32 @@
 %      doi.org/10.1109/ACC.2013.6579849
 %
 %  R. Mahony, T. Hamel and J.-M. Pflimlin (2008). Nonlinear Complementary 
-%      Filters on the Special Orthogonal Group. IEEE Trans. on Aut. Control 53(5)
+%      Filters on the Special Orthogonal Group. IEEE Transactions on Automatic
+%      Control 53(5).
 %
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%      Motion Control. 2nd Edition, Wiley.
+%   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%      Motion Control. 3rd edition, John Wiley & Sons, Ltd., Chichester, UK.
 %
 % Author: Thor I. Fossen
 % Date: 2024-08-20
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
 
-headingFlag = 2; % 1 for 3-axis magnetometer, 2 for scalar compass
+rng(1);
 
 % ==============================================================================
 % Simulation parameters
 % ==============================================================================
-T_final = 100; % Final simulation time (s)
+T_final = 60; % Final simulation time (s)
 f_fast = 1000; % High-rate IMU measurement frequency (Hz)
 f_slow = 100; % Low-rate magnetometer/compass measurement frequency (Hz)
 
 % Sampling times in seconds
 h_fast = 1/f_fast; % State propagation	 
 h_slow = 1/f_slow; % Corrector
+
+headingFlag = 1;  % 1: 3-axis magnetometer, 2: scalar compass
+testSignalNo = 2; % INS test signal - 1: constant bias, 2: time-varying bias
 
 % ==============================================================================
 % Observer initialization
@@ -90,11 +94,23 @@ disp('-------------------------------------------------------------------');
 disp('Simulating...');
 
 % ==============================================================================
+% Multirate scheduling
+% ==============================================================================
+% At most one slow measurement is processed per fast time step.
+if f_slow > f_fast
+    error('The aiding frequency f_slow must satisfy f_slow <= f_fast.');
+end
+
+slowIndex = 0; % Zero-based index of the next nominal slow measurement
+
+% Tolerance for floating-point comparisons of coincident sample times
+tol = 10 * eps(max(1, T_final));
+
+% ==============================================================================
 %% MAIN LOOP
 % ==============================================================================
-t = 0:h_fast:T_final;                % Time vector from 0 to T_final
-next_meas_time = 0;                  % Time for next corrector call
-k = 1;                               % Slow-sample index
+t = 0:h_fast:T_final;                % Fast time vector
+k = 1;                               % Slow-sample storage index
 N_slow = floor(T_final/h_slow) + 1;  % Number of slow samples
 
 % Pre-allocate slow-rate storage (1 row per slow sample)
@@ -103,28 +119,29 @@ simdata = zeros(N_slow,13);
 
 for i=1:length(t)
     
-    % INS signal generator, using test signal no. 2 
-    [x, f_imu, w_imu, m_imu] = insSignal(x, h_fast, t(i), mu, m_ref, 2);
+    % INS signal generator 
+    [x, f_imu, w_imu, m_imu] = insSignal(x,h_fast,t(i),mu,m_ref,testSignalNo);
     phi = x(10); 
     theta = x(11);
     psi = x(12);
     b_ars = x(13:15);
 
-    % Observer correction step runs at slow time
-    if t(i) + 1e-10 >= next_meas_time
+    % Determine whether a new slow measurement is available
+    newSlowMeasurement = t(i) + tol >= slowIndex * h_slow;
+
+    if newSlowMeasurement
         switch headingFlag
             case 1 % Heading from magnetometer measurement
                 imu_meas = [f_imu' w_imu' m_imu'];
+
             case 2 % Heading from compass measurement
                 imu_meas = [f_imu' w_imu' psi];
         end
 
-        next_meas_time = next_meas_time + h_slow;
-        do_correct = true;
+        slowIndex = slowIndex + 1;
 
-    else % No magnetometer/compass measurement 
-        imu_meas  = [f_imu' w_imu'];
-        do_correct = false;
+    else % No new magnetometer/compass measurement
+        imu_meas = [f_imu' w_imu'];
     end
 
     % Call the nonlinear quaternion observer
@@ -132,7 +149,7 @@ for i=1:length(t)
         quat_prd, b_ars_prd, h_fast, Ki, k1, k2, m_ref, imu_meas);
 
     % Store data at slow rate
-    if do_correct
+    if newSlowMeasurement
         simdata(k,:) = [phi theta psi b_ars' quat_prd' b_ars_prd'];
         k = k + 1;
     end
@@ -157,6 +174,21 @@ for i = 1:N_slow
     [phi_prd(i), theta_prd(i), psi_prd(i)] = q2euler(quat_prd(i,:));
 end
 
+% Convert estimated quaternions to Euler angles
+euler_prd = zeros(N_slow,3);
+for i = 1:N_slow
+    [euler_prd(i,1), euler_prd(i,2), euler_prd(i,3)] = ...
+        q2euler(quat_prd(i,:));
+end
+
+% Store results for comparison
+observerResults.name = 'Nonlinear observer';
+observerResults.t = t_slow;
+observerResults.euler = [phi theta psi];
+observerResults.euler_est = euler_prd;
+observerResults.b_ars = b_ars;
+observerResults.b_ars_est = b_ars_prd;
+
 % Figure 1
 figure(1); figure(gcf);
 subplot(311)
@@ -174,7 +206,7 @@ plot(t_slow,rad2deg(psi),t_slow,rad2deg(psi_prd));
 xlabel('Time (s)'),title('Yaw angle [deg]'),grid
 legend('\psi', '\psi (estimate)');
 
-set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',10)
 
@@ -195,7 +227,7 @@ plot(t_slow,b_ars(:,3),t_slow,b_ars_prd(:,3));
 xlabel('Time (s)'),title('ARS yaw bias'),grid
 legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 
-set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',10)
 
