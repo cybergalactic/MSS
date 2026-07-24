@@ -1,8 +1,8 @@
 function g = gravity(mu)
 % g = gravity(mu) computes the acceleration of gravity (m/s^2) as a function
-% of lattitude mu (rad) using the WGS-84 ellipsoid parameters.
+% of latitude mu (rad) using the WGS-84 ellipsoid parameters.
 % 
-% Input:  mu  lattitude (rad)
+% Input:  mu  latitude (rad)
 %
 % Author:    Thor I. Fossen
 % Date:      19th February 2020

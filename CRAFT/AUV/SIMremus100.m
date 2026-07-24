@@ -24,17 +24,13 @@ function SIMremus100()
 %   demoAUVdepthHeadingControl.slx : Depth and heading control.
 %
 % References:
-%   E. M. Coates and T. I. Fossen (2025). A Spherical Amplitude–Phase Formulation 
+%   E. M. Coates and T. I. Fossen (2026). A Spherical Amplitude–Phase Formulation 
 %       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability
-%       Guarantees, Automatica, Submitted. 
+%       Guarantees, Automatica 194, 113149S. 
 %   T. I. Fossen & P. Aguiar (2024). A Uniform Semiglobal Exponential  
 %      Stable Adaptive Line-of-Sight (ALOS) Guidance Law for 3-D Path 
 %      Following. Automatica, 163, 111556. 
 %      https://doi.org/10.1016/j.automatica.2024.111556
-%   T. I. Fossen and E. M. Coates (2026). Adaptive Line-of-Sight Guidance Laws 
-%      for Path Following of Underwater Vehicles. In: "An Introduction to Marine 
-%      Robotics: From Mission Specification to System Development and Operations 
-%      at Sea", Chapter 10, Springer Verlag, 2006, In Progress. 
 %
 % Author: Thor I. Fossen
 % Date: 2021-06-28
@@ -99,7 +95,7 @@ wc = 0.1;                      % Vertical speed (m/s)
 % Initialize propeller dynamics
 n_max = 1525;                  % Maximum propeller speed (RPM)
 n_rate = 0.1;                  % Rate limit (RPM per update)
-n = 1000;                      % Initial propeller speed (RPM)
+n_p = 1000;                    % Initial propeller speed (RPM)
 n_d = 1300;                    % Desired propeller speed (RPM)
 
 % Time vector initialization
@@ -121,7 +117,7 @@ z_int = 0;                     % Integral state for depth control
 theta_int = 0;                 % Integral state for pitch control
 psi_int = 0;                   % Integral state for yaw control
 
-% Depth controller (suceessive-loop closure)
+% Depth controller (successive-loop closure)
 z_d = zn;                      % Initial desired depth (m)
 zdot_d = 0;                    % Initial desired vertical velocity (m/s)
 Kp_z = 0.1;                    % Proportional gain for depth
@@ -236,11 +232,11 @@ for i = 1:nTimeSteps
                 + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
             % Gradient-descent update using J = 1/2 * sigma^2 to drive sigma to 0:            
-            %   dJ/d(theta) = - u*cos(theta) - w*sin(theta)
-            %   theta_d_dot = -k_grad * dJ/d(theta) * sigma 
-            if abs(w/u) > 0.176 % theta > 10 deg
+            % Residual sensitivity: d(sigma)/d(theta)
+            % Gradient: dJ/d(theta) = d(sigma)/d(theta) * sigma
+            if abs(w/u) > 0.176 % abs(w/u) > 10 deg
                 gradJ = -(u * cos(theta) + w * sin(theta));
-            else % Simplified gradient when theta < 10 deg
+            else % Simplified gradient when abs(w/u) < 10 deg
                 gradJ = -sign(u);
             end
 
@@ -335,15 +331,15 @@ for i = 1:nTimeSteps
     end
 
    % Propeller speed (RPM)
-   if n < n_d
-       n = n + n_rate;
-   elseif n > n_d
-       n = n - n_rate;
+   if n_p < n_d
+       n_p = n_p + n_rate;
+   elseif n_p > n_d
+       n_p = n_p - n_rate;
    end
-   n = sat(n, n_max);
+   n_p = sat(n_p, n_max);
 
    % Control input vector
-   ui = [delta_r -delta_s n]';            
+   ui = [delta_r -delta_s n_p]';            
 
    % Store simulation data in a table
    simData(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
@@ -372,7 +368,7 @@ end
 % PLOTS
 % ==============================================================================
 scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
-legendLocation = 'best'; legendSize = 12;
+legendLocation = 'best'; legendSize = 11;
 if isoctave; legendLocation = 'northeast'; end
 
 % simData = [z_d theta_d psi_d r_d Vc betaVc wc ui' x']
@@ -435,8 +431,8 @@ subplot(615),plot(t,(180/pi)*q)
 xlabel('Time (s)'),title('Pitch rate (deg/s)'),grid
 subplot(616),plot(t,(180/pi)*r)
 xlabel('Time (s)'),title('Yaw rate (deg/s)'),grid
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % ------------------------------------------------------------------------------
@@ -445,19 +441,19 @@ set(findall(gcf,'type','legend'),'FontSize',legendSize)
 figure(2);
 if ~isoctave; set(gcf,'Position',[scrSz(3)/3, 1, scrSz(3)/3, scrSz(4)]); end
 if ControlFlag == 3 || ControlFlag == 4; z_d = eta(:,3); end
-subplot(411),plot(t,eta(:,3),t,z_d)
+subplot(411),plot(t,eta(:,3),t,z_d,'-.')
 xlabel('Time (s)'),title('Heave position (m)'),grid
 legend('True','Desired')
 subplot(412),plot(t,rad2deg(eta(:,4)))
 xlabel('Time (s)'),title('Roll angle (deg)'),grid
-subplot(413),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d))
+subplot(413),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d),'-.')
 xlabel('Time (s)'),title('Pitch angle (deg)'),grid
 legend('True','Desired')
-subplot(414),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d))
+subplot(414),plot(t,rad2deg(eta(:,6)),t,rad2deg(psi_d),'-.')
 xlabel('Time (s)'),title('Yaw angle (deg)'),grid
 legend('True','Desired')
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % ------------------------------------------------------------------------------
@@ -471,8 +467,8 @@ subplot(312),plot(t,rad2deg(ui(:,2)))
 xlabel('Time (s)'),title('Stern-plane command \delta_s (deg)'),grid
 subplot(313),plot(t,ui(:,3))
 xlabel('Time (s)'),title('Propeller speed command n (rpm)'),grid
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 
 % ------------------------------------------------------------------------------
 % Ocean currents and speed
@@ -490,8 +486,8 @@ legend('Vehicle heave velocity (m/s)','Ocean current heave velocity (m/s)',...
 subplot(313),plot(t,rad2deg(betaVc),'r')
 xlabel('Time (s)'),grid
 legend('Ocean current direction (deg)','Location',legendLocation)
-set(findall(gcf,'type','line'),'linewidth',2)
-set(findall(gcf,'type','text'),'FontSize',14)
+set(findall(gcf,'type','line'),'linewidth',1.5)
+set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',legendSize)
 
 % ------------------------------------------------------------------------------
@@ -519,7 +515,7 @@ if ControlFlag == 4 % 3-D ALOS
     title('Tracking errors (m)'),grid
     xlabel('Time (s)')
     legend('Cross-track error y_e^p','Vertical-track error z_e^p')
-    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','line'),'linewidth',1.5)
     set(findall(gcf,'type','text'),'FontSize',12)
     set(findall(gcf,'type','legend'),'FontSize',legendSize)
 end
@@ -553,7 +549,7 @@ if ControlFlag == 3 || ControlFlag == 4 % 2.5-D and 3-D ALOS
     title('Down-East plot (m)');
     grid on;
     legend('Actual path', 'Waypoints', 'Location', legendLocation);
-    set(findall(gcf, 'type', 'line'), 'LineWidth', 2);
+    set(findall(gcf, 'type', 'line'), 'LineWidth', 1.5);
     set(findall(gcf, 'type', 'text'), 'FontSize', 12);
     set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
 end
@@ -571,7 +567,7 @@ if ControlFlag == 4 % 3-D ALOS
     xlabel('East'); ylabel('North'); zlabel('Down');
     legend('Actual path','Waypoints','Location',legendLocation),grid
     set(gca, 'ZDir', 'reverse');
-    set(findall(gcf,'type','line'),'linewidth',2)
+    set(findall(gcf,'type','line'),'linewidth',1.5)
     set(findall(gcf,'type','text'),'FontSize',12)
     set(findall(gcf,'type','legend'),'FontSize',legendSize)
     view(-25, 30);  % view(AZ,EL)

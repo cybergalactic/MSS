@@ -14,7 +14,7 @@ function [m_ref, l, mu, cityName] = magneticField(index)
 %   mu    - Latitude of the city in radians
 %   cityName - Name of the city corresponding to the index
 %
-% The magnetic field components are hypothetical values in nanoteslas (nT)
+% The magnetic field components are hypothetical values in nanotesla (nT)
 % for demonstration purposes. For actual values, use NOAA's online tools.
 %
 % To get actual magnetic field data for a specific location:

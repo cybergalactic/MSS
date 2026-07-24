@@ -1,5 +1,5 @@
 function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
+% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
@@ -36,7 +36,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %
 %    delta_r:   Rudder angle (rad)
 %    delta_s:   Stern plane angle (rad) 
-%    n:         Propeller revolution (RPM)
+%    n_p:       Propeller revolution (RPM)
 %
 % The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
 % ocean currents
@@ -77,8 +77,8 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %       performance enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE 
 %       Conference and Exhibition. Conference Proceedings, 2000, 
 %       pp. 1869-1873 vol.3, doi: 10.1109/OCEANS.2000.882209.
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%       Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley   
+%   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%       Motion Control. 3rd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
 if nargin == 0  % [~,~,M] = remus100()
     x = zeros(12,1); ui = zeros(3,1); Vc = 0; betaVc = 0; w_c = 0;
@@ -93,7 +93,7 @@ if (length(x) ~= 12 && length(x) ~= 13)
 end
 
 % Constants
-mu = deg2rad(63.446827); % Lattitude for Trondheim, Norway (deg)
+mu = deg2rad(63.446827); % Latitude for Trondheim, Norway (deg)
 g_mu = gravity(mu);      % Gravity vector (m/s2)
 rho = 1026;              % Density of water (m/s2)
 
@@ -112,7 +112,7 @@ n_max = 1525;            % Maximum propeller speed (RPM)
 % Amplitude saturation of the control signals
 delta_r = sat(ui(1), delta_max);    % Saturated tail rudder (rad)
 delta_s = sat(ui(2), delta_max);    % Saturated Stern plane (rad)
-n = sat(ui(3),n_max) / 60;          % Saturated propeller speed (rps)
+n_p = sat(ui(3),n_max) / 60;        % Saturated propeller speed (rps)
 
 % Ocean currents expressed in BODY
 u_c = Vc * cos( betaVc - psi );                               
@@ -127,7 +127,7 @@ alpha = atan2( nu_r(3), nu_r(1) );                % Angle of attack (rad)
 U_r = sqrt( nu_r(1)^2 + nu_r(2)^2 + nu_r(3)^2 );  % Relative speed (m/s)
 U  = sqrt( nu(1)^2 + nu(2)^2 + nu(3)^2 );         % Speed (m/s)
 
-% AUV model parameters; Fossen (2021, Section 8.4.2) and Allen et al. (2000)
+% AUV model parameters; Fossen (2027, Chapter 8) and Allen et al. (2000)
 L_auv = 1.6;             % AUV length (m)
 D_auv = 0.19;            % AUV diamater (m)
 S = 0.7 * L_auv * D_auv; % Planform area S = 70% of rectangle L_auv * D_auv
@@ -164,16 +164,16 @@ KQ_max = 0.0312;
 % Linear approximations for positive Ja values
 % KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja   
 % KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja        
-if n > 0   
+if n_p > 0   
     % Forward thrust
-    X_prop = rho * D_prop^4 * (... 
-        KT_0 * abs(n) * n + (KT_max-KT_0)/Ja_max * (Va/D_prop) * abs(n) );        
-    K_prop = rho * D_prop^5 * (...
-        KQ_0 * abs(n) * n + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n) );                 
+    X_prop = rho * D_prop^4 * ( ... 
+        KT_0 * abs(n_p) * n_p + (KT_max-KT_0)/Ja_max * (Va/D_prop) * abs(n_p) );        
+    K_prop = rho * D_prop^5 * ( ...
+        KQ_0 * abs(n_p) * n_p + (KQ_max-KQ_0)/Ja_max * (Va/D_prop) * abs(n_p) );                 
 else      
     % Reverse thrust (braking)   
-    X_prop = rho * D_prop^4 * KT_0 * abs(n) * n; 
-    K_prop = rho * D_prop^5 * KQ_0 * abs(n) * n;            
+    X_prop = rho * D_prop^4 * KT_0 * abs(n_p) * n_p; 
+    K_prop = rho * D_prop^5 * KQ_0 * abs(n_p) * n_p;            
 end            
 
 S_fin = 0.00665;         % Fin area
