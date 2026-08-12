@@ -10,10 +10,8 @@ function SIMsupply()
 %   PIDnonlinearMIMO.m   - Implements the MIMO nonlinear PID controller.
 %
 % Author:     Thor I. Fossen
-% Date:       2024-03-28
+% Date:       2026-08-12
 % Revisions:
-%   2024-04-19: Enhanced compatibility with GNU Octave
-%   2024-07-10: Improved numerical accuracy by replacing Euler's method with RK4
 
 clear PIDnonlinearMIMO          % Clear the persistent PID variables
 clearvars;
@@ -107,10 +105,11 @@ for i=1:nTimeSteps
     % Store data for presentation
     simdata(i,:) = [nu',eta',n',n_c'];
 
-    % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
+    % Euler's integration methods (k+1), (Fossen 2027, Appendix B)
     nu = nu + h * xdot(4:6);                % Forward Euler
     eta = eta + h * Rzyx(0,0,eta(3)) * nu;  % Backward Euler
     n = n + h * ndot;
+    n = min(max(n,-n_max),n_max);
 
 end
 

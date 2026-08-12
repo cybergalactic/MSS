@@ -1,5 +1,5 @@
 function [xdot, U, M, D] = supply(x, tau)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
+% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, M, D] = supply(x, tau) returns the time derivative 
 % xdot = A * x + B * tau of the state vector: x = [ x y psi u v r ]' and 
 % the speed U = sqrt( u^2 + v^2 ) for a supply vessel length L = 76 m. 
@@ -29,13 +29,8 @@ function [xdot, U, M, D] = supply(x, tau)
 %   Practice CEP-4(3):369-376
 %
 % Author:     Thor I. Fossen
-% Date:       12 July 2002
+% Date:       2026-08-12
 % Revisions:  
-%   24 Feb 2004 - Included missing mass in the Bis transformation
-%   12 Oct 2011 - Corrected T and Tinv, which were switched 
-%   27 May 2019 - Added U as ouput
-%   31 May 2019 - Included the rotation matrix in yaw
-%   22 Mar 2023 - Corrected wrong assignmnet of states
 
 if nargin == 0, x = zeros(6,1); tau = zeros(3,1);  end 
 
@@ -47,7 +42,7 @@ mass = 6000e3;          % Mass (kg)
 T    = diag([1 1 1/L]);
 Tinv = diag([1 1 L]);
 
-% Model matricses
+% Model matrices
 Mbis = [1.1274         0          0
              0    1.8902    -0.0744
              0   -0.0744     0.1278];
