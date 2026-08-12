@@ -21,8 +21,8 @@ function y_e = crosstrackWpt(x2, y2, x1, y1, x, y)
 %
 % Outputs:  y_e: Cross-track error expressed in NED
 %
-% See also [x_p, y_p, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag), 
-% which computes the coordinate origin (x_p, y_p) of the path-tangential
+% See also [x_proj, y_proj, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag), 
+% which computes the coordinate origin (x_proj, y_proj) of the path-tangential
 % reference frame, and the cross-track error y_e.
 %  
 % Author:    Thor I. Fossen
