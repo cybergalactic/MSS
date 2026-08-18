@@ -1,19 +1,22 @@
 function angle = ssa(angle,unit)
-% SSA is the "Smallest-Signed Angle" or the smallest difference between two
-% angles. 
-% 
+% SSA maps an angle to its smallest signed (principal) value.
+%
 % Examples:
-%   angle = ssa(angle) maps an angle in rad to the interval [-pi pi) 
-%   angle = ssa(angle,'deg') maps an angle in deg to the interval [-180 180)
+%   angle = ssa(angle)       maps an angle in rad to [-pi, pi)
+%   angle = ssa(angle,'deg') maps an angle in deg to [-180, 180)
 %
-% For feedback control systems and state estimators used to control the 
-% attitude of vehicles, the difference of two angles should always be
-% mapped to [-pi pi) or [-180 180) to avoid step inputs/discontinuities.           
+% In feedback control systems and state estimators, angular differences
+% should be mapped to [-pi, pi) or [-180, 180) to obtain the shortest
+% signed angular difference and avoid artificial 2*pi or 360-deg jumps
+% in feedback errors and innovations.
 %
-% Note that in many languages (C, C++, C#, JavaScript), the modulus  
-% operator mod(x,y) returns a value with the same sign as x. 
-% For these use a custom mod function: mod(x,y) = x - floor(x/y) * y
-% For the Unity game engine use: Mathf.DeltaAngle.
+% Note that in some languages (C, C++, C#, JavaScript), the remainder
+% operator may return a value with the same sign as the dividend.
+% In this case, use a modulo function defined by
+%
+%   mod(x,y) = x - floor(x/y) * y
+%
+% For the Unity game engine, use Mathf.DeltaAngle.
 %
 % Author:     Thor I. Fossen
 % Date:       2018-09-21
