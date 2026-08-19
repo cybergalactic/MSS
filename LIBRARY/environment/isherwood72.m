@@ -2,7 +2,7 @@ function [tau_w, CX, CY, CN] = isherwood72(...
     gamma_r, V_r, Loa, B, ALw, AFw, A_SS, S, C, M)
 % [tau_w,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M) 
 % returns the the wind force/moment vector tau_w = [tauX, tauY, tauN] 
-% and the optionally wind coeffisients CX, CY, and CN for merchant ships 
+% and the optionally wind coefficients CX, CY, and CN for merchant ships 
 % using the formulas of Isherwood (1972). 
 %
 % INPUTS:
@@ -25,7 +25,7 @@ function [tau_w, CX, CY, CN] = isherwood72(...
 %   R. M. Isherwood (1972). Wind Resistance of Merchant Ships. 
 %    RINA Transcripts 115, 327–338.
 %
-% See also: blendermann94 and ExWindForce
+% See also: blendermann94.m and exWindForce.m.
 %
 % Author:    Thor I. Fossen
 % Date:      2001-09-10
