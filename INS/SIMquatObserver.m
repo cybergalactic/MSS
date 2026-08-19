@@ -8,7 +8,7 @@
 % slowest IMU sensor rate (typically, f_slow is 50 to 100 Hz for a commercial IMU 
 % magnetometer), while the observer runs at the high-rate IMU measurement 
 % frequency (typically, f_fast is 500 to 2000 Hz). It is also possible to use a 
-% scalar compass measurement (megnetic compass, gyrocompass, GNSS compass, etc.)
+% scalar compass measurement (magnetic compass, gyrocompass, GNSS compass, etc.)
 % instead of the 3-axis magnetometer measurements.
 %
 % See also: SIMquatMEKF.m (MEKF for attitude estimation)
