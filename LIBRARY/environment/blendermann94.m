@@ -3,7 +3,7 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 % blendermann94 is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function [tau_w,CX,CY,CK,CN] = blendermann94(gamma_r,V_r,AFw,ALw,sH,
 % sL,Loa,vessel_no) returns the the wind force/moment vector 
-% tau_w = [tausX, tauY, tauN] and the optionally wind coeffisients CX, CY,
+% tau_w = [tausX, tauY, tauN] and the optionally wind coefficients CX, CY,
 % CK, and CN for merchant ships using the formulas of Blendermann (1994). 
 %
 % INPUTS:
@@ -15,16 +15,16 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 % sL        : Vertical distance to centroid of ALw (from water line)
 % Loa       : Length overall (m)
 % vessel_no :
-%   1. Car carrier	
-%   2. Cargo vessel, loaded	
-%   3. Cargo vessel, container on deck	
-%   4. Container ship, loaded
-%   5. Destroyer
-%   6. Diving support vessel
-%   7. Drilling vessel
-%   8. Ferry	
-%   9. Fishing vessel	
-%   10. Liquified natural gas tanker	
+%   1.  Car carrier	
+%   2.  Cargo vessel, loaded	
+%   3.  Cargo vessel, container on deck	
+%   4.  Container ship, loaded
+%   5.  Destroyer
+%   6.  Diving support vessel
+%   7.  Drilling vessel
+%   8.  Ferry	
+%   9.  Fishing vessel	
+%   10. Liquefied natural gas tanker	
 %   11. Offshore supply vessel	
 %   12. Passenger liner	
 %   13. Research vessel
@@ -40,7 +40,7 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 %   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
 %    Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
 %
-% See also: isherwood72
+% See also: isherwood72.m.
 %
 % Author:    Thor I. Fossen
 % Date:      2008-11-20
