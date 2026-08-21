@@ -2,11 +2,11 @@
 % This script calculates various ship parameters including dimensions, 
 % physical properties, center of gravity (CG), center of buoyancy (CB), 
 % moments of inertia, metacentric heights, and the G matrix based on 
-% Fossen (2021 Chapter 4.2).
+% Fossen (2027, Chapter 4.2).
 %
 % References: 
-%      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%           Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley 
+%      T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%           Motion Control. 3rd. Edition, Wiley. URL: www.fossen.biz/wiley 
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-22
@@ -26,7 +26,7 @@ nabla = Cb * L * B * T;     % Volume displacement (m^3)
 m = rho * nabla;            % Mass (kg)
 
 % CG location relative to the midships coordinate origin (CO)
-r_bg = [-0.5 0 -1]';        % CG position (m)
+r_bG = [-0.5 0 -1]';        % CG position (m)
 
 % Waterplane area coefficient: Cw = Awp / (L * B)
 Cw = 0.85;                  % Waterplane area coefficient, dimensionless
@@ -39,10 +39,10 @@ KB = (1/3) * (5*T/2 - nabla/Awp);    % Equation (4.38)
 k_munro_smith =  (6 * Cw^3) / ((1+Cw) * (1+2*Cw));    % Equation (4.37)
 
 % Center of buoyancy (CB) location relative to the coordinate origin (CO)
-r_bb = [-0.5 0 T-KB]';      % CB position (m)
+r_bB = [-0.5 0 T-KB]';      % CB position (m)
 
 % Vertical distance between CG and CB
-BG = r_bb(3) - r_bg(3);     % Vertical distance (m)
+BG = r_bB(3) - r_bG(3);     % Vertical distance (m)
 
 % Moments of inertia
 I_T = k_munro_smith * (B^3 * L) / 12;   % Transverse moment of inertia (m^4)
@@ -58,10 +58,10 @@ GM_L = BM_L - BG;           % Longitudinal metacentric height (m)
 
 % G matrix calculation
 LCF = -0.5;                 % x-distance from the CO to the center of Awp
-r_bp = [0 0 0]';            % Zero vector for G matrix computation
+r_bP = [0 0 0]';            % Zero vector for G matrix computation
 
 % Compute the G matrix in the CO
-G = Gmtrx(nabla, Awp, GM_T, GM_L, LCF, r_bp);
+G = Gmtrx(nabla, Awp, GM_T, GM_L, LCF, r_bP);
 
 %% PRINT SHIP DATA
 fprintf('%s\n','-------------------------------------------------------------------------------------');
@@ -76,7 +76,7 @@ fprintf('%-40s %8.2f m^3 \n', 'Volume displacement (nabla):', nabla);
 fprintf('%-40s %8.2f \n', 'Block coefficient (C_b):', Cb);
 fprintf('%-40s %8.2f \n', 'Waterplane area coefficient (C_w):', Cw);
 fprintf('%-40s [%2.1f %2.1f %2.1f] m \n', 'Center of gravity (r_bg):',...
-    r_bg(1), r_bg(2), r_bg(3));
+    r_bG(1), r_bG(2), r_bG(3));
 fprintf('%-40s %8.2f m \n', 'Transverse metacentric height (GM_T):', GM_T);
 fprintf('%-40s %8.2f m \n', 'Longitudinal metacentric height (GM_L):', GM_L);
 

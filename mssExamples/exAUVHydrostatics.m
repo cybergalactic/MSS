@@ -2,11 +2,11 @@
 % This script calculates various AUV parameters including dimensions,
 % physical properties, center of gravity (CG), center of buoyancy (CB),
 % moments of inertia, metacentric heights, and the g vector based on
-% Fossen (2021, Chapter 4.1).
+% Fossen (2027, Chapter 4.1).
 %
 % References:
-%      T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%           Motion Control. 2nd Edition, Wiley. URL: www.fossen.biz/wiley
+%      T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%           Motion Control. 3rd Edition, Wiley. URL: www.fossen.biz/wiley
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-22
@@ -21,15 +21,15 @@ rho = 1025;                 % Density of water (kg/m^3)
 g = 9.81;                   % Gravitational acceleration (m/s^2)
 
 % CG location relative to the midships coordinate origin (CO)
-r_bg = [0 0 0.02]';         % CG position (m)
+r_bG = [0 0 0.02]';         % CG position (m)
 
 % Center of buoyancy (CB) location relative to the coordinate origin (CO)
-r_bb = [0 0 0]';            % CB position (m)
+r_bB = [0 0 0]';            % CB position (m)
 
 % Rigid-body mass, Fossen (2021, Ch. 8.4.2)
 a = L_auv / 2;              % Spheroid semi-axes a and b
 b = D_auv / 2; 
-[MRB, CRB] = spheroid(a, b, [0 0 0]', r_bg);
+[MRB, CRB] = spheroid(a, b, [0 0 0]', r_bG);
 m = MRB(1,1);
 nabla = m / rho;  % Calculate volume displacement
 W = m * g;        % Calculate the weight
@@ -42,7 +42,7 @@ theta = deg2rad(theta);
 phi = deg2rad(phi);
 
 % Compute the restoring forces and moments in the CO 
-gVect = gvect(W, B, theta, phi, r_bg, r_bb);
+gVect = gvect(W, B, theta, phi, r_bG, r_bB);
 
 %% PRINT SHIP DATA
 fprintf('%s\n', '-------------------------------------------------------------------------------------');
@@ -55,8 +55,8 @@ fprintf('%-40s %8.2f kg/m^3 \n', 'Density of water (rho):', rho);
 fprintf('%-40s %8.2f m^3 \n', 'Volume displacement (nabla):', nabla);
 fprintf('%-40s %8.2f N \n', 'Weight (W):', W);
 fprintf('%-40s %8.2f N \n', 'Buoyancy (B):', B);
-fprintf('%-40s [%2.1f %2.1f %2.1f] m \n', 'Center of gravity (r_bg):', r_bg(1), r_bg(2), r_bg(3));
-fprintf('%-40s [%2.1f %2.1f %2.1f] m \n', 'Center of buoyancy (r_bb):', r_bb(1), r_bb(2), r_bb(3));
+fprintf('%-40s [%2.1f %2.1f %2.1f] m \n', 'Center of gravity (r_bg):', r_bG(1), r_bG(2), r_bG(3));
+fprintf('%-40s [%2.1f %2.1f %2.1f] m \n', 'Center of buoyancy (r_bb):', r_bB(1), r_bB(2), r_bB(3));
 
 % Print the g vector
 fprintf('%s\n', '-------------------------------------------------------------------------------------');

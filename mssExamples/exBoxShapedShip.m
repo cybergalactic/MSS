@@ -2,11 +2,11 @@
 % This script computes the transverse metacentric height GM_T, and the 
 % heave and roll periods of a box-shaped ship with the coordinate origin (CO)
 % at midships on the centerline using the hydrostatic formulas by Fossen 
-% (2021, Chapter 4.2).
+% (2027, Chapter 4.2).
 %
 % References: 
-%  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-%      Motion Control. 2nd Edition, Wiley. URL: www.fossen.biz/wiley 
+%  T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
+%      Motion Control. 3rd Edition, Wiley. URL: www.fossen.biz/wiley 
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-22
@@ -21,8 +21,8 @@ L = 80;           % Length (m)
 B = 20;           % Beam (m)
 T = 6;            % Draft (m)
 R44 = 0.35 * B;   % Radius of gyration (m)
-zb = T / 2;       % Center of buoyancy (CB) w.r.t. the CO (m)
-zg = -2;          % Center of gravity (CG) w.r.t. the CO (m)
+zB = T / 2;       % Center of buoyancy (CB) w.r.t. the CO (m)
+zG = -2;          % Center of gravity (CG) w.r.t. the CO (m)
 
 % Displaced volume and mass
 Cb = 1.0;                % Block coefficient, dimensionless
@@ -32,11 +32,11 @@ m = rho * nabla;         % Displacement mass (kg)
 % Hydrostatics (Chapter 4.2.3)
 I_T = (1/12) * B^3 * L;  % Transverse moment of inertia (m^4)
 BM_T = I_T / nabla;      % Transverse metacentric radius (m)
-BG = zb - zg;            % Vertical distance between CB and CG (m)
+BG = zB - zG;            % Vertical distance between CB and CG (m)
 GM_T = BM_T - BG;        % Transverse metacentric height (m)
 
 Ix = m * R44^2;          % Moment of inertia about the CG (kg·m^2)
-Ix_CF = Ix + m * zg^2;   % Moment of inertia about the CF (kg·m^2)
+Ix_CF = Ix + m * zG^2;   % Moment of inertia about the CF (kg·m^2)
 A44_CF = 0.2 * Ix_CF;    % Added moment of inertia (kappa4 = 0.2) (kg·m^2)
 
 % Heave and roll periods in seconds w.r.t. the CF (Chapter 4.3.3)
