@@ -19,6 +19,7 @@ displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 %               maximum rate of 10 Hz. 
 %    2025-11-12 Added spheriod-shaped AUV with analytical RAO computations.
 %    2026-05-14 Added spectrum parameters to GUI.
+%    2026-08-24 Corrected plotting scale for roll, pitch, and yaw moments.
 
 clearvars; close all;
 clear waveForceRAO; % Clear persistent RAO tables
@@ -143,10 +144,9 @@ figure(2); clf;
 % Plot the 6-DOF 1st-order wave forces
 DOF_txt = {'Surge (N)', 'Sway (N)', 'Heave (N)',...
     'Roll (Nm)', 'Pitch (Nm)', 'Yaw (Nm)'};
-T_scale = [1 1 1 180/pi 180/pi 180/pi];
 for DOF = 1:6
     subplot(6, 1, DOF);
-    plot(t, T_scale(DOF) * tau_wave1(:, DOF), 'LineWidth', 1.5);
+    plot(t, tau_wave1(:, DOF), 'LineWidth', 1.5);
     xlabel('Time (s)');
     grid on;
     legend(DOF_txt{DOF});
@@ -169,7 +169,7 @@ if strcmp(matFile, 'AUV_FUNCTION')
     zn = 5.0;                  % Nominal submergence (m)
 
     vessel.main.g = 9.81;
-    vessel = spheroidRAO(vessel,a,b,zn,0);
+    vessel = spheroidRAO(vessel,a,b,zn,0,true); % Include LF diffraction
     disp('Generated vessel.forceRAO structure from function spheroidRAO().');
 
 else
