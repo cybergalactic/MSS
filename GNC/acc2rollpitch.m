@@ -5,11 +5,12 @@ function [phi, theta] = acc2rollpitch(f_imu, b_acc)
 % f_imu = [fx, fy, fz] for multiple sets of measurements (n x 3) or one 
 % measurement (1 x 3) or (3 x 1). The 3x1 vector b_acc is an optional
 % acceleration bias compensation term satisfying f = f_imu - b_acc. For the NED
-% reference frame, the IMU should measure f = [0 0 -g]' at rest when levelled.
+% reference frame, the IMU should measure f = [0 0 -g]' at rest when leveled.
 %
 % Author:    Thor I. Fossen
 % Date:      2020-03-20
 % Revisions:
+%   2026-08-25 : Replaced atan with atan2 for correct 4-quadrant handling.
 
 % Input validation and reshaping if necessary
 [n, m] = size(f_imu);
@@ -37,8 +38,8 @@ for i = 1:n
     f = f_imu(i, :) - b_acc;
 
     % Calculate roll and pitch angles 
-    phi(i) = atan(f(2) / f(3));  
-    theta(i) = atan(f(1) / sqrt(f(2)^2 + f(3)^2));  
+    phi(i) = atan2(-f(2),-f(3));  
+    theta(i) = atan2(f(1),sqrt(f(2)^2 + f(3)^2));  
 
 end
 
