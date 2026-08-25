@@ -2,8 +2,8 @@ function vessel = spheroidRAO(vessel,a,b,zn,verbose,includeDiffraction)
 % spheroidRAO computes 6-DOF first-order wave excitation loads for a fully
 % submerged prolate spheroid.
 %
-% The output is stored in vessel.forceRAO.* using the same fields as the MSS 
-% toolbox (Re, Im, amp, phase), enabling direct use for time-domain wave 
+% The output is stored in vessel.forceRAO.* using the same fields as the MSS
+% toolbox (Re, Im, amp, phase), enabling direct use for time-domain wave
 % reconstruction.
 %
 % The Froude-Krylov (FK) loads are computed from the exact incident-pressure
@@ -35,31 +35,31 @@ function vessel = spheroidRAO(vessel,a,b,zn,verbose,includeDiffraction)
 % ------------------------------------------------------------------------------
 % The incident-wave dynamic pressure per unit wave amplitude is
 %
-%   p = real(p_hat*exp(i*omega*t)),
-%   p_hat = rho*g*exp(k*z)*exp(-i*k*xi),
+%   p = real(p_hat * exp(i * omega * t))
+%   p_hat = rho * g * exp(k * z) * exp(-i * k * xi)
 %
-% where k = omega^2/g, z is positive upward, and
+% where k = omega^2 / g, z is positive upward, and
 %
-%   xi = x*cos(beta) + y*sin(beta).
+%   xi = x * cos(beta) + y * sin(beta)
 %
 % The complex FK load on a closed body follows from the divergence theorem:
 %
-%   F_hat = -integral_S(p_hat*n)dS = -integral_V(grad(p_hat))dV.
+%   F_hat = -integral_S(p_hat * n)dS = -integral_V(grad(p_hat))dV.
 %
 % For x^2/a^2 + y^2/b^2 + z^2/b^2 <= 1, define
 %
-%   e      = sqrt(a^2-b^2),        lambda = k*e*cos(beta),
-%   Phi    = 3*(sin(lambda)-lambda*cos(lambda))/lambda^3,
-%   Psi    = 3*((3-lambda^2)*sin(lambda)-3*lambda*cos(lambda))/lambda^5,
-%   V      = 4*pi*a*b^2/3,
-%   P      = rho*g*k*V*Phi*exp(-k*zn),
-%   Q      = rho*g*k^2*V*e^2*Psi*exp(-k*zn).
+%   e      = sqrt(a^2 - b^2),  lambda = k * e * cos(beta)
+%   Phi    = 3 * (sin(lambda)-lambda * cos(lambda)) / lambda^3
+%   Psi    = 3 * ((3-lambda^2) * sin(lambda)-3 * lambda * cos(lambda)) / lambda^5
+%   V      = 4 * pi * a * b^2 / 3
+%   P      = rho * g * k * V * Phi * exp(-k * zn)
+%   Q      = rho * g * k^2 * V * e^2 * Psi * exp(-k * zn)
 %
-% The removable limits are Phi(0)=1 and Psi(0)=1/5. In the MSS body-fixed
-% NED convention, the generalized FK load used by waveForceRAO is
+% The removable limits are Phi(0) = 1 and Psi(0) = 1/5. The generalized FK 
+% load used by waveForceRAO.m is
 %
-%   [X Y Z K M N]' = [i*P*cos(beta), i*P*sin(beta), P, ...
-%                      0, i*Q*cos(beta), Q*cos(beta)*sin(beta)]'.
+%   [X Y Z K M N]' = [i * P * cos(beta), i * P * sin(beta), P, ...
+%                      0, i * Q * cos(beta), Q * cos(beta) * sin(beta)]'.
 %
 % In the LF limit, the incident-wave acceleration is nearly uniform over the
 % body. The diffraction force is then approximated by
@@ -73,26 +73,27 @@ function vessel = spheroidRAO(vessel,a,b,zn,verbose,includeDiffraction)
 % P0 = rho*g*k*V*exp(-k*zn), the implemented diffraction RAO is
 %
 %   [X_D Y_D Z_D K_D M_D N_D]' = ...
-%       [i*CAx*P0*cos(beta), i*CAt*P0*sin(beta), CAt*P0, 0, 0, 0]'.
+%       [i * CAx * P0 * cos(beta), i * CAt * P0 * sin(beta), CAt * P0, 0, 0, 0]'
 %
 % The approximation is intended for ka << 1 and sufficient submergence that
 % free-surface corrections to the unbounded-fluid added mass are small.
 % ------------------------------------------------------------------------------
 % EXAMPLES:
 %   vessel = spheroidRAO(vessel,a,b,zn);
-%   vessel = spheroidRAO([],2,1,5,true);           
+%   vessel = spheroidRAO([],2,1,5,true);
 %   vessel = spheroidRAO([],2,1,5,true,false);     % FK only
 %
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%       Control, 2nd edition. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%       Control, 3rd edition. John Wiley & Sons Ltd., Chichester, UK.
 %   Imlay, F. H. (1961). The Complete Expressions for Added Mass of a Rigid
 %       Body Moving in an Ideal Fluid. DTMB Report 1528.
 %
-% Author:       T.I. Fossen
+% Author:       T. I. Fossen
 % Date:         2025-11-12
-% Revisions:    2026-08-24 Corrected closed-surface FK loads and RAO phases.
-%                          Added optional LF added-mass diffraction forces.
+% Revisions:    
+%   2026-08-24 Corrected closed-surface FK loads and RAO phases. Added optional 
+%              LF added-mass diffraction forces.
 
 if nargin < 5 || isempty(verbose)
     verbose = false;
@@ -163,13 +164,13 @@ for ib = 1:Nbeta
     P0 = rho * g * k .* decay * volume;
 
     FK(:,:,ib) = [
-        (1i * P * cb).'             % Surge
-        (1i * P * sb).'             % Sway
+        (1i * P * cb).'              % Surge
+        (1i * P * sb).'              % Sway
         P.'                          % Heave
         zeros(1,Nomega)              % Roll moment
-        (1i * Q * cb).'             % Pitch moment
+        (1i * Q * cb).'              % Pitch moment
         (Q * cb * sb).'              % Yaw moment
-    ];
+        ];
 
     diffraction(:,:,ib) = [
         (1i * CAx * P0 * cb).'       % Surge
@@ -178,7 +179,7 @@ for ib = 1:Nbeta
         zeros(1,Nomega)              % Roll moment
         zeros(1,Nomega)              % Pitch moment
         zeros(1,Nomega)              % Yaw moment
-    ];
+        ];
 end
 
 if includeDiffraction
@@ -210,7 +211,9 @@ end
 vessel.forceRAO_FK.w = omega;
 vessel.forceRAO_diffraction.w = omega;
 
+% ------------------------------------------------------------------------------
 % Optional plotting
+% ------------------------------------------------------------------------------
 if verbose
     labels = {'Surge','Sway','Heave','Roll','Pitch','Yaw'};
     figure; clf;
@@ -234,6 +237,9 @@ end
 
 end
 
+% ------------------------------------------------------------------------------
+% FUNCTIONS
+% ------------------------------------------------------------------------------
 function tf = isPositiveFiniteScalar(value)
 tf = isnumeric(value) && isreal(value) && isscalar(value) && ...
     isfinite(value) && value > 0;
@@ -247,7 +253,7 @@ RAO.phase{dof} = angle(H);
 end
 
 function [CAx,CAt] = prolateAddedMassCoefficients(a,b)
-% Added-mass ratios relative to displaced mass for a prolate spheroid.
+% Added-mass ratios relative to displaced mass for a prolate spheroid
 eccentricity = sqrt(1 - (b/a)^2);
 if eccentricity < 0.01
     e2 = eccentricity^2;
@@ -262,7 +268,7 @@ CAt = alphaT / (2 - alphaT);
 end
 
 function Phi = spheroidForceFactor(lambda)
-% Stable evaluation of 3*(sin(lambda)-lambda*cos(lambda))/lambda^3.
+% Stable evaluation of 3 * (sin(lambda) - lambda * cos(lambda)) / lambda^3
 Phi = zeros(size(lambda));
 small = abs(lambda) < 0.05;
 x = lambda(small);
@@ -272,7 +278,7 @@ Phi(~small) = 3 * (sin(x) - x .* cos(x)) ./ x.^3;
 end
 
 function Psi = spheroidMomentFactor(lambda)
-% Stable evaluation of the moment factor, whose limit at zero is 1/5.
+% Stable evaluation of the moment factor, whose limit at zero is 1/5
 Psi = zeros(size(lambda));
 small = abs(lambda) < 0.05;
 x = lambda(small);

@@ -1,7 +1,7 @@
 % This function computes the 6-DOF generalized 1st-order wave forces, 
 % tau_wave1, on a marine craft  using different wave spectra 
 % (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and Response 
-% Amplitude Operators (RAOs); see Fossen (2021, Chapters 10.2.1 and 10.2.4). 
+% Amplitude Operators (RAOs); see Fossen (2027, Chapter 10.2). 
 % The real and imaginary parts of the RAO tables are interpolated in 
 % frequency and varying wave directions to compute the RAO amplitudes and 
 % phases. This approach avoids unwrapping problems and interpolation 
@@ -9,15 +9,15 @@
 displayMfileHeader('exWaveForceRAO.m');  % Print the header text
 
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%   Control, 2nd edtion. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-15
 % Revisions: 
 %    2025-10-21 RAO interpolations and look-up tables are evaluated at a 
 %               maximum rate of 10 Hz. 
-%    2025-11-12 Added spheriod-shaped AUV with analytical RAO computations.
+%    2025-11-12 Added spheroid-shaped AUV with analytical RAO computations.
 %    2026-05-14 Added spectrum parameters to GUI.
 %    2026-08-24 Corrected plotting scale for roll, pitch, and yaw moments.
 
@@ -39,10 +39,10 @@ RAO_update_period = 0.1;        % Compute RAO at 10 Hz
 % COMMENT: Adding a spreading function involves summing waves from different 
 % directions. Initially, these waves can interfere constructively, causing
 % higher amplitudes. Hence, it is recommended to remove the initial
-% respons by specifying: T_initialTransient >= 20 s.
+% response by specifying: T_initialTransient >= 20 s.
 
-% numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
-% numDirctions     - Number of wave directions in directional spectrum M(mu)
+% numFreqIntervals - Number of frequency intervals in wave spectrum S(Omega)  
+% numDirections    - Number of wave directions in directional spectrum M(mu)
 maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s) 
 numFreqIntervals = 100;         % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
@@ -108,6 +108,7 @@ waveElevation = simdata(startIndex:end, 7);
 % Plot the wave spectrum
 subplot(211);
 hold on;
+
 if spreadingFlag
     % Plot the wave spectrum for the specific directions
     hold on;
@@ -125,6 +126,7 @@ else
     legend('S(\omega)', ['\omega_0 = ', num2str(w0), ' rad/s']);
     hold off
 end
+
 xlabel('Omega (rad/s)');
 ylabel('m^2 s');
 title([spectrumType, ' spectrum']);
