@@ -17,11 +17,13 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 % Revisions:  
 %   30 Jan 2021 : Extended to include heave and pitch for AUVs
 %   9 Jun 2025  : Make different drag models selectable (M. Seidl)
+%   26 Aug 2026 : Evaluate 20 strips at their midpoints (J. Harvey)
 
 if (nargin == 4), drag_model = 'Hoerner'; end % Hoerner is the default drag model
 
-rho = 1025;  % Density of water
-dx = L / 20; % Divide hull into 20 strips
+rho = 1025;     % Density of water
+nStrips = 20;   % Number of hull strips
+dx = L/nStrips; % Strip width
 
 switch drag_model
     case 'Hoerner'
@@ -35,7 +37,8 @@ switch drag_model
 end
 
 Yh = 0; Zh = 0; Mh = 0; Nh = 0;
-for xL = -L/2:dx:L/2
+for i = 1:nStrips
+    xL = -L/2 + (i - 0.5) * dx;                       % Strip midpoint
     v_r = nu_r(2);                                    % Relative sway velocity
     w_r = nu_r(3);                                    % Relative heave velocity
     q = nu_r(5);                                      % Pitch rate
@@ -51,4 +54,3 @@ end
 tau_crossflow = [0 Yh Zh 0 Mh Nh]';
 
 end
-
