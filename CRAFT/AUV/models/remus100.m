@@ -71,6 +71,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %               when x_s < 0.
 %   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
 %   2025-06-09 Change cross-flow drag to cylinder model (M. Seidl).
+%   2026-08-26 Use through-water speed for propulsion and damping (J. Harvey).
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -144,10 +145,10 @@ Cd = 0.42;                              % From Allen et al. (2000)
 CD_0 = Cd * pi * b^2 / S;
 
 % Propeller coeffs. KT and KQ are computed as a function of advance no.
-% Ja = Va/(n*D_prop) where Va = (1-w)*U = 0.944 * U; Allen et al. (2000)
+% Ja = Va/(n*D_prop) where Va = (1-w)*U_r = 0.944 * U_r; Allen et al. (2000)
 D_prop = 0.14;   % Propeller diameter corresponding to 5.5 inches
 t_prop = 0.1;    % Thrust deduction number
-Va = 0.944 * U;  % Advance speed (m/s)
+Va = 0.944 * U_r;  % Advance speed (m/s)
 
 % Ja_max = 0.944 * 2.5 / (0.14 * 1525/60) = 0.6632
 Ja_max = 0.6632;
@@ -212,8 +213,7 @@ m = MRB(1,1); W = m * g_mu; B = W;
 
 % Dissipative forces and moments
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bG' r_bB']);
-U_g = sqrt( nu(1)^1 + nu(2)^2 ); % Speed over ground
-D(1,1) = D(1,1) * exp(-3 * U_g); % Vanish at high speed 
+D(1,1) = D(1,1) * exp(-3 * U_r); % Vanish at high through-water speed
 
 tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
 tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r,'cylinder');
@@ -254,4 +254,4 @@ tau(6) = x_r * Y_r;
 % State-space model
 xdot = [ Dnu_c + M \ ...
             (tau + tau_liftdrag + tau_crossflow - C * nu_r - D * nu_r  - g)
-         J * nu ]; 
+         J * nu ];
