@@ -1,5 +1,5 @@
-function vessel = read_veres_ABC(filename, disp_flag)
-% vessel = read_veres_ABC(filename, disp_flag)
+function vessel = read_veres_ABC(filename, disp_flag, reference_point)
+% vessel = read_veres_ABC(filename, disp_flag, reference_point)
 %
 % Read data from ShipX (Veres) output file *.re7
 %
@@ -19,6 +19,7 @@ function vessel = read_veres_ABC(filename, disp_flag)
 %       k66:   radius of inertia 
 %       m:     mass
 %       CG:    centre of gravity  [LCG 0 VCG] w.r.t. Lpp/2 and Keel Line
+%       reference_point: CG keeps all matrices at CG; CO is the legacy default
 %       Lpp:   length between the perpendiculars
 %       Lwl:   length of water line
 %       T:     draft (water line)    
@@ -32,6 +33,12 @@ function vessel = read_veres_ABC(filename, disp_flag)
 
 if ~exist('disp_flag')
 	disp_flag = 0;
+end
+if nargin < 3
+    reference_point = 'CO';
+end
+if ~strcmpi(reference_point,'CG') && ~strcmpi(reference_point,'CO')
+    error('reference_point must be CG or CO');
 end
 
 Tmtrx = diag([-1 1 -1 -1 1 -1]);  % veres2fossen axes
@@ -131,7 +138,11 @@ MRB = [ str2num(mdata{1})
         str2num(mdata{6})];
     
 MRB = Tmtrx*MRB*Tmtrx;         % MRB transformed from veres to fossen axes
-H = Hmtrx([-LCG,0,0]);         % Transform MRB to CO midships
+if strcmpi(reference_point,'CG')
+    H = eye(6);                     % Keep MRB, A, B, C at CG
+else
+    H = Hmtrx([-LCG,0,0]);         % Legacy transform to CO midships
+end
 vessel.MRB = H'*MRB*H;
 
 vessel.main.m = MRB(1,1);
