@@ -1,6 +1,6 @@
 function vessel = veres2vessel(filename, plot_flag)
 % veres2vessel reads data from ShipX output files and store the data in 
-% vesselname.mat using the MSS vessel struture.
+% vesselname.mat using the MSS vessel structure at CG in FSD axes.
 %
 %   vessel = veres2vessel(filename, disp_flag) 
 %
@@ -107,15 +107,27 @@ end
 %--------------------------------------------------------------------------
 %% read Shipx (Veres) *.re* data files
 %--------------------------------------------------------------------------
-vessel = read_veres_ABC(strcat(filename,'.re7'),str2num(plot_flag(1)));
+vessel = read_veres_ABC(strcat(filename,'.re7'),str2num(plot_flag(1)),'CG');
 data1  = read_veres_TF(strcat(filename,'.re8'), 0);
 data2  = read_veres_TF(strcat(filename,'.re1'), 0);
 data3  = read_veres_WD(strcat(filename,'.re2'), 0);
 
 vessel.main.name = vesselfile;
+% main.CG(3) retains the legacy VCG height above baseline.
+% CG_FSD is the same physical point relative to midships/waterline.
+vessel.main.CG_FSD = [vessel.main.CG(1), 0, ...
+                      vessel.main.T - vessel.main.CG(3)];
+vessel.hydrodynamic_reference = 'CG';
+vessel.hydrodynamic_axes = 'FSD';
 vessel.forceRAO  = data1.forceRAO;
 vessel.motionRAO = data2.motionRAO;
 vessel.driftfrc  = data3.driftfrc;
+
+% VERES force and motion RAOs already use the CG reference.
+% Wrap all six force phases to [0, 2*pi) without changing the phasors.
+for dofno = 1:6
+    vessel.forceRAO.phase{dofno} = mod(vessel.forceRAO.phase{dofno},2*pi);
+end
 
 %--------------------------------------------------------------------------
 %% read Shipx (Veres) hydrostatic data from *.hyd file
