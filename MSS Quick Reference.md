@@ -1,6 +1,10 @@
 # MSS Quick Reference
 
-The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To use the MSS toolbox, please ensure the files are downloaded and correctly set up in your MATLAB/Octave environment. See the guide "How to install MSS for Matlab/Octave?". 
+The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To use the MSS toolbox, please ensure the files are downloaded and correctly set up in your MATLAB/Octave environment. See the installation guides for [MATLAB](How%20to%20install%20MSS%20for%20MATLAB.md) and [GNU Octave](How%20to%20install%20MSS%20for%20GNU%20Octave.md).
+
+This reference lists the user-facing functions, models, examples, demos, and
+templates. Internal callbacks, raw model-data scripts, and helper functions
+used only by another documented entry point are not listed separately.
 
 ```matlab
 >> mssHelp        % MSS Quick Reference 
@@ -10,8 +14,8 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
 
 ## Table of Contents
 - [CRAFT (m-files)](#craft-m-files)
-  - [Marine craft simulators](#marine-craft-simulators)
-  - [Marine craft models](#marine-craft-models)
+  - [Craft simulators](#craft-simulators)
+  - [Craft models](#craft-models)
 - [GNC (m-files)](#gnc-m-files)
 - [LIBRARY (m-files)](#library-m-files)
   - [Modeling](#modeling)
@@ -20,20 +24,23 @@ The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MA
   - [Ship maneuvers and visualization](#ship-maneuvers-and-visualization)
   - [Motion sickness](#motion-sickness)
   - [Transformations](#transformations)
-  - [Numerical integration methods](#numerical-integration-methods)
+  - [Numerical methods](#numerical-methods)
   - [Signal filters](#signal-filters)
 - [INS (m-files)](#ins-m-files)
-  - [INS error-state Kalman filter (EKSF) simulators](#ins-error-state-kalman-filter-eskf-simulators)
+  - [INS error-state Kalman filter (ESKF) simulators](#ins-error-state-kalman-filter-eskf-simulators)
   - [Functions](#functions)
 - [MSS Demos (m-files)](#mss-demos-m-files)
 - [MSS Examples (m-files)](#mss-examples-m-files)
 - [SIMULINK](#simulink)
   - [Simulink demos](#simulink-demos)
-  - [Wamit and ShipX templates](#wamit-and-shipx-templates)
+  - [Hydrodynamic vessel templates](#hydrodynamic-vessel-templates)
 - [HYDRO](#hydro)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
-  - [Data files (mat-files that can be loaded to workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-workspace-and-used-by-simulink-templates)
+  - [Capytaine integration](#capytaine-integration)
+  - [Data files (mat-files that can be loaded to the workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-the-workspace-and-used-by-simulink-templates)
   - [Hydrodynamics (m-files)](#hydrodynamics-m-files)
+  - [Hydrodynamic utilities (m-files)](#hydrodynamic-utilities-m-files)
+  - [WAMIT geometry utilities (m-files)](#wamit-geometry-utilities-m-files)
 - [Frequency-domain identification (FDI) of radiation models (m-files)](#frequency-domain-identification-fdi-of-radiation-models-m-files)
   - [FDI demos](#fdi-demos)
   - [Utils](#utils)
@@ -55,7 +62,7 @@ SIMcontainer    % Simulate container.m and Lcontainer.m under PD control
 SIMnavalvessel  % Simulate navalvessel.m under PD control
 SIMnpsauv       % Simulate npsauv.m with MIMO PID autopilots for depth and heading control, and 3-D straight-line path following using ALOS
 SIMremus100     % Simulate remus100.m with autopilots for depth and heading control, and 3-D straight-line path following using ALOS
-SIMrig          % Simulate the 6-DOF semisubmersible model under PID control
+SIMsemisub      % Simulate the 6-DOF semisubmersible model under PID control
 SIMsupply       % Simulate the linear supply vessel model under DP control
 SIMtanker       % Simulate tanker.m under PD control
 SIMzeefakkel    % Simulate zeefakkel.m using a PID heading autopilot
@@ -87,6 +94,7 @@ zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 
 ```matlab
 acc2rollpitch        % Static roll and pitch angles from IMU specific force measurements
+addIntermediateWaypoints % Add points along waypoint line segments for increased resolution
 allocPseudoinverse   % Unconstrained control allocation
 ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
 ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
@@ -95,7 +103,7 @@ crosstrack           % Computes the path-tangential origin and cross-track error
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
 EKF_5states          % Estimation of SOG, COG, and course rate from NED positions or latitude-longitude
-getPathSignal        % Generates the coefficients for subpaths between given waypoints
+getPathSignals       % Evaluate a hybrid parameterized path and its derivatives
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
 integralSMCheading   % Integral sliding mode controller for heading control    
@@ -109,8 +117,14 @@ order5               % Path generation using 5th-order polynomials (see demoWayp
 PIDnonlinearMIMO     % Nonlinear MIMO PID regulator for dynamic positioning (DP)
 projectToPath        % Computes the orthogonal projection of a vehicle position onto a sampled 2-D path.
 refModel             % Third-order reference model for position, velocity, and acceleration
-RefModelPolyExp      % Transition from x_start to x_final using a polynomial or an exponential curve 
+refModelPolyExp      % Transition from x_start to x_final using a polynomial or an exponential curve
+sat                  % Symmetric elementwise signal saturation
+satlim               % Asymmetric elementwise signal saturation
 staticRollPitchYaw   % Static roll, pitch, and yaw angles from IMU specific force and magnetometer measurements
+controlMethod        % GUI for selecting a control method from a list
+displayVesselStructure % Print the fields and values of an MSS vessel structure
+isoctave             % Return true when running under GNU Octave
+rangeCheck           % Validate that values lie within inclusive limits
 ```
 
 
@@ -135,6 +149,7 @@ m2c                 % 6x6 Coriolis-centripetal matrix C(nu) from system inertia 
 rbody               % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a general body
 spheroid            % 6x6 rigid-body system inertia and Coriolis-centripetal matrices MRB and CRB of a prolate spheroid 
 thrConfig           % 3xr thruster configuration matrix for main propellers, tunnel thrusters, and azimuth thrusters
+vesselPeriods       % Periods, natural frequencies, and damping ratios from frequency-dependent vessel data
 wageningen          % Thrust and torque coefficients of the Wageningen B-series propellers 
 ```
 
@@ -174,7 +189,6 @@ vw2hs               % Converts average wind speed to significant wave height
 waveForceRAO        % Compute the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
 waveMotionRAO       % Compute the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
-wavespec            % Obsolete, use waveSpectrum instead.
 waveSpectrum        % Function computing state-of-the-art wave spectra
 waveDirectionalSpectrum % Computes the directional wave spectrum using a spreading function
 ```
@@ -221,6 +235,7 @@ rk4                 % Integrates a system of ordinary differential equations usi
 ```matlab
 highPassFilter      % First-order high-pass filter using exact discretization
 lowPassFilter       % First-order low-pass filter using exact discretization
+makeLowPass         % Create a stateful first-order low-pass filter function handle
 notchFilter         % Second-order notch filter using RK4 discretization or IIR filtering
 sawToothWave        % Sawtooth wave signal, which can be used for testing
 waveFreqObserver    % Wave encounter frequency estimator (Belleter, Galeazzi and Fossen 2015)
@@ -270,8 +285,8 @@ demoMarinerPathFollowingCourseControl.slx % Mariner class vessel LOS path-follow
 demoNavalVesselMano.slx                   % Zigzag test for the naval ship Mano  
 demoNPSAUV.slx                            % NPS AUV heading control system
 demoOtterUSVHeadingControl.slx	          % Otter USV heading control system
-demoOtterUSVPathFollowingCourseControl    % Otter USV LOS path-following control using a course autopilot
-demoOtterUSVPathFollowingHeadingControl   % Otter USV ILOS and ALOS path-following control using a heading autopilot
+demoOtterUSVPathFollowingCourseControl.slx % Otter USV LOS path-following control using a course autopilot
+demoOtterUSVPathFollowingHeadingControl.slx % Otter USV ILOS and ALOS path-following control using a heading autopilot
 demoPanamaxContainerShip.slx              % Panama container ship simulator
 demoPassiveWavefilterAutopilot1.slx       % Passive wave filter and heading autopilot design using compass measurements only
 demoPassiveWavefilterAutopilot2.slx       % Passive wave filter and heading autopilot design using a compass and yaw rate measurements
@@ -281,8 +296,11 @@ demoWaveElevation.slx                     % Computation of wave elevation from w
 demoWaypointGuidance.slx                  % Waypoint guidance system
 ```
 
-### Wamit and ShipX templates
-.../MSS/SIMULINK/mssWamitShipxTemplates/
+### Hydrodynamic vessel templates
+.../MSS/SIMULINK/mssWamitShipXTemplates/
+
+These templates use the common MSS `vessel` structure and can therefore be
+used with compatible data generated by WAMIT, ShipX, or MSS-Capytaine.
 
 ```matlab
 DP_ForceRAO.slx    % Simulink template for a DP vessel where wave loads are computed using force RAOs
@@ -305,8 +323,10 @@ MAN_ForceRAO.slx   % Simulink template for the unified maneuvering model where w
 /MSS/mssExamples/
 
 ```matlab
-exAUVhydrostatics  % Computation of the hydrostatic quantities for a cylinder-shaped AUV 
+exAUVHydrostatics  % Computation of the hydrostatic quantities for a cylinder-shaped AUV
 exBoxShapedShip    % Computation of the transverse metacentric height and the heave/roll periods of a box-shaped ship
+exEKF              % Discrete-time extended Kalman filter for a nonlinear second-order system
+exEKFparamterEstimation % Extended Kalman filter for simultaneous state and parameter estimation
 exFeedback         % For-loop implementation for numerical integration of a 1st-order system under feedback and feedforward control
 exFFT              % Estimation of the wave encounter frequency from time series using the fast-Fourier transform (FFT)
 exPlotGM           % Compute and plot the GM_T and BM_T for an AUV diving from the surface to a given depth
@@ -315,7 +335,7 @@ exHybridPath       % Computation of a hybrid continuous path parametrized by way
 exINS_AHRS         % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and AHRS attitude measurements 
 exINS_Euler        % Euler angle error-state (indirect) Kalman filter for INS aided by GNSS position and compass measurements
 exINS_MEKF         % Unit quaternion error-state (indirect) Kalman filter for INS aided by position and magnetic field measurements 
-exINSWaveFilter    % Wave filtering techniques for Inertial Navigation System (INS) measurements
+exINSwaveFilter    % Wave filtering techniques for Inertial Navigation System (INS) measurements
 exIntWindup        % Demonstrates integrator windup and anti-windup when the control law is saturated.
 exKF               % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
 exKT               % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
@@ -350,6 +370,7 @@ exWaveFreqObserver % Nonlinear observer for estimation of the wave encounter fre
 exWaveForceRAO     % Wave elevation and generalized 1st-order wave forces from force RAOs using different wave spectra 
 exWaveMotionRAO    % Wave elevation and ship wave-frequency (WF) motions from motion RAOs using different wave spectra
 exWindForce        % Plots the wind coefficients by Isherwood (1972) 
+exWOPC             % Fully and underactuated weather-optimal positioning control
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
 
@@ -364,14 +385,29 @@ vessel2ss          % computes the fluid-memory transfer functions and stores the
 wamit2vessel       % Reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
 ```
 
+### Capytaine integration
+
+[MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) is a separate
+Python add-on that uses the open-source
+[Capytaine](https://capytaine.org/) boundary-element solver and exports the
+results in the MSS `vessel` structure format. Clone MSS-Capytaine separately
+and run `python main.py` from its project directory to regenerate the example
+hydrodynamic data.
+
+A [pre-generated example](HYDRO/vessels_capytaine/capytaineTestShip/) is
+included in MSS. Python and Capytaine are required only to regenerate the
+data; the included mat-file can be loaded and processed directly in MATLAB or
+GNU Octave.
+
 ### Data files (mat-files that can be loaded to the workspace and used by Simulink templates)
 
 ```matlab
+capytaineTestShip    % Capytaine data for the synthetic MSS-Capytaine test ship
 fpso, fpsoABC       % WAMIT data for a FPSO
 semisub, semisubABC % WAMIT data for a semisubmersible
 tanker, tankerABC   % WAMIT data for a tanker
-s175, s175ABC       % ShipX data for a supply vessel
-supply, supplyABC   % ShipX data for the S175
+s175, s175ABC       % ShipX data for the S175 container ship
+supply, supplyABC   % ShipX data for the supply vessel
 ```
 
 After loading the data files to the workspace using the Matlab command load, the following data structures are available:
@@ -399,6 +435,7 @@ After loading the data files to the workspace using the Matlab command load, the
 
 ```matlab
 computeManeuveringModel % Computes equivalent added mass A_eq and damping B_eq from A(ω) and B(ω)
+cylinderDrag        % Reynolds- and aspect-ratio-dependent 2-D cylinder drag coefficient
 DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
@@ -407,6 +444,29 @@ plotABC             % Plots the hydrodynamic coefficients Aij, Bij, and Cij as a
 plotBv              % Plots viscous damping Bvii as a function of frequency 
 plotTF              % Plots the motion or force RAO transfer functions
 plotWD              % Plots the wave drift amplitudes
+shipPeriods         % Coupled or decoupled heave, roll, and pitch natural periods
+```
+
+### Hydrodynamic utilities (m-files)
+
+```matlab
+ABCtransform        % Transform and complete ShipX hydrodynamic matrices in MSS axes
+imp2svd             % Singular values of the Hankel matrix of a sampled impulse response
+natfrequency        % Natural frequency in heave, roll, or pitch about the center of flotation
+retardation         % Compute a radiation retardation function from damping data
+retardation2ss      % Estimate a state-space realization from a retardation function
+viscous             % Estimate the viscous damping matrix of an MSS vessel
+```
+
+### WAMIT geometry utilities (m-files)
+
+```matlab
+gdf2body            % Transform a WAMIT GDF geometry to the body-fixed origin
+gdf_edit            % Repair an open waterline in a low-order WAMIT GDF file
+gdf_waterline       % Remove panels above the waterline from a WAMIT GDF file
+plot_tecplot        % Plot a WAMIT-generated Tecplot panel geometry
+plot_wamitgdf       % Plot a WAMIT low-order GDF geometry
+plot_wamitidf       % Plot a WAMIT intermediate-order IDF geometry
 ```
 
 ## Frequency-domain identification (FDI) of radiation models (m-files)
