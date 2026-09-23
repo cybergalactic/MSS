@@ -387,17 +387,10 @@ wamit2vessel       % Reads data from WAMIT output files and stores the data as a
 
 ### Capytaine integration
 
-[MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) is a separate
-Python add-on that uses the open-source
-[Capytaine](https://capytaine.org/) boundary-element solver and exports the
-results in the MSS `vessel` structure format. Clone MSS-Capytaine separately
-and run `python main.py` from its project directory to regenerate the example
-hydrodynamic data.
+[MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) is a separate Python add-on that uses the open-source [Capytaine](https://capytaine.org/) boundary-element solver and exports the results in the MSS `vessel` structure format. Clone MSS-Capytaine separately and run `python main.py` from its project directory to regenerate the example hydrodynamic data.
 
-A [pre-generated example](HYDRO/vessels_capytaine/capytaineTestShip/) is
-included in MSS. Python and Capytaine are required only to regenerate the
-data; the included mat-file can be loaded and processed directly in MATLAB or
-GNU Octave.
+A [pre-generated example](HYDRO/vessels_capytaine/capytaineTestShip/) is included in MSS. Python and Capytaine are required only to regenerate the
+data; the included mat-file can be loaded and processed directly in MATLAB or GNU Octave.
 
 ### Data files (mat-files that can be loaded to the workspace and used by Simulink templates)
 
