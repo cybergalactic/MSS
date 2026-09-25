@@ -1,7 +1,7 @@
 function D = Dmtrx(T_126,zeta_45,MRB,MA,hydrostatics)
 % D = Dmtrx([T1, T2, T6],[zeta4,zeta5],MRB,MA,hydrostatics)
 % computes the 6x6 linear damping matrix for marine craft (submerged and
-% floating) by specifying the time constants [T1, T2, T6] in DOFs 1,2 and 6. 
+% floating) by specifying the time constants [T1, T2, T6] in DOFs 1, 2 and 6. 
 % The time constants can be found by open-loop step responses. For roll and
 % pitch the relative damping ratios are specified using [zeta4, zeta5]. 
 % For floating vessels it is assumed that zeta3 = 0.2 in heave, while
