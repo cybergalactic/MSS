@@ -25,7 +25,7 @@ function vessel = computeManeuveringModel(vessel, omega_p, plotFlag)
 % Inputs:
 %   vessel       - Structure containing vessel hydrodynamic data (A, B, freqs)
 %   omega_p      - Vector of wave peak frequencies, e.g. omega_p = linspace(0.1, 3.0, 10)
-%   plotFlag     - Set to 1 to plot the A(ω) and B(ω) matrix elememts, 0 for no plot
+%   plotFlag     - Set to 1 to plot the A(ω) and B(ω) matrix elements, 0 for no plot
 %
 % Outputs:
 %   vessel.omega_p - Vector of wave spectrum peak frequencies
@@ -34,8 +34,8 @@ function vessel = computeManeuveringModel(vessel, omega_p, plotFlag)
 %
 % Example call:
 %   load supply % other vessels: s175, tanker, fpso, semisub
-%   omega_p = linspace(0.1, 3.0, 20)
-%   vessel = computeManeuveringModel(vessel, 1, omega_p, 1)
+%   omega_p = [0.6 0.8 1.0]
+%   vessel = computeManeuveringModel(vessel, omega_p, 1)
 %   disp(vessel.A_eq)
 %   disp(vessel.B_eq)
 %
@@ -54,8 +54,15 @@ end
 A_all = vessel.A; % Added mass
 B_all = vessel.B; % Potential damping 
 
-omega_min = min(vessel.freqs);
-omega_max = max(vessel.freqs);
+% Frequency data used for power-based averaging
+freqs = vessel.freqs;
+
+% Exclude artificial frequency omega = 10 rad/s representing infinity
+idx = freqs < 10;
+freqs = freqs(idx);
+
+omega_min = min(freqs);
+omega_max = max(freqs);
 
 % Avoid omega = 0 to prevent numerical issues in spectrum normalization
 if omega_min == 0
@@ -76,8 +83,8 @@ Beq_all = zeros(6, 6, nOmega, nvel);
 
 % Loop over all velocities
 for velNo = 1:nvel
-    A_w = A_all(:,:,:,velNo);
-    B_w = B_all(:,:,:,velNo);
+    A_w = A_all(:,:,idx,velNo);
+    B_w = B_all(:,:,idx,velNo);
 
     % Loop over all omega_p
     for k = 1:nOmega
@@ -96,8 +103,8 @@ for velNo = 1:nvel
                 A_ij_w = squeeze(A_w(i,j,:));
                 B_ij_w = squeeze(B_w(i,j,:));
 
-                A_interp = interp1(vessel.freqs, A_ij_w, freqs_fine, 'pchip');
-                B_interp = interp1(vessel.freqs, B_ij_w, freqs_fine, 'pchip');
+                A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip');
+                B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip');
 
                 Aeq_all(i,j,k,velNo) = trapz(freqs_fine, A_interp .* S_N);
                 Beq_all(i,j,k,velNo) = trapz(freqs_fine, B_interp .* S_N);
