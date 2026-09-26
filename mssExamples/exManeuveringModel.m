@@ -39,7 +39,6 @@ rng(1); % Set random generator seed to 1 when generating stochastic waves
 %% SIMULATOR CONFIGURATION
 h  = 0.05; % Sampling time (s)
 T_final = 120; % Final simulation time (s)
-plotFlag = 0; % Set to 1 to plot 6x6 matrix elememts, 0 for no plot
 vesselChoice = 1; % Choose vessel type 1, 2, 3
 
 switch vesselChoice
@@ -91,13 +90,9 @@ for i = 1:nTimeSteps
 end
 
 %% Compute Aeq and Beq using simplified normalized wave spectrum
-% Quieck approzximation shifting omega_p to the encounter frquency.
-% TODO: The method in Fossen (2025) evaluating the spectrum in the encounter
-% frequency domain by computing the Jacobian will be mych more accuarte in
-% particular in following seas.
 g = 9.81;
 omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave);
-vessel = computeManeuveringModel(vessel, omega_p, plotFlag);
+vessel = computeManeuveringModel(vessel, omega_p);
 
 %% Compute Cummins and Maneuvering Model Responses
 freqs = vessel.freqs;
@@ -120,8 +115,8 @@ B_interp_all = zeros(nFreqInterp, 6);
 K_all = zeros(nTimeSteps,6);        % Retardation functions
 
 for DOF = 1:6
-    A_eq(DOF) = vessel.A_eq(DOF,DOF);
-    B_eq(DOF) = vessel.B_eq(DOF,DOF);
+    A_eq(DOF) = vessel.powerBased.A_eq(DOF,DOF);
+    B_eq(DOF) = vessel.powerBased.B_eq(DOF,DOF);
     Bv(DOF) = vessel.Bv(DOF,DOF,1);
     
     A_w = squeeze(vessel.A(DOF,DOF,:,1));
