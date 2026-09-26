@@ -112,13 +112,14 @@ if isempty(vessel)
     % is stored in the structure <vessel>.
     %   load supply             % Check data by typing vessel
     %   disp(vessel.main)
-    %   vessel = computeManeuveringModel(vessel, 1, 7, [3, 1.2, 3.3], 1);
-    vessel.MA = 1e9 * [0.0006   0    0    0    0    0
-         0    0.0020         0    0.0031         0   -0.0091
-         0         0    0.0083         0    0.0907         0
-         0    0.0031         0    0.0748         0   -0.1127
-         0         0    0.0907         0    3.9875         0
-         0   -0.0091         0   -0.1127         0    1.2416];
+    %   vessel = computeManeuveringModel(vessel, 1.0);
+    vessel.MA = 1e9 * [ 
+         0.0010    0         0         0         0         0
+         0    0.0034         0    0.0047         0    0.0107
+         0         0    0.0083         0    0.0529         0
+         0    0.0047         0    0.0840         0   -0.1282
+         0         0    0.0529         0    3.5072         0
+         0    0.0107         0   -0.1282         0    1.7444];
 
     % Mass matrix including hydrodynamic added mass
     vessel.M = vessel.MRB + vessel.MA;
@@ -135,7 +136,7 @@ if isempty(vessel)
 
 end
 
-% Flag for plotting of the surge resitance, linear + quadratic damping
+% Flag for plotting of the surge resistance, linear + quadratic damping
 if nargin > 0
     flag = 0;                              
 else
