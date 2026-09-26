@@ -17,12 +17,12 @@ function plotAB_eq(vessel, mtrx, velNo)
 % Handle matrix selection
 if strcmp(mtrx, 'A')
     H = vessel.A;
-    H_eq = vessel.A_eq;
+    H_eq = vessel.powerBased.A_eq;
     figno = 100;
     titleStr = 'Added Mass';
 elseif strcmp(mtrx, 'B')
     H = vessel.B;
-    H_eq = vessel.B_eq;
+    H_eq = vessel.powerBased.B_eq;
     figno = 200;
     titleStr = 'Damping';
 else
@@ -47,7 +47,7 @@ end
 
 % Frequency and omega_p vectors
 freqs = vessel.freqs(:);
-omega_p = vessel.omega_p(:);
+omega_p = vessel.powerBased.omega_p;
 
 % Extract 3D slice for current velocity
 H_w = H(:,:,:,velNo);
