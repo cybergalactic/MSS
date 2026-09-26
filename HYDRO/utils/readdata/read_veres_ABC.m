@@ -41,7 +41,7 @@ if ~strcmpi(reference_point,'CG') && ~strcmpi(reference_point,'CO')
     error('reference_point must be CG or CO');
 end
 
-Tmtrx = diag([-1 1 -1 -1 1 -1]);  % veres2fossen axes
+Tmtrx = diag([-1 1 -1 -1 1 -1]);  % Veres to FSD axes
 
 %% ------------------------------------------------------------------------
 % Read data from file
@@ -137,11 +137,11 @@ MRB = [ str2num(mdata{1})
         str2num(mdata{5})
         str2num(mdata{6})];
     
-MRB = Tmtrx*MRB*Tmtrx;         % MRB transformed from veres to fossen axes
+MRB = Tmtrx*MRB*Tmtrx;              % MRB transformed from veres to FSD axes
 if strcmpi(reference_point,'CG')
     H = eye(6);                     % Keep MRB, A, B, C at CG
 else
-    H = Hmtrx([-LCG,0,0]);         % Legacy transform to CO midships
+    H = Hmtrx([-LCG,0,0]);          % Legacy transform to CO midships
 end
 vessel.MRB = H'*MRB*H;
 
@@ -228,29 +228,29 @@ for velno = 1:nvel
 	
 end % Loop over velocities
 
-headno = findstr(headings,90);  % 90 deg for data such that w_o=w_e
+headno = findstr(headings,90);  % 90 deg for data such that w_o = w_e
 if isempty(headno), headno = 1; end
 
-% remove heading numbers since A,B,C are independent of heading
+% Remove heading numbers since A,B,C are independent of heading
 Amtrx2 = reshape(Amtrx(:,:,:,headno,:),6,6,nfreq,velno); 
 Bmtrx2 = reshape(Bmtrx(:,:,:,headno,:),6,6,nfreq,velno);
 Cmtrx2 = reshape(Cmtrx(:,:,:,headno,:),6,6,nfreq,velno);
 
-% transform to Fossen axes
+% Transform to FSD axes
 for k = 1:nvel
     for i = 1:nfreq
         vessel.A(:,:,i,k) = H'*Tmtrx*Amtrx2(:,:,i,k)*Tmtrx*H;  
         vessel.B(:,:,i,k) = H'*Tmtrx*Bmtrx2(:,:,i,k)*Tmtrx*H;  
         vessel.C(:,:,i,k) = H'*Tmtrx*Cmtrx2(:,:,i,k)*Tmtrx*H; 
         
-        % include viscous roll damping
-        Bv1  = Rollvect(1,1,i,k); % linear damping
-        Bv2L = Rollvect(1,3,i,k); % nonlinear damping (linearized)
+        % Include viscous roll damping
+        Bv1  = Rollvect(1,1,i,k); % Linear damping
+        Bv2L = Rollvect(1,3,i,k); % Nonlinear damping (linearized)
         
-        if Bv1 < 0     % remove negative damping for V-shaped hulls
-            Bv1 = 0;   % limitation of IKEDA theory
+        if Bv1 < 0     % Remove negative damping for V-shaped hulls
+            Bv1 = 0;   % Limitation of IKEDA theory
         end
-        if Bv2L < 0    % remove negative damping
+        if Bv2L < 0    % Remove negative damping
             Bv2L = 0;
         end
             

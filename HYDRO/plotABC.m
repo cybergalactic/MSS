@@ -93,6 +93,10 @@ end
 
 function plotBlock(H, freqs, velno, idx, letter, rowOffset, useTiled)
 % Helper to plot one 3x3 block.
+    % VERES uses omega = 10 rad/s to represent infinite frequency.
+    infIdx = abs(freqs - 10) < 10*eps(10);
+    lineIdx = ~infIdx;
+
     count = 0;
     for rr = 1:3
         for cc = 1:3
@@ -108,7 +112,13 @@ function plotBlock(H, freqs, velno, idx, letter, rowOffset, useTiled)
                 subplot(7,3,(rowOffset-1)*3 + count);
             end
 
-            plot(freqs,Hij,'b-o','MarkerSize',3)
+            plot(freqs(lineIdx),Hij(lineIdx),'b-o','MarkerSize',3)
+            if any(infIdx)
+                hold on
+                plot(freqs(infIdx),Hij(infIdx),'rx', ...
+                    'MarkerSize',7,'LineWidth',1.5)
+                hold off
+            end
             grid on;
 
             title(sprintf('%s_{%d%d}', letter, i, j), 'Interpreter','tex');
