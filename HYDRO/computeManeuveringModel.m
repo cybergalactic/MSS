@@ -38,6 +38,7 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %   vessel.powerBased.omega_p - Wave spectrum peak frequency
 %   vessel.powerBased.eq.A_eq - Equivalent added mass matrix
 %   vessel.powerBased.B_eq    - Equivalent damping matrix
+%   vessel.powerBased.Bv      - Viscous damping matrix
 %
 % Example call:
 %   load supply; % Other vessels: s175, tanker, fpso, semisub,
@@ -52,8 +53,9 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %       kappa_126, delta_zeta_345, 1);
 %   vessel = computeManeuveringModel(vessel, omega_p, [], [], 1);
 %
-%   disp(vessel.powerBased.A_eq)
-%   disp(vessel.powerBased.B_eq)
+%   disp(vessel.powerBased.A_eq,'A_eq')
+%   disp(vessel.powerBased.B_eq,'B_eq')
+%   disp(vessel.powerBased.Bv,'Bv')
 %
 % Author: Thor I. Fossen
 % Date: 2025-03-10
@@ -142,55 +144,46 @@ for velNo = 1:nvel
 
 end
 
-% Store in vessel
+% Power-based equivalent matrices
 vessel.powerBased.omega_p = omega_p;
 vessel.powerBased.A_eq = Aeq_all;
 vessel.powerBased.B_eq = Beq_all;
 
-
-%% Power-based model matrices
-vessel.powerBased.Bv = zeros(6);
-vessel.powerBased.G  = zeros(6);
-
-% Total inertia matrix
-vessel.powerBased.M = vessel.MRB + vessel.powerBased.A_eq;
+% Inertia matrices
+vessel.MA = vessel.powerBased.A_eq;
+vessel.M = vessel.MRB + vessel.MA;
+vessel.Minv = invQR(vessel.M);
 
 % Restoring matrix for heave, roll and pitch
-vessel.powerBased.G([3 4 5],[3 4 5]) = ...
-    vessel.C([3 4 5],[3 4 5],1);
+vessel.G  = zeros(6);
+vessel.G([3 4 5],[3 4 5]) = vessel.C([3 4 5],[3 4 5],1);
 
 % DOFs 1, 2 and 6: relative viscous damping increments
+vessel.powerBased.Bv = zeros(6);
 idx = [1 2 6];
 for k = 1:3
     i = idx(k);
-    vessel.powerBased.Bv(i,i) = ...
-        kappa_126(k) * vessel.powerBased.B_eq(i,i);
+    vessel.powerBased.Bv(i,i) = kappa_126(k) * vessel.powerBased.B_eq(i,i);
 end
 
 % DOFs 3, 4 and 5: viscous damping-ratio increments
 idx = [3 4 5];
 for k = 1:3
     i = idx(k);
-    vessel.powerBased.Bv(i,i) = ...
-        2 * delta_zeta_345(k) * ...
-        sqrt(vessel.powerBased.M(i,i) * vessel.powerBased.G(i,i));
+    vessel.powerBased.Bv(i,i) = 2 * delta_zeta_345(k) * ...
+        sqrt(vessel.M(i,i) * vessel.G(i,i));
 end
 
-%% Store final results
-vessel.powerBased.D = vessel.powerBased.B_eq + vessel.powerBased.Bv;
-vessel.powerBased.MA  = vessel.powerBased.A_eq;
-vessel.powerBased.MRB = vessel.MRB;
+vessel.D = vessel.powerBased.B_eq + vessel.powerBased.Bv;
 
 vessel.powerBased.kappa_126 = kappa_126;
 vessel.powerBased.delta_zeta_345 = delta_zeta_345;
 
 vessel.powerBased.T_126 = zeros(1,3);
 idx = [1 2 6];
-
 for k = 1:3
     i = idx(k);
-    vessel.powerBased.T_126(k) = ...
-        vessel.powerBased.M(i,i) / vessel.powerBased.D(i,i);
+    vessel.powerBased.T_126(k) = vessel.M(i,i) / vessel.D(i,i);
 end
 
 %% Optional plotting for velocity #1

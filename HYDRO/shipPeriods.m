@@ -15,7 +15,7 @@ function [w_345,T_345] = shipPeriods(vessel, dof)
 %
 %   - Decoupled case: The rigid-body, added mass, and restoring matrices
 %     are transformed from the CO to the CG using Hmtrx.m. The natural 
-%     requencies in heave,roll, and pitch are then found by solving the scalar 
+%     frequencies in heave,roll, and pitch are then found by solving the scalar 
 %     implicit equation
 %
 %           ω_i = sqrt( G_CG(i,i) / ( M_RB_CG(i,i) + A_CG(i,i) ) )

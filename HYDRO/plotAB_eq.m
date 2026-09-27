@@ -5,7 +5,11 @@ function plotAB_eq(vessel, mtrx, velNo)
 % integrating the frequency-dependent hydrodynamic coefficients A(ω) and B(ω) 
 % using the wave spectrum S(ω, ω_p) as a weighting function, 
 % see computeManeuveringModel.m.
-
+%
+% The structure vessel.powerBased must be generated using:
+%
+% vessel = computeManeuveringModel(vessel, omega_p);
+%
 % Inputs:
 %   vessel - Structure with fields A, B, A_eq, B_eq, freqs, omega_p, velocities
 %   mtrx   - 'A' or 'B' to select added mass or damping matrices
