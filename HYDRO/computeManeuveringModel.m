@@ -29,9 +29,9 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %   vessel         - Structure containing vessel hydrodynamic data
 %   omega_p        - Wave peak frequency (rad/s)
 %   kappa_126      - Relative viscous damping increments for DOFs 1, 2 and 6
-%                    (default: [0.05 0.05 0.05])
+%                    (press Return for default: [0.05 0.05 0.05])
 %   delta_zeta_345 - Viscous damping-ratio increments for DOFs 3, 4 and 5
-%                    (default: [0 0.1 0])
+%                    (press Return for default: [0 0.1 0])
 %   plotFlag       - Set to 1 to plot A(omega) and B(omega), 0 otherwise
 %
 % Outputs:
@@ -46,7 +46,13 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %
 %   omega_p = 1.0
 %
+%   % Use inputs already saved in vessel.powerBased:
+%   vessel = computeManeuveringModel(vessel);
+%
+%   % Replace only the sea-state peak frequency and reuse saved damping:
 %   vessel = computeManeuveringModel(vessel, omega_p);
+%
+%   % Replace all power-based model inputs explicitly:
 %   vessel = computeManeuveringModel(vessel, omega_p, ...
 %       kappa_126, delta_zeta_345);
 %   vessel = computeManeuveringModel(vessel, omega_p, ...
@@ -63,16 +69,72 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %   2026-04-07 Use only potential damping vessel.B when computing B_eq.
 %   2026-09-26 Introduced the structure vessel.powerBased and added 
 %      formulas for the viscous damping matrix Bv.
+%   2026-09-27 Prompt for damping increments when they are not supplied.
 
-% Default damping increments (DOFs 1-2-6)
-if nargin < 3 || isempty(kappa_126)
-    kappa_126 = [0.05 0.05 0.05];  % 5 percent increase of damping
+% Wave-spectrum peak frequency. Reuse a saved value when the argument is
+% omitted; an explicitly empty argument requests a new value.
+if nargin < 2
+    if isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'omega_p') && ...
+            ~isempty(vessel.powerBased.omega_p)
+        omega_p = vessel.powerBased.omega_p;
+    else
+        omega_p = input('Wave-spectrum peak frequency omega_p (rad/s): ');
+    end
+elseif isempty(omega_p)
+    omega_p = input('Wave-spectrum peak frequency omega_p (rad/s): ');
 end
 
-% Default damping-ratio increments (DOFs 3-4-5)
-if nargin < 4 || isempty(delta_zeta_345)
-    delta_zeta_345 = [0 0.1 0]; % Increase the damping factor in roll by 0.1
+if ~isnumeric(omega_p) || ~isreal(omega_p) || isempty(omega_p) || ...
+        any(~isfinite(omega_p(:))) || any(omega_p(:) <= 0)
+    error('omega_p must contain finite, positive values in rad/s.');
 end
+
+% Viscous damping increments (DOFs 1-2-6). Reuse saved user input when
+% omitted; an explicitly empty argument displays the default prompt.
+if nargin < 3 && isfield(vessel, 'powerBased') && ...
+        isfield(vessel.powerBased, 'kappa_126') && ...
+        ~isempty(vessel.powerBased.kappa_126)
+    kappa_126 = vessel.powerBased.kappa_126;
+elseif nargin < 3 || isempty(kappa_126)
+    kappa_default = [0.05 0.05 0.05];
+    kappa_126 = input(sprintf([ ...
+        'Relative viscous damping increments kappa_126 for DOFs 1, 2, 6 ' ...
+        '(default: %s): '], mat2str(kappa_default)));
+    if isempty(kappa_126)
+        kappa_126 = kappa_default;
+    end
+end
+
+% Viscous damping-ratio increments (DOFs 3-4-5)
+if nargin < 4 && isfield(vessel, 'powerBased') && ...
+        isfield(vessel.powerBased, 'delta_zeta_345') && ...
+        ~isempty(vessel.powerBased.delta_zeta_345)
+    delta_zeta_345 = vessel.powerBased.delta_zeta_345;
+elseif nargin < 4 || isempty(delta_zeta_345)
+    delta_zeta_default = [0 0.1 0];
+    delta_zeta_345 = input(sprintf([ ...
+        'Viscous damping-ratio increments delta_zeta_345 for DOFs 3, 4, 5 ' ...
+        '(default: %s): '], mat2str(delta_zeta_default)));
+    if isempty(delta_zeta_345)
+        delta_zeta_345 = delta_zeta_default;
+    end
+end
+
+% Validate and normalize user input
+if ~isnumeric(kappa_126) || ~isreal(kappa_126) || ...
+        numel(kappa_126) ~= 3 || any(~isfinite(kappa_126(:))) || ...
+        any(kappa_126(:) < 0)
+    error('kappa_126 must contain three finite, nonnegative values.');
+end
+if ~isnumeric(delta_zeta_345) || ~isreal(delta_zeta_345) || ...
+        numel(delta_zeta_345) ~= 3 || ...
+        any(~isfinite(delta_zeta_345(:))) || ...
+        any(delta_zeta_345(:) < 0)
+    error('delta_zeta_345 must contain three finite, nonnegative values.');
+end
+kappa_126 = reshape(kappa_126,1,3);
+delta_zeta_345 = reshape(delta_zeta_345,1,3);
 
 % Default plot flag
 if nargin < 5 || isempty(plotFlag)
