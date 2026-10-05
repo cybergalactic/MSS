@@ -10,14 +10,16 @@ function Cd_2D = cylinderDrag(L,B,nu_r)
 % Inputs:
 %    L: length
 %    B: beam 
-%    nu_r = [u-u_c, v-v_c, w-w_c, p, q, r]': relative velocity vector
+%    nu_r = [u-u_c, v-v_c, w-w_c, p, q, r]': Relative velocity vector
 %
 % Author: M. Seidl
-% Date:   09 Jun 2025
+% Date: 2025-06-09
+% Revisions:
+%   2026-10-05 Corrected Reynolds number to use the cylinder diameter (Enio Krizman)
 %
 % Reference:
-% DNV-RP-C205, Environmental conditions and environmental loads
-% Recommended practice, Edition 2025-04
+%   DNV-RP-C205, Environmental conditions and environmental loads
+%   Recommended practice, Edition 2025-04
 
 % CD_DATA = [Re  Cd]
 CD_DATA = [...
@@ -74,7 +76,8 @@ KAPPA_SUPERCRITICAL_DATA = [...
 100 1.00];
 
 U_crossflow = sqrt(nu_r(2)^2+nu_r(3)^2); % cross-flow velocity
-Re = U_crossflow * L * 1e6; % Reynolds number for water
+nu_water = 1e-6;
+Re = U_crossflow * B / nu_water;
 
 % Cd interpolation
 if Re < CD_DATA(1,1)
