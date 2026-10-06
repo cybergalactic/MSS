@@ -1,5 +1,4 @@
 function dense_wpt = addIntermediateWaypoints(wpt, multiplier)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % The function addIntermediateWaypoints adds intermediate waypoints along 
 % the line segments between given waypoints for better resolution.
 %

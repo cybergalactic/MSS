@@ -1,5 +1,4 @@
 function [phi, theta, psi] = staticRollPitchYaw(f_imu, m_imu)
-% staticRollPitchYaw is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This function computes the static roll-pitch-yaw angles (phi, theta, psi)
 % from 3-axis specific force and magnetometer measurements expressed in the 
 % BODY frame. If only specific force is used as input the function returns
@@ -57,7 +56,7 @@ psi = zeros(rows1, 1);
 
 % Compute roll (phi), pitch (theta), and yaw (psi) angles for each row
 for i = 1:rows1
-    % Static roll and pitch angles, see Fossen (2021, Eqs. (14.34-(14.35)).
+    % Static roll and pitch angles, see Fossen (2027, Eqs. (14.34-(14.35)).
     % Calculate roll angle using atan(fy/fz) since atan2(fy, fz) fails when 
     % both arguments can have both signs. This approach avoids 180 deg roll 
     % angles when the physical angle is 0 deg.
@@ -78,7 +77,7 @@ for i = 1:rows1
 
     % Compute yaw angle (psi) only if magnetometer data is provided
     if nargin == 2
-        % Tilt-compensated magnetometer readings, see Fossen (2021, Eq.(14.27)).
+        % Tilt-compensated magnetometer readings, see Fossen (2027, Eq.(14.27)).
         % [mx, my, mz]' = R_y(theta) * R_x(phi) * [m_imu_x, m_imu_y, m_imu_z]'
         mx = m_imu(i, 1) * cos(theta(i)) ...
             + m_imu(i, 2) * sin(phi(i)) * sin(theta(i)) ...

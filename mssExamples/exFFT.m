@@ -1,4 +1,3 @@
-% exFFT is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script estimates the wave encounter frequency by FFT. Time-domain 
 % data are generated using a wave spectrum transfer function. The FFT is 
 % used to compute the single-sided spectra for both signals, and the peak 

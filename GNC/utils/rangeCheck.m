@@ -1,5 +1,4 @@
 function rangeCheck(x, lower, upper)
-% rangeCheck - Compatibel with MATLAB and GNU Octave (www.octave.org)
 % 
 % Validates that a value or values are within a specified range.
 % rangeCheck(x, lower, upper) throws an error if any element of x

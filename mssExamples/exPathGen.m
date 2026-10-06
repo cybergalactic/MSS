@@ -1,5 +1,4 @@
 function exPathGen()
-% wxPathGen is compatible with MATLAB and GNU Octave (www.octave.org).
 % Path generation using cubic polynomials.
 
 % Cubic spline between two points

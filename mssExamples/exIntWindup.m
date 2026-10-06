@@ -1,5 +1,4 @@
 %% exIntWindup
-% exIntWindup is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script demonstrates integrator windup when the control law is
 % saturated. The solution is to modify the integrator term using anti-windup. 
 % The control objective is to regulate x to constant reference x_ref using:
@@ -124,4 +123,3 @@ subplot(312),plot(t,z1,t,z2,'linewidth',2),xlabel('time (s)'),title('integral st
 legend('Without anti-windup','With anti-windup')
 subplot(313),plot(t,u1,t,u2,'linewidth',2),xlabel('time (s)'),title('control u'),grid
 legend('Without anti-windup','With anti-windup')
-

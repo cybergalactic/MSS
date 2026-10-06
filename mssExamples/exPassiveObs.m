@@ -1,4 +1,3 @@
-% exPassiveObs is compatible with MATLAB and GNU Octave.
 % The script plots the loop transfer function of the passive observer in
 % for dynamic positioning.
 

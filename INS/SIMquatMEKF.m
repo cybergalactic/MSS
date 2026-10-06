@@ -1,4 +1,3 @@
-% SIMquatMEKF is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the Multiplicative Extended Kalman Filter (MEKF) for 
 % quaternion attitude estimation (Markley and Crassidis, 2014). The MEKF uses
 % high-rate inertial measurements from a 9-DOF inertial measurement unit 
@@ -229,4 +228,3 @@ legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',10)
-

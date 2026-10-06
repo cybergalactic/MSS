@@ -1,4 +1,3 @@
-% exQuest is compatible with MATLAB and GNU Octave (www.octave.org).
 % 6-DOF position/attitude vector from camera measurements using the QUEST 
 % (QUaternion ESTimator) algorithm. The QUEST algorithm is a widely used 
 % method for attitude determination, particularly for spacecraft. It 

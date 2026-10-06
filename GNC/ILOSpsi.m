@@ -1,5 +1,4 @@
 function [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
-% ILOSpsi is compatible with MATLAB and GNU Octave (www.octave.org). The
 % function [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
 % computes the desired heading angle, psi_ref, and cross-track error y_e,
 % for paths that consist of straight lines connecting waypoints 
@@ -122,4 +121,3 @@ psi_ref = pi_h - atan( Kp * (y_e + kappa * y_int) );
 y_int = y_int + h * Delta_h * y_e / ( Delta_h^2 + (y_e + kappa * y_int)^2 );
 
 end
-

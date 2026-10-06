@@ -1,16 +1,15 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 % wamit2vessel reads data from WAMIT output files and store the data in 
-%   vesselname.mat using the MSS vessel struture.
+%   vesselname.mat using the MSS vessel structure.
 %
 %   vessel = wamit2vessel(filename) 
 % 
 % The Wamit GDF-file must be defined in GLOBAL COORDINATES, i.e. origin 
 % [Lpp/2 B/2 WL], see the Wamit manual. The axes are transformed from WAMIT
-% axes to Fossen axes. 
+% axes to Forward-Starboard-Down (FSD) axes. 
 %
 % Examples:   
 %   ../MSS/HYDRO/vessels_wamit/tanker
-%       vessel = wamit2vessel('tanker')
 %       vessel = wamit2vessel('tanker',10,246,46)
 %       vessel = wamit2vessel('tanker',10,246,46,'1111')
 %
@@ -19,6 +18,11 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 %
 % ../MSS/HYDRO/vessels_wamit/fpso
 %       vessel = wamit2vessel('fpso',12,200,44,'1111')
+%
+% The power-based maneuvering model is computed separately after import:
+%       vessel = computeManeuveringModel(vessel)
+% This prompts for omega_p and the damping increments, allowing the sea
+% state to be changed without rerunning wamit2vessel.
 %
 % Inputs:
 %    filename (without extension) reads and processes the following
@@ -97,6 +101,8 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag)
 %            2021-03-07 Minor bug fixes
 %            2022-12-20 Fixed incorrect mirroring of RAOs to 180-360 deg
 %            2023-04-17 Added a correction for LCF when computing GM_L
+%            2026-09-27 Removed viscous.m; power-based viscous damping is
+%                       computed separately by computeManeuveringModel
 
 %%
 if ~exist('plot_flag')
@@ -157,16 +163,16 @@ vessel.headings   = (pi/180)*(0:10:180);
 Nheadings         = length(vessel.headings);
 
 % Axes transformations for data processing:
-% Wamit uses negative incoming wave angle beta compared to mss: T_data
+% Wamit uses negative incoming wave angle beta compared to MSS: T_data
 % Wamit GDF x,y,z axes are transformed to mss axes by: T_gdf
-T_gdf = [1 -1 -1];             % Wamit2Fossen axes (sign correction)
-T_data = [1 -1 1 -1 1 -1];     % RAO data sign correction due to neg. wave angles beta
+T_gdf = [1 -1 -1];         % Wamit2FSD axes (sign correction)
+T_data = [1 -1 1 -1 1 -1]; % RAO data sign correction due to neg. wave angles beta
 
 % Scaling of raw data:
 % Matrix: Tscale * A * Tscale
-% RAO: change amplitude with signs in T_rao (alternavively change phase with pi)
+% RAO: change amplitude with signs in T_rao (alternatively change phase with pi)
 Tscale = diag([T_gdf T_gdf]);    % 6-DOF transformation matrix for A and B data
-T_rao = [T_gdf T_gdf] .* T_data; % total force/motion RAO transformation
+T_rao = [T_gdf T_gdf] .* T_data; % Total force/motion RAO transformation
 
 %--------------------------------------------------------------------------
 %% Check number of WAMIT headings in *.pot file
@@ -221,17 +227,17 @@ if exist([filename '.frc'])
         yg = frc(3,2);  
         zg = frc(3,3);          
  
-        % mass matrix in CO (Wamit axes)        
+        % Mass matrix in CO (Wamit axes)        
         MRB = frc(5:10,1:6);             
 
-        % mass matrix in CO (Fossen axes)
+        % Mass matrix in CO (FSD axes)
         MRB =  Tscale*MRB*Tscale;
                 
         vessel.MRB      = MRB;   
         vessel.main.m   = frc(5,1);
         vessel.main.rho = frc(2,1);
         
-        % compute gyration radii in GLOBAL COORDINATES
+        % Compute gyration radii in GLOBAL COORDINATES
         vessel.main.k44 = sqrt(MRB(4,4)/vessel.main.m);
         vessel.main.k55 = sqrt(MRB(5,5)/vessel.main.m);
         vessel.main.k66 = sqrt(MRB(6,6)/vessel.main.m);
@@ -295,7 +301,7 @@ if exist([filename '.out'])
                 
                 vessel.main.m = mass;
                 
-                % mass matrix in GLOBAL COORDINATES (Wamit axes) - WAMIT manual page 4-4
+                % Mass matrix in GLOBAL COORDINATES (Wamit axes) - WAMIT manual page 4-4
                 MRB = zeros(6,6);
                 MRB(1,1) = mass;
                 MRB(2,2) = mass;
@@ -311,7 +317,7 @@ if exist([filename '.out'])
                 MRB(4,6) = mass*vessel.main.k46^2;
                 MRB(6,4) = mass*vessel.main.k46^2;
                                
-                % mass matrix (Fossen axes)
+                % Mass matrix (FSD axes)
                 MRB = Tscale*MRB*Tscale;                              
                 vessel.MRB = MRB;   
               
@@ -327,48 +333,29 @@ if exist([filename '.out'])
             txt = char(fgetl(fid1));
             C5 = str2num(txt(23:length(txt)));
 
-            % scaling to SI units (Wamit manual p. 4-2)
+            % Scaling to SI units (Wamit manual p. 4-2)
             rho_g    = vessel.main.rho * vessel.main.g;
             C3 = C3 .* rho_g .* [ULEN^2 ULEN^3 ULEN^3];
             C4 = C4 .* rho_g .* [ULEN^4 ULEN^4 ULEN^4];
             C5 = C5 .* rho_g .* [ULEN^4 ULEN^4];
 
-            % spring stiffness matrix in global coordinates (Wamit axes)
+            % Spring stiffness matrix in global coordinates (Wamit axes)
             % Wamit manual p. 4-2
             C_wamit = zeros(6,6);
             C_wamit(3:6,3:6) =...
                 [ C3 0
-                C3(2) C4
-                C3(3) C4(2) C5
-                0 0 0 0 ];
+                  C3(2) C4
+                  C3(3) C4(2) C5
+                  0 0 0 0 ];
             
-            % spring stiffness matrix in CO (Fossen axes)             
+            % Spring stiffness matrix in CO (FSD axes)             
             C_wamit = Tscale*C_wamit*Tscale;            
             for i = 1:Nfreqs
                 vessel.C(:,:,i) = C_wamit;
             end
             
             vessel.main.GM_T  = C_wamit(4,4) / (vessel.main.m*vessel.main.g);
-            
-            % vessel.main.GM_L  = C_wamit(5,5) / (vessel.main.m*vessel.main.g)
-            % is only correct for LCF = 0. Hence, we use an approximation
-
-
-            % water-plane area
-            if (vessel.main.Lpp >= 100)    % large ships such as tankers
-                Awp = 0.8 * vessel.main.Lpp * vessel.main.B;
-            elseif (vessel.main.Lpp < 100  && vessel.main.Lpp > 50) 
-                Awp = 0.65 * vessel.main.Lpp * vessel.main.B;
-            else % small ships less than 50 m
-                Awp = 0.5 * vessel.main.Lpp * vessel.main.B;
-            end
-
-            LCF = -0.1 * vessel.main.Lpp;    % location of the CF
-
-            % From Equation (4.33) in Fossen (2021)
-            vessel.main.GM_L  = ( C_wamit(5,5) - ...
-                vessel.main.rho * vessel.main.g * Awp *LCF^2 ) / ...
-                (vessel.main.m * vessel.main.g ); 
+            vessel.main.GM_L  = C_wamit(5,5) / (vessel.main.m*vessel.main.g);
 
             if vessel.main.GM_T < 0
                 disp(['Error: GM_T = ' num2str(vessel.main.GM_T) ' < 0']);
@@ -384,7 +371,7 @@ if exist([filename '.out'])
         % CG and CB
         if  strfind(txt,'Center of Buoyancy')
             temp = str2num(txt(33:length(txt)));
-            C_B = T_gdf.*temp;   % Fossen axes
+            C_B = T_gdf.*temp;   % FSD axes
             vessel.main.CB = [C_B(1) C_B(2) T_draught-C_B(3)];
         end
 
@@ -392,7 +379,7 @@ if exist([filename '.out'])
             temp = str2num(txt(33:length(txt)));
             
             if  FRC_ALT == 2
-                C_G = T_gdf.*temp;   % Fossen axes
+                C_G = T_gdf.*temp;   % FSD axes
                 vessel.main.CG = [C_G(1) C_G(2) T_draught-C_G(3)];
             else  % FRC_ALT == 1
                 vessel.main.CG = [0 0 T_draught+VCG];
@@ -431,17 +418,17 @@ if exist([filename '.1'])
        error('Run WAMIT with periods: -1 0 p1 p2 p3...pn where pi are postive periods');
    end     
 
-    % frequencies (inf is chosen as 10 rad/s)
+    % Frequencies (inf is chosen as 10 rad/s)
     freqs = [0 10 (2*pi./unique_periods(3:length(unique_periods)))'];
 
-    % extract added mass and damping
+    % Extract added mass and damping
     for p = 1:Nperiods
         idx = find(unique_periods == periods(p));
         Aij(i(p),j(p),idx) = A(p);
         Bij(i(p),j(p),idx) = B(p);
     end
     
-    % sort with respect to frequency
+    % Sort with respect to frequency
     [freqs_sorted, freq_idx] = sort(freqs);
     Aij_sorted = Aij(:,:,freq_idx);
     Bij_sorted = Bij(:,:,freq_idx);
@@ -457,11 +444,11 @@ if exist([filename '.1'])
                 ones(3)*4 ones(3)*5 ];
     
     for w = 1:Nfreqs
-        % scale Wamit data to SI system (Wamit axes)
+        % Scale Wamit data to SI system (Wamit axes)
         A_dim = Aij_sorted (:,:,w)*vessel.main.rho .* (ULEN .^ scaleA); 
         B_dim = Bij_sorted (:,:,w)*vessel.main.rho .* vessel.freqs(w) ...
             .* (ULEN .^ scaleA);      
-        % transform to Fossen axes
+        % Transform to FSD axes
         vessel.A(:,:,w) = Tscale * A_dim * Tscale;     
         vessel.B(:,:,w) = Tscale * B_dim * Tscale;
     end
@@ -482,7 +469,7 @@ if exist([filename '.4'])
 
     N = length(per);
 
-    % Exstract all unique periods and wave directions
+    % Extract all unique periods and wave directions
     periods = unique(per);
     ang     = unique(beta);
 
@@ -498,7 +485,7 @@ if exist([filename '.4'])
         Motionphase{DOF(w)}(perindex,angindex) = phase(w);    % phase
     end
 
-    % sort with respect to frequency
+    % Sort with respect to frequency
     freqMotion = 2*pi./periods;
     [freqs_sorted, freq_idx] = sort(freqMotion);
 
@@ -509,7 +496,7 @@ if exist([filename '.4'])
 
     vessel.motionRAO.w  = freqs_sorted';
 
-    % scale Wamit Motion-data to SI (Wamit axes)
+    % Scale Wamit Motion-data to SI (Wamit axes)
     vessel.motionRAO.amp{1}(:,:,1) = Motionamp_sorted{1}(:,:);
     vessel.motionRAO.amp{2}(:,:,1) = Motionamp_sorted{2}(:,:);
     vessel.motionRAO.amp{3}(:,:,1) = Motionamp_sorted{3}(:,:);
@@ -517,7 +504,7 @@ if exist([filename '.4'])
     vessel.motionRAO.amp{5}(:,:,1) = Motionamp_sorted{5}(:,:)*ULEN;
     vessel.motionRAO.amp{6}(:,:,1) = Motionamp_sorted{6}(:,:)*ULEN;
 
-    % phase in rad: add pi for DOF with negative T_rao values (Fossen axes)
+    % Phase in rad: add pi for DOF with negative T_rao values (FSD axes)
     vessel.motionRAO.phase{1}(:,:,1) = Motionphase_sorted{1}(:,:)*pi/180 - min(0,T_rao(1))*pi;
     vessel.motionRAO.phase{2}(:,:,1) = Motionphase_sorted{2}(:,:)*pi/180 - min(0,T_rao(2))*pi;
     vessel.motionRAO.phase{3}(:,:,1) = Motionphase_sorted{3}(:,:)*pi/180 - min(0,T_rao(3))*pi;
@@ -528,7 +515,7 @@ if exist([filename '.4'])
 end
 
 %--------------------------------------------------------------------------
-%% check if force RAOs are computed using the diffraction or Haskind option
+%% Check if force RAOs are computed using the diffraction or Haskind option
 %--------------------------------------------------------------------------
 if exist([filename '.2']) && exist([filename '.3'])
 
@@ -599,7 +586,7 @@ vessel.forceRAO.amp{4}(:,:,1) = Mx;
 vessel.forceRAO.amp{5}(:,:,1) = My;
 vessel.forceRAO.amp{6}(:,:,1) = Mz;
 
-% phase in rad: add pi for DOF with negative T_rao values (Fossen axes)
+% phase in rad: add pi for DOF with negative T_rao values (FSD axes)
 vessel.forceRAO.phase{1}(:,:,1) = FKphase_sorted{1}(:,:)*pi/180 - min(0,T_rao(1))*pi; 
 vessel.forceRAO.phase{2}(:,:,1) = FKphase_sorted{2}(:,:)*pi/180 - min(0,T_rao(2))*pi;
 vessel.forceRAO.phase{3}(:,:,1) = FKphase_sorted{3}(:,:)*pi/180 - min(0,T_rao(3))*pi;
@@ -730,12 +717,6 @@ end
 for i = 1:3
     vessel.driftfrc.amp{i}(:,:,2:10)   = zeros(length(vessel.driftfrc.w),36,9);
 end
-
-%--------------------------------------------------------------------------
-%% viscous damping
-%--------------------------------------------------------------------------
-Bv = viscous(vessel);
-vessel.Bv = Bv;
 
 %--------------------------------------------------------------------------
 %% plots

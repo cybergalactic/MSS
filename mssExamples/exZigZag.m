@@ -1,4 +1,3 @@
-% exZigZag is compatible with MATLAB and GNU Octave (www.octave.org).  
 % Zigzag maneuvers for the Mariner-class cargo vessel, a container ship, 
 % and the Remus 100 AUV.
 %

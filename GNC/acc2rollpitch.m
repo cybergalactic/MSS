@@ -1,5 +1,4 @@
 function [phi, theta] = acc2rollpitch(f_imu, b_acc)
-% acc2rollpitch is compatible with MATLAB and GNU Octave (www.octave.org). 
 % The function [phi, theta] = acc2rollpitch(f_imu, b_acc) computes the static 
 % roll-pitch angles phi and theta from 3-axis specific force measurements 
 % f_imu = [fx, fy, fz] for multiple sets of measurements (n x 3) or one 

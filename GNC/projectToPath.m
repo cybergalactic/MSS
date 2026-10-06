@@ -1,5 +1,4 @@
 function proj = projectToPath(w_path, x_path, y_path, x, y, pi_h, k_old, dsFwd)
-% Compatible with MATLAB and GNU Octave (www.octave.org).
 % projectToPath computes the orthogonal projection of a vehicle position
 % onto a sampled 2-D path. The path is represented by discrete North-East
 % coordinates and the corresponding path tangent angle at each sample.

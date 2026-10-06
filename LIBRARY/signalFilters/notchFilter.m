@@ -1,5 +1,4 @@
 function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h, method)
-% notchFilter is compatible with MATLAB and GNU Octave (www.octave.org).
 % Notch filters can be applied to Inertial Navigation System (INS) measurements
 % to remove the dirst-order wave-inuced motions (wave filtering). This function 
 % implements a 2nd-order notch filter using either:

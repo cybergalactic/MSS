@@ -1,5 +1,4 @@
 function SIMremus100()
-% SIMremus100 is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the Remus 100 Autonomous Underwater Vehicle (AUV) 
 % under depth and heading control while exposed to ocean currents. It supports 
 % both Euler angle and unit quaternion kinematics representations and features 
@@ -142,7 +141,7 @@ zeta_d_psi = 1.0;              % Desired damping ratio for yaw control
 wn_d_psi = 0.1;                % Natural frequency for yaw control
 r_max = deg2rad(5.0);          % Maximum allowable rate of turn (rad/s)
 
-% Heading autopilot (Equation 16.479 in Fossen 2021)
+% Heading autopilot (Equation 16.479 in Fossen 2027)
 % sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
 % delta = (T_yaw*r_r_dot + r_r - K_d*sigma - K_sigma*(sigma/phi_b)) / K_yaw
 lambda = 0.1;

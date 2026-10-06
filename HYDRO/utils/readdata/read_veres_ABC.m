@@ -18,7 +18,7 @@ function vessel = read_veres_ABC(filename, disp_flag, reference_point)
 %       k55:   radius of inertia 
 %       k66:   radius of inertia 
 %       m:     mass
-%       CG:    centre of gravity  [LCG 0 VCG] w.r.t. Lpp/2 and Keel Line
+%       CG:    center of gravity in MSS FSD axes, relative to CO
 %       reference_point: CG keeps all matrices at CG; CO is the legacy default
 %       Lpp:   length between the perpendiculars
 %       Lwl:   length of water line
@@ -97,7 +97,7 @@ temp = str2num(header{9});
 LCG =  temp(1); 
 VCG =  temp(2);
 
-vessel.main.CG = [-LCG 0 VCG];  % x postive forwards
+vessel.main.CG = [-LCG 0 T_WL-VCG];
 
 if version == 2
     % Line 10: new in version 2
@@ -267,10 +267,8 @@ vessel.velocities   = vels;
 %% ------------------------------------------------------------------------
 % ADDED MASS and DAMPING TRANSFORMATIONS
 % adds A11 and B11 terms for Veres
-% computes viscous friction Bv
 %--------------------------------------------------------------------------
-[Anew,Bnew,Bv]   = ABCtransform(vessel,'veres',disp_flag);
-vessel.Bv        = Bv; 
+[Anew,Bnew]      = ABCtransform(vessel,'veres',disp_flag);
 vessel.A         = Anew;
 vessel.B         = Bnew;
 

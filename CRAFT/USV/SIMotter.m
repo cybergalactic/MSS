@@ -1,5 +1,4 @@
 function SIMotter()
-% SIMotter is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the Otter Uncrewed Surface Vehicle (USV) under 
 % various control strategies to handle path following in the presence of 
 % ocean currents. This script allows the user to select from several control

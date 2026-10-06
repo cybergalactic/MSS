@@ -1,5 +1,4 @@
 function displayVehicleData(vehicleName, vehicleData, imageFile, figNo)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % displayVehicleData(vehicleName, vehicleData, imageFile, figNo) displays
 % the vehicle main characteristics and an image of the vehicle.
 %

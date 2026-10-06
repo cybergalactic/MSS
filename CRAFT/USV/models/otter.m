@@ -1,5 +1,4 @@
 function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org)
 % [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c) returns the
 % time derivative xdot of the state vector, the speed U in m/s, the 6x6
 % mass matrix M, the 2x2 propeller input matrix B_prop, and the physical
@@ -136,7 +135,7 @@ k_neg = 0.01289/2;                      % Negative Bollard, one propeller
 n_max =  sqrt((0.5*24.4 * g)/k_pos);    % maximum propeller rev. (rad/s)
 n_min = -sqrt((0.5*13.6 * g)/k_neg);    % minimum propeller rev. (rad/s)
 
-% MRB and CRB (Fossen 2021)
+% MRB and CRB (Fossen 2027)
 I3 = eye(3);
 O3 = zeros(3,3);
 
@@ -170,7 +169,7 @@ CA  = m2c(MA, nu_r);
 M = MRB + MA;
 C = CRB + CA;
 
-% Hydrostatic quantities (Fossen 2021)
+% Hydrostatic quantities (Fossen 2027)
 Aw_pont = Cw_pont * L * B_pont;    % waterline area, one pontoon 
 I_T = 2 * (1/12)*L*B_pont^3 * (6*Cw_pont^3/((1+Cw_pont)*(1+2*Cw_pont)))...
     + 2 * Aw_pont * y_pont^2;

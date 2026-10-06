@@ -1,5 +1,4 @@
 function [psi_dot, r_dot,delta_dot] = zeefakkel(r,U,delta,delta_c,d_r)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [rdot] = zeefakkel(r,U,delta,delta_c,d_r) returns the yaw acceleration, 
 % yaw rate, and rudder angle of the Norrbin (1963) nonlinear autopilot model
 %
@@ -59,4 +58,3 @@ delta_dot = sat(delta_dot, Ddelta_max);
 % Yaw dynamics
 psi_dot = r;
 r_dot = (1/T) * (K * delta + d_r - n3 * r^3 - n1 * r ); 
-

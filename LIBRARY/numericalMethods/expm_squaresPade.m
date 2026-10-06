@@ -1,5 +1,4 @@
 function E = expm_squaresPade(A)
-% expm_squaresPade is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function computes the matrix exponential using the "Scaling and Squaring 
 % method with Pade Approximants", which is the recommended method by Moler and
 % Loan (2003). It serves as a replacement for the built-in expm function,

@@ -1,6 +1,5 @@
 function SIMdsrv()
-% SIMdsrv is compatibel with MATLAB and GNU Octave (www.octave.org). This
-% script simulates the Naval Postraduate School's Deep Submergence Rescue 
+% This script simulates the Naval Postraduate School's Deep Submergence Rescue
 % vehicle (DSRV) under depth-changing maneuvers. The depth autopilot is 
 % designed using using succesive-loop closure and PID methods.
 %

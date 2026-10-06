@@ -1,5 +1,4 @@
 function animateShip(xPath, yPath, shipSize, lineColor, figNo)
-% animateShip is compatibel with MATLAB but not supported in GNU Octave.
 % The function animateShip(xPath, yPath, shipSize, lineColor, figNo) 
 % animates a viking ship moving along a specified path on a North-East 
 % (y-x) plot. The function takes a path defined by North (yPath) and East 

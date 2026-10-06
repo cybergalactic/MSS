@@ -1,4 +1,3 @@
-% exHermiteWaypoints is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script computes a C1 Hermite/MAKIMA spline path through planar
 % waypoints given in North-East coordinates. The script also simulates a
 % vehicle moving at constant speed and constant course, projects the

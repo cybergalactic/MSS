@@ -1,4 +1,3 @@
-% exMD is compatible with MATLAB and GNU Octave (www.octave.org).     
 % The script plots the step response of a 2nd-order mass-damper-spring
 % system.
 %

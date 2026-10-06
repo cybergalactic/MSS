@@ -31,7 +31,6 @@
 % Author:    Thor I. Fossen
 % Date:      2025-03-10
 
-clear waveForceRAO; % Clear persistent RAO tables
 clearvars; 
 close all;
 rng(1); % Set random generator seed to 1 when generating stochastic waves
@@ -49,7 +48,11 @@ switch vesselChoice
     case 2
         load s175; 
         vesselType = 'S175 Container Ship';
-        U = vessel.velocities(3); % Non-zero speed (m/s)
+        vel_idx = 3; % vessel.velocities = [0 2.5722 5.1444 7.7167 10.2889]
+        U = vessel.velocities(vel_idx);        % U = 5.144  (m/s)
+        vessel.A = vessel.A(:,:,:,vel_idx);
+        vessel.B = vessel.B(:,:,:,vel_idx);
+        vessel.C = vessel.C(:,:,:,vel_idx);
     case 3
         load tanker; 
         vesselType = 'Tanker';
@@ -63,36 +66,41 @@ maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s)
 numFreqIntervals = 60; % Number of wave frequency intervals (>50)
 
 % Sea state
-Hs = 5; % Significant wave height (m)
+Hs = 5;         % Significant wave height (m)
 omega_p = 0.7;  % Wave spectrum peak frequencies (rad/s)
 
-% First-order force RAOs: Calculate the wave spectrum S(Omega) for each frequency
+% First-order force RAOs
 spectrumType = 'JONSWAP'; 
-gamma = 3.3; % Peakedness factor 
-Parameter = [Hs, omega_p, gamma]; % Spectrum parameters
 
 % Time vector from 0 to T_final     
 t = 0:h:T_final;      
 nTimeSteps = length(t);
 
-% Wave spectrum, one direction
-omegaMax = vessel.forceRAO.w(end); % Max frequency in RAO dataset
-
-[S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumType, ...
-    Parameter, numFreqIntervals, omegaMax);
+% Initialize a wave spectrum with one direction and the force-RAO model
+environment.Hs = Hs;
+environment.w0 = omega_p;
+environment.spectrumType = spectrumType;
+environment.spreadingFlag = false;
+environment.numFreqIntervals = numFreqIntervals;
+environment.numDirections = 1;
+environment.maxFreq = maxFreq;
+[environment, waveModel] = waveInitialization(vessel, environment);
 
 % 6-DOF generalized wave forces using first-order force RAOs
 waveData = zeros(nTimeSteps,7); % Pre-allocate table
 for i = 1:nTimeSteps
-    [tau_wave1, waveElevation] = waveForceRAO(t(i), ...
-        S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
+    [tau_wave1, waveElevation] = waveForceRAO(t(i), waveModel, ...
+        U, psi, beta_wave);
     waveData(i,:) = [tau_wave1' waveElevation];
 end
 
-%% Compute Aeq and Beq using simplified normalized wave spectrum
+%% Compute Aeq and Beq
+% The peak frequency omega_p is used in the normalized wave spectrum.
+% Viscous damping Bv is computed by computeManeuveringModel.m.
 g = 9.81;
 omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave);
-vessel = computeManeuveringModel(vessel, omega_p);
+vessel = computeManeuveringModel(vessel, omega_p, [0.05 0.05 0.05], ...
+    [0 0.1 0], 0);
 
 %% Compute Cummins and Maneuvering Model Responses
 freqs = vessel.freqs;
@@ -117,7 +125,7 @@ K_all = zeros(nTimeSteps,6);        % Retardation functions
 for DOF = 1:6
     A_eq(DOF) = vessel.powerBased.A_eq(DOF,DOF);
     B_eq(DOF) = vessel.powerBased.B_eq(DOF,DOF);
-    Bv(DOF) = vessel.Bv(DOF,DOF,1);
+    Bv(DOF) = vessel.powerBased.Bv(DOF,DOF);
     
     A_w = squeeze(vessel.A(DOF,DOF,:,1));
     B_w = squeeze(vessel.B(DOF,DOF,:,1));
@@ -159,17 +167,17 @@ for DOF = 1:6
 
     % Maneuvering approximation using A_eq and B_eq
     M_eq = vessel.MRB(DOF,DOF) + A_eq(DOF);
-    Bv(DOF) = vessel.Bv(DOF,DOF,1);
+    Bv(DOF) = vessel.powerBased.Bv(DOF,DOF);
     A_sys = [0 1;
-        -C/M_eq  -(B_eq(DOF)+Bv(DOF))/M_eq];
+            -C/M_eq  -(B_eq(DOF)+Bv(DOF))/M_eq];
     B_sys = [0;
-        1/M_eq];
+            1/M_eq];
     C_sys = [1 0];
     D_sys = 0;
 
     % Exact ZOH discretization
     Aug = [A_sys B_sys;
-        0     0     0];
+           0     0     0];
     Phi = expm(Aug*h);
 
     Ad = Phi(1:2,1:2);

@@ -1,4 +1,3 @@
-% exBoxShapedShip is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script computes the transverse metacentric height GM_T, and the 
 % heave and roll periods of a box-shaped ship with the coordinate origin (CO)
 % at midships on the centerline using the hydrostatic formulas by Fossen 

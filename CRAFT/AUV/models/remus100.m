@@ -1,5 +1,4 @@
 function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
@@ -200,11 +199,14 @@ T6 = 1;                  % Time constant in yaw (s)
 [MRB,CRB] = spheroid(a,b,nu(4:6),r_bG);
 [MA,CA] = imlay61(a, b, nu_r, r44);
 
-% CA-terms in roll, pitch and yaw can destabilize the model if quadratic
-% rotational damping is missing. These terms are assumed to be zero
-CA(5,3) = 0; CA(3,5) = 0;  % Quadratic velocity terms due to pitching
-CA(5,1) = 0; CA(1,5) = 0;  
-CA(6,1) = 0; CA(1,6) = 0;  % Munk moment in yaw 
+% The reduced-order REMUS model does not retain a complete set of measured
+% maneuvering derivatives for the hull, fins, and appendages. The selected
+% added-mass Coriolis couplings are therefore omitted to avoid retaining an
+% unbalanced Munk-moment model. This is a modeling assumption; the
+% corresponding physical terms are not generally zero for a bare body.
+CA(5,3) = 0; CA(3,5) = 0;  % Heave-pitch coupling
+CA(5,1) = 0; CA(1,5) = 0;  % Surge-pitch Munk coupling
+CA(6,1) = 0; CA(1,6) = 0;  % Yaw-related Munk couplings
 CA(6,2) = 0; CA(2,6) = 0;
 
 M = MRB + MA;

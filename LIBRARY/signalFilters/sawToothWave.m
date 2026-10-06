@@ -1,5 +1,4 @@
 function y = sawToothWave(t)
-% sawToothWave is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function generates a sawtooth wave signal which can be used for testing.
 %
 % Inputs:

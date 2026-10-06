@@ -1,6 +1,5 @@
 function SIMsupply()
-% SIMsupply is compatibel with MATLAB and GNU Octave (www.octave.org). This
-% script simulates a linear supply vessel model, [xdot, U] = supply(x,tau), 
+% This script simulates a linear supply vessel model, [xdot, U] = supply(x,tau),
 % which returns the speed and the time  derivative xdot = A * x + B * tau 
 % of the state vector: x = [ x y psi u v r ]' for a supply vessel of length
 % L = 76 m.
@@ -33,7 +32,7 @@ zeta = diag([1, 1, 1]);         % Closed-loop relative damping ratios
 T_f = 10;                       % Setpoint LP-filter time constant
 [~,~,M] = supply();             % Supply vessel mass matrix
 
-% Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
+% Thrust coefficient and configuration matrices (Fossen 2027, Ch. 11.2)
 %   #1 Bow tunnel thruster (RPM)
 %   #2 Bow tunnel thruster (RPM)
 %   #3 Stern tunnel thruster (RPM)

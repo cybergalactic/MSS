@@ -1,5 +1,4 @@
 function SIMnpsauv()
-% SIMnpsauv is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the Naval Postgraduate School (NPS) Autonomous
 % Underwater Vehicle (AUV), length 5.3 m, under depth and heading control 
 % while exposed to ocean currents. It supports control strategies such as
@@ -90,7 +89,7 @@ nTimeSteps = length(t);         % Number of time steps
 % [tau2 tau3 tau5 tau6] = B_delta * [delta_r, delta_s, delta_bp, delta_bs]
 [~, ~, M, B_delta] = npsauv();  % Mass matrix M and input matrix B_delta
 
-% Pseudoinverse (Fossen 2021, Section 11.2.2)
+% Pseudoinverse (Fossen 2027, Section 11.2.2)
 % [delta_r, delta_s, delta_bp, delta_bs] = B_pseudo * [tau5, tau6]
 W = diag([5 5 1 1]);   % 5 times more expensive to use delta_r and delta_s
 B_pseudo = invQR(W) * B_delta' * invQR(B_delta * invQR(W) * B_delta');
@@ -124,7 +123,7 @@ zeta_d_psi = 1.0;              % Damping ratio for yaw control (-)
 wn_d_psi = 0.05;               % Natural frequency for yaw control (rad/s)
 r_max = deg2rad(10.0);         % Maximum turning rate (rad/s)
 
-% MIMO PID pole-placement algorithm (Algorithm 15.2 in Fossen 2021)
+% MIMO PID pole-placement algorithm (Algorithm 15.2 in Fossen 2027)
 Omega_n = diag([wn_theta wn_psi]);
 Zeta = diag([zeta_theta zeta_psi]);
 M = diag([M(5,5), M(6,6)]);

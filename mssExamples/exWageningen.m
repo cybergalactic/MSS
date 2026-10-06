@@ -1,4 +1,3 @@
-% exWageningen is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script computes thrust and torque curves for a propeller using 
 % the Wageningen B-series data. 
 %

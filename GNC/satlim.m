@@ -1,5 +1,4 @@
 function x = satlim(x, x_min, x_max)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org)
 % x = satlim(x, x_min, x_max) saturates the input x between the specified lower 
 % and upper limits. If the inputs are vectors, saturation is performed elementwise.
 %

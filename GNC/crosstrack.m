@@ -1,5 +1,4 @@
 function [x_proj, y_proj, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag)
-% crosstrack is compatible with MATLAB and GNU Octave (www.octave.org). 
 % [x_proj, y_proj, y_e] = crosstrack(x_t, y_t, x_ref, y_ref, x, y, flag) computes 
 % the coordinate origin (x_proj, y_proj) of the path-tangential reference frame,
 % obtained as the orthogonal projection of the craft position (x, y) onto
@@ -73,4 +72,3 @@ if (nargin == 7 && flag == 1)
 end
 
 end
-

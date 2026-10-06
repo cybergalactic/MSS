@@ -1,11 +1,11 @@
 function SIMosv()
-% SIMosv is compatibel with MATLAB and incorporates dynamic and static 
+% SIMosv incorporates dynamic and static
 % optimization techniques for control allocation, though dynamic 
 % optimization is not supported in GNU Octave. The script simulates an 
 % Offshore Supply Vessel (OSV)  utilizing a Dynamic Positioning (DP) system 
 % for stationkeeping and low-speed maneuvering under the influence of ocean 
 % currents. The OSV's behavior is modeled by nonlinear equations of motion 
-% as specified in Fossen (2021), which includes the following equations:
+% as specified in Fossen (2027), which includes the following equations:
 %
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * (tau_thr + tau_drag + tau_crossflow ...
@@ -18,7 +18,7 @@ function SIMosv()
 %     with alpha representing azimuth angles and u_thr the propeller speeds.
 %
 % The DP control strategy employs a MIMO nonlinear PID controller for 
-% setpoint regulation, based on Fossen (2021, Algorithm 15.2). The control 
+% setpoint regulation, based on Fossen (2027, Algorithm 15.2). The control
 % laws include:
 %
 %   z_int = z_int + h * (eta - eta_d)
@@ -26,7 +26,7 @@ function SIMosv()
 %
 % Control allocation is implemented both as unconstrained (using 
 % pseudoinverse methods) and constrained (via dynamic optimization) 
-% techniques, detailed in Fossen (2021, Sections 11.2.2-11.2.3).
+% techniques, detailed in Fossen (2027, Sections 11.2.2-11.2.3).
 %
 % Dependencies:
 %   This script requires the MATLAB optimization toolbox for dynamic 

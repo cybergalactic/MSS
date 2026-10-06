@@ -1,6 +1,5 @@
 function [x_ins, P_prd] = ins_ahrs( ...
     x_ins, P_prd, mu, h, Qd, Rd, T_acc, f_imu, y_ahrs, y_pos, y_vel)
-% ins_ahrs is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter 
 % (ESKF) specifically for Inertial Navigation Systems (INS) that are 
 % augmented by an attitude heading reference systems (AHRS) and aided by 

@@ -2,7 +2,7 @@ function [MA,CA] = imlay61(a,b,nu,r44)
 % [MA,CA] = imlay61(a,b,nu,r44) computes the 6x6 hydrodynamic added mass  
 % system matrix MA and the 6x6 added mass Coriolis and centripetal matrix  
 % CA for a prolate spheroid with semiaxes a > b using the Lamb's 
-% k-factors k1, k2 and k_prime (Fossen 2021, Section 8.4.2). The matrix MA 
+% k-factors k1, k2 and k_prime (Fossen 2027, Section 8.4.2). The matrix MA
 % is assumed to  be diagonal when the CO is chosen on the centerline 
 % midtships. The length of the AUV is L = 2*a while the diamater is D = 2*b. 
 %

@@ -1,7 +1,6 @@
 function [LOSangle, idx_start, y_e] = ...
     ALOSpsiHermite(w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     x, y, h, Delta_h, pp_x, pp_y, idx_start, N_horizon, gamma_h)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % ALOSpsiHermite computes the line-of-sight (LOS) angle for path 
 % following in a cubic Hermite spline path through a 2xn table of waypoints. 
 % This function determines the desired course angle (chi_ref) or yaw angle 

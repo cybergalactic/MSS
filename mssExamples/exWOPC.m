@@ -1,7 +1,6 @@
 function wopcData = exWOPC(mode)
 % exWOPC simulates the fully and underactuated weather-optimal positioning 
 % control law (WOPC) law for marine craft using nonlinear PID control.
-% The example is compatible with MATLAB and Octave (www.octave.org).
 % The vessel state is x = [x_n y_n psi u v r]' and supply.m is used for
 % the vessel dynamics. 
 %

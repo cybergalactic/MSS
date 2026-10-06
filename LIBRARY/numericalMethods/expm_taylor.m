@@ -1,5 +1,4 @@
 function E = expm_taylor(A)
-% expm_taylor is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function computes the matrix exponential using a truncated Taylor series 
 % expansion. The function computes the matrix exponential by summing the terms of
 % the Taylor series until the norm of the term being added is smaller than a 

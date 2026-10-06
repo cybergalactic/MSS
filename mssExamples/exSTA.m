@@ -1,4 +1,3 @@
-% ExSTA is compatible with MATLAB and GNU Octave (www.octave.org).
 % Super twisting adaptive-gain (STA) sliding mode control for heading
 % control. The yaw dynamics is based on the Norrbin (1963) nonlinear model
 % 
@@ -133,4 +132,3 @@ legend('\alpha','1000 \beta','100 v')
 set(findall(gcf,'type','line'),'linewidth',2)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
-

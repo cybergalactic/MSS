@@ -1,6 +1,5 @@
 function [tau_w, CX, CY, CK, CN] = blendermann94(...
     gamma_r, V_r, AFw, ALw, sH, sL, Loa, vessel_no)
-% blendermann94 is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function [tau_w,CX,CY,CK,CN] = blendermann94(gamma_r,V_r,AFw,ALw,sH,
 % sL,Loa,vessel_no) returns the the wind force/moment vector 
 % tau_w = [tausX, tauY, tauN] and the optionally wind coefficients CX, CY,
@@ -37,8 +36,8 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 %
 %   W. Blendermann (1994). Parameter Identiﬁcation of Wind Loads on Ships. 
 %     Journal of Wind Engineering and Industrial Aerodynamics 51, pp. 339–351.
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-%    Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % See also: isherwood72.m.
 %
@@ -51,7 +50,7 @@ if nargin~=8, error('The number of inputs must be 8');end
 % Conversions and constants
 rho_a = 1.224;                                  % Density of air at 20 C
 
-% BDATA = [CD_t	CD_l_AF(0) CD_l_AF(pi) delta kappa (Fossen 2021, Ch. 10.1.2)
+% BDATA = [CD_t	CD_l_AF(0) CD_l_AF(pi) delta kappa (Fossen 2027, Ch. 10.1.2)
 BDATA = [...
 0.95	0.55	0.60	0.80	1.2
 0.85	0.65	0.55	0.40	1.7

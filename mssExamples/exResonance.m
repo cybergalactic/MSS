@@ -1,4 +1,3 @@
-% exResonance is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script computes the responses in heave, roll, and pitch for a marine
 % craft exposed to a regular wave. The closed-form solution of a linear
 % mass-damper-spring system with sinusoidal forcing F sin(w_e t) is used. 

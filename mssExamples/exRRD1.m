@@ -17,7 +17,7 @@ rho = 1025;                 % Water density (kg/m^3)
 L = 175;                    % Length of ship (m)
  
 % Lineari model using nondimensional matrices and states with dimension; 
-% see Eq. (D.13) in Fossen (2021, Appendix D): 
+% see Eq. (D.13) in Fossen (2027, Appendix D):
 %   T * M' * inv(T) * v_dot + (U/L) * T * N' * inv(T) * v + 
 %      (U/L)^2 * T * G' * inv(T) * eta = (U^2/L) * T * b' * delta
 %   where eta = [x y psi]' and nu = [v p r]'

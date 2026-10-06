@@ -1,10 +1,9 @@
 function [xdot,U,M] = osv(x,ui,Vc,betaVc)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
 % [xdot,U,M] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
 % and the time derivative xdot of the state vector for an Offshore Supply 
 % vessel (OSV). The 6x6 mass matrix M is an optionally output, which can be 
 % used for control design.The 6-DOF equations of motion arebased on the 
-% nonlinear model of Fossen (2021, Eqs. 6.111-6.116) given by
+% nonlinear model of Fossen (2027, Eqs. 6.111-6.116) given by
 %   
 %   eta_dot = J(eta) * nu
 %   nu_dot = nu_c_dot + Minv * ( tau_thr +  tau_drag + tau_crossflow...
@@ -27,7 +26,7 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), 0 ] 
 % 
-% The generalized thrust vector satisfy (Fossen 2021, Section 11.2.1)
+% The generalized thrust vector satisfy (Fossen 2027, Section 11.2.1)
 %
 %   tau_thr = T_thr(alpha) * K_thr * u_thr
 %
@@ -176,10 +175,14 @@ nu_r = nu - nu_c;
 [~,CRB] = rbody(vessel.m,vessel.R44,vessel.R55,vessel.R66,nu(4:6),vessel.r_bg'); 
 CA  = m2c(vessel.MA, nu);   
 
-% Add linear and quadratic drag in surge using the blending function sigma
-[X,Xuu,Xu] = forceSurgeDamping(flag,nu_r(1),vessel.m,vessel.S,vessel.L, ...
-    vessel.T1,vessel.rho,vessel.U_max,vessel.thrust_max);
-tau_drag = [ X; zeros(5,1) ];
+% Linear and nonlinear damping
+D_nonlinear = vessel.D;
+
+% Add linear and quadratic drag (ITTC) 
+% X_drag = exp(-k_u * abs(u_r)) * Xu * u_r + Xuu * abs(u_r)*u_r
+k_u = 3;
+Xuu = XuuITTC(nu_r(1), vessel.rho, vessel.L, vessel.B, vessel.T, vessel.Cb);
+D_nonlinear(1,1) = exp(-k_u * abs(nu_r(1))) * vessel.D(1,1) - Xuu * abs(nu_r(1));
 
 % Avoid double counting, linear and quadratic damping terms
 vessel.D(1,1) = 0; % using: X = sigma * Xu * u_r + (1 - sigma) * Xuu * abs(u_r)*u_r
@@ -197,11 +200,11 @@ tau_thr = [ tau_3dof(1) tau_3dof(2) 0 0 0 tau_3dof(3) ]';
 % Kinematics
 J = eulerang(eta(4),eta(5),eta(6));
 
-% Equations of motion (Fossen 2021, Eqs. 6.111-6.116)
+% Equations of motion (Fossen 2027, Eqs. 6.111-6.116)
 eta_dot = J * nu;
 nu_dot = nu_c_dot + ...
-    vessel.Minv * ( tau_thr +  tau_drag + tau_crossflow...
-    - (CRB + CA + vessel.D) * nu_r - vessel.G * eta);
+    vessel.Minv * ( tau_thr + tau_crossflow ...
+    - (CRB + CA + D_nonlinear) * nu_r - vessel.G * eta);
 
 xdot = [nu_dot; eta_dot];    
 
@@ -237,10 +240,7 @@ if nargin == 0 && nargout == 0
     fprintf('%-40s %8.2f s \n', 'Natural period in heave (T3):', T3);
     fprintf('%-40s %8.2f s \n', 'Natural period in roll (T4):', T4);
     fprintf('%-40s %8.2f s \n', 'Natural period in pitch (T5):', T5);   
-    fprintf('%-40s %8.2f \n', 'Linear surge damping coefficient (Xu):', Xu); 
-    fprintf('%-40s %8.2f \n', 'Quadratic drag coefficient (X|u|u):', Xuu); 
    
-    vessel.D(1,1) = -Xu;
     matrices = {'Mass matrix: M = MRB + MA', vessel.M;...
         'Linear damping matrix: D', vessel.D; 'Restoring matrix: G', vessel.G};
     

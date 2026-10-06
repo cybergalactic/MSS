@@ -1,6 +1,5 @@
 function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
     Parameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections)
-% waveDirectionalSpectrum is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This function generates a directional wave spectrum 
 % 
 %   S_M(Omega, mu) = S(Omega) * M(mu)
@@ -55,8 +54,8 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 %   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4, true, 24)
 % 
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%   Control, 2nd edtion. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-06
@@ -108,7 +107,7 @@ else
     deltaDirections = 1;
 end
 
-% Fossen (2021, Eq. 10.61)
+% Fossen (2027, Eq. 10.61)
 T0 = 2*pi / w0;
 Tz = 0.710 * T0;
 
@@ -127,7 +126,7 @@ end
 if M == 1
     disp(['Spectrum: ', spectrumType, ' (no spreading function)'])
 else
-    disp(['Spectrum: ', spectrumType, ' with spreading function M(mu)'])
+    disp(['Spectrum: ', spectrumType, ' with spreading function'])
 end
 
 if strcmp(spectrumType, 'Modified PM')

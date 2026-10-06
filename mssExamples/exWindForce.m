@@ -1,4 +1,3 @@
-% exWindForce is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script plots the wind coefficients using the Blendermann (1994) and
 % Isherwood (1972) formulas for merchant ships.
 % 

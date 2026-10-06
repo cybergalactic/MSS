@@ -1,5 +1,4 @@
 function q = quatprod(q1, q2)
-% quatprod is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function calculates the quaternion product q = q1 o q2 of two 
 % unit quaternions q1 and q2. The quaternions are assumed to be in the 
 % scalar-first format, where the first element is the real part, and the 

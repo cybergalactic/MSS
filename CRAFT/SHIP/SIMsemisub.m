@@ -1,6 +1,5 @@
 function SIMsemisub()
-% SIMsemisub is compatibel with MATLAB and GNU Octave (www.octave.org). This
-% script simulates a semisubmersible with two pontoons and four columns. 
+% This script simulates a semisubmersible with two pontoons and four columns.
 % The model matrices MRB, MA, D and G are generated using the utility script 
 % 'rig.m', which calls the data file 'data_rig.m'. 
 %
@@ -109,7 +108,7 @@ for i=1:nTimeSteps
     % Store data for presentation
     simdata(i,:) = [eta', nu'];
 
-    % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
+    % Euler's integration methods (k+1), (Fossen 2027, Eq. B27-B28)
     nu = nu + h * nudot;          % Forward Euler
     eta = eta + h * J * nu;       % Backward Euler
 
@@ -193,5 +192,3 @@ function displayControlMethod()
     disp('--------------------------------------------------------------------');
     disp('Simulating...');
 end
-
-

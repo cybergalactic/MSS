@@ -77,7 +77,7 @@ vessel.main.rho = rho;
 vessel.main.Lpp = LPP;
 vessel.main.B   = B;
 vessel.main.T   = T;
-vessel.main.CG  = [-LCG 0 VCG];   % x-forward
+vessel.main.CG  = [-LCG 0 T-VCG]; % MSS FSD, relative to CO
 
 % Extract run info from line 10
 temp = str2num(header{10});
@@ -143,7 +143,7 @@ end
 % Scale, transform, and store data in MSS vessel structure
 % MSS generalized axes: x-forward, y-starboard, z-downwards (FSD)
 %
-% A_new   = T*A*T,   Veres to MSS (Fossen 2021): T = diag([-1 1 -1 -1 1 -1])
+% A_new   = T*A*T,   Veres to MSS (Fossen 2027): T = diag([-1 1 -1 -1 1 -1])
 % tau_new = T*tau    Veres (0 deg head seas), MSS (0 deg beam seas)
 %--------------------------------------------------------------------------
 nhead_tot = (nhead - 2)*2 + 2;

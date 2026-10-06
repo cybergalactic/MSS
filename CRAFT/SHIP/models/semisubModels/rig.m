@@ -1,5 +1,4 @@
 function [M,D,G,MRB,MA,rCG,rCB,T_z,T_phi,T_theta] = rig
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org)
 %
 % [M,D,G,MRB,MA,rCG,rCB,T_z,T_phi,T_theta] = rig
 % Computes the 6-DOF model parameters of a semi-submersible including the

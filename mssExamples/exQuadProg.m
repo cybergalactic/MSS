@@ -1,4 +1,3 @@
-% exQuadProg is compatible with MATLAB and GNU Octave (www.octave.org).
 % Quadratic programming for waypoint trajectory generation. Two cubic 
 % polynomials are fitted to two waypoints where the speed and position 
 % are specified. The starting time is t0 while the arrival time t1 at 

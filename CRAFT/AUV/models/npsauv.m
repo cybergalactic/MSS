@@ -1,5 +1,4 @@
 function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
 % state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
 % delta_s delta_bp delta_bs n_p]', speed U in m/s (optionally), the 6x6 mass 
@@ -114,7 +113,7 @@ Cdy = 0.5;    Cdz = 0.6;
 r_bb = [xB yB zB]';
 r_bg = [xG yG zG]';
 
-% Prime-scaling variables (Fossen 2021, Appendix D.2)
+% Prime-scaling variables (Fossen 2027, Appendix D.2)
 Tinv = diag( [1 1 1 L L L] );
 r2 = (1/2) * rho * L^2;
 r3 = (1/2) * rho * L^3;
@@ -156,7 +155,7 @@ Nvdot =  1.2e-3; Np     = -8.4e-4; Nr    = -1.6e-2; Nvq   = -1.0e-2;
 Nwp   = -1.7e-2; Nwr    =  7.4e-3; Nv    = -7.4e-3; Nvw   = -2.7e-2;
 Ndr   = -1.3e-2; Nprop  =  0;
 
-% Rigid-body and added mass matrices (Fossen 2021, Chapter 3)
+% Rigid-body and added mass matrices (Fossen 2027, Chapter 3)
 I_g = [Ix -Ixy -Ixz
        -Ixy Iy -Iyz
        -Ixz -Iyz Iz ];

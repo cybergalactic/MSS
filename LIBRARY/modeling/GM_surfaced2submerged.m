@@ -1,9 +1,8 @@
 function [GM, BM, z_b] = GM_surfaced2submerged( ...
     I_waterplane, nabla, zn, T, z_b_surface, z_b_submerged, z_g)
-% GM_surfaced2submerged is compatible with MATLAB and GNU Octave (www.octave.org).
 % Computes the transverse or longitudinal metacentric height (GM), metacentric
 % radius (BM), and the center of buoyancy (z_b) for an underwater vehicle 
-% based on the submersion level, zn (Fossen 2021, Chapter 4).
+% based on the submersion level, zn (Fossen 2027, Chapter 4).
 %
 %   GM = BM + z_g - z_b
 %   GM = BM + KB - KG               - Alternative formula
@@ -52,8 +51,8 @@ function [GM, BM, z_b] = GM_surfaced2submerged( ...
 %   See 'exPlotGM.m' for a numerical example showing GM_T as a function of depth.
 %
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%   Control, 2nd edtion. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-11-08

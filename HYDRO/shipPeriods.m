@@ -51,9 +51,7 @@ G     = vessel.C(:,:,1);
 freqs = vessel.freqs(:);
 
 % [x y z] of CG in BODY (from CO)
-r_CG = [ vessel.main.CG(1)
-         0
-         vessel.main.T - vessel.main.CG(3) ];
+r_CG = vessel.main.CG(:);
 
 N = numel(freqs);
 

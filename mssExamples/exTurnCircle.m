@@ -1,4 +1,3 @@
-% exTurnCircle is compatible with MATLAB and GNU Octave (www.octave.org).
 % Generates the turning circle for two different ships.
 %
 % Author:   Thor I. Fossen

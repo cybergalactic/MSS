@@ -1,4 +1,3 @@
-% exPullout is compatible with MATLAB and GNU Octave (www.octave.org).  
 % The script performs a pullout maneuver for two different ships.
 %
 % Author:   Thor I. Fossen

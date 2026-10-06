@@ -1,4 +1,3 @@
-% exMSI is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974)
 % Motion Sickness Incidence curves
 %

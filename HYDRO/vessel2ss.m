@@ -113,10 +113,7 @@ MRB    = vessel.MRB;
 G      = reshape(vessel.C(:,:,Nmax,1),6,6);
 M      = MRB + MA;
 
-LCG   = vessel.main.CG(1);
-VCG   = vessel.main.CG(3);
-T_WL  = vessel.main.T;
-r_g = [LCG 0 T_WL-VCG];
+r_g = vessel.main.CG(:)';
 
 % indeces for starboard-port symmetric vessels
 if WAMIT == 1 % WAMIT

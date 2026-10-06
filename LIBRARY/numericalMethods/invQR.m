@@ -1,5 +1,4 @@
 function Ainv = invQR(A)
-% invQR(A)is compatibel with MATLAB and GNU Octave (www.octave.org).
 % The function Ainv = invQR(A) computes the matrix inverse of a strictly 
 % positive matrix (A > 0) or positive definite matrix (A = A' > 0) using QR 
 % matrix inversion. 

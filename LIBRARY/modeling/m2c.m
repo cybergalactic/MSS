@@ -4,33 +4,33 @@ function C = m2c(M,nu)
 % If M is a 6x6 matrix and nu = [u, v, w, p, q, r]', the output is a 6x6 C matrix
 % If M is a 3x3 matrix and nu = [u, v, r]', the output is a 3x3 C matrix.
 %
-% Examples: CRB = m2c(MRB,nu)     
+% Examples: CRB = m2c(MRB, nu)     
 %           CA  = m2c(MA, nu)
 % Output:
 %  C:  Coriolis-centripetal matrix C = C(nu) 
 %
 % Inputs:
-%  M:  6x6 or 3x3 rigid-body MRB or added mass MA system marix 
+%  M:  6x6 or 3x3 rigid-body MRB or added mass MA system matrix 
 %  nu: nu = [u, v, w, p, q, r]' or nu = [u, v, r]'
 %
 % The Coriolis and centripetal matrix depends on nu1 = [u,v,w]' and nu2 =
-% [p,q,r]' as shown in Fossen (2021, Theorem 3.2). Alternatively, the matrix 
+% [p,q,r]' as shown in Fossen (2027, Theorem 3.2). Alternatively, the matrix
 % CRB = CRB(nu2) can be computed using 
 % 
-% [MRB,CRB] = rbody(m,R44,R55,R66,nu2,r_bp) 
+% [MRB, CRB] = rbody(m, R44, R55, R66, nu2, r_bP) 
 %
-% which only requires the angular velocity vector nu2 = [p,q,r]'. This is 
+% which only requires the angular velocity vector nu2 = [p, q, r]'. This is 
 % known as the linear velocity-independent representation.
 %
 % Author:    Thor I. Fossen
 % Date:      14 Jun 2001
-% Revisions: 26 Jun 2002, M21 = M12 is corrected to M12'
-%            10 Jan 2004, the computation of C(nu) is generalized to a 
-%                         nonsymmetric M > 0 (experimental data)
-%            22 Oct 2020, generalized to accept 3-DOF horizontal-plane models
-%            24 Apr 2021, updated the documentation
+% Revisions: 26 Jun 2002  M21 = M12 is corrected to M12'.
+%            10 Jan 2004  The computation of C(nu) is generalized to a 
+%                         nonsymmetric M > 0 (experimental data).
+%            22 Oct 2020  Generalized to accept 3-DOF horizontal-plane models.
+%            24 Apr 2021  Updated the documentation.
 
-M = 0.5 * (M + M');      % symmetrization of the inertia matrix
+M = 0.5 * (M + M');      % Symmetrization of the inertia matrix
 
 if (length(nu) == 6)     % 6-DOF model
      

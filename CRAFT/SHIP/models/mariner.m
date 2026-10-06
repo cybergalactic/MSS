@@ -1,5 +1,4 @@
 function [xdot,U] = mariner(x,ui,U0)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot,U] = mariner(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi delta ]'  for
 % the Mariner-Class Cargo Vessel, length  160.93 m, where

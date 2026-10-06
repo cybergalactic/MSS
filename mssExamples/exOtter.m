@@ -1,4 +1,3 @@
-% exOtter is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the Maritime Robotics Otter Uncrewed Surface 
 % Vehicle (USV), which is controlled by two propellers. SOG, COG, and 
 % course rate are estimated using an EKF, and the course autopilot is 

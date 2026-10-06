@@ -1,5 +1,4 @@
 function ControlFlag = controlMethod(methods)
-% ControlFlag is compatible with MATLAB and GNU Octave (www.octave.org). 
 % ControlFlag = controlMethod(methods) creates a GUI for selecting a control
 % method from a list.
 %
@@ -61,4 +60,3 @@ end
 function closeDialog(src, ~)
     uiresume(src); % Allow uiwait to return even if the window is closed
 end
-

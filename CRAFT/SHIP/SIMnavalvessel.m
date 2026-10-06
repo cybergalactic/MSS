@@ -1,5 +1,4 @@
 function SIMnavalvessel()
-% SIMnavalvessel is compatibel with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates a naval vessel under PD heading control.
 %
 % Dependencies:  

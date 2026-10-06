@@ -1,6 +1,5 @@
 function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     pp_x, pp_y, N_forward,kappa] = hermiteSpline(wpt, Umax, h)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % hermiteSpline computes paths and path tangents using Hermite spline 
 % interpolation. It uses the Akima algorithm for 1-D interpolation to 
 % produce piecewise polynomials with continuous 1st-order derivatives (C1). 
@@ -100,7 +99,6 @@ function dpp = ppDerivative(pp)
     dcoefs = coefs(:,1:k-1) .* (k-1:-1:1);
     dpp = mkpp(breaks, dcoefs);
 end
-
 
 
 

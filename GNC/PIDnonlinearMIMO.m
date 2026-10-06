@@ -13,7 +13,7 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %    Ki = 1/10 * Kp * wn
 %
 % is based on Algorithm 15.2, MIMO nonlinear PID Pole-Placement Algorithm, 
-% by Fossen (2021); see also Equation (15.82). 
+% by Fossen (2027). 
 %
 % Persistent variables: 
 % The setpoint eta_d and integral state z_int are persistent variables that 
@@ -30,7 +30,7 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %   M: system inertia matrix, 3x3 (surge, sway, and yaw) or 6x6
 %   wn: closed-loop natural frequencies, scalar or diagonal matrix 3x3
 %   zeta: closed-loop relative damping ratios, scalar or diagonal matrix 3x3
-%   T_f: setpointlow-pass filter time constant (s)
+%   T_f: setpoint low-pass filter time constant (s)
 %   h: sampling time (s)
 %
 % Outputs:  
@@ -40,7 +40,7 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 % Date:      2 Sep 2023
 
 persistent eta_d;  % LP-filtered commands
-persistent z_int;  % integral states
+persistent z_int;  % Integral states
 
 % Initialization of desired state eta_d and integral state z_int 
 if isempty(z_int)
@@ -72,7 +72,7 @@ Ki = 1/10 * Kp .* wn;
 
 % 3-DOF control law for surge, sway and yaw
 e = eta - eta_d;
-e(3) = ssa( e(3) );
+e(3) = ssa(e(3));
 tau_PID = -R' * ( Kp * e + Ki * z_int ) - Kd * nu;
 
 if DOF == 6

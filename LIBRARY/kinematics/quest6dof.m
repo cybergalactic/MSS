@@ -1,5 +1,4 @@
 function [eta,q,R] = quest6dof(y,mb,rcamera)
-% quest6dof is compatible with MATLAB and GNU Octave (www.octave.org).
 % [eta,q,R] = quest6dof(y,mb,rcamera) computes the 6-DOF vector 
 % eta = [x,y,z,phi,theta,psi] and unit quaternion vector 
 % q = [eta,eps1,eps2,eps3] from three 3x1 marker position measurement 

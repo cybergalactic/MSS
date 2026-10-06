@@ -1,4 +1,3 @@
-% ExLQtrack is compatible with MATLAB and GNU Octave (www.octave.org).
 % The script computes the LQ optimal tracking gains for a mass-damper
 % system.
 

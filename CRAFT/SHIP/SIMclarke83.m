@@ -1,5 +1,4 @@
 function SIMclarke83()
-% SIMclarke83 is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates a ship, characterizing its dynamics based on 
 % specified main dimensions: length (L), breadth (B), and draft (T). It 
 % uses hydrodynamic data based on:
@@ -71,7 +70,7 @@ for i=1:nTimeSteps
     % Store data for presentation
     simdata(i,:) = [eta', nu'];
 
-    % Euler's integration methods (k+1), (Fossen 2021, Eq. B27-B28)
+    % Euler's integration methods (k+1), (Fossen 2027, Eq. B27-B28)
     nu  = nu + h * nudot;                       % Forward Euler
     eta = eta + h * Rzyx(0,0,eta(3)) * nu;      % Backward Euler
 
@@ -127,4 +126,3 @@ function displayControlMethod()
     disp('--------------------------------------------------------------------');
     disp('Simulating...');
 end
-

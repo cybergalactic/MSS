@@ -12,8 +12,8 @@ function Omega_e = encounter(chi, U, Omega)
 %   Omega_e - Vector of encounter frequency values [rad/sec]
 %
 % Reference: 
-%   T. I. Fossen (2021) "Handbook of Marine Craft Hydrodynamics and Motion
-%     Control, 2nd edtion, John Wiley & Sons Ltd., Chichester, UK.  
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Created by: Thor I. Fossen
 % Date: 2024-07-09

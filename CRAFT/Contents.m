@@ -1,59 +1,51 @@
-% The MSS craft models are compatible with MATLAB and the free
-% software GNU Octave (www.octave.org):
+% CRAFT - Marine craft models and time-domain simulation scripts
 %
-% clarke83        - Linear ship maneuvering model parameterized by the main
-%                   dimensions (L, B, T) using regression formulas based on
-%                   model-test data (Clarke et al., 1983).
-% container       - Nonlinear maneuvering model of a high-speed container
-%                   ship, L = 175 m, including roll dynamics
-%                   (Son and Nomoto, 1982).
-% DSRV            - Deep Submergence Rescue Vehicle (DSRV), L = 5.0 m
-%                   (Healey, 1992).
-% frigate         - Nonlinear heading-autopilot model of a frigate,
-%                   L = 100 m.
-% Lcontainer      - Linearized model of a high-speed container ship,
-%                   L = 175 m, including roll dynamics
-%                   (Son and Nomoto, 1982).
-% mariner         - Nonlinear maneuvering model of the Mariner-class ship,
-%                   L = 160 m.
-% navalvessel     - Nonlinear maneuvering model of a multipurpose naval
-%                   vessel, L = 51.5 m.
-% npsauv          - Naval Postgraduate School autonomous underwater vehicle
-%                   (AUV), L = 5.3 m.
-% osv             - Nonlinear model of an offshore supply vessel (OSV),
-%                   L = 83.0 m.
-% otter           - OTTER autonomous surface vehicle (USV), L = 2.0 m.
-% remus100        - REMUS 100 autonomous underwater vehicle (AUV),
-%                   L = 1.9 m.
-% rig             - Linear mass-spring-damper model of a semisubmersible
-%                   offshore platform, L = 84.6 m.
-% supply          - Linear dynamic-positioning (DP) model of a supply
-%                   vessel, L = 76.2 m.
-% tanker          - Nonlinear course-unstable tanker model,
-%                   L = 304 m.
-% zeefakkel       - Nonlinear autopilot model of the Zeefakkel pleasure
-%                   craft, L = 13.7 m (45 ft).
+% CRAFT provides established craft models and a unified workflow for
+% user-defined 6-DOF vessels generated from ShipX, WAMIT, or Capytaine
+% seakeeping data. Full documentation is available in CRAFT/README.md.
 %
-% Scripts for time-domain simulations:
+% Hydrodynamic vessel workflow:
+%   SIMhydroVessel  - Editable simulation template for a user-defined USV,
+%                     AUV, ship, or floating structure. Includes irregular
+%                     waves, force RAOs, currents, autopilot, and DP control.
+%   hydroVessel     - Nonlinear 12-state, 6-DOF equations of motion using
+%                     the common MSS vessel structure.
 %
-% SIMclarke83     - Simulate clarke83.m under PD heading control.
-% SIMcontainer    - Simulate container.m and Lcontainer.m under PD control.
-% SIMdsrv         - Simulate DSRV.m using successive-loop-closure depth
-%                   control.
-% SIMfrigate      - Simulate frigate.m using a PID heading autopilot.
-% SIMmariner      - Simulate mariner.m under PD heading control.
-% SIMnavalvessel  - Simulate navalvessel.m under PD heading control.
-% SIMnpsauv       - Simulate npsauv.m using MIMO PID autopilots for depth
-%                   and heading control, and ALOS guidance for 3-D
-%                   straight-line path following.
-% SIMosv          - Simulate osv.m under nonlinear DP control with
-%                   constrained control allocation.
-% SIMotter        - Simulate otter.m under feedback control.
-% SIMremus100     - Simulate remus100.m using depth and heading autopilots,
-%                   and adaptive line-of-sight (ALOS) guidance for
-%                   3-D path following.
-% SIMrig          - Simulate the 6-DOF semisubmersible model under
-%                   PID control.
-% SIMsupply       - Simulate the linear supply-vessel model under
-%                   DP control.
-% SIMtanker       - Simulate the tanker model under heading control.
+% AUV simulation scripts and models:
+%   SIMdsrv         - DSRV depth-control simulation.
+%   SIMnpsauv       - NPS AUV depth, heading, and 3-D path-following simulation.
+%   SIMremus100     - REMUS 100 depth, heading, and 3-D path-following simulation.
+%   DSRV            - Deep Submergence Rescue Vehicle model.
+%   npsauv          - Naval Postgraduate School AUV model.
+%   remus100        - REMUS 100 AUV model.
+%
+% USV simulation scripts and models:
+%   SIMotter        - OTTER USV guidance and control simulation.
+%   otter           - OTTER USV model.
+%
+% Ship and floating-structure simulation scripts:
+%   SIMclarke83     - Generic ship maneuvering and heading-control simulation.
+%   SIMcontainer    - Container and linear-container ship simulation.
+%   SIMfrigate      - Frigate heading-autopilot simulation.
+%   SIMmariner      - Mariner heading and path-following simulation.
+%   SIMnavalvessel  - Multipurpose naval-vessel simulation.
+%   SIMosv          - Offshore supply vessel DP and control-allocation simulation.
+%   SIMsemisub      - Semisubmersible 6-DOF control simulation.
+%   SIMsupply       - Linear supply-vessel DP simulation.
+%   SIMtanker       - Course-unstable tanker heading-control simulation.
+%   SIMzeefakkel    - Zeefakkel heading-autopilot simulation.
+%
+% Ship and floating-structure models:
+%   clarke83        - Linear ship maneuvering model parameterized by L, B, and T.
+%   container       - Nonlinear container-ship model with roll dynamics.
+%   Lcontainer      - Linearized container-ship model with roll dynamics.
+%   frigate         - Nonlinear frigate heading model.
+%   mariner         - Nonlinear Mariner-class ship model.
+%   navalvessel     - Nonlinear multipurpose naval-vessel model.
+%   osv             - Nonlinear offshore supply vessel model.
+%   rig             - Linear semisubmersible mass-spring-damper model.
+%   supply          - Linear supply-vessel DP model.
+%   tanker          - Nonlinear course-unstable tanker model.
+%   zeefakkel       - Nonlinear Zeefakkel recreational-craft model.
+%
+% See also MSSHELP.

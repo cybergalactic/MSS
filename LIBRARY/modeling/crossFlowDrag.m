@@ -2,38 +2,53 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 % tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model) computes the cross-flow 
 % drag integrals for a marine craft using strip theory. Application:
 %
-%    M * d/dt nu_r + C(nu_r)*nu_r + D*nu_r + g(eta) = tau + tau_crossflow
+%    M * d/dt nu_r + C(nu_r) * nu_r + D * nu_r + g(eta) = tau + tau_crossflow
 %
-% Inputs: L:  length
-%         B:  beam
-%         T:  draft 
-%         nu_r = [u-u_c, v-v_c, w-w_c, p, q, r]': Relative velocity vector
-%         drag_model (Optionally) : 'Hoerner' (default), 'cylinder'
+% Inputs: 
+%   L:  length (m)
+%   B:  beam (m)
+%   T:  draft (m)
+%   nu_r = [u-u_c, v-v_c, w-w_c, p, q, r]': Relative velocity vector
+%   drag_model (Optionally) : 'Hoerner' (default), 'cylinder'
 %
-% Output: tau_crossflow = [0 Yh Zh 0 Mh Nh]: 6-DOF cross-flow drag vector
+% Output: 
+%   tau_crossflow = [0 Yh Zh 0 Mh Nh]: 6-DOF cross-flow drag vector
+%
+% References:
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
+%
+%   DNV (2025). DNV-RP-C205: Environmental Conditions and Environmental
+%   Loads. Recommended Practice, Edition 2025-04, amended 2026-03.
 %
 % Author:     Thor I. Fossen 
 % Date:       25 Apr 2021
 % Revisions:  
-%   30 Jan 2021 : Extended to include heave and pitch for AUVs
-%   9 Jun 2025  : Make different drag models selectable (M. Seidl)
-%   26 Aug 2026 : Evaluate 20 strips at their midpoints (J. Harvey)
+%   2021-01-30 : Extended to include heave and pitch for AUVs
+%   2025-06-09 : Make different drag models selectable (M. Seidl)
+%   2026-08-26 : Evaluate 20 strips at their midpoints (J. Harvey)
 
-if (nargin == 4), drag_model = 'Hoerner'; end % Hoerner is the default drag model
+% Hoerner is the default drag model for monohull
+if nargin == 4
+    drag_model = 'Hoerner'; 
+end 
 
-rho = 1025;     % Density of water
-nStrips = 20;   % Number of hull strips
-dx = L/nStrips; % Strip width
+rho = 1025;         % Density of water (kg/m3)
+nStrips = 20;       % Number of hull strips
+dx = L / nStrips;   % Strip width (m)
 
 switch drag_model
+
     case 'Hoerner'
-        % 2-D drag coefficient based on Hoerner's curve
-        Cd_2D = Hoerner(B,T); 
+        % 2-D drag coefficient based on Hoerner's curve for monohull
+        Cd_2D = Hoerner(B, T); 
+
     case 'cylinder'
         % 2D drag coefficient based on cylinder data from DNV-RP-C205
-        Cd_2D = cylinderDrag(L,B,nu_r); 
+        Cd_2D = cylinderDrag(L, B, nu_r); 
+
     otherwise
-        error('Unsupported drag model %s.',drag_model)
+        error('Unsupported drag model %s.', drag_model)
 end
 
 Yh = 0; Zh = 0; Mh = 0; Nh = 0;

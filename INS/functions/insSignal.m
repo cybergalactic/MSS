@@ -1,5 +1,4 @@
 function [x, f_imu, w_imu, m_imu] = insSignal(x, h, t_k, mu, m_ref, signalNo)
-% insSignal is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an INS signal generator for testing of Inertial
 % Navigation Systems (INS).
 %

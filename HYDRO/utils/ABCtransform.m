@@ -1,5 +1,5 @@
-function [Anew,Bnew,Bv] = ABCtransform(vessel,striptheory,plot_flag)
-% [Bnew,Anew,Bv,B_roll]] = ABCtransform(vessel,striptheory,plot_flag)
+function [Anew,Bnew] = ABCtransform(vessel,striptheory,plot_flag)
+% [Anew,Bnew] = ABCtransform(vessel,striptheory,plot_flag)
 %
 % inputs:  vessel                               MSS vessel structure
 %          striptheory = {'veres'}              software program
@@ -8,13 +8,12 @@ function [Anew,Bnew,Bv] = ABCtransform(vessel,striptheory,plot_flag)
 % 
 % outputs: Anew                                 new A terms
 %          Bnew                                 new B terms
-%          Bv                                   viscous damping
-%          Bv44                                 viscous roll damping
 % 
 % Author:    Thor I. Fossen
 % Date:      2007-08-24
 % Revisions: 2009-09-10 new estimate for A11
 %            2021-03-07 new estimates for A11 and B11
+%            2026-09-28 removed legacy viscous damping computation
 
 Nfreqs  = length(vessel.freqs);
 Nspeeds = length(vessel.velocities);
@@ -61,17 +60,8 @@ if strcmp(striptheory,'veres')
 end
 
 %--------------------------------------------------------------------------
-%% viscous damping
-%--------------------------------------------------------------------------
-vessel_new = vessel;
-vessel_new.A = Anew;
-vessel_new.B = Bnew;
-
-Bv = viscous(vessel_new);
-
-%--------------------------------------------------------------------------
 %% plot
 %--------------------------------------------------------------------------
 if plot_flag == 1
-  plot_speedterms(vessel,Anew,Bnew,Bv)
+  plot_speedterms(vessel,Anew,Bnew)
 end

@@ -1,5 +1,4 @@
 function [A11, ratio] = addedMassSurge(m, L, rho)
-% addedMassSurge is compatible with MATLAB and GNU Octave (www.octave.org). 
 % The function A11 = addedMassSurge(m,L,rho) approximates the added mass 
 % in surge bythe formula of Söding (1982):
 %

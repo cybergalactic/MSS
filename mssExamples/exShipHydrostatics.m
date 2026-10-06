@@ -1,4 +1,3 @@
-% exShipHydrostatics is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script calculates various ship parameters including dimensions, 
 % physical properties, center of gravity (CG), center of buoyancy (CB), 
 % moments of inertia, metacentric heights, and the G matrix based on 

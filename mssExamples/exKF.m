@@ -1,4 +1,3 @@
-% exKF is compatible with MATLAB and GNU Octave (www.octave.org).
 % Discrete-time Kalman filter (KF) implementation demonstrating
 % how the "predictor-corrector representation" can be applied to a
 % linear model:

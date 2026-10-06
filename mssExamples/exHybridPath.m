@@ -1,4 +1,3 @@
-% exHybridPath is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function calculates a hybrid continuous path based on specified
 % waypoints. Use the example file 'ExHybridPath.m' to generate and test
 % the hybrid path.

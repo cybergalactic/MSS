@@ -1,4 +1,3 @@
-% ManDemo is compatible with MATLAB and GNU Octave (www.octave.org).  
 % Maneuvering trials demonstrated by simulating m-file vessel models:
 % Type: >> mssHelp for more information
 %

@@ -1,6 +1,5 @@
 function [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
     ALOS3D(x,y,z,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt)
-% ALOS3D is compatible with MATLAB and GNU Octave (www.octave.org). The
 % function [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 % ALOS3D(x,y,z,Delta_h,Delta_v,gamma_h,gamma_v,M_theta,h,R_switch,wpt)
 % computes the desired heading angle psi_d and pitch angle theta_d when
@@ -175,5 +174,4 @@ else
 end
 
 end
-
 

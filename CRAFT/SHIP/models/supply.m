@@ -1,5 +1,4 @@
 function [xdot, U, M, D] = supply(x, tau)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot, U, M, D] = supply(x, tau) returns the time derivative 
 % xdot = A * x + B * tau of the state vector: x = [ x y psi u v r ]' and 
 % the speed U = sqrt( u^2 + v^2 ) for a supply vessel length L = 76 m. 

@@ -1,5 +1,4 @@
 function SIMaidedINSheave()
-% SIMaidedINSheave is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates an Inertial Navigation System (INS) aided by pressure 
 % measurements: 
 % 

@@ -1,5 +1,4 @@
 function SIMcontainer()
-% SIMcontainer is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the dynamics of a container ship under feedback 
 % control. The script concurrently simulates the ship using both a linear 
 % model, defined in 'Lcontainer.m', and a nonlinear model, defined in 

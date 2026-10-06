@@ -42,8 +42,8 @@ function [chi_ref, y_e] = LOSchi(x, y, Delta_h, R_switch, wpt)
 % For heading control use the functions ILOSpsi.m and ALOSpsi.m.
 % See also: crosstracHermiteLOS.m
 %
-% Ref. T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-% Motion Control. 2nd. Edition, Wiley
+% Ref. Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and
+% Motion Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2021-06-21
@@ -104,4 +104,3 @@ end
 chi_ref = pi_h - atan( y_e/Delta_h );
 
 end
-

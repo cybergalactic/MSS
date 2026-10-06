@@ -1,5 +1,4 @@
 function x = refModelPolyExp(t, t_max, x_start, x_final, method, alpha)
-% refModelPolyExp is compatible with MATLAB and GNU Octave (www.octave.org). 
 % Computes the transition from x_start to x_final over time t_max using
 % one of three methods: 'exponential', 'cubic', or 'quintic'.
 %

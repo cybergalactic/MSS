@@ -1,12 +1,58 @@
-function vessel = computeManeuveringModel(vessel,  omega_p, ...
-    kappa_126, delta_zeta_345, plotFlag)
-% computeManeuveringModel is compatible with MATLAB and GNU Octave (www.octave.org).
-% Computes the power-based equivalent added mass A_eq and potential damping B_eq 
-% by integrating the frequency-dependent hydrodynamic matrices A_U(omega) and 
-% B_U(omega) using the wave spectrum S(omega)as a weighting function. The 
-% diagonal viscous damping matrix Bv is computed from damping increments 
-% for surge, sway, and yaw and damping-ratio increments for heave, roll, and 
-% pitch. The total effective damping matrix is D = B_eq + Bv.
+function vessel = computeManeuveringModel(vessel, omega_p, ...
+    aperiodicDamping, delta_zeta, plotFlag)
+% Computes the power-based equivalent added mass A_eq and potential damping B_eq
+% by integrating the frequency-dependent hydrodynamic matrices A_U(omega) and
+% B_U(omega) using the wave spectrum S(omega) as a weighting function. The
+% diagonal viscous damping matrix Bv is computed using one of two call patterns:
+%
+%   Floating vessel:   kappa_126        (3 elements) and
+%                      delta_zeta_345   (3 elements)
+%   Submerged vehicle: T_1236           (4 elements) and
+%                      delta_zeta_45    (2 elements)
+%
+% Floating-vessel formulation:
+%   kappa_126 = [kappa_1 kappa_2 kappa_6] contains dimensionless viscous-
+%   damping increments for the unrestrained surge, sway and yaw modes:
+%
+%       Bv(i,i) = kappa_i * B_eq(i,i),       i = 1, 2, 6.
+%
+%   Hence, kappa_i = 0.05 adds viscous damping equal to 5 percent of the
+%   equivalent potential damping in DOF i. The vector
+%   delta_zeta_345 = [delta_zeta_3 delta_zeta_4 delta_zeta_5] specifies
+%   increments in the heave, roll and pitch damping ratios:
+%
+%       Bv(i,i) = 2 * delta_zeta_i * sqrt(M(i,i) * G(i,i)), i = 3, 4, 5.
+%
+% Submerged-vehicle formulation:
+%   T_1236 = [T_1 T_2 T_3 T_6] specifies positive target time constants
+%   [s] for the unrestrained surge, sway, heave and yaw modes. For the
+%   uncoupled scalar model M(i,i)*nu_dot_i + D(i,i)*nu_i = 0,
+%
+%       T_i = M(i,i) / D(i,i),
+%       Bv(i,i) = M(i,i) / T_i - B_eq(i,i),  i = 1, 2, 3, 6.
+%
+%   Thus, smaller T_i gives greater damping. The requested T_i must not
+%   require negative Bv(i,i). In a coupled model, the modal time constants
+%   can differ slightly from these diagonal, uncoupled target values. The
+%   vector delta_zeta_45 = [delta_zeta_4 delta_zeta_5] specifies damping-
+%   ratio increments for the restored roll and pitch modes using the same
+%   formula as above.
+%
+% The vector dimensions select the formulation (3+3 or 4+2 parameters).
+% The selection is then checked using the heave restoring coefficient
+% G(3,3). For a surface-piercing floating vessel, a vertical displacement
+% changes the displaced volume through the waterplane area and produces a
+% linear hydrostatic heave restoring force; consequently, G(3,3) is nonzero.
+% For a freely submerged, constant-volume vehicle in homogeneous water, a
+% small vertical displacement changes neither weight nor buoyancy, so there
+% is no linear hydrostatic heave stiffness and G(3,3) = 0. Heave is therefore
+% an aperiodic mode and requires T_3. Numerically, G(3,3) is treated as zero
+% when abs(G(3,3)) <= 1e-10 * max(1,norm(G,'fro')).
+% This classification assumes no tether, vertical spring, or modeled
+% depth-dependent buoyancy that would give a submerged vehicle heave stiffness.
+%
+% The total effective damping matrix is D = B_eq + Bv. The corresponding system
+% inertia matrix is M = MRB + MA where MA = A_eq.
 %
 % The equivalent matrices are computed as:
 %
@@ -27,52 +73,74 @@ function vessel = computeManeuveringModel(vessel,  omega_p, ...
 %
 % Inputs:
 %   vessel         - Structure containing vessel hydrodynamic data
-%   omega_p        - Wave peak frequency (rad/s)
-%   kappa_126      - Relative viscous damping increments for DOFs 1, 2 and 6
-%                    (press Return for default: [0.05 0.05 0.05])
-%   delta_zeta_345 - Viscous damping-ratio increments for DOFs 3, 4 and 5
-%                    (press Return for default: [0 0.1 0])
+%   omega_p        - Wave peak frequency (rad/s), typically 0.8 to 1.0 rad/s
+%   aperiodicDamping - Floating vessel: kappa_126, the dimensionless relative
+%                     viscous-damping increments for DOFs 1, 2 and 6. The
+%                     default is [0.05 0.05 0.05].
+%                     Submerged vehicle: T_1236, the target time constants
+%                     [s] for DOFs 1, 2, 3 and 6. The default is
+%                     [50 5 5 5] s.
+%   delta_zeta       - Floating vessel: damping-ratio increments
+%                      delta_zeta_345 for DOFs 3, 4 and 5. The default is
+%                      [0 0.1 0].
+%                      Submerged vehicle: damping-ratio increments
+%                      delta_zeta_45 for DOFs 4 and 5. The default is [0.2 0.2].
 %   plotFlag       - Set to 1 to plot A(omega) and B(omega), 0 otherwise
 %
 % Outputs:
-%   vessel.powerBased.omega_p - Wave spectrum peak frequency
-%   vessel.powerBased.eq.A_eq - Equivalent added mass matrix
-%   vessel.powerBased.B_eq    - Equivalent damping matrix
-%   vessel.powerBased.Bv      - Viscous damping matrix
+%   vessel.powerBased.omega_p - Wave spectrum peak frequency used for
+%                               power-based weighting
+%   vessel.powerBased.A_eq    - 6x6x equivalent added mass matrix
+%   vessel.powerBased.B_eq    - 6x6 equivalent damping matrix
+%   vessel.powerBased.Bv      - 6x6 viscous damping matrix
 %
-% Example call:
-%   load supply; % Other vessels: s175, tanker, fpso, semisub,
-%                                 capytaineTestShip
+% Usage:
+%   load <vessel>;  % supply, s175, tanker, fpso, semisub, testShip, LAUV_marie
 %
-%   omega_p = 1.0
+%   If powerBased inputs have not previously been stored in the vessel data
+%   structure, you will be asked to supply omega_p and the parameters for
+%   viscous damping:
 %
-%   % Use inputs already saved in vessel.powerBased:
-%   vessel = computeManeuveringModel(vessel);
+%     vessel = computeManeuveringModel(vessel);
+%     vessel = computeManeuveringModel(vessel, omega_p);
+%     vessel = computeManeuveringModel(vessel, omega_p, [], [], 1); % Plotting
 %
-%   % Replace only the sea-state peak frequency and reuse saved damping:
-%   vessel = computeManeuveringModel(vessel, omega_p);
+%   Supply all model inputs explicitly (no prompts are displayed):
 %
-%   % Replace all power-based model inputs explicitly:
-%   vessel = computeManeuveringModel(vessel, omega_p, ...
-%       kappa_126, delta_zeta_345);
-%   vessel = computeManeuveringModel(vessel, omega_p, ...
-%       kappa_126, delta_zeta_345, 1);
-%   vessel = computeManeuveringModel(vessel, omega_p, [], [], 1);
+%     vessel = computeManeuveringModel(vessel, omega_p, kappa_126, delta_zeta_345);
+%     vessel = computeManeuveringModel(vessel, 0.8, [0.05 0.05 0.05], [0 0.1 0]);
+%     vessel = computeManeuveringModel(vessel, omega_p, T_1236, delta_zeta_45);
+%     vessel = computeManeuveringModel(vessel, 0.8, [50 5 5 5], [0.2 0.2]);
 %
-%   disp(vessel.powerBased.A_eq,'A_eq')
-%   disp(vessel.powerBased.B_eq,'B_eq')
-%   disp(vessel.powerBased.Bv,'Bv')
+%   Supply all model inputs explicitly and enable plotting.
+%
+%     vessel = computeManeuveringModel(vessel, omega_p, kappa_126, delta_zeta_345, 1);
+%
+% Display the matrices:
+%
+%     display(vessel.powerBased.A_eq, 'A_eq')
+%     display(vessel.powerBased.B_eq, 'B_eq')
+%     display(vessel.powerBased.Bv, 'Bv')
+%
+% Reference:
+%     Fossen, T. I. (2025). Maneuvering Coefficient Estimation from Frequency-
+%     Dependent Added Mass and Damping: A Power-Based Approach.
+%     Ocean Engineering, 341, 122494.
 %
 % Author: Thor I. Fossen
 % Date: 2025-03-10
 % Revisions: 
 %   2026-04-07 Use only potential damping vessel.B when computing B_eq.
-%   2026-09-26 Introduced the structure vessel.powerBased and added 
-%      formulas for the viscous damping matrix Bv.
-%   2026-09-27 Prompt for damping increments when they are not supplied.
+%   2026-09-27 Introduced the structure vessel.powerBased and added
+%      formulas for the viscous damping matrix Bv. Prompt for damping increments
+%      when they are not supplied.
+%   2026-10-04 Added the submerged-vehicle formulation using T_1236 and
+%      delta_zeta_45. The G(3,3) restoring coefficient validates the call.
 
+% ------------------------------------------------------------------------------
 % Wave-spectrum peak frequency. Reuse a saved value when the argument is
 % omitted; an explicitly empty argument requests a new value.
+% ------------------------------------------------------------------------------
 if nargin < 2
     if isfield(vessel, 'powerBased') && ...
             isfield(vessel.powerBased, 'omega_p') && ...
@@ -85,74 +153,128 @@ elseif isempty(omega_p)
     omega_p = input('Wave-spectrum peak frequency omega_p (rad/s): ');
 end
 
-if ~isnumeric(omega_p) || ~isreal(omega_p) || isempty(omega_p) || ...
-        any(~isfinite(omega_p(:))) || any(omega_p(:) <= 0)
-    error('omega_p must contain finite, positive values in rad/s.');
-end
+% ------------------------------------------------------------------------------
+% Restoring matrix and heave-mode classification. A floating vessel has
+% hydrostatic heave restoring, whereas a fully submerged vehicle does not.
+% ------------------------------------------------------------------------------
+G = zeros(6);
+G([3 4 5],[3 4 5]) = vessel.C([3 4 5],[3 4 5],1);
+tolG = 1e-10 * max(1, norm(G, 'fro'));
+heaveIsRestored = abs(G(3,3)) > tolG;
 
-% Viscous damping increments (DOFs 1-2-6). Reuse saved user input when
-% omitted; an explicitly empty argument displays the default prompt.
-if nargin < 3 && isfield(vessel, 'powerBased') && ...
-        isfield(vessel.powerBased, 'kappa_126') && ...
-        ~isempty(vessel.powerBased.kappa_126)
-    kappa_126 = vessel.powerBased.kappa_126;
-elseif nargin < 3 || isempty(kappa_126)
-    kappa_default = [0.05 0.05 0.05];
-    kappa_126 = input(sprintf([ ...
-        'Relative viscous damping increments kappa_126 for DOFs 1, 2, 6 ' ...
-        '(default: %s): '], mat2str(kappa_default)));
-    if isempty(kappa_126)
-        kappa_126 = kappa_default;
+% ------------------------------------------------------------------------------
+% Reuse saved damping inputs when omitted. An explicitly empty argument
+% displays the default prompt for the formulation identified by G(3,3).
+% ------------------------------------------------------------------------------
+if nargin < 3
+    if heaveIsRestored && isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'kappa_126') && ...
+            ~isempty(vessel.powerBased.kappa_126)
+        aperiodicDamping = vessel.powerBased.kappa_126;
+    elseif ~heaveIsRestored && isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'T_1236') && ...
+            ~isempty(vessel.powerBased.T_1236)
+        aperiodicDamping = vessel.powerBased.T_1236;
+    else
+        aperiodicDamping = [];
     end
 end
 
-% Viscous damping-ratio increments (DOFs 3-4-5)
-if nargin < 4 && isfield(vessel, 'powerBased') && ...
-        isfield(vessel.powerBased, 'delta_zeta_345') && ...
-        ~isempty(vessel.powerBased.delta_zeta_345)
-    delta_zeta_345 = vessel.powerBased.delta_zeta_345;
-elseif nargin < 4 || isempty(delta_zeta_345)
-    delta_zeta_default = [0 0.1 0];
-    delta_zeta_345 = input(sprintf([ ...
-        'Viscous damping-ratio increments delta_zeta_345 for DOFs 3, 4, 5 ' ...
-        '(default: %s): '], mat2str(delta_zeta_default)));
-    if isempty(delta_zeta_345)
-        delta_zeta_345 = delta_zeta_default;
+if isempty(aperiodicDamping)
+    if heaveIsRestored
+        defaultValue = [0.05 0.05 0.05];
+        prompt = ['Relative viscous damping increments kappa_126 for ' ...
+            'DOFs 1, 2, 6'];
+    else
+        defaultValue = [50 5 5 5];
+        prompt = 'Aperiodic time constants T_1236 [s] for DOFs 1, 2, 3, 6';
+    end
+    aperiodicDamping = input(sprintf('%s (default: %s): ', ...
+        prompt, mat2str(defaultValue)));
+    if isempty(aperiodicDamping)
+        aperiodicDamping = defaultValue;
     end
 end
 
-% Validate and normalize user input
-if ~isnumeric(kappa_126) || ~isreal(kappa_126) || ...
-        numel(kappa_126) ~= 3 || any(~isfinite(kappa_126(:))) || ...
-        any(kappa_126(:) < 0)
+if nargin < 4
+    if heaveIsRestored && isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'delta_zeta_345') && ...
+            ~isempty(vessel.powerBased.delta_zeta_345)
+        delta_zeta = vessel.powerBased.delta_zeta_345;
+    elseif ~heaveIsRestored && isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'delta_zeta_45') && ...
+            ~isempty(vessel.powerBased.delta_zeta_45)
+        delta_zeta = vessel.powerBased.delta_zeta_45;
+    else
+        delta_zeta = [];
+    end
+end
+
+if isempty(delta_zeta)
+    if heaveIsRestored
+        defaultValue = [0 0.1 0];
+        prompt = ['Viscous damping-ratio increments delta_zeta_345 for ' ...
+            'DOFs 3, 4, 5'];
+    else
+        defaultValue = [0.2 0.2];
+        prompt = ['Viscous damping-ratio increments delta_zeta_45 for ' ...
+            'DOFs 4, 5'];
+    end
+    delta_zeta = input(sprintf('%s (default: %s): ', ...
+        prompt, mat2str(defaultValue)));
+    if isempty(delta_zeta)
+        delta_zeta = defaultValue;
+    end
+end
+
+% Vector dimensions select the call pattern; G(3,3) verifies it.
+surfaceCall = numel(aperiodicDamping) == 3 && numel(delta_zeta) == 3;
+submergedCall = numel(aperiodicDamping) == 4 && numel(delta_zeta) == 2;
+if ~surfaceCall && ~submergedCall
+    error(['Use 3+3 damping parameters (kappa_126, delta_zeta_345) for a ' ...
+        'floating vessel or 4+2 parameters (T_1236, delta_zeta_45) for a ' ...
+        'submerged vehicle.']);
+end
+if surfaceCall && ~heaveIsRestored
+    error(['G(3,3) indicates unrestrained heave. Use the submerged call ' ...
+        'with T_1236 and delta_zeta_45.']);
+end
+if submergedCall && heaveIsRestored
+    error(['G(3,3) indicates restored heave. Use the floating-vessel call ' ...
+        'with kappa_126 and delta_zeta_345.']);
+end
+
+if ~isnumeric(aperiodicDamping) || ~isreal(aperiodicDamping) || ...
+        any(~isfinite(aperiodicDamping(:)))
+    error('The aperiodic damping parameters must be finite real numbers.');
+end
+if surfaceCall && any(aperiodicDamping(:) < 0)
     error('kappa_126 must contain three finite, nonnegative values.');
+elseif submergedCall && any(aperiodicDamping(:) <= 0)
+    error('T_1236 must contain four finite, positive time constants.');
 end
-if ~isnumeric(delta_zeta_345) || ~isreal(delta_zeta_345) || ...
-        numel(delta_zeta_345) ~= 3 || ...
-        any(~isfinite(delta_zeta_345(:))) || ...
-        any(delta_zeta_345(:) < 0)
-    error('delta_zeta_345 must contain three finite, nonnegative values.');
+if ~isnumeric(delta_zeta) || ~isreal(delta_zeta) || ...
+        any(~isfinite(delta_zeta(:))) || any(delta_zeta(:) < 0)
+    error('The damping-ratio increments must be finite and nonnegative.');
 end
-kappa_126 = reshape(kappa_126,1,3);
-delta_zeta_345 = reshape(delta_zeta_345,1,3);
+aperiodicDamping = reshape(aperiodicDamping, 1, []);
+delta_zeta = reshape(delta_zeta, 1, []);
 
 % Default plot flag
 if nargin < 5 || isempty(plotFlag)
     plotFlag = 0;
 end
 
-% Check number of velocity cases
-if isfield(vessel, 'velocities') && ~isempty(vessel.velocities)
-    nvel = length(vessel.velocities);
-else
-    nvel = 1;
-end
-
-A_all = vessel.A; % Added mass
-B_all = vessel.B; % Potential damping 
-
-% Frequency data used for power-based averaging
+% ------------------------------------------------------------------------------
+%% Compute power-based equivalent matrices
+% ------------------------------------------------------------------------------
 freqs = vessel.freqs;
+
+% Exclude artificial frequency omega = 10 rad/s representing infinity
+idx = freqs < 10;
+A = vessel.A(:,:,idx);
+B = vessel.B(:,:,idx);
+freqs = freqs(idx);
 
 % Exclude artificial frequency omega = 10 rad/s representing infinity
 idx = freqs < 10;
@@ -168,78 +290,98 @@ end
 
 % Define finer frequency grid for interpolation
 freqs_fine = linspace(omega_min, omega_max, 100)';
-nOmega = length(omega_p);
 
 % PM wave spectrum parameters
 alpha = 8.1e-3 * (9.81)^2;
 beta = 0.74;
 
-% Initialize equivalent matrices of dimension [6, 6, nOmega, nvel]
-Aeq_all = zeros(6, 6, nOmega, nvel);
-Beq_all = zeros(6, 6, nOmega, nvel);
+% Initialize equivalent matrices
+A_eq = zeros(6);
+B_eq = zeros(6);
 
-% Loop over all velocities
-for velNo = 1:nvel
-    A_w = A_all(:,:,idx,velNo);
-    B_w = B_all(:,:,idx,velNo);
+% Zero spectral moment m_0
+S = alpha ./ freqs_fine.^5 .* exp(-beta * (omega_p ./ freqs_fine).^4);
+m_0 = trapz(freqs_fine, S);
 
-    % Zero spectral moment m_0
-    S = alpha ./ freqs_fine.^5 .* exp(-beta * (omega_p ./ freqs_fine).^4);
-    m_0 = trapz(freqs_fine, S);
+% Normalized wave spectrum
+S_N = S / m_0;
 
-    % Normalized wave spectrum
-    S_N = S / m_0;
+% Loop over DOFs
+for i = 1:6
+    for j = 1:6
+        A_ij = squeeze(A(i,j,:));
+        B_ij = squeeze(B(i,j,:));
 
-    % Loop over DOFs
-    for i = 1:6
-        for j = 1:6
-            A_ij_w = squeeze(A_w(i,j,:));
-            B_ij_w = squeeze(B_w(i,j,:));
+        A_interp = interp1(freqs, A_ij, freqs_fine, 'pchip');
+        B_interp = interp1(freqs, B_ij, freqs_fine, 'pchip');
 
-            A_interp = interp1(freqs, A_ij_w, freqs_fine, 'pchip');
-            B_interp = interp1(freqs, B_ij_w, freqs_fine, 'pchip');
-
-            Aeq_all(i,j,velNo) = trapz(freqs_fine, A_interp .* S_N);
-            Beq_all(i,j,velNo) = trapz(freqs_fine, B_interp .* S_N);
-        end
+        A_eq(i,j) = trapz(freqs_fine, A_interp .* S_N);
+        B_eq(i,j) = trapz(freqs_fine, B_interp .* S_N);
     end
-
 end
 
 % Power-based equivalent matrices
 vessel.powerBased.omega_p = omega_p;
-vessel.powerBased.A_eq = Aeq_all;
-vessel.powerBased.B_eq = Beq_all;
+vessel.powerBased.A_eq = A_eq;
+vessel.powerBased.B_eq = B_eq;
 
-% Inertia matrices
-vessel.MA = vessel.powerBased.A_eq;
-vessel.M = vessel.MRB + vessel.MA;
-vessel.Minv = invQR(vessel.M);
+% ------------------------------------------------------------------------------
+% System inertia matrix M = MRB + MA and restoring matrix G
+% ------------------------------------------------------------------------------
+vessel.MA = vessel.powerBased.A_eq; % Added mass matrix
+vessel.M = vessel.MRB + vessel.MA;  % System inertia matrix
+vessel.Minv = invQR(vessel.M);      % Inverse system inertia matrix
+vessel.G = G;                       % Restoring matrix for heave, roll and pitch
 
-% Restoring matrix for heave, roll and pitch
-vessel.G  = zeros(6);
-vessel.G([3 4 5],[3 4 5]) = vessel.C([3 4 5],[3 4 5],1);
-
-% DOFs 1, 2 and 6: relative viscous damping increments
+% ------------------------------------------------------------------------------
+% Viscous damping matrix Bv and total damping matrix D = B_eq + Bv
+% ------------------------------------------------------------------------------
 vessel.powerBased.Bv = zeros(6);
-idx = [1 2 6];
-for k = 1:3
-    i = idx(k);
-    vessel.powerBased.Bv(i,i) = kappa_126(k) * vessel.powerBased.B_eq(i,i);
+if surfaceCall
+    % Floating vessel: relative viscous damping increments in DOFs 1, 2 and 6
+    idx = [1 2 6];
+    for k = 1:numel(idx)
+        i = idx(k);
+        vessel.powerBased.Bv(i,i) = aperiodicDamping(k) * ...
+            vessel.powerBased.B_eq(i,i);
+    end
+    restoredIdx = [3 4 5];
+else
+    % Submerged vehicle: impose time constants in DOFs 1, 2, 3 and 6
+    idx = [1 2 3 6];
+    for k = 1:numel(idx)
+        i = idx(k);
+        targetDamping = vessel.M(i,i) / aperiodicDamping(k);
+        viscousDamping = targetDamping - vessel.powerBased.B_eq(i,i);
+        dampingTolerance = 1e-10 * max([1, abs(targetDamping), ...
+            abs(vessel.powerBased.B_eq(i,i))]);
+        if viscousDamping < -dampingTolerance
+            error(['T_%d = %.4g s requires negative viscous damping. ' ...
+                'Choose T_%d <= M(%d,%d)/B_eq(%d,%d) = %.4g s.'], ...
+                i, aperiodicDamping(k), i, i, i, i, i, ...
+                vessel.M(i,i) / vessel.powerBased.B_eq(i,i));
+        end
+        vessel.powerBased.Bv(i,i) = max(0, viscousDamping);
+    end
+    restoredIdx = [4 5];
 end
 
-% DOFs 3, 4 and 5: viscous damping-ratio increments
-idx = [3 4 5];
-for k = 1:3
-    i = idx(k);
-    vessel.powerBased.Bv(i,i) = 2 * delta_zeta_345(k) * ...
+% Restored modes: viscous damping-ratio increments
+for k = 1:numel(restoredIdx)
+    i = restoredIdx(k);
+    vessel.powerBased.Bv(i,i) = 2 * delta_zeta(k) * ...
         sqrt(vessel.M(i,i) * vessel.G(i,i));
 end
 
 vessel.D = vessel.powerBased.B_eq + vessel.powerBased.Bv;
 
-vessel.powerBased.kappa_126 = kappa_126;
-vessel.powerBased.delta_zeta_345 = delta_zeta_345;
+if surfaceCall
+    vessel.powerBased.kappa_126 = aperiodicDamping;
+    vessel.powerBased.delta_zeta_345 = delta_zeta;
+else
+    vessel.powerBased.T_1236 = aperiodicDamping;
+    vessel.powerBased.delta_zeta_45 = delta_zeta;
+end
 
 vessel.powerBased.T_126 = zeros(1,3);
 idx = [1 2 6];
@@ -248,7 +390,9 @@ for k = 1:3
     vessel.powerBased.T_126(k) = vessel.M(i,i) / vessel.D(i,i);
 end
 
-%% Optional plotting for velocity #1
+% ------------------------------------------------------------------------------
+%% Optional plotting
+% ------------------------------------------------------------------------------
 if plotFlag == 1
     plotAB_eq(vessel, 'A', 1);
     plotAB_eq(vessel, 'B', 1);

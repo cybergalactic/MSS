@@ -1,96 +1,48 @@
 function [tau_wave1, waveElevation] = waveForceRAO(...
-    t, S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals)
+    t, waveModel, U, psi, beta_wave)
 % waveForceRAO computes the wave elevation and the 6-DOF generalized 1st-
 % order wave forces, tau_wave1, on a ship using different wave spectra 
 % (Modified Pierson-Moskowitz, JONSWAP, Torsethaugen) and Response 
-% Amplitude Operators (RAOs) (Fossen 2021, Chapters 10.2.1 and 10.2.4). 
+% Amplitude Operators (RAOs) (Fossen 2027, Chapters 10.2.1 and 10.2.4).
 % The real and imaginary parts of the RAO tables are interpolated in 
 % frequency and varying relative directions to compute the RAO amplitudes 
 % and phases. This approach avoids unwrapping problems and interpolation 
 % issues in RAO phase angles.
 %
 % INPUTS:
-%   t                - Time vector (s)
-%   S_M              - Spectral density matrix
-%   Amp              - Wave amplitude matrix
-%   Omega            - Wave frequencies (rad/s)
-%   mu               - Wave spreading angles (radians)
-%   vessel           - Vessel data structure containing RAO info
-%   U                - Vessel speed (m/s)
-%   psi              - Vessel heading angle (radians)
-%   beta_wave        - Wave direction, 0 following sea, pi head sea (radians)
-%   numFreqIntervals - Number of frequency intervals (> 50)
+%   t          - Time (s)
+%   waveModel  - Wave model returned by waveInitialization
+%   U          - Vessel speed (m/s)
+%   psi        - Vessel heading angle (rad)
+%   beta_wave  - Wave direction, 0 following sea, pi head sea (rad)
 %
 % OUTPUTS:
 %   tau_wave1        - 6x1 generalized 1st-order wave forces (6-DOF)
 %   waveElevation    - Wave elevation (m)
 %
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%   Control, 2nd edtion. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-15
 % Revisions:
+%   2026-10-03: Added periodic RAO interpolation at 0/2*pi radians.
+%   2026-10-03: Use the caller-controlled random-number stream.
+%   2026-10-03: Replaced persistent state with an explicit waveModel.
 
-persistent RAO_re_values_interpolated RAO_im_values_interpolated randomPhases;
-
-% Constants
-g = vessel.main.g; 
-
-% Vesssel RAO data
-freqs = vessel.forceRAO.w;   % RAO wave frequencies (rad/s)
-raoAngles = vessel.headings; % RAO wave direction angles (rad)
-
-% Initial computation and interpolation of real and imaginary RAO tables
-if isempty(RAO_im_values_interpolated)
-
-    numAngles = length(raoAngles);
-
-    % Convert RAO amplitudes and phases to real and imaginary components
-    RAO_re = cell(6, numAngles);
-    RAO_im = cell(6, numAngles);
-    for DOF = 1:6
-        for j = 1:numAngles
-            % Extract amp and phase for zero speed (index 1)
-            % vessel.forceRAO.amp{DOF}(Omega, Dirctions, Speed)
-            % vessel.forceRAO.phase{DOF}(Omega, Dirctions, Speed)
-            RAO_amp = vessel.forceRAO.amp{DOF}(:,j,1);            
-            RAO_phase = vessel.forceRAO.phase{DOF}(:,j,1);
-
-            % Calculate the real and imaginary parts
-            RAO_re{DOF, j} = RAO_amp .* cos(RAO_phase);
-            RAO_im{DOF, j} = RAO_amp .* sin(RAO_phase);
-        end
-    end
-
-    % Interpolate Re and Im parts of RAO to be valid for all Omega values.
-    % Repeat this for all wave directions k = 1:numAngles
-    rng(12345,"twister")
-    numDirections = length(mu);
-    randomPhases = 2 * pi * rand(numFreqIntervals, numDirections);
-
-    RAO_re_values_interpolated = cell(1, 6);
-    RAO_im_values_interpolated = cell(1, 6);
-    for DOF = 1:6
-        RAO_re_values = zeros(numFreqIntervals, numAngles);
-        RAO_im_values = zeros(numFreqIntervals, numAngles);
-
-        for k = 1:numAngles
-            % Interpolate Re and Im parts of RAO for all Omega values
-            RAO_re_values(:, k) = interp1(freqs, RAO_re{DOF, k}, Omega, ...
-                'linear', 'extrap');
-            RAO_im_values(:, k) = interp1(freqs, RAO_im{DOF, k}, Omega, ...
-                'linear', 'extrap');
-        end
-
-        % Store the interpolated values for this DOF
-        RAO_re_values_interpolated{DOF} = RAO_re_values;
-        RAO_im_values_interpolated{DOF} = RAO_im_values;
-
-    end
-
+if ~strcmp(waveModel.raoType, 'force')
+    error('waveForceRAO:InvalidWaveModel', ...
+        'waveModel must be initialized with force RAOs.');
 end
+
+S_M = waveModel.S_M;
+Amp = waveModel.Amp;
+Omega = waveModel.Omega;
+mu = waveModel.mu;
+g = waveModel.g;
+randomPhases = waveModel.randomPhases;
+numFreqIntervals = length(Omega);
 
 % Wave direction relative ship, beta_wave = 0 for following sea
 beta_relative = beta_wave - psi;  
@@ -98,10 +50,13 @@ beta_relative = beta_wave - psi;
 % Vector of spreading angles, scalar for M = 1 corresponding to mu = 0
 beta_RAO = mod(beta_relative + mu, 2*pi); % Wrap to 0 to 2*pi
 
+% The initialization closes the directional RAO tables at 2*pi.
+raoAngles = waveModel.raoAngles;
+
 % Encounter frequency Omega_e(Omega, mu) for all frequencies and directions
 Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(beta_RAO'));
 
-% Compute the wave elevation (Fossen 2021, Eq. 10.83) using
+% Compute the wave elevation (Fossen 2027, Eq. 10.83) using
 % Amp = sqrt(2 * S_M * deltaOmega * deltaDirections).
 % The summation over dim. 1 is frequencies and dim. 2 is directions 
 if size(S_M, 2) == 1 
@@ -118,27 +73,27 @@ tau_wave1 = zeros(6,1);
 numDirections = length(mu);
 for DOF = 1:6
 
-    % Retrieve stored frequency interpolated values
-    RAO_re_values = RAO_re_values_interpolated{DOF};
-    RAO_im_values = RAO_im_values_interpolated{DOF};
+    % Retrieve the initialized, periodically closed force-RAO tables.
+    RAO_re_values = waveModel.RAO_re{DOF};
+    RAO_im_values = waveModel.RAO_im{DOF};
 
-    % Initialize tables to stor the wave-direction interpolated results
+    % Initialize tables to store the wave-direction interpolated results
     RAO_re_dir_interp = zeros(numFreqIntervals, numDirections);
     RAO_im_dir_interp = zeros(numFreqIntervals, numDirections);
 
     % Interpolate Re and Im parts of RAO for time-varying 'beta_RAO'
     % directions between 0 to 2*pi
     for k = 1:numDirections
-        RAO_re_dir_interp(:, k) = interp1(raoAngles, RAO_re_values', ...
-            beta_RAO(k), 'linear', 'extrap')';
-        RAO_im_dir_interp(:, k) = interp1(raoAngles, RAO_im_values', ...
-            beta_RAO(k), 'linear', 'extrap')';        
+        RAO_re_dir_interp(:, k) = interp1(raoAngles, ...
+            RAO_re_values', beta_RAO(k), 'linear')';
+        RAO_im_dir_interp(:, k) = interp1(raoAngles, ...
+            RAO_im_values', beta_RAO(k), 'linear')';
     end
 
     % Combine real and imaginary parts to form the complex RAO
     RAO_complex{DOF} = RAO_re_dir_interp + 1i * RAO_im_dir_interp;
 
-    % Compute the generalized 1st-order wave forces (Fossen 2021, Eq. 10.96).
+    % Compute the generalized 1st-order wave forces (Fossen 2027, Eq. 10.96).
     if size(S_M, 2) == 1 
         % No spreading function/directional spectrum
         tau_wave1(DOF) = sum( abs(RAO_complex{DOF}) .* Amp .* ...

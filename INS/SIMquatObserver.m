@@ -1,4 +1,3 @@
-% SIMquatObserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the nonlinear quaternion-based attitude observer of  
 % Mahony et al. (2008) using the vector-cross product representation of Grip 
 % et al. (2013) with attitude-rate sensor (ARS) bias estimation. The observer 
@@ -230,4 +229,3 @@ legend('b_{z,ars}', 'b_{z,ars} (estimate)');
 set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
 set(findall(gcf,'type','legend'),'FontSize',10)
-

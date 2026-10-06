@@ -1,4 +1,3 @@
-% exKT is compatible with MATLAB and GNU Octave (www.octave.org).
 % Script for computation of the Nomoto gain and time constants (K, T) using 
 % nonlinear least-squares curve fitting. The differential equation 
 %

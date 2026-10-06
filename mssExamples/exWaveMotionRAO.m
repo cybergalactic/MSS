@@ -1,33 +1,35 @@
-% This function computes the wave elevation and the wave-frequency (WF) 
-% motion, eta_w, nu_w, and nu_dot_w on a marine craft  using different 
-% wave spectra (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and 
-% Response  Amplitude Operators (RAOs); see Fossen (2021, Chapters 10.2.1 
+% This function computes the wave elevation and the wave-frequency (WF)
+% motion, eta_w, nu_w, and nu_dot_w on a marine craft  using different
+% wave spectra (Modified Pierson-Moskowitz, JONSWAP, and Torsethaugen) and
+% Response  Amplitude Operators (RAOs); see Fossen (2027, Chapters 10.2.1
 % and 10.2.3). The total motion is:
 %
 %   y_eta   = eta + eta_w
 %   y_nu    = nu  + nu_w
 %   y_nudot = nudot + nudot_w
 %
-% where eta, nu, and nudot are the low-frequency (LF) ship model components. 
-% The real and imaginary parts of the RAO tables are interpolated in 
-% frequency and varying wave directions to compute the RAO amplitudes and 
-% phases. This approach avoids unwrapping problems and interpolation issues 
+% where eta, nu, and nudot are the low-frequency (LF) ship model components.
+% The real and imaginary parts of the RAO tables are interpolated in
+% frequency and varying wave directions to compute the RAO amplitudes and
+% phases. This approach avoids unwrapping problems and interpolation issues
 % in RAO phase angles.
 
 displayMfileHeader('exWaveMotionRAO.m');  % Print the header text
 
 % Reference:
-%   Fossen, T. I. (2021). Handbook of Marine Craft Hydrodynamics and Motion
-%   Control, 2nd edtion. John Wiley & Sons Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-07-06
-% Revisions: 
-%    2025-10-21 RAO interpolations and look-up tables are evaluated at a 
-%               maximum rate of 10 Hz. 
+% Revisions:
+%    2025-10-21 RAO interpolations and look-up tables are evaluated at a
+%               maximum rate of 10 Hz.
+%    2026-10-03 Removed unnecessary initial-transient truncation.
+%    2026-10-04 Handle closing the options dialog without deleting its controls.
 
-clear waveMotionRAO; % Clear persistent RAO tables
 clearvars;
+rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 [matFile, spectrumType, spreadingFlag] = simOptions(); % User inputs
 load(which(matFile), 'vessel'); % Load vessel.motionRAO data structure
@@ -36,55 +38,43 @@ disp(['Loaded the motion RAO structure "vessel.motionRAO" (', matFile, ')'])
 % Simulation parameters
 h = 0.02;                       % Time step (s)
 T_final = 200;                  % Duration of the simulation (s)
-T_initialTransient = 20;        % Remove initial transient (s)
 RAO_update_period = 0.1;        % Compute RAO every ar 10 Hz
 nextRAOtime = 0;                % Next RAO update time
 
-% COMMENT: Adding a spreading function involves summing waves from different 
-% directions. Initially, these waves can interfere constructively, causing
-% higher amplitudes. Hence, it is recommended to remove the initial
-% respons by specifying: T_initialTransient >= 20 s.
-
-% numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)  
+% numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)
 % numDirctions     - Number of wave directions in directional spectrum M(mu)
-maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s) 
+maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s)
 numFreqIntervals = 60;          % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
-% Sea state 
+% Sea state
 Hs = 10;                        % Significant wave height (m)
 Tz = 10;                        % Zero-crossing period (s)
-    
+
 % Wave direction relative bow, 0 deg for following sea, 180 deg for head sea
 beta_wave = deg2rad(140);
 
-% Calculate the wave spectrum power intensity S(Omega) for each frequency
-T0 = Tz / 0.710; % Wave spectrum modal (peak) period (Fossen 2021, Eq. 10.61)
+% Calculate the wave spectrum peak frequency
+T0 = Tz / 0.710; % Wave spectrum modal (peak) period (Fossen 2027, Eq. 10.61)
 w0 = 2*pi / T0;  % Wave spectrum modal (peak) frequency
-spectrumParameters = [Hs, w0];
-if strcmp(spectrumType ,'JONSWAP')
-   gamma = 3.3; 
-   spectrumParameters = [Hs, w0, gamma];
-end
 
-% Reshape vessel data o use 0 to maxFreq
-if vessel.forceRAO.w(end) > maxFreq
-    w_index = find(vessel.forceRAO.w > maxFreq, 1) - 1;
-    vessel.forceRAO.w = vessel.forceRAO.w(1:w_index); % frequency vector
-    for DOF = 1:length(vessel.forceRAO.amp)
-        vessel.forceRAO.amp{DOF} = vessel.forceRAO.amp{DOF}(1:w_index, :, :);
-        vessel.forceRAO.phase{DOF} = vessel.forceRAO.phase{DOF}(1:w_index, :, :);
-    end
-end
+% Initialize the directional spectrum and motion-RAO model
+environment.Hs = Hs;
+environment.w0 = w0;
+environment.spectrumType = spectrumType;
+environment.spreadingFlag = spreadingFlag;
+environment.numFreqIntervals = numFreqIntervals;
+environment.numDirections = numDirections;
+environment.maxFreq = maxFreq;
+[environment, waveModel] = waveInitialization(vessel, environment, 'motion');
 
-omegaMax = vessel.forceRAO.w(end);  % Max frequency in RAO dataset
-
-[S_M, Omega, Amp, ~, ~, mu] = waveDirectionalSpectrum(spectrumType, ...
-    spectrumParameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections);
+S_M = environment.S_M;
+Omega = environment.Omega;
+mu = environment.mu;
 
 %% MAIN LOOP
-t = 0:h:T_final+T_initialTransient-1;  % Time vector
-simdata = zeros(length(t),19);         % Pre-allocate table
+t = 0:h:T_final;                 % Time vector
+simdata = zeros(length(t),19);   % Pre-allocate table
 for i = 1:length(t)
 
     U = 5;                             % Time-varying ship speed (m/s)
@@ -93,7 +83,7 @@ for i = 1:length(t)
     % 6-DOF wave-frequency (WF) motion (compute RAO only every 0.1 second)
     if t(i) >= nextRAOtime
         [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO( ...
-            t(i), S_M, Amp, Omega, mu, vessel, U, psi, beta_wave, numFreqIntervals);
+            t(i), waveModel, U, psi, beta_wave);
 
         nextRAOtime = nextRAOtime + RAO_update_period;
     end
@@ -105,13 +95,11 @@ end
 %% PLOTS
 figure(1); clf;
 
-% Time-series
-startIndex = max(1, floor(T_initialTransient / h) + 1);
-t = t(startIndex:end) - t(startIndex);
-eta_WF = simdata(startIndex:end, 1:6);
-nu_WF = simdata(startIndex:end, 7:12);
-nudot_WF = simdata(startIndex:end, 13:18);
-waveElevation = simdata(startIndex:end, 19);
+% Time series
+eta_WF = simdata(:, 1:6);
+nu_WF = simdata(:, 7:12);
+nudot_WF = simdata(:, 13:18);
+waveElevation = simdata(:, 19);
 
 % Plot the wave spectrum
 subplot(211);
@@ -120,7 +108,7 @@ if spreadingFlag
     % Plot the wave spectrum for the specific directions
     hold on;
     plot(Omega, S_M(:, floor(length(mu)/2)), 'LineWidth', 2);
-    plot(Omega, S_M(:, floor(length(mu)/4)), 'LineWidth', 2);    
+    plot(Omega, S_M(:, floor(length(mu)/4)), 'LineWidth', 2);
     plot(Omega, S_M(:, length(mu)), 'LineWidth', 2);
     plot([w0, w0], [min(min(S_M)), max(max(S_M))], 'LineWidth', 2)
     legend('\mu = 0 deg', '\mu = 45 deg', '\mu = 90 deg',...
@@ -190,6 +178,7 @@ f = figure('Position', [400, 400, 400, 450], ...
     'Name', 'Simulation Options', ...
     'MenuBar', 'none', ...
     'NumberTitle', 'off', ...
+    'CloseRequestFcn', @(src, evt) uiresume(src), ...
     'WindowStyle', 'modal');
 
 % Add button group for selecting the ship
@@ -263,7 +252,8 @@ spreadCheckbox = uicontrol('Parent', f, ...
     'Value', 0); % Default is unchecked
 
 % Add OK button to confirm selections
-uicontrol('Style', 'pushbutton', ...
+uicontrol('Parent', f, ...
+    'Style', 'pushbutton', ...
     'String', 'OK', ...
     'FontSize', 12, ...
     'Position', [150 50 100 40], ...
@@ -282,6 +272,6 @@ spectrumType = get(selectedSpectrum, 'Tag');
 % Determine the state of the spreading checkbox
 spreadingFlag = get(spreadCheckbox, 'Value');
 
-close(f); % Close the figure after obtaining the selections
+delete(f); % Delete the figure after obtaining the selections
 
 end

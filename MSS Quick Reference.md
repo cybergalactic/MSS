@@ -3,13 +3,12 @@
 The m-files of the MSS (Marine Systems Simulator) toolbox are compatible with MATLAB (www.mathworks.com) and the free software GNU Octave (www.octave.org), facilitating broad accessibility and application in marine systems simulation. To use the MSS toolbox, please ensure the files are downloaded and correctly set up in your MATLAB/Octave environment. See the installation guides for [MATLAB](How%20to%20install%20MSS%20for%20MATLAB.md) and [GNU Octave](How%20to%20install%20MSS%20for%20GNU%20Octave.md).
 
 This reference lists the user-facing functions, models, examples, demos, and
-templates. Internal callbacks, raw model-data scripts, and helper functions
+workflows. Internal callbacks, raw model-data scripts, and helper functions
 used only by another documented entry point are not listed separately.
 
 ```matlab
 >> mssHelp        % MSS Quick Reference 
 >> mssPath        % Build/update and save the MSS path (not available in GNU Octave)
->> mssSimulink    % Simulink Library (not available in GNU Octave)
 ```
 
 ## Table of Contents
@@ -31,13 +30,10 @@ used only by another documented entry point are not listed separately.
   - [Functions](#functions)
 - [MSS Demos (m-files)](#mss-demos-m-files)
 - [MSS Examples (m-files)](#mss-examples-m-files)
-- [SIMULINK](#simulink)
-  - [Simulink demos](#simulink-demos)
-  - [Hydrodynamic vessel templates](#hydrodynamic-vessel-templates)
 - [HYDRO](#hydro)
   - [Processing of data from hydrodynamic codes (m-files)](#processing-of-data-from-hydrodynamic-codes-m-files)
   - [Capytaine integration](#capytaine-integration)
-  - [Data files (mat-files that can be loaded to the workspace and used by Simulink templates)](#data-files-mat-files-that-can-be-loaded-to-the-workspace-and-used-by-simulink-templates)
+  - [Vessel data (mat-files for hydrodynamic simulation)](#vessel-data-mat-files-for-hydrodynamic-simulation)
   - [Hydrodynamics (m-files)](#hydrodynamics-m-files)
   - [Hydrodynamic utilities (m-files)](#hydrodynamic-utilities-m-files)
   - [WAMIT geometry utilities (m-files)](#wamit-geometry-utilities-m-files)
@@ -48,6 +44,17 @@ used only by another documented entry point are not listed separately.
 
 ## CRAFT (m-files)
 
+Start with the [CRAFT README](CRAFT/README.md) for an overview of the
+established craft models, their simulation scripts, and the ShipX, WAMIT, and
+MSS-Capytaine workflow for user-defined vessels.
+
+CRAFT includes established, ready-to-run mathematical models and a unified
+workflow for vessels built from seakeeping data. `SIMhydroVessel` accepts the
+common MSS `vessel` structure generated from ShipX, WAMIT, or Capytaine data.
+ShipX and WAMIT require commercial licenses; Capytaine is a free, open-source
+alternative. Example vessel data and processing instructions are provided in
+the [HYDRO](#hydro) catalog.
+
 ### Craft simulators
 .../MSS/CRAFT/
 
@@ -55,6 +62,7 @@ used only by another documented entry point are not listed separately.
 SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control.
 SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure.
 SIMfrigate      % Simulate frigate.m using a PID heading autopilot
+SIMhydroVessel  % Simulate a 6-DOF vessel model generated from ShipX, WAMIT, or Capytaine data
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
 SIMotter        % Simulate otter.m with heading control and 2-D LOS straight-line path course control
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
@@ -76,6 +84,7 @@ clarke83        % Linear maneuvering model parametrized using (L,B,T) found from
 container       % Nonlinear maneuvering model of a high-speed container ship, L = 175 m, including roll (Son and Nomoto 1982)
 DSRV            % Deep Submergence Rescue Vehicle (DSRV), L = 5.0 m (Healey 1992)
 frigate         % Nonlinear autopilot model for a frigate, L = 100 m
+hydroVessel     % Unified nonlinear 6-DOF model for ShipX, WAMIT, and Capytaine vessel structures
 Lcontainer      % Linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
 mariner         % Nonlinear maneuvering model for the Mariner class vessel, L = 160 m 
 navalvessel     % Nonlinear maneuvering model of a multipurpose naval vessel, L = 51.5 m
@@ -97,7 +106,7 @@ acc2rollpitch        % Static roll and pitch angles from IMU specific force meas
 addIntermediateWaypoints % Add points along waypoint line segments for increased resolution
 allocPseudoinverse   % Unconstrained control allocation
 ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
-ALOSpsi              % ALOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+ALOSpsi              % ALOS guidance law for heading control in 2-D
 ALOSpsiHermite       % Computes the cross-track error and LOS angle to a cubic Hermite spline defined by waypoints
 crosstrack           % Computes the path-tangential origin and cross-track error for a target
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
@@ -107,13 +116,13 @@ getPathSignals       % Evaluate a hybrid parameterized path and its derivatives
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
 integralSMCheading   % Integral sliding mode controller for heading control    
-LOSchi               % LOS guidance law for course control in 2-D (see demoOtterUSVPathFollowingCourseControl.slx)
+LOSchi               % LOS guidance law for course control in 2-D
 LOSobserver          % Estimates the desired LOS angle and LOS rate from a LOS guidance law command
-ILOSpsi              % ILOS guidance law for heading control in 2-D (see demoOtterUSVPathFollowingHeadingControl.slx)
+ILOSpsi              % ILOS guidance law for heading control in 2-D
 lqtracker            % Computes the LQ tracker gain matrices for LTI systems
 nomoto               % Generates Bode plots for the 1st- and 2nd-order Nomoto models
-order3               % Path generation using cubic polynomials (see demoWaypointGuidance.slx)
-order5               % Path generation using 5th-order polynomials (see demoWaypointGuidance.slx)
+order3               % Path generation using cubic polynomials
+order5               % Path generation using 5th-order polynomials
 PIDnonlinearMIMO     % Nonlinear MIMO PID regulator for dynamic positioning (DP)
 projectToPath        % Computes the orthogonal projection of a vehicle position onto a sampled 2-D path.
 refModel             % Third-order reference model for position, velocity, and acceleration
@@ -137,7 +146,6 @@ rangeCheck           % Validate that values lie within inclusive limits
 addedMassSurge      % Hydrodynamic added mass in surge, A11, approximated by the formula of Söding (1982)
 coeffLiftDrag       % Hydrodynamic lift and drag coefficients as a function of angle of attack of a submerged "wing profile"
 forceLiftDrag       % Hydrodynamic lift and drag forces as a function of the angle of attack of a submerged "wing profile" 
-forceSurgeDamping   % Linear and quadratic damping forces in the surge direction
 crossFlowDrag 	    % Crossflow drag computed from strip theory integrals
 Dmtrx               % 6x6 linear damping matrix for marine craft (submerged and floating)
 Gmtrx               % 6x6 system spring stiffness matrix G
@@ -187,6 +195,7 @@ spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
 waveForceRAO        % Compute the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
+waveInitialization  % Initialize the directional wave spectrum, random phases, and force- or motion-RAO model
 waveMotionRAO       % Compute the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 waveSpectrum        % Function computing state-of-the-art wave spectra
@@ -235,6 +244,7 @@ rk4                 % Integrates a system of ordinary differential equations usi
 ```matlab
 highPassFilter      % First-order high-pass filter using exact discretization
 lowPassFilter       % First-order low-pass filter using exact discretization
+makeIntegrator      % Create a stateful discrete-time integrator function handle
 makeLowPass         % Create a stateful first-order low-pass filter function handle
 notchFilter         % Second-order notch filter using RK4 discretization or IIR filtering
 sawToothWave        % Sawtooth wave signal, which can be used for testing
@@ -268,46 +278,6 @@ magneticField        % NED magnetic field reference vectors 'm_ref' for differen
 quatObserver         % Nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 quatMEKF             % MEKF quaternion-based attitude observer for 9-DOF IMU measurements
 ```
-
-## Simulink 
-.../MSS/SIMULINK/
-
-### Simulink demos
-.../MSS/SIMULINK/mssSimulinkDemos/
-
-```matlab
-demoAUVdepthHeadingControl.slx            % Simultaneously heading and depth control of the Remus 100 AUV
-demoCS2passiveObserverDP.slx              % Passive observer with wave filtering and nonlinear PID control (CyberShip2 model ship)
-demoDPThrusterModels.slx                  % Supply vessel with azimuth thrusters
-demoDSRVdepthControl.slx                  % DSRV depth control system
-demoKalmanWavefilterAutop.slx             % Kalman-filter based wave filter and heading autopilot for the mariner class cargo ship
-demoMarinerPathFollowingCourseControl.slx % Mariner class vessel LOS path-following control using a course autopilot
-demoNavalVesselMano.slx                   % Zigzag test for the naval ship Mano  
-demoNPSAUV.slx                            % NPS AUV heading control system
-demoOtterUSVHeadingControl.slx	          % Otter USV heading control system
-demoOtterUSVPathFollowingCourseControl.slx % Otter USV LOS path-following control using a course autopilot
-demoOtterUSVPathFollowingHeadingControl.slx % Otter USV ILOS and ALOS path-following control using a heading autopilot
-demoPanamaxContainerShip.slx              % Panama container ship simulator
-demoPassiveWavefilterAutopilot1.slx       % Passive wave filter and heading autopilot design using compass measurements only
-demoPassiveWavefilterAutopilot2.slx       % Passive wave filter and heading autopilot design using a compass and yaw rate measurements
-demoS175WindCurrentAutopilot.slx          % S175 heading autopilot with wind and current loads
-demoSemisubDPsystem.slx                   % Semisubmersible DP system
-demoWaveElevation.slx                     % Computation of wave elevation from wave spectra
-demoWaypointGuidance.slx                  % Waypoint guidance system
-```
-
-### Hydrodynamic vessel templates
-.../MSS/SIMULINK/mssWamitShipXTemplates/
-
-These templates use the common MSS `vessel` structure and can therefore be
-used with compatible data generated by WAMIT, ShipX, or MSS-Capytaine.
-
-```matlab
-DP_ForceRAO.slx    % Simulink template for a DP vessel where wave loads are computed using force RAOs
-DP_MotionRAO.slx   % Simulink template for a DP vessel where wave loads are computed using motion RAOs
-MAN_ForceRAO.slx   % Simulink template for the unified maneuvering model where wave loads are computed using force RAOs
-```
-
 
 ## MSS demos (m-files)
 /MSS/mssDemos/
@@ -385,17 +355,45 @@ vessel2ss          % computes the fluid-memory transfer functions and stores the
 wamit2vessel       % Reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
 ```
 
+The WAMIT and ShipX import functions create the frequency-dependent vessel
+structure. The power-based maneuvering model is then computed separately.
+Floating vessels use three relative damping increments and three
+damping-ratio increments, while submerged vehicles use four target time
+constants and two damping-ratio increments:
+
+```matlab
+vessel = computeManeuveringModel(vessel,omega_p,kappa_126,delta_zeta_345,plotFlag);
+vessel = computeManeuveringModel(vessel,omega_p,T_1236,delta_zeta_45,plotFlag);
+```
+
+This adds `vessel.powerBased`, including the equivalent matrices `A_eq` and
+`B_eq` and the viscous damping matrix `Bv`, together with the maneuvering-model
+matrices `M`, `D`, and `G`. The import functions do not create the former
+top-level field `vessel.Bv`. ShipX Ikeda roll damping is retained separately as
+`vessel.roll.Bv44`.
+
+See the processing instructions for the [WAMIT data](HYDRO/vessels_wamit/README.md)
+and [ShipX data](HYDRO/vessels_shipx/README.md).
+
 ### Capytaine integration
 
 [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) is a separate Python add-on that uses the open-source [Capytaine](https://capytaine.org/) boundary-element solver and exports the results in the MSS `vessel` structure format. Clone MSS-Capytaine separately and run `python main.py` from its project directory to regenerate the example hydrodynamic data.
 
-A [pre-generated example](HYDRO/vessels_capytaine/capytaineTestShip/) is included in MSS. Python and Capytaine are required only to regenerate the
-data; the included mat-file can be loaded and processed directly in MATLAB or GNU Octave.
+Pre-generated [testShip](HYDRO/vessels_capytaine/testShip/) and submerged
+[LAUV_marie](HYDRO/vessels_capytaine/LAUV_marie/) cases are included in MSS.
+Python and Capytaine are required only to regenerate the data; the included
+mat-files can be loaded and processed directly in MATLAB or GNU Octave.
+Their JSON-selected linear damping inputs are stored in `vessel.powerBased`
+and used as the defaults by `hydroVesselConfig.m`. Commented per-vessel
+assignments can be enabled there when a simulation-specific override is
+needed. WAMIT and ShipX retain active configuration defaults because their
+current vessel files do not contain these inputs.
 
-### Data files (mat-files that can be loaded to the workspace and used by Simulink templates)
+### Vessel data (mat-files for hydrodynamic simulation)
 
 ```matlab
-capytaineTestShip    % Capytaine data for the synthetic MSS-Capytaine test ship
+testShip             % Capytaine data for the synthetic MSS-Capytaine test ship
+LAUV_marie           % Capytaine data for NTNU's submerged LAUV Marie case
 fpso, fpsoABC       % WAMIT data for a FPSO
 semisub, semisubABC % WAMIT data for a semisubmersible
 tanker, tankerABC   % WAMIT data for a tanker
@@ -416,25 +414,32 @@ After loading the data files to the workspace using the Matlab command load, the
 |             A: [6×6×60 double]   | k44: radius of gyration | G: [6×6 double] | 
 |             B: [6×6×60 double]   | k55: radius of gyration | Minv: [6×6 double] | 
 |     motionRAO: [1×1 struct]      | k66: radius of gyration | r_g: [x_g y_g z_g] | 
-|      forceRAO: [1×1 struct]      | g: acceleration of gravity | 
-|      driftfrc: [1×1 struct]      | nabla: volume displacement | 
-|            Bv: [6×6×60 double]   | CB: center of buoyancy |
-|                                  | GM_T: transverse metacentric height |
-|                                  | GM_L: longitudinal metacentric height |
+|      forceRAO: [1×1 struct]      | g: acceleration of gravity | |
+|      driftfrc: [1×1 struct]      | nabla: volume displacement | |
+|    powerBased: [1×1 struct]      | CB: center of buoyancy | |
+| roll: [1×1 struct] (ShipX)       | GM_T: transverse metacentric height | |
+|                                  | GM_L: longitudinal metacentric height | |
 |                                  | CG: center of gravity | |
+
+For WAMIT and ShipX, `vessel.powerBased` is present after
+`computeManeuveringModel` has been run. Capytaine files already contain the
+selected damping inputs under this field; `computeManeuveringModel` adds the
+equivalent matrices and `Bv`.
+The ShipX-only `vessel.roll` structure contains the Ikeda roll damping
+`vessel.roll.Bv44`.
 
 
 ### Hydrodynamics (m-files)
 
 ```matlab
-computeManeuveringModel % Computes equivalent added mass A_eq and damping B_eq from A(ω) and B(ω)
+computeManeuveringModel % Computes power-based A_eq, B_eq, and Bv from A(ω) and B(ω)
 cylinderDrag        % Reynolds- and aspect-ratio-dependent 2-D cylinder drag coefficient
 DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
 loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
 plotAB_eq           % Plots equivalent Aij and Bij values (maneuvering model approximation)
 plotABC             % Plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
-plotBv              % Plots viscous damping Bvii as a function of frequency 
+plotBv              % Plots potential, equivalent, and power-based viscous damping
 plotTF              % Plots the motion or force RAO transfer functions
 plotWD              % Plots the wave drift amplitudes
 shipPeriods         % Coupled or decoupled heave, roll, and pitch natural periods
@@ -448,7 +453,6 @@ imp2svd             % Singular values of the Hankel matrix of a sampled impulse 
 natfrequency        % Natural frequency in heave, roll, or pitch about the center of flotation
 retardation         % Compute a radiation retardation function from damping data
 retardation2ss      % Estimate a state-space realization from a retardation function
-viscous             % Estimate the viscous damping matrix of an MSS vessel
 ```
 
 ### WAMIT geometry utilities (m-files)

@@ -1,5 +1,4 @@
 function SIMaidedINSeuler()
-% SIMaidedINSeuler is compatible with MATLAB and GNU Octave (www.octave.org).
 %
 % This function simulates two error-state Kalman filter (ESKF) architectures 
 % for an inertial navigation system (INS):

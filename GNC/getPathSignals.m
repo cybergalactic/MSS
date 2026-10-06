@@ -1,5 +1,4 @@
 function pathSignals = getPathSignals(path,s)
-% psthSignals is compatibel with MATLAB and GNU Octave (www.octave.org).
 % pathSignals = getPathSignals(path,s) generates the coefficients for 
 % subpaths between given waypoints. Each subpath is parametrized by t in 
 % [0,1), and smoothly connected at the waypoints. This corresponds to a 

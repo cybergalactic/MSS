@@ -1,5 +1,4 @@
 function x = sat(x, x_max)
-% Compatible with MATLAB and the free software GNU Octave (www.octave.org)
 % x = sat(x, x_max) saturates the input x at the specified maximum absolute 
 % value x_max. If the inputs are vectors, saturation is performed elementwise.
 %

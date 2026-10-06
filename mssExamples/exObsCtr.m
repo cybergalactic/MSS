@@ -1,4 +1,3 @@
-% exObsCtr is compatible with MATLAB and GNU Octave (www.octave.org). 
 % The script computes the observability and controllability matrices of a 
 % supply vessel (supply.m).
 %

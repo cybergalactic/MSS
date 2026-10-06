@@ -1,8 +1,8 @@
 % MSS Path Update Script
 % This script checks for the presence of the 'MSS' directory on MATLAB's 
 % path. If found, it removes all existing instances of this path and its 
-% subdirectories and then reinstalls them to ensure the path includes all 
-% current subdirectories. This is useful for situations where the directory 
+% sub-directories and then reinstalls them to ensure the path includes all 
+% current sub-directories. This is useful for situations where the directory 
 % structure of 'MSS' may change due to updates or modifications in the 
 % file system.
 %
@@ -52,7 +52,7 @@ warning('off', 'MATLAB:rmpath:DirNotFound');
 rmpath(genpath(basePath));
 warning('on', 'MATLAB:rmpath:DirNotFound');
 
-% Re-add the MSS directory and all its subdirectories to MATLAB's path
+% Re-add the MSS directory and all its sub-directories to MATLAB's path
 addpath(genpath(basePath));
 
 % Save the updated path

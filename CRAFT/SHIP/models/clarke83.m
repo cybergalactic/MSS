@@ -1,5 +1,4 @@
 function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge) computes the system matrices 
 % of a linear maneuvering model based on Clarke et al. (1983). The  
 % hydrodynamic derivatives are based on multiple  linear regression from two 
@@ -92,7 +91,7 @@ N_prime = [ -Xu   0  0
              0  -Yv -Yr
              0  -Nv -Nr ];
  
-% Dimensional model (Fossen 2021, Appendix D)   
+% Dimensional model (Fossen 2027, Appendix D)
 T    = diag([1 1 1/L]);
 Tinv = diag([1 1 L]);
 

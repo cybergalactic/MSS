@@ -1,5 +1,4 @@
 function [psi_ref,y_e,beta_c_hat,k_active] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt)
-% ALOSpsi is compatible with MATLAB and GNU Octave (www.octave.org). The
 % function [psi_ref,y_e] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_switch,wpt) 
 % ALOSpsi computes the desired heading angle, psi_ref, and cross-track
 % error, y_e, for paths that consist of straight lines connecting waypoints 
@@ -133,4 +132,3 @@ k_active = k; % Return active waypoint index
 beta_hat = beta_hat + h * gamma_h * Delta_h * y_e / sqrt( Delta_h^2 + y_e^2 );
 
 end
-

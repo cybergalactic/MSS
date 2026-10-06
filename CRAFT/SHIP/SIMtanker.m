@@ -1,5 +1,4 @@
 function SIMtanker()
-% SIMtanker is compatibel with MATLAB and GNU Octave (www.octave.org).
 % This script simulates the dynamics of a large tanker, length 304.8 m, 
 % under feedback control. 
 %

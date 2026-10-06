@@ -1,5 +1,4 @@
 function u = allocPseudoinverse(K,T,W,tau)
-% allocPseudoinverse is compatible with MATLAB and GNU Octave (www.octave.org). 
 % The function u = allocPseudoinverse(K,T,W,tau) performs unconstrained 
 % control allocation by distributing a generalized force vector to inputs 
 % while minimizing force.
@@ -7,7 +6,7 @@ function u = allocPseudoinverse(K,T,W,tau)
 % The relationship tau = T * K * u, where 'tau' is a generalized force vector
 % (dimension n), is used to distribute these forces to the input vector 'u'
 % (dimension r, where r >= n). The function minimizes the force f = K * u.
-% The unconstrained solution is (Fossen 2021, Section 11.2.2)
+% The unconstrained solution is (Fossen 2027, Section 11.2.2)
 % 
 %   u = Kinv * Winv * T' * invQR(T * Winv * T')
 % 

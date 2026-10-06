@@ -1,4 +1,3 @@
-% exAUVHydrostatics is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script calculates various AUV parameters including dimensions,
 % physical properties, center of gravity (CG), center of buoyancy (CB),
 % moments of inertia, metacentric heights, and the g vector based on
@@ -26,7 +25,7 @@ r_bG = [0 0 0.02]';         % CG position (m)
 % Center of buoyancy (CB) location relative to the coordinate origin (CO)
 r_bB = [0 0 0]';            % CB position (m)
 
-% Rigid-body mass, Fossen (2021, Ch. 8.4.2)
+% Rigid-body mass, Fossen (2027, Ch. 8.4.2)
 a = L_auv / 2;              % Spheroid semi-axes a and b
 b = D_auv / 2; 
 [MRB, CRB] = spheroid(a, b, [0 0 0]', r_bG);

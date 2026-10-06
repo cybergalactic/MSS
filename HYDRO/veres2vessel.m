@@ -10,6 +10,11 @@ function vessel = veres2vessel(filename, plot_flag)
 %    veres2vessel('input','1111') 
 %
 % where input are the Shipx (Veres) output data file name.
+%
+% The power-based maneuvering model is computed separately after import:
+%       vessel = computeManeuveringModel(vessel)
+% This prompts for omega_p and the damping increments, allowing the sea
+% state to be changed without rerunning veres2vessel.
 % 
 % Inputs:
 %   filename: *  (without extension) reads and processes the following
@@ -63,8 +68,9 @@ function vessel = veres2vessel(filename, plot_flag)
 %       k55:   radius of inertia 
 %       k66:   radius of inertia 
 %       m:     mass
-%       CG:    centre of gravity  [LCG 0 VCG] w.r.t. Lpp/2 and Keel Line
-%       CB:    centre of buoyancy [LCB 0 VCB] w.r.t. Lpp/2 and Keel Line
+%       CG:    center of gravity in MSS FSD axes, relative to CO
+%       CB:    center of buoyancy in MSS FSD axes, relative to CO
+%       CF:    center of flotation in MSS FSD axes, relative to CO
 %       Lpp:   length between the perpendiculars
 %       Lwl:   length of water line
 %       T:     draught (water line)    
@@ -80,6 +86,9 @@ function vessel = veres2vessel(filename, plot_flag)
 %            2009-09-11 Using new viscous damping viscous.m
 %            2013-07-09 Fixed: SINTEF Ocean coordinate origin not in CO
 %            2021-03-01 Minor bug fixes
+%            2026-09-28 Removed viscous.m; power-based viscous damping is
+%                       computed separately by computeManeuveringModel
+%            2026-10-05 Store CG, CB, and CF consistently in MSS FSD axes.
 
 %%
 if nargin == 1
@@ -113,10 +122,6 @@ data2  = read_veres_TF(strcat(filename,'.re1'), 0);
 data3  = read_veres_WD(strcat(filename,'.re2'), 0);
 
 vessel.main.name = vesselfile;
-% main.CG(3) retains the legacy VCG height above baseline.
-% CG_FSD is the same physical point relative to midships/waterline.
-vessel.main.CG_FSD = [vessel.main.CG(1), 0, ...
-                      vessel.main.T - vessel.main.CG(3)];
 vessel.hydrodynamic_reference = 'CG';
 vessel.hydrodynamic_axes = 'FSD';
 vessel.forceRAO  = data1.forceRAO;
@@ -158,7 +163,16 @@ vessel.main.GM_T  = GM_T;
 vessel.main.C_B   = C_B;
 vessel.main.CB(1) = LCB - vessel.main.Lpp / 2;
 vessel.main.CB(2) = 0;
-vessel.main.CB(3) = KB;
+vessel.main.CB(3) = vessel.main.T - KB;
+
+% Center of flotation in MSS FSD axes. Since the restoring matrix is
+% referenced to CG, x_F = CF(1)-CG(1) = -G(3,5)/G(3,3).
+G = vessel.C(:,:,1,1);
+if abs(G(3,3)) <= eps * max(1, norm(G, 'fro'))
+    error('Cannot determine CF because the heave stiffness is zero.');
+end
+x_F = -G(3,5) / G(3,3);
+vessel.main.CF = [vessel.main.CG(1) + x_F, 0, 0];
 
 fclose(fid1);
 

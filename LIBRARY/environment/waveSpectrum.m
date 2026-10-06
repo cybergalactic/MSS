@@ -106,8 +106,8 @@ function S = waveSpectrum(spectrumType, Parameter, W, PlotFlag)
 %     Practice, Edition 2025-04, amended 2026-03. DNV, Høvik, Norway. 
 % [4] K. Torsethaugen (1996): "Model for a Doubly Peaked Wave Spectra"
 %     Sintef report no.: STF22 A96204 prepared for Norsk Hydro.
-% [5] T.I. Fossen (2021) "Handbook of Marine Craft Hydrodynamics and Motion
-%     Control. John Wiley & Sons Ltd., Chichester, UK.  
+% [5] Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%     Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 % [6] Lewis E.V. "Principles of Naval Architecture volume  III
 %     Motions in Waves and Controllability." SNAME, 1989.
 %

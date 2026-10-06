@@ -1,5 +1,4 @@
 function [xdot,U] = navalvessel(x, tau)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % Noninear maneuvering model in surge, sway, roll and yaw for a multipurpose
 % naval vessel. The surge equation is decoupled except a centripetal term.
 %

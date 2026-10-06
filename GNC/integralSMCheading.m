@@ -10,7 +10,7 @@ function delta = integralSMCheading(...
 % the steady-state condition, r_max = K_nomoto * delta_max, while T_nomoto 
 % is the time constant in yaw observered during steady turning.
 %
-% The heading autopilot (Equation 16.479 in Fossen 2021) sliding surface 
+% The heading autopilot (Equation 16.479 in Fossen 2027) sliding surface
 % and control law are
 %
 %   sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
@@ -53,7 +53,7 @@ if isempty(psi_int)
     psi_int = 0;             
 end
 
-% PID and integral SMC (Equation 16.479 in Fossen 2021)
+% PID and integral SMC (Equation 16.479 in Fossen 2027)
 e_psi = ssa( psi - psi_d );
 e_r = r - r_d;
 
@@ -73,4 +73,3 @@ end
 psi_int = psi_int + h * e_psi;
 
 end
-

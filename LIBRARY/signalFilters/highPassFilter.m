@@ -1,5 +1,4 @@
 function [xf_next, y] = highPassFilter(xf, u, w_n, h)
-% highPassFilter is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function implements a first-order high-pass filter using exact
 % discretization. The filter smooths the input signal u[k] and updates
 % the filtered output y[k] based on the natural frequencies w_n and the

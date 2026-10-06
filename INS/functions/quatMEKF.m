@@ -1,6 +1,5 @@
 function [quat, b_ars, P_prd] = quatMEKF( ...
     quat, b_ars, P_prd, h, Qd, Rd, T_ars, m_ref, imu_meas)
-% quatMEKF is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function computes the updated unit quaternion q[k+1], representing 
 % the orientation between the BODY and NED frames, as well as the bias 
 % b_ars[k+1] of the attitude rate sensor (ARS) in a high-performance 

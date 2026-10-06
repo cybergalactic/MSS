@@ -1,6 +1,6 @@
 # How to install MSS for MATLAB
 
-The Marine Systems Simulator (MSS) is a Matlab and Simulink library for marine systems (https://www.mathworks.com). The m-files are compatible with the free software GNU Octave (https://www.octave.org). To begin using the MSS toolbox, ensure it is installed and properly set up in your MATLAB environment.
+The Marine Systems Simulator (MSS) is a MATLAB library for marine systems (https://www.mathworks.com). The m-files are compatible with the free software GNU Octave (https://www.octave.org). To begin using the MSS toolbox, ensure it is installed and properly set up in your MATLAB environment.
 
 ## Download the MSS Directory:
 1. [Download ZIP](https://github.com/cybergalactic/MSS/archive/refs/heads/master.zip)

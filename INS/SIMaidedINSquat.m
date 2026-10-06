@@ -1,5 +1,4 @@
 function SIMaidedINSquat()
-% SIMaidedINSquat is compatible with MATLAB and GNU Octave (www.octave.org).
 % This script simulates an Inertial Navigation System (INS) aided by position 
 % measurements using the Error-State Kalman Filter (ESKF). The attitude is 
 % parametrized using unit quaternions and the error states are represented 

@@ -1,6 +1,5 @@
 function [x_ins, P_prd] = ins_euler( ...
     x_ins, P_prd, mu, h, Qd, Rd, T_acc, T_ars, imu_meas, y_psi, y_pos, y_vel)
-% ins_euler is compatible with MATLAB and GNU Octave (www.octave.org).
 % The function implements an error-state (indirect) feedback Kalman filter
 % (ESKF) for an Inertial Navigation System (INS) aided by compass and
 % position measurements. Velocity aiding is optional.

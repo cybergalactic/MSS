@@ -1,4 +1,3 @@
-% ExSMC is compatible with MATLAB and GNU Octave (www.octave.org).
 % Integral sliding mode control (SMC) design for heading autopilot. 
 % A conventional SMC is designed for the Norrbin (1963) nonlinear yaw model
 % 

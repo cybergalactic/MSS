@@ -1,7 +1,7 @@
 function T_thr = thrConfig(alpha,l_x,l_y)
 % T_thr = thrConfig(alpha,lx,ly) computes the thruster configuration matrix
 % given by tau = T_thr(alpha) * K_thr * u following the definitions of 
-% Fossen (2021, Chapter 11)
+% Fossen (2027, Chapter 11)
 %
 % Outputs:
 %   T_thr: Thruster configuration matrix, dimension 3 x length(alpha)

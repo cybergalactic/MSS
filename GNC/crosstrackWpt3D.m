@@ -1,5 +1,4 @@
 function p_e = crosstrackWpt3D(p2, p1, p)
-% crosstrackWpt3D is compatible with MATLAB and GNU Octave (www.octave.org).
 % p_e = crosstrackWpt3D(p2, p1, p) computes the 3-D tracking-error vector
 %
 %   p_e = R_y' * R_z' * (p - p1)
@@ -42,6 +41,5 @@ R_y = [ cos(pi_v)   0       sin(pi_v)
 
 % Tracking errors expressed in path-tangential reference frame P
 p_e = R_y' * R_z' * (p - p1);
-
 
 

@@ -1,5 +1,4 @@
 function [xdot,U] = container(x,ui)
-% Compatibel with MATLAB and the free software GNU Octave (www.octave.org).
 % [xdot,U] = container(x,ui) returns the speed U in m/s (optionally) and the 
 % time derivative of the state vector: x = [ u v r x y psi p phi delta n ]'
 % for a container ship L = 175 m, where
@@ -169,4 +168,3 @@ xdot =[                      X*(U^2/L)/m11
                                 p*(U/L)
                               delta_dot 
                                 n_dot                 ];
-

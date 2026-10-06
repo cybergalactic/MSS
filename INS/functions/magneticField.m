@@ -1,5 +1,4 @@
 function [m_ref, l, mu, cityName] = magneticField(index)
-% magneticField s compatible with MATLAB and GNU Octave (www.octave.org).
 % This function returns the magnetic field vector, longitude, latitude,
 % and city name based on the input index (1 to 30).
 %

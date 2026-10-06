@@ -1,5 +1,4 @@
 function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f)
-% LOSobserver is compatible with MATLAB and GNU Octave (www.octave.org).
 % This function estimates the desired Line-Of-Sight (LOS) angle and
 % rate from a discrete-time LOS guidance law command, LOScommand[k], which
 % can be computed using the guidance laws LOSchi.m, LOSpsi.m, ILOSpsi.m,
@@ -21,7 +20,7 @@ function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f
 %
 % If K_f > 0, it follows that T_f = 1 / (K_f + 2*sqrt(K_f) + 1) and that
 % the natural frequency is w_n = K_f + sqrt(K_f). Exact discretization of
-% the filtered differentiator gives (Fossen 2021, Eqs. B.46-B.47)
+% the filtered differentiator gives (Fossen 2027, Eqs. B.46-B.47)
 %
 %   LOSrate[k] = LOSangle[k] - xi[k]
 %   xi[k+1] = exp(-h/T_f) * xi[k] + (1 - exp(-h/T_f)) * LOSangle[k]

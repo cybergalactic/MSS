@@ -1,5 +1,5 @@
-function plot_speedterms(vessel,Anew,Bnew,Bv)
-% >> plot_speedterms(vessel,Anew,Bnew,Bv) plots added mass and damping 
+function plot_speedterms(vessel,Anew,Bnew)
+% >> plot_speedterms(vessel,Anew,Bnew) plots added mass and damping 
 %    versus frequency and speed
 %
 % Author:    Thor I. Fossen
@@ -57,7 +57,6 @@ pcolor = {'g-' 'b-' 'k-' 'r-' 'y-' 'r*'};
 % zero speed terms
 vessel_new.A     = Anew;
 vessel_new.B     = Bnew;
-vessel_new.Bv    = Bv;
 vessel_new.freqs = freqs;
 vessel_new.velocities = velocities;
 

@@ -1,5 +1,4 @@
 function SIMmariner()
-% SIMmariner is compatible with MATLAB and GNU Octave (www.octave.org). 
 % This script simulates the dynamic behavior of a Mariner-Class Cargo Vessel, 
 % length 160.93 m, under PID heading control, and waypoint path-following 
 % control using a course autopilot (Fossen 2022). The Speed Over Ground 
@@ -22,8 +21,8 @@ function SIMmariner()
 %      Extended Kalman Filter for Estimation of Speed and Course over Ground 
 %      from GNSS Positions. Journal of Marine Science and Technology 27, 
 %      pp. 806–813.
-%   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-%       Control, 2nd edition, John Wiley & Sons. Ltd., Chichester, UK.
+%   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
+%   Control, 3rd ed., John Wiley & Sons Ltd., Chichester, UK.
 %   S. Fossen and T. I. Fossen (2021). Five-state Extended Kalman 
 %      Filter for Estimation of Speed Over Ground (SOG), Course Over Ground 
 %      (COG) and Course Rate of Unmanned Surface Vehicles (USVs): 
@@ -57,7 +56,7 @@ K_f = 0.2;                       % LOS observer gain
 % Initial heading, vehicle points towards next waypoint
 psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
 
-% PID pole placement algorithm (Fossen 2021, Section 15.3.4)
+% PID pole placement algorithm (Fossen 2027, Section 15.3.4)
 wn = 0.05;                       % Closed-loop natural frequency
 T = 107.3;                       % Nomoto time constant
 K = 0.185;                       % Nomoto gain constant

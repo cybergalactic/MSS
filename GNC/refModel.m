@@ -1,6 +1,6 @@
 function [x_d,v_d,a_d] = refModel(x_d,v_d,a_d,x_ref,v_max,zeta_d,w_d,h,eulerAngle)
 % Poisition, velocity and acceleration reference model based on the method
-% by Fossen (2021, Chapter 12.1.1). 
+% by Fossen (2027, Chapter 12.1.1).
 %
 % Inputs:  
 %   x_d: current desired position at time t_k
@@ -28,7 +28,7 @@ else
     e_x = x_d - x_ref;
 end
 
-% desired jerk (Fossen 2021, Equation 12.10)
+% desired jerk (Fossen 2027, Equation 12.10)
 a_d_dot = -w_d^3 * e_x - (2*zeta_d + 1) * w_d^2 * v_d...
     - (2*zeta_d + 1) * w_d * a_d;
 
@@ -43,5 +43,3 @@ if abs(v_d) > v_max
 end
 
 end
-
-
