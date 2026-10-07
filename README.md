@@ -22,13 +22,12 @@ The lecture notes https://wiley.fossen.biz serve as documentation for the toolbo
 
 When using this release, please cite the software as:
 
-> Fossen, Thor I. (2026). *Marine Systems Simulator (MSS)* (Version 2.0.2) [Computer software]. GitHub. https://github.com/cybergalactic/MSS
+> Fossen, Thor I. (2026). *Marine Systems Simulator (MSS)* [Computer software]. GitHub. https://github.com/cybergalactic/MSS
 
 ```bibtex
 @software{Fossen2026_MSS,
   author  = {Fossen, Thor I.},
   title   = {Marine Systems Simulator (MSS)},
-  version = {2.0.2},
   year    = {2026},
   url     = {https://github.com/cybergalactic/MSS}
 }
