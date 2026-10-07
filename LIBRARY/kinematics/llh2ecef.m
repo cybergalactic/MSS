@@ -4,15 +4,17 @@ function [x,y,z] = llh2ecef(l,mu,h)
 % of the WGS-84 elipsoid.
 %
 % Author:    Thor I. Fossen
-% Date:      14th June 2001
-% Revisions: 27th January 2003, inputs l and mu are defined in rad
-%            30 Apr 2019, added decimals to r_e and r_p
+% Date:      2001-06-14
+% Revisions:
+%   2003-01-27 : Defined the l and mu inputs in radians.
+%   2019-04-30 : Added decimals to r_e and r_p.
+%   2026-10-07 : Updated the WGS-84 semi-minor axis (E. Krizman)
 
-r_e = 6378137;              % WGS-84 data
-r_p = 6356752.3142;
+r_e = 6378137.0;            % WGS-84 data
+r_p = 6356752.314245;
 
-e = 0.08181979099211;
-N = r_e^2/sqrt( (r_e*cos(mu))^2 + (r_p*sin(mu))^2 );
+e2 = 1 - (r_p/r_e)^2;
+N = r_e / sqrt(1 - e2 * sin(mu)^2);
 x = (N + h) * cos(mu) * cos(l);
 y = (N + h) * cos(mu) * sin(l);
-z = (N * (r_p/r_e)^2 + h) * sin(mu);
+z = (N * (1 - e2) + h) * sin(mu);
