@@ -23,12 +23,14 @@ function C = m2c(M,nu)
 % known as the linear velocity-independent representation.
 %
 % Author:    Thor I. Fossen
-% Date:      14 Jun 2001
-% Revisions: 26 Jun 2002  M21 = M12 is corrected to M12'.
-%            10 Jan 2004  The computation of C(nu) is generalized to a 
-%                         nonsymmetric M > 0 (experimental data).
-%            22 Oct 2020  Generalized to accept 3-DOF horizontal-plane models.
-%            24 Apr 2021  Updated the documentation.
+% Date:      2001-06-14
+% Revisions: 2002-06-26  M21 = M12 is corrected to M12'.
+%            2004-01-10  The computation of C(nu) is generalized to a 
+%                        nonsymmetric M > 0 (experimental data).
+%            2020-10-22  Generalized to accept 3-DOF horizontal-plane models.
+%            2021-04-24  Updated the documentation.
+%            2026-10-07  Corrected the 3-DOF formulation to use the full
+%                        momenta (E. Krizamn)
 
 M = 0.5 * (M + M');      % Symmetrization of the inertia matrix
 
@@ -49,9 +51,10 @@ if (length(nu) == 6)     % 6-DOF model
     
 else   % 3-DOF model (surge, sway and yaw)
     
-    C = [ 0                          0            -M(2,2)*nu(2)-M(2,3)*nu(3)
-          0                          0             M(1,1)*nu(1)
-          M(2,2)*nu(2)+M(2,3)*nu(3) -M(1,1)*nu(1)  0                      ];
+    p = M * nu;
+    C = [ 0     0    -p(2)
+          0     0     p(1)
+          p(2) -p(1)  0    ];
     
 end
 
