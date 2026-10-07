@@ -47,6 +47,7 @@ function SIMotter()
 %   2024-07-10: Improved numerical accuracy by replacing Euler's method
 %               with RK4.
 %   2026-06-27: Added propeller speed saturation using limits from otter.m.
+%   2026-10-07: Corrected reverse-thrust control allocation (E. Krizman)
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -91,7 +92,14 @@ idx_start = 1;                   % Initial index for Hermite spline
 
 % Otter USV input matrix
 [~,~,M,B_prop,n_min,n_max] = otter();
-Binv = invQR(B_prop);            % Invert input matrix for control allocation
+% The /2 converts the combined twin-propeller coefficients to per-propeller
+% values. These coefficients should match CRAFT/USV/models/otter.m.
+k_pos = 0.02216/2;
+k_neg = 0.01289/2;
+% B_prop maps n.*abs(n) through k_pos. Dividing by k_pos gives the
+% geometry-only matrix mapping individual propeller thrusts to [tau_X; tau_N].
+B_thrust = B_prop / k_pos;
+B_thrust_inv = invQR(B_thrust);
 
 % PID heading autopilot parameters (Nomoto model: M(6,6) = T/K)
 T = 1;                           % Nomoto time constant
@@ -179,8 +187,15 @@ for i = 1:nTimeSteps
             Td * (r - r_d) + (1/Ti) * z_psi); % Derivative and integral terms
 
     % Control allocation
-    u = Binv * [tau_X; tau_N];      % Compute control inputs for propellers
-    n_c = sign(u) .* sqrt(abs(u));  % Convert to required propeller speeds
+    thrust_c = B_thrust_inv * [tau_X; tau_N]; % Required propeller thrusts
+    n_c = zeros(2,1);
+    for j = 1:2
+        if thrust_c(j) >= 0
+            n_c(j) = sqrt(thrust_c(j) / k_pos);
+        else
+            n_c(j) = -sqrt(-thrust_c(j) / k_neg);
+        end
+    end
     n_c = satlim(n_c, n_min, n_max);  % Saturate propeller command  
 
     % Store simulation data
