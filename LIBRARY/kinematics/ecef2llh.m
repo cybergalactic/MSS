@@ -4,12 +4,14 @@ function [l,mu,h] = ecef2llh(x,y,z)
 % ECEF positions (x,y,z).
 %
 % Author:   Thor I. Fossen
-% Date:     7th June 2001
-% Revisions: 1st September 2002, atan2(y/x) replaced by atan2(y,x)
-%            2nd September 2002, new output argument for height h was added
-%            27th January, 2003, angle outputs are defined in rad
-%            19 February 2020, added decimals to WGS parameters
-%            8 January 2026, robust tan-iteration + polar guard + max-iter
+% Date:     2001-06-07
+% Revisions:
+%   2002-09-01 : Replaced atan2(y/x) by atan2(y,x).
+%   2002-09-02 : Added the height output h.
+%   2003-01-27 : Defined angle outputs in radians.
+%   2020-02-19 : Added decimals to the WGS-84 parameters.
+%   2026-01-08 : Added robust tan iteration, polar guard, and iteration limit.
+%   2026-10-07 : Recomputed height from the final latitude iterate (E. Krizman)
 
 % WGS-84 data
 r_e = 6378137.0;                
@@ -61,4 +63,10 @@ end
 
 % Latitude output (principal value in (-pi/2, pi/2))
 mu = atan(t0);
+
+% Recompute height using the final latitude iterate
+c2 = 1 / (1 + t0^2);
+s2 = t0^2 / (1 + t0^2);
+N  = r_e^2 / sqrt( r_e^2 * c2 + r_p^2 * s2 );
+h  = p * sqrt(1 + t0^2) - N;
 
