@@ -59,7 +59,7 @@
 % URL:    <http://www.marinecontrol.org>
 
 % constant
-rho_a = 1.224;              % density of air at 20 C
+rho_a = 1.224;              % density of air at 15 C
 
 % relative wind directions for CX, CY and CN data
 gamma_r_iserwood = (pi/180)*(0:10:180)';   % rad
