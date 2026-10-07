@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use MSS in your work, please cite the software using the metadata below."
+title: "Marine Systems Simulator (MSS)"
+type: software
+version: 2.0.1
+date-released: 2026-10-07
+authors:
+  - family-names: Fossen
+    given-names: "Thor I."
+repository-code: "https://github.com/cybergalactic/MSS"
+url: "https://github.com/cybergalactic/MSS"
+license: MIT
