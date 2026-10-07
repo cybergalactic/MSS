@@ -29,7 +29,7 @@ Each established model is paired with an editable `SIM*.m` script that demonstra
 
 [`hydroVessel.m`](hydroVessel.m) implements a 12-state, nonlinear 6-DOF model using the common MSS `vessel` structure. [`SIMhydroVessel.m`](SIMhydroVessel.m) is an editable simulation template that can be adapted to a user-defined USV, AUV, ship, or floating structure.
 
-The simulator includes a basic GUI for choosing a vessel and configuring irregular seas, wave spectra, directional spreading, first-order wave forces from force RAOs, ocean currents, viscous damping, initial conditions, and either heading-autopilot or dynamic-positioning control.
+The simulator includes a basic GUI for choosing a vessel and configuring irregular seas, wave spectra, directional spreading, first-order wave forces from force RAOs, ocean currents, viscous damping, initial conditions, and either heading-autopilot or dynamic-positioning control. The GUI shows the workflow **1. Load file - 2. Choose gains and settings - 3. Run simulation**. Use **Custom vessel - Load MAT file** to open an MSS-compatible `vessel` structure directly. Custom vessels receive conservative editable simulation defaults, including editable controller gains, while their linear damping inputs are read from `vessel.powerBased`.
 
 Hydrodynamic vessel data and processing instructions are organized by source:
 
