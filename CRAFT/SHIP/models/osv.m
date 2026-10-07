@@ -184,9 +184,6 @@ k_u = 3;
 Xuu = XuuITTC(nu_r(1), vessel.rho, vessel.L, vessel.B, vessel.T, vessel.Cb);
 D_nonlinear(1,1) = exp(-k_u * abs(nu_r(1))) * vessel.D(1,1) - Xuu * abs(nu_r(1));
 
-% Avoid double counting, linear and quadratic damping terms
-vessel.D(1,1) = 0; % using: X = sigma * Xu * u_r + (1 - sigma) * Xuu * abs(u_r)*u_r
-
 % Add crossflow drag
 tau_crossflow = crossFlowDrag(vessel.L,vessel.B,vessel.T,nu_r);
 
