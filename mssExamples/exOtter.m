@@ -12,6 +12,7 @@
 % Revisions: 
 %   2021-05-25 Added EKF for COG/SOG/course rate and course autopilot
 %   2024-07-10: Updated to match SIMotter.m and use RK4
+%   2026-10-07: Corrected reverse-thrust control allocation (E. Krizman)
 
 clearvars;
 clear EKF_5states   % Clear persistent states in EKF_5states.m
@@ -32,7 +33,14 @@ x_hat = zeros(5,1);
 
 % Otter USV input matrix
 [~,~,M, B_prop] = otter();
-Binv = invQR(B_prop);            % Invert input matrix for control allocation
+% The /2 converts the combined twin-propeller coefficients to per-propeller
+% values. These coefficients must match CRAFT/USV/models/otter.m.
+k_pos = 0.02216/2;
+k_neg = 0.01289/2;
+% B_prop maps n.*abs(n) through k_pos. Dividing by k_pos gives the
+% geometry-only matrix mapping individual propeller thrusts to [tau_X; tau_N].
+B_thrust = B_prop / k_pos;
+B_thrust_inv = invQR(B_thrust);
 
 % PID heading autopilot parameters (Nomoto model: M(6,6) = T/K)
 T = 1;                           % Nomoto time constant
@@ -89,8 +97,15 @@ for i=1:length(t)
    tau_N = (T/K) * a_d + (1/K) * omega_d -... 
         Kp * ( ssa(x_hat(4) - chi_d) +...
         Td * (x_hat(5) - omega_d) + (1/Ti) * e_chi );
-   u = Binv * [tau_X tau_N]';
-   n_c = sign(u) .* sqrt(abs(u));   
+   thrust_c = B_thrust_inv * [tau_X; tau_N];
+   n_c = zeros(2,1);
+   for j = 1:2
+       if thrust_c(j) >= 0
+           n_c(j) = sqrt(thrust_c(j) / k_pos);
+       else
+           n_c(j) = -sqrt(-thrust_c(j) / k_neg);
+       end
+   end
    
    % n_c = [80 60]';          % n = [ n_left n_right ]' 
    
