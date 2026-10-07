@@ -76,6 +76,7 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c)
 %   2024-06-05 : Added two new output arguments for M and B_prop.
 %   2026-04-20 : Correct payload lever arm moment of inertia.
 %   2026-06-27 : Added output arguments for propeller speed limits n_min and n_max.
+%   2026-10-07 : Corrected KB to use the pontoon waterplane area (E. Krizman)
 
 if nargin == 0
     x = zeros(12,1); n = zeros(2,1); mp=25; rp = zeros(3,1); V_c=0; beta_c=0;
@@ -174,7 +175,7 @@ Aw_pont = Cw_pont * L * B_pont;    % waterline area, one pontoon
 I_T = 2 * (1/12)*L*B_pont^3 * (6*Cw_pont^3/((1+Cw_pont)*(1+2*Cw_pont)))...
     + 2 * Aw_pont * y_pont^2;
 I_L = 0.8 * 2 * (1/12) * B_pont * L^3;
-KB = (1/3)*(5*T/2 - 0.5*nabla/(L*B_pont) );
+KB = (1/3) * (5*T/2 - 0.5*nabla/Aw_pont);
 BM_T = I_T/nabla;       % BM values
 BM_L = I_L/nabla;
 KM_T = KB + BM_T;       % KM values
