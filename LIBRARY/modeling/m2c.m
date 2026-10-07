@@ -30,7 +30,7 @@ function C = m2c(M,nu)
 %            2020-10-22  Generalized to accept 3-DOF horizontal-plane models.
 %            2021-04-24  Updated the documentation.
 %            2026-10-07  Corrected the 3-DOF formulation to use the full
-%                        momenta (E. Krizamn)
+%                        momenta (E. Krizman)
 
 M = 0.5 * (M + M');      % Symmetrization of the inertia matrix
 
