@@ -167,11 +167,10 @@ eps = 0.001;
 M_theta_hat = M_theta + eps;
 
 if ( abs(theta_hat) > M_theta ) && ( theta_hat * tau > 0 )
-    c = min(1, ( M_theta_hat^2 - M_theta^2) / (M_theta_hat^2 - M_theta^2) );
+    c = min(1, ( theta_hat^2 - M_theta^2) / (M_theta_hat^2 - M_theta^2) );
     y = (1 - c) * tau;
 else
     y = tau;
 end
 
 end
-
