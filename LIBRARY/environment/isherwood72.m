@@ -38,7 +38,7 @@ function [tau_w, CX, CY, CN] = isherwood72(...
 if nargin~=10, error('the number of inputs must be 10');end
 
 % Conversions and constants
-rho_a = 1.224;                     % Density of air at 20 C
+rho_a = 1.224;                     % Density of air at 15 C
 gamma_r_deg = rad2deg(gamma_r);    % Convert gamma_r from radians to degrees
 
 % Ensure gamma_r is within the range of 0 to 360 degrees
