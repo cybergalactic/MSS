@@ -131,8 +131,10 @@ rg = rg_total;
 % Experimental propeller data including lever arms
 l1 = -y_pont;                           % lever arm, left propeller (m)
 l2 = y_pont;                            % lever arm, right propeller (m)
-k_pos = 0.02216/2;                      % Positive Bollard, one propeller 
-k_neg = 0.01289/2;                      % Negative Bollard, one propeller 
+% The calibrated coefficients describe the combined twin-propeller thrust;
+% division by two gives the per-propeller coefficients used in the thrust law.
+k_pos = 0.02216/2;                      % positive thrust, one propeller
+k_neg = 0.01289/2;                      % negative thrust, one propeller
 n_max =  sqrt((0.5*24.4 * g)/k_pos);    % maximum propeller rev. (rad/s)
 n_min = -sqrt((0.5*13.6 * g)/k_neg);    % minimum propeller rev. (rad/s)
 
