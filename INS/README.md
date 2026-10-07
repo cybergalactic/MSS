@@ -18,6 +18,7 @@ The simulation parameters, sensor frequencies, noise levels, aiding options, and
 
 The [`functions`](functions/) directory contains:
 
+- `acc2rollpitch.m`: Static roll and pitch from accelerometer measurements, with optional bias compensation.
 - `ins_euler.m`: 15-state compass- and position-aided INS ESKF using Euler angles.
 - `ins_ahrs.m`: 9-state position-aided INS ESKF using attitude supplied by an external AHRS.
 - `ins_mekf.m`: Quaternion-based INS ESKF aided by magnetometer and position measurements.
@@ -26,6 +27,7 @@ The [`functions`](functions/) directory contains:
 - `quatMEKF.m`: Quaternion MEKF for attitude and sensor-bias estimation.
 - `quatObserver.m`: Nonlinear quaternion attitude observer.
 - `insSignal.m`: Repeatable INS and IMU test-signal generator.
+- `staticRollPitchYaw.m`: Static roll, pitch, and magnetic heading from accelerometer and magnetometer measurements.
 - `gravity.m`: WGS-84 gravity model as a function of latitude.
 - `magneticField.m`: Demonstration magnetic-field reference vectors and locations.
 
