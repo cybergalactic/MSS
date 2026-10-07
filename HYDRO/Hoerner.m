@@ -14,6 +14,8 @@ function CY_2D = Hoerner(B,T)
 %
 % Author: Thor I. Fossen
 % Date:   2007-12-01
+% Revisions:
+%   2026-10-07 : Clamped interpolation to the tabulated range (E. Krizman)
 %
 % Reference:
 % A. J. P. Leite, J. A. P. Aranha, C. Umeda and M. B. conti (1998). 
@@ -44,8 +46,14 @@ CD_DATA = [...
 3.7379 0.559877
 4.00309 0.559315];
 
-if B/(2*T) <= 4.00309
-    CY_2D = interp1(CD_DATA(:,1),CD_DATA(:,2),B/(2*T));
-else
-    CY_2D = 0.559315;
+if ~isnumeric(B) || ~isscalar(B) || ~isreal(B) || ~isfinite(B) || B <= 0
+    error('B must be a positive, finite scalar.');
 end
+
+if ~isnumeric(T) || ~isscalar(T) || ~isreal(T) || ~isfinite(T) || T <= 0
+    error('T must be a positive, finite scalar.');
+end
+
+ratio = B / (2*T);
+ratio = min(max(ratio, CD_DATA(1,1)), CD_DATA(end,1));
+CY_2D = interp1(CD_DATA(:,1), CD_DATA(:,2), ratio);
