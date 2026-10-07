@@ -15,8 +15,6 @@ The GNC library contains reusable MATLAB and GNU Octave functions for marine gui
 ## Navigation and Attitude
 
 - `EKF_5states.m`: estimates position, speed over ground, course over ground, and course rate from GNSS positions.
-- `acc2rollpitch.m`: static roll and pitch from accelerometer measurements.
-- `staticRollPitchYaw.m`: static attitude from accelerometer and magnetometer measurements.
 
 The more extensive inertial-navigation implementations are documented in the [INS Library](../INS/README.md).
 
