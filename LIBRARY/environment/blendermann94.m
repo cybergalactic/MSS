@@ -10,8 +10,8 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 % V_r       : Relative wind speed (m/s)
 % ALw       : Lateral projected area (m^2)
 % AFw       : Frontal projected area (m^2)
-% sH        : Horizontal distance to centroid of ALw (from main section)
-% sL        : Vertical distance to centroid of ALw (from water line)
+% sH        : Vertical distance to centroid of ALw (from water line)
+% sL        : Horizontal distance to centroid of ALw (from main section)
 % Loa       : Length overall (m)
 % vessel_no :
 %   1.  Car carrier	
@@ -48,7 +48,7 @@ function [tau_w, CX, CY, CK, CN] = blendermann94(...
 if nargin~=8, error('The number of inputs must be 8');end
 
 % Conversions and constants
-rho_a = 1.224;                                  % Density of air at 20 C
+rho_a = 1.224;                                  % Density of air at 15 C
 
 % BDATA = [CD_t	CD_l_AF(0) CD_l_AF(pi) delta kappa (Fossen 2027, Ch. 10.1.2)
 BDATA = [...
