@@ -19,6 +19,15 @@ if ~ischar(matFile) || isempty(matFile)
     error('The vessel data filename must be a nonempty character vector.');
 end
 
+% A custom vessel selected in the GUI is passed with a directory component.
+% Accept that explicit path before searching the installed catalogues. Bare
+% filenames still use the deterministic catalogue search below.
+[matDirectory, ~, ~] = fileparts(matFile);
+if ~isempty(matDirectory) && exist(matFile, 'file') == 2
+    filePath = matFile;
+    return
+end
+
 utilsPath = fileparts(mfilename('fullpath'));
 mssRoot = fileparts(fileparts(utilsPath));
 hydroPath = fullfile(mssRoot, 'HYDRO');

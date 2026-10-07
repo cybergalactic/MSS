@@ -9,11 +9,16 @@ function [vessel, cfg] = guiSIMhydroVessel()
 % Revisions:
 %   2026-10-04 Added user-facing controller names while preserving the
 %              internal DPsystem and headingAutopilot mode flags.
+%   2026-10-07 Added loading of custom MSS-compatible vessel MAT-files.
 
 defaultMatFile = 'testShip.mat';
 cfg = hydroVesselConfig(defaultMatFile);
 vessel = [];
 accepted = false;
+selectedMatFile = defaultMatFile;
+useGenericDefaults = false;
+previousSelectedRadio = [];
+customStartPath = fileparts(resolveHydroVesselFile(defaultMatFile));
 
 f = figure('Position', [120, 60, 1200, 820], ...
     'Name', 'Hydrodynamic Vessel Simulation Options', ...
@@ -41,10 +46,19 @@ addRadio(bgVessel, 'FPSO', 'fpso.mat', [195 127 145 26], 0);
 addRadio(bgVessel, 'Semisubmersible', 'semisub.mat', [195 99 150 26], 0);
 
 addText(bgVessel, 'Capytaine (open source)', [10 65 190 24], 'bold');
-addRadio(bgVessel, 'Test ship', defaultMatFile, ...
-    [20 35 180 26], 1);
+radioTestShip = addRadio(bgVessel, 'Test ship', defaultMatFile, ...
+    [20 35 95 26], 1);
 addRadio(bgVessel, 'Light AUV (LAUV) Marie', 'LAUV_marie.mat', ...
-    [20 5 200 26], 0);
+    [120 35 220 26], 0);
+radioCustom = addRadio(bgVessel, 'Custom vessel', '__custom__', ...
+    [20 5 155 26], 0);
+uicontrol('Parent', bgVessel, ...
+    'Style', 'pushbutton', ...
+    'String', '1. Load MAT file...', ...
+    'Position', [190 4 150 28], ...
+    'FontSize', 10, ...
+    'Callback', @onBrowseCustom);
+previousSelectedRadio = radioTestShip;
 
 % Environmental parameters
 pEnvironment = uipanel('Parent', f, ...
@@ -107,6 +121,9 @@ pControl = uipanel('Parent', f, ...
     'FontWeight', 'bold');
 
 addText(pControl, 'Control system', [15 365 100 22], 'bold');
+addText(pControl, ...
+    'The displayed controller gains are editable starting values.', ...
+    [315 365 405 22], 'normal');
 controlLabels = {'DP control system', 'Heading autopilot'};
 controlModes = {'DPsystem', 'headingAutopilot'};
 popupControl = uicontrol('Parent', pControl, ...
@@ -167,12 +184,19 @@ addText(pDamping, ...
     'Vessel defaults are reloaded when another craft is selected.', ...
     [15 10 380 25], 'normal');
 
+% Current selection and next action
+textStatus = addText(f, ...
+    {'1. Selected: Test ship    2. Choose gains and settings', ...
+    '3. Click Run simulation'}, ...
+    [770 128 415 38], 'bold');
+
 % Dialog buttons
 uicontrol('Parent', f, ...
     'Style', 'pushbutton', ...
-    'String', 'OK', ...
+    'String', '3. Run simulation', ...
     'FontSize', 11, ...
-    'Position', [910 85 100 38], ...
+    'FontWeight', 'bold', ...
+    'Position', [865 82 145 42], ...
     'Callback', @onOK);
 
 uicontrol('Parent', f, ...
@@ -210,8 +234,82 @@ end
             return
         end
 
-        cfg = hydroVesselConfig(get(source, 'Tag'));
-        populateControls(cfg);
+        if strcmp(get(source, 'Tag'), '__custom__')
+            chooseCustomFile(source);
+            return
+        end
+
+        try
+            newMatFile = get(source, 'Tag');
+            newCfg = hydroVesselConfig(newMatFile);
+            populateControls(newCfg);
+            selectedMatFile = newMatFile;
+            useGenericDefaults = false;
+            previousSelectedRadio = source;
+            cfg = newCfg;
+            set(f, 'Name', 'Hydrodynamic Vessel Simulation Options');
+            set(textStatus, 'String', ...
+                {['1. Selected: ', get(source, 'String'), ...
+                '    2. Choose gains and settings'], ...
+                '3. Click Run simulation'});
+        catch exception
+            restorePreviousSelection(source);
+            errordlg(exception.message, 'Unable to load vessel', 'modal');
+        end
+    end
+
+    function onBrowseCustom(~, ~)
+        chooseCustomFile(radioCustom);
+    end
+
+    function chooseCustomFile(source)
+        [fileName, pathName] = uigetfile( ...
+            {'*.mat', 'MAT-files (*.mat)'}, ...
+            'Load custom hydrodynamic vessel', ...
+            fullfile(customStartPath, '*.mat'));
+        if isequal(fileName, 0)
+            restorePreviousSelection(source);
+            return
+        end
+
+        try
+            matPath = fullfile(pathName, fileName);
+            loadHydroVesselFile(matPath);
+            newCfg = hydroVesselConfig(matPath, true);
+            populateControls(newCfg);
+
+            selectRadio(radioCustom);
+            set(radioCustom, 'String', ['Custom: ', fileName]);
+            selectedMatFile = matPath;
+            useGenericDefaults = true;
+            previousSelectedRadio = radioCustom;
+            customStartPath = pathName;
+            cfg = newCfg;
+            set(f, 'Name', ...
+                ['Hydrodynamic Vessel Simulation Options - ', fileName]);
+            set(textStatus, 'String', ...
+                {['1. Loaded: ', fileName, ...
+                '    2. Choose gains and settings'], ...
+                '3. Click Run simulation'});
+        catch exception
+            restorePreviousSelection(source);
+            errordlg(exception.message, 'Unable to load vessel', 'modal');
+        end
+    end
+
+    function restorePreviousSelection(source)
+        if ~isempty(previousSelectedRadio) && ...
+                ishandle(previousSelectedRadio)
+            selectRadio(previousSelectedRadio);
+        elseif ishandle(source)
+            set(source, 'Value', 0);
+        end
+    end
+
+    function selectRadio(target)
+        radios = findobj(bgVessel, 'Style', 'radiobutton');
+        set(radios, 'Value', 0);
+        set(target, 'Value', 1);
     end
 
     function populateControls(defaults)
@@ -299,10 +397,8 @@ end
 
     function onOK(~, ~)
         try
-            selectedVessel = findobj(bgVessel, ...
-                'Style', 'radiobutton', 'Value', 1);
-            matFile = get(selectedVessel, 'Tag');
-            newCfg = hydroVesselConfig(matFile);
+            matFile = selectedMatFile;
+            newCfg = hydroVesselConfig(matFile, useGenericDefaults);
 
             spectrumNames = get(popupSpectrum, 'String');
             newCfg.environment.spectrumType = ...
@@ -377,10 +473,7 @@ end
             validateConfiguration(newCfg);
 
             matPath = resolveHydroVesselFile(matFile);
-            data = load(matPath);
-            if ~isfield(data, 'vessel')
-                error('%s does not contain a vessel structure.', matFile);
-            end
+            data = loadHydroVesselFile(matPath);
 
             vessel = data.vessel;
             vessel.matFile = matFile;
@@ -400,6 +493,25 @@ end
         accepted = false;
         uiresume(f);
     end
+
+end
+
+function data = loadHydroVesselFile(matPath)
+% Load and minimally validate a hydrodynamic vessel MAT-file.
+
+data = load(matPath, 'vessel');
+if ~isfield(data, 'vessel') || ~isstruct(data.vessel) || ...
+        ~isscalar(data.vessel)
+    error('%s does not contain a vessel structure.', matPath);
+end
+
+requiredFields = {'main', 'MRB', 'A', 'B', 'C', 'forceRAO', ...
+    'freqs', 'headings', 'velocities', 'powerBased'};
+missingFields = requiredFields(~isfield(data.vessel, requiredFields));
+if ~isempty(missingFields)
+    error('%s is missing vessel field(s): %s.', matPath, ...
+        strjoin(missingFields, ', '));
+end
 
 end
 

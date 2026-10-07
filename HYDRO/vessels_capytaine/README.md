@@ -34,3 +34,12 @@ python main.py LAUV_marie
 MSS-Capytaine writes each generated vessel file under
 `vessels_capytaine/<case>/results/`. Copy the resulting `.mat` file into the
 matching directory here to refresh the pre-generated MSS catalogue.
+
+For a newly developed vessel, run `SIMhydroVessel`, select **Custom vessel**,
+and click **1. Load MAT file** to open the generated file directly from the
+MSS-Capytaine results directory. The GUI loads `vessel.powerBased` and presents
+conservative simulation and controller defaults for review and editing. In
+particular, the generic constant surge force is zero and must be selected by
+the user when forward propulsion is required. Configure the remaining settings,
+then click **3. Run simulation**. Copying the custom file into the MSS catalogue
+is optional.

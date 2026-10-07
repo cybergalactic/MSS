@@ -1,5 +1,6 @@
-function cfg = hydroVesselConfig(matFile)
-% cfg = hydroVesselConfig(matFile) returns draft simulation, environment,
+function cfg = hydroVesselConfig(matFile, useGenericDefaults)
+% cfg = hydroVesselConfig(matFile,useGenericDefaults) returns draft
+% simulation, environment,
 % controller, and damping parameters for the hydrodynamic vessel data file
 % matFile. Common defaults are defined first and vessel-specific values are
 % applied afterwards. If a vessel case does not explicitly override its
@@ -8,6 +9,9 @@ function cfg = hydroVesselConfig(matFile)
 %
 % Input:
 %   matFile: Vessel data filename, for example 'supply.mat'
+%   useGenericDefaults: Optional logical flag for a custom MAT-file. When
+%                      true, editable conservative defaults are used instead
+%                      of a named vessel preset.
 %
 % Output:
 %   cfg: Configuration structure used by guiSIMhydroVessel and SIMhydroVessel
@@ -19,6 +23,17 @@ function cfg = hydroVesselConfig(matFile)
 %              vessel and semisubmersible, which use DP control.
 %   2026-10-05 Use vessel.powerBased as the default source for Capytaine
 %              linear damping inputs; retain commented per-vessel overrides.
+%   2026-10-07 Added generic editable defaults for custom vessel MAT-files.
+
+if nargin < 2
+    useGenericDefaults = false;
+end
+if ~isscalar(useGenericDefaults) || ...
+        ~(islogical(useGenericDefaults) || ...
+        (isnumeric(useGenericDefaults) && ...
+        (useGenericDefaults == 0 || useGenericDefaults == 1)))
+    error('useGenericDefaults must be a logical scalar.');
+end
 
 % Vessel data
 cfg.vessel.matFile = matFile;
@@ -37,6 +52,13 @@ cfg.environment.spreadingFlag = 1;
 cfg.environment.numFreqIntervals = 100;
 cfg.environment.numDirections = 24;
 
+% Generic simulation and initial-state defaults. Named vessels override
+% these values below, while a custom vessel presents them directly in the GUI.
+cfg.simulation.T_final = 180;
+cfg.simulation.h = 0.02;
+cfg.initial.nu = zeros(6,1);
+cfg.initial.eta = zeros(6,1);
+
 % Controller selection and setpoint change. Heading autopilot is the default;
 % the supply vessel and semisubmersible override this with DP control.
 cfg.control.mode = 'headingAutopilot';
@@ -53,9 +75,16 @@ cfg.control.dp.T_f = 30;
 cfg.control.heading.psi_ref = 0;
 cfg.control.heading.psi_ref_after = deg2rad(30);
 cfg.control.heading.r_max = deg2rad(2.0);
+cfg.control.heading.wn = 1.0;
+cfg.control.heading.zeta = 1.0;
+cfg.control.heading.tauX = 0;
+
+% Do not assume nonlinear damping for a newly developed vessel.
+cfg.damping.nonlinear_456 = [0 0 0];
 
 % Vessel-specific overrides
-switch lower(matFile)
+if ~useGenericDefaults
+    switch lower(matFile)
     case 'supply.mat'
         cfg.simulation.T_final = 600;
         cfg.simulation.h = 0.05;
@@ -149,11 +178,34 @@ switch lower(matFile)
         cfg.control.heading.wn = 1.5;
         cfg.control.heading.zeta = 1.0;
 
-    otherwise
-        error('Unsupported hydrodynamic model: %s', matFile);
+        otherwise
+            error('Unsupported hydrodynamic model: %s', matFile);
+    end
 end
 
 cfg = useStoredPowerBasedDamping(cfg);
+
+if useGenericDefaults
+    cfg = useStoredSubmergenceDepth(cfg);
+end
+
+end
+
+function cfg = useStoredSubmergenceDepth(cfg)
+% Initialize a custom submerged vehicle at its exported operating depth.
+
+matPath = resolveHydroVesselFile(cfg.vessel.matFile);
+data = load(matPath, 'vessel');
+if ~isfield(data, 'vessel') || ~isfield(data.vessel, 'main')
+    return
+end
+
+main = data.vessel.main;
+if isfield(main, 'submerged') && isscalar(main.submerged) && ...
+        logical(main.submerged) && isfield(main, 'submergenceDepth') && ...
+        isscalar(main.submergenceDepth) && isfinite(main.submergenceDepth)
+    cfg.initial.eta(3) = main.submergenceDepth;
+end
 
 end
 
