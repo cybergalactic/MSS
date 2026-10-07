@@ -102,7 +102,6 @@ zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 .../MSS/GNC/
 
 ```matlab
-acc2rollpitch        % Static roll and pitch angles from IMU specific force measurements
 addIntermediateWaypoints % Add points along waypoint line segments for increased resolution
 allocPseudoinverse   % Unconstrained control allocation
 ALOS3D               % ALOS guidance laws for heading and pitch control in 3-D
@@ -129,7 +128,6 @@ refModel             % Third-order reference model for position, velocity, and a
 refModelPolyExp      % Transition from x_start to x_final using a polynomial or an exponential curve
 sat                  % Symmetric elementwise signal saturation
 satlim               % Asymmetric elementwise signal saturation
-staticRollPitchYaw   % Static roll, pitch, and yaw angles from IMU specific force and magnetometer measurements
 controlMethod        % GUI for selecting a control method from a list
 displayVesselStructure % Print the fields and values of an MSS vessel structure
 isoctave             % Return true when running under GNU Octave
@@ -267,6 +265,7 @@ SIMquatObserver      % Simulate the nonlinear quaternion-based attitude observer
 ### Functions
 
 ```matlab
+acc2rollpitch        % Static roll and pitch angles from IMU specific force measurements
 gravity              % Acceleration of gravity as a function of latitude using the WGS-84 ellipsoid parameters
 ins_ahrs             % Error-state Kalman filter (ESKF) for an INS aided by position and AHRS measurements 
 ins_euler            % Error-state Kalman filter (ESKF) for an INS aided by position and yaw angle measurements
@@ -277,6 +276,7 @@ insSignal            % INS signal generator for testing of Kalman filters and ob
 magneticField        % NED magnetic field reference vectors 'm_ref' for different cities
 quatObserver         % Nonlinear quaternion-based attitude observer for 9-DOF IMU measurements
 quatMEKF             % MEKF quaternion-based attitude observer for 9-DOF IMU measurements
+staticRollPitchYaw   % Static roll, pitch, and magnetic heading from IMU specific force and magnetometer measurements
 ```
 
 ## MSS demos (m-files)
