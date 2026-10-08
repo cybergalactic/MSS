@@ -1,5 +1,5 @@
-function [MRB,CRB] = spheroid(a,b,nu2,r_bG)
-% [MRB,CRB] = spheroid(a,b,nu2,r_bG) computes the 6x6 rigid-body mass
+function [MRB,CRB] = spheroid(a,b,nu2,r_bG,rho)
+% [MRB,CRB] = spheroid(a,b,nu2,r_bG,rho) computes the 6x6 rigid-body mass
 % and Coriolis-centripetal matrices of a prolate spheroid of length
 % L = 2 * a and diameter D = 2 * b. The spheroid can be used to approximate 
 % a cylinder-shaped autonomous underwater vehicle (AUV). In general 
@@ -25,14 +25,19 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bG)
 %  a, b:                Semiaxes a > b
 %  nu2 = [p, q, r]':    Angular velocity vector 
 %  r_bG:               r_bG = [xG, yG, zG]' vector from CO to CG
+%  rho:                (optional) density of water, default 1025 kg/m3
 % 
 % Author:    Thor I. Fossen
 % Date:      24 April 2021 
+% Revisions:
+%   2026-10-07 : Water density rho as an optional input (E. Krizman)
 
 O3 = zeros(3,3);
 
 % Mass of spheroid 
-rho = 1025;
+if nargin < 5 || isempty(rho)
+    rho = 1025;
+end
 m = 4/3 * pi * rho * a * b^2;   
 
 % Moment of inertia

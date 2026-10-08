@@ -1,5 +1,5 @@
-function [MA,CA] = imlay61(a,b,nu,r44)
-% [MA,CA] = imlay61(a,b,nu,r44) computes the 6x6 hydrodynamic added mass  
+function [MA,CA] = imlay61(a,b,nu,r44,rho)
+% [MA,CA] = imlay61(a,b,nu,r44,rho) computes the 6x6 hydrodynamic added mass  
 % system matrix MA and the 6x6 added mass Coriolis and centripetal matrix  
 % CA for a prolate spheroid with semiaxes a > b using the Lamb's 
 % k-factors k1, k2 and k_prime (Fossen 2027, Section 8.4.2). The matrix MA
@@ -11,6 +11,7 @@ function [MA,CA] = imlay61(a,b,nu,r44)
 %         r44: hydrodynamic added moment MA(4,4) = r44 * Ix in roll.
 %              If r44 is not specified, MA(4,4) = 0.
 %              Typicaly values for r44 are 0.2-0.4.
+%         rho: (optional) density of water, default 1026 kg/m3
 %
 % Output: MA: 6x6 diagonal hydrodynamic added mass system matrix
 %         CA: 6x6 hydrodynamic added Coriolis and centripetal matrix
@@ -26,9 +27,12 @@ function [MA,CA] = imlay61(a,b,nu,r44)
 % Author:     Thor I. Fossen 
 % Date:       24 Apr 2021
 % Revisions:  
+%   2026-10-07 : Water density rho as an optional input (E. Krizman)
      
 % prolate spheroid formulas
-rho = 1026;
+if nargin < 5 || isempty(rho)
+    rho = 1026;
+end
 m = 4/3 * pi * rho * a * b^2;
 Ix = (2/5) * m * b^2;
 Iy = (1/5) * m * (a^2 + b^2);      

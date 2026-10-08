@@ -71,6 +71,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
 %   2025-06-09 Change cross-flow drag to cylinder model (M. Seidl).
 %   2026-08-26 Use through-water speed for propulsion and damping (J. Harvey).
+%   2026-10-07 One water density rho in all force and mass terms (E. Krizman).
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -196,8 +197,8 @@ zeta5 = 0.8;             % Relative damping ratio in pitch
 T6 = 1;                  % Time constant in yaw (s)
 
 % Rigid-body mass and hydrodynamic added mass
-[MRB,CRB] = spheroid(a,b,nu(4:6),r_bG);
-[MA,CA] = imlay61(a, b, nu_r, r44);
+[MRB,CRB] = spheroid(a,b,nu(4:6),r_bG,rho);
+[MA,CA] = imlay61(a, b, nu_r, r44, rho);
 
 % The reduced-order REMUS model does not retain a complete set of measured
 % maneuvering derivatives for the hull, fins, and appendages. The selected
@@ -217,8 +218,8 @@ m = MRB(1,1); W = m * g_mu; B = W;
 D = Dmtrx([T1 T2 T6],[zeta4 zeta5],MRB,MA,[W r_bG' r_bB']);
 D(1,1) = D(1,1) * exp(-3 * U_r); % Vanish at high through-water speed
 
-tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r);
-tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r,'cylinder');
+tau_liftdrag = forceLiftDrag(D_auv,S,CD_0,alpha,U_r,rho);
+tau_crossflow = crossFlowDrag(L_auv,D_auv,D_auv,nu_r,'cylinder',rho);
 
 % Kinematics
 if (length(x) == 13)

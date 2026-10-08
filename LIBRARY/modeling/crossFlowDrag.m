@@ -1,5 +1,5 @@
-function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
-% tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model) computes the cross-flow 
+function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model,rho)
+% tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model,rho) computes the cross-flow 
 % drag integrals for a marine craft using strip theory. Application:
 %
 %    M * d/dt nu_r + C(nu_r) * nu_r + D * nu_r + g(eta) = tau + tau_crossflow
@@ -10,6 +10,7 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 %   T:  draft (m)
 %   nu_r = [u-u_c, v-v_c, w-w_c, p, q, r]': Relative velocity vector
 %   drag_model (Optionally) : 'Hoerner' (default), 'cylinder'
+%   rho (Optionally) : density of water, default 1025 kg/m3
 %
 % Output: 
 %   tau_crossflow = [0 Yh Zh 0 Mh Nh]: 6-DOF cross-flow drag vector
@@ -27,13 +28,16 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 %   2021-01-30 : Extended to include heave and pitch for AUVs
 %   2025-06-09 : Make different drag models selectable (M. Seidl)
 %   2026-08-26 : Evaluate 20 strips at their midpoints (J. Harvey)
+%   2026-10-07 : Water density rho as an optional input (E. Krizman)
 
 % Hoerner is the default drag model for monohull
-if nargin == 4
+if nargin < 5 || isempty(drag_model)
     drag_model = 'Hoerner'; 
 end 
 
-rho = 1025;         % Density of water (kg/m3)
+if nargin < 6 || isempty(rho)
+    rho = 1025;     % Density of water (kg/m3)
+end
 nStrips = 20;       % Number of hull strips
 dx = L / nStrips;   % Strip width (m)
 

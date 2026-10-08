@@ -1,5 +1,5 @@
-function tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,U_r)
-% tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,Ur) computes the hydrodynamic
+function tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,U_r,rho)
+% tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,Ur,rho) computes the hydrodynamic
 % lift and drag forces of a submerged "wing profile" for varying angle of
 % attack (Beard and McLain 2012). Application:
 %
@@ -14,6 +14,7 @@ function tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,U_r)
 %  CD_0:    parasitic drag (alpha = 0), typically 0.1-0.2 for a streamlined body
 %  alpha:   angle of attack, scalar or vector (rad)
 %  U_r:     relative speed (m/s)
+%  rho:     (optional) density of water, default 1026 kg/m3
 %
 % Example:
 %
@@ -22,8 +23,12 @@ function tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,U_r)
 % 
 % Author:    Thor I. Fossen
 % Date:      25 April 2021 
+% Revisions:
+%   2026-10-07 : Water density rho as an optional input (E. Krizman)
 
-rho = 1026;
+if nargin < 6 || isempty(rho)
+    rho = 1026;
+end
 
 [CL,CD] = coeffLiftDrag(b,S,CD_0,alpha,0);
 
