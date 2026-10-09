@@ -77,6 +77,7 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mp,rp,V_c,beta_c)
 %   2026-04-20 : Correct payload lever arm moment of inertia.
 %   2026-06-27 : Added output arguments for propeller speed limits n_min and n_max.
 %   2026-10-07 : Corrected KB to use the pontoon waterplane area (E. Krizman)
+%   2026-10-09 : Use loaded displacement mass in the surge added-mass estimate.
 
 if nargin == 0
     x = zeros(12,1); n = zeros(2,1); mp=25; rp = zeros(3,1); V_c=0; beta_c=0;
@@ -153,7 +154,7 @@ MRB = H' * MRB_CG * H;
 CRB = H' * CRB_CG * H;
 
 % Hydrodynamic added mass (best practice)
-Xudot = -addedMassSurge(m,L,rho);   
+Xudot = -addedMassSurge(m+mp,L,rho);
 Yvdot = -1.5 * m;
 Zwdot = -1.0 * m;
 Kpdot = -0.2 * Ig(1,1);
