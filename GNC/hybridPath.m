@@ -1,4 +1,4 @@
-function path = generateHybridPath(WP,r,lambda,PlotHandle)
+function path = hybridPath(WP,r,lambda,PlotHandle)
 % path = hybridPath(WP,r,lambda,PlotFlag)
 %
 % Function that generates the coefficients for subpaths between given waypoints.
