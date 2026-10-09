@@ -61,6 +61,7 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 % Date:      2024-07-06
 % Revisions: 
 %   2026-10-07: Corrected the JONSWAP validity-range check (E. Krizman)
+%   2026-10-09: Changed the recommended JONSWAP range from an error to a warning.
 
 if nargin < 6
     numDirections = 16; % Default value for number of wave directions
@@ -136,7 +137,8 @@ if strcmp(spectrumType, 'Modified PM')
 elseif strcmp(spectrumType, 'JONSWAP')
     % JONSWAP spectrum
     if w0 * sqrt(Hs) < 1.25 || w0 * sqrt(Hs) > 1.75
-        error('It is recommended to use 1.25 <= w0 * sqrt(Hs) <= 1.75')
+        warning('waveDirectionalSpectrum:JONSWAPRecommendedRange', ...
+            'It is recommended to use 1.25 <= w0 * sqrt(Hs) <= 1.75.')
     end
     S = waveSpectrum(7, [Hs, w0, gamma], Omega, 0);
 else
