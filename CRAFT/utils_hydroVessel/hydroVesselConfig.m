@@ -24,6 +24,7 @@ function cfg = hydroVesselConfig(matFile, useGenericDefaults)
 %   2026-10-05 Use vessel.powerBased as the default source for Capytaine
 %              linear damping inputs; retain commented per-vessel overrides.
 %   2026-10-07 Added generic editable defaults for custom vessel MAT-files.
+%   2026-10-09 Use initial JONSWAP parameters within the recommended range.
 
 if nargin < 2
     useGenericDefaults = false;
@@ -44,8 +45,8 @@ cfg.RAO_update_period = 0.1;
 % Ocean environment and wave discretization
 cfg.environment.Vc = 0.5;
 cfg.environment.betaVc = deg2rad(30);
-cfg.environment.Hs = 1.0;
-cfg.environment.w0 = 0.8;
+cfg.environment.Hs = 2.0;
+cfg.environment.w0 = 1.0;
 cfg.environment.beta_wave = deg2rad(140);
 cfg.environment.spectrumType = 'JONSWAP';
 cfg.environment.spreadingFlag = 1;
@@ -167,6 +168,7 @@ if ~useGenericDefaults
         cfg.simulation.T_final = 180;
         cfg.simulation.h = 0.02;
         cfg.environment.Hs = 0.5;
+        cfg.environment.w0 = 2.0;
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = [0, 0, 5, 0, 0, 0]';
         cfg.control.dp.wn = [0.5 0.5 1.5];
