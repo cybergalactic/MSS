@@ -17,7 +17,8 @@ B = 21;                     % Beam (m)
 T = 6;                      % Draft (m)
 
 % Physical constants
-rho = 1025;                 % Density of water (kg/m^3)
+constant = mssConstants();
+rho = constant.rho_water;
 
 % Mass properties and block coefficient: Cb = nabla / (L * B * T)
 Cb = 0.75;                  % Block coefficient, dimensionless

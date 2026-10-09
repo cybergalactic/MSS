@@ -35,7 +35,8 @@ GDFfile = [vessel_name '.gdf'];
 % Update acceleration of gravity 
 g = input('Acceleration of gravity - default 9.81 m/s^2: ');
 if ~exist(num2str(g))
-    g = 9.81;
+    constant = mssConstants();
+    g = constant.g;
 end
 
 % Update CG 

@@ -22,8 +22,9 @@ function G = Gmtrx(nabla,A_wp,GMT,GML,x_F,r_bP)
 %             25 Apr 2019 added LCF as input parameter
 %             16 Dec 2021 minor updates of the documentation
 
-rho = 1025;  % density of water
-g   = 9.81;	 % acceleration of gravity
+constant = mssConstants();
+rho = constant.rho_water;
+g = constant.g;
 
 % Location of the center of flotation (CF)
 r_bF = [x_F, 0, 0]';

@@ -26,7 +26,8 @@ function [A11, ratio] = addedMassSurge(m, L, rho)
 % Revisions: 
 
 if nargin == 2      % Check if the density of water is not specified
-    rho = 1025;     % Default density of water (kg/m^3)
+    constant = mssConstants();
+    rho = constant.rho_water;
 end
 
 nabla = m / rho;                       % Volume displacement (m^3)

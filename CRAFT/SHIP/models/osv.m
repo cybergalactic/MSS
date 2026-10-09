@@ -61,7 +61,8 @@ if isempty(vessel)
     vessel.L = 83;                 % Length (m)
     vessel.B = 18;                 % Beam (m)
     vessel.T = 5;                  % Draft (m)
-    vessel.rho = 1025;             % Density of water (kg/m3)
+    constant = mssConstants();
+    vessel.rho = constant.rho_water;
     vessel.Cb = 0.65;              % Block coefficient: Cb = nabla / (L * B * T)
     vessel.S = vessel.L * vessel.B + 2 * vessel.T * vessel.B; % Wetted surface, box approximation
 

@@ -117,7 +117,8 @@ function S = waveSpectrum(spectrumType, Parameter, W, PlotFlag)
 S = [];
 W = W(:); % Make sure that W is a column vector
 
-g = 9.81;       % Acceleration of gravity
+constant = mssConstants();
+g = constant.g;
 epsilon = 1e-4; % Small positive value to avoid the W(1) = 0 singularity
 
 % Replace the first value in W with eps if it is zero

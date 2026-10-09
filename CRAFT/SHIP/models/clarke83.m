@@ -51,7 +51,8 @@ function [M,N] = clarke83(U,L,B,T,Cb,R66,xg,T_surge)
 %   2024-04-19 : Added compability to GNU Octave.
 
 % Rigid-body parameters
-rho = 1025;                     % density of water
+constant = mssConstants();
+rho = constant.rho_water;
 V = Cb * L * B * T;             % volume displacment
 m = rho * V;                    % mass
 Iz = m * R66^2 + m * xg^2;      % moment of inerta about the CO

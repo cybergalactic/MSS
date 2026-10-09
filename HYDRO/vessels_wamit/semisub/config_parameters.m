@@ -2,8 +2,9 @@
 B44v = 1e10
 
 % constants
-rho = 1025
-g   = 9.81
+constant = mssConstants();
+rho = constant.rho_water
+g = constant.g
 
 % WAMIT
 %  C(3,3),C(3,4),C(3,5):   973.14       0.0000       0.0000    
@@ -61,7 +62,7 @@ A33 = 5.961171e4*rho;
 A44 = 6.960710e7*rho;
 A55 = 6.107354e7*rho;
 
-B44  = 1.341632e3*1025*w_p
+B44  = 1.341632e3*rho*w_p
 
 ratio = [A11/m A22/m A33/m A44/I_CO(1,1) A55/I_CO(2,2) A66/I_CO(1,1)]
     

@@ -97,7 +97,8 @@ end
 %% Compute Aeq and Beq
 % The peak frequency omega_p is used in the normalized wave spectrum.
 % Viscous damping Bv is computed by computeManeuveringModel.m.
-g = 9.81;
+constant = mssConstants();
+g = constant.g;
 omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave);
 vessel = computeManeuveringModel(vessel, omega_p, [0.05 0.05 0.05], ...
     [0 0.1 0], 0);

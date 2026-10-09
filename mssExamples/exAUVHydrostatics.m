@@ -16,8 +16,9 @@ L_auv = 1.6;                % Length (m)
 D_auv = 0.19;               % Cylinder diameter (m)
 
 % Physical constants
-rho = 1025;                 % Density of water (kg/m^3)
-g = 9.81;                   % Gravitational acceleration (m/s^2)
+constant = mssConstants();
+rho = constant.rho_water;
+g = constant.g;
 
 % CG location relative to the midships coordinate origin (CO)
 r_bG = [0 0 0.02]';         % CG position (m)

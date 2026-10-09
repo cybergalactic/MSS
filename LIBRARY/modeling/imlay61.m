@@ -28,7 +28,8 @@ function [MA,CA] = imlay61(a,b,nu,r44)
 % Revisions:  
      
 % prolate spheroid formulas
-rho = 1026;
+constant = mssConstants();
+rho = constant.rho_water;
 m = 4/3 * pi * rho * a * b^2;
 Ix = (2/5) * m * b^2;
 Iy = (1/5) * m * (a^2 + b^2);      

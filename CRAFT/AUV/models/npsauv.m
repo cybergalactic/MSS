@@ -102,11 +102,12 @@ delta_bs = u_actual(4);
 n_p      = u_actual(5) / 60 * 2*pi;
 
 % AUV parameters
-L   = 5.3;    g   = 9.81;
+constant = mssConstants();
+L = 5.3;      g = constant.g;
 xG  = 0;      yG  = 0;      zG = 0.061;
 xB  = 0;      yB  = 0;      zB = 0;
 W   = 53400;  B   = 53400;
-rho = 1025;   mass = W/g;   
+rho = constant.rho_water;   mass = W/g;
 Ix  = 2038;   Iy  = 13587;  Iz  = 13587;
 Ixy = -13.58; Iyz = -13.58; Ixz = -13.58;
 Cdy = 0.5;    Cdz = 0.6;

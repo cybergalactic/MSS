@@ -154,7 +154,8 @@ if strcmp(matFile, 'AUV_FUNCTION')
     b = 0.3;                   % Semi-minor axis [m]
     zn = 5.0;                  % Nominal submergence (m)
 
-    vessel.main.g = 9.81;
+    constant = mssConstants();
+    vessel.main.g = constant.g;
     vessel = spheroidRAO(vessel,a,b,zn,0,true); % Include LF diffraction
     disp('Generated vessel.forceRAO structure from function spheroidRAO().');
 

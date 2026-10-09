@@ -27,6 +27,7 @@ function S = torsetSpectrum(Hs, wo, W)
 %   2024-07-07 Thor I. Fossen - Code brush up and bug fixes
 
 % Replace the first value in W with epsilon if it is zero
+constant = mssConstants();
 epsilon = 1e-4; 
 if W(1) == 0
     W(1) = epsilon;
@@ -81,7 +82,7 @@ if Hs > 0
         hss = sqrt(1.-rpw^2)*Hs;
         tpw = Tp;
         tps = tf+b1;
-        sp = ((f2pii/9.81)*hsw/(Tp^2));
+        sp = ((f2pii/constant.g)*hsw/(Tp^2));
         gammaw = kg*(1+kg0*exp(-Hs/kg1))*(sp^r);
         gammas = 1.;
         nw = k0*sqrt(Hs)+k00;
@@ -171,7 +172,7 @@ if Hs > 0
             g0w = 1./((1./mw)*gamma(g_argw)/((nw/mw)^(g_argw)));
         end
         tpw = ((g0w*hsw^2)/(16*s4*(0.4^nw)))^(1./(nw-1.));
-        sf = ((f2pii/9.81)*Hs/(tf^2));
+        sf = ((f2pii/constant.g)*Hs/(tf^2));
         gammaw = 1.;
         gamma_f = kg*(1+kg0*exp(-Hs/kg1))*sf^r;
         gammas = gamma_f*(1.+a3*epsu);
@@ -261,7 +262,6 @@ end
 S = S';
 
 end
-
 
 
 

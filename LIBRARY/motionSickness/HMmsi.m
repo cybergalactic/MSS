@@ -34,7 +34,8 @@ w_e = w_e(:);
 a_z_rms = sqrt( mean(a_z.^2) );
 
 % Constants
-g = 9.81;  % Gravity (m/s²)
+constant = mssConstants();
+g = constant.g;
 epsilon = 1e-6; % Small value to prevent log(0)
 
 % Convert encounter frequency from rad/s to Hz

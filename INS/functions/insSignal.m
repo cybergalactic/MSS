@@ -45,7 +45,8 @@ end
 T_acc = 300;   % Accelerometer-bias correlation time [s]
 T_ars = 300;   % ARS-bias correlation time [s]
 
-sigma_b_acc = 20e-6 * 9.81;     % Stationary standard deviation [m/s^2]
+constant = mssConstants();
+sigma_b_acc = 20e-6 * constant.g; % Stationary standard deviation [m/s^2]
 sigma_b_ars = deg2rad(8/3600);  % Stationary standard deviation [rad/s]
 
 % NED gravity vector

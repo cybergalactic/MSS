@@ -16,5 +16,6 @@ function  Hs = vw2hs(Vw)
 % Date:       2005-03-12
 % Revisions: 
 
-g = 9.81;
+constant = mssConstants();
+g = constant.g;
 Hs =  0.21 * Vw^2 / g; 

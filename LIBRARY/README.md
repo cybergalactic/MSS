@@ -16,6 +16,7 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 
 ## Selected Entry Points
 
+- `mssConstants.m`: common seawater density, air density, and standard gravity values used throughout MSS.
 - `rbody.m`, `m2c.m`, `Dmtrx.m`, and `Gmtrx.m`: standard 6-DOF system matrices.
 - `crossFlowDrag.m`, `forceLiftDrag.m`, and `XuuITTC.m`: nonlinear hydrodynamic loads.
 - `eulerang.m`, `Rzyx.m`, `Rquat.m`, and `Tquat.m`: attitude kinematics.

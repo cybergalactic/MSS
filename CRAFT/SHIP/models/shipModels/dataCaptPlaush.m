@@ -43,9 +43,9 @@ clc;
  m4 = 0.0134;
  
  %Constants
- rho = 1025;            %Density of sea water, kg/m^3
- g = 9.8;               %Gravity constant, N/kg
- CA = pi/180;           %Degrees to radians constant
+ constant = mssConstants();
+ rho = constant.rho_water;
+ g = constant.g;
  
   %1-st step formulas
  psi1 = (Ta-Tf)/L;      %Static trim

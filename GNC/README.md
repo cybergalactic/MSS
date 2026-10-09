@@ -20,6 +20,8 @@ The more extensive inertial-navigation implementations are documented in the [IN
 
 ## Control and Allocation
 
+- `headingAutopilot.m`: SISO PID pole-placement heading controller with a
+  third-order reference model.
 - `PIDnonlinearMIMO.m`: nonlinear MIMO PID regulator for dynamic positioning.
 - `integralSMCheading.m`: integral sliding-mode heading controller.
 - `lqtracker.m`: linear-quadratic tracker design.

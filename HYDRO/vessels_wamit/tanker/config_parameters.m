@@ -1,6 +1,7 @@
 % wamit FRC input files
-g = 9.81;
-rho = 1025;
+constant = mssConstants();
+g = constant.g;
+rho = constant.rho_water;
 m   =  rho*(92309.5  +    92313.2  +    92314.5)/3
 
 xg = 3.93

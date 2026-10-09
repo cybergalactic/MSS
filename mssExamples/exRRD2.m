@@ -18,7 +18,8 @@ Ns = 20000; % No. of samples
 h  = 0.05;  % Sample time
 
 % Normalization variables
-rho = 1025;                 % Water density (kg/m^3)
+constant = mssConstants();
+rho = constant.rho_water;
 L = 175;                    % Length of ship (m)
 U0 = 7.3;                   % Service speed (m/s)
 
@@ -217,11 +218,11 @@ Ix = 0.0000176;  alphay = 0.05;       lx = 0.0313;
 ly = 0.0313;     Ix     = 0.0000176;  Iz = 0.000456;
 Jx = 0.0000034;  Jz     = 0.000419;   xG = 0;
 
-B     = 25.40;   dF = 8.00;    g     = 9.81;
+B     = 25.40;   dF = 8.00;    g     = constant.g;
 dA    = 9.00;    d  = 8.50;    nabla = 21222; 
 KM    = 10.39;   KB = 4.6154;  AR    = 33.0376;
 Delta = 1.8219;  D  = 6.533;   GM    = 0.3/L;
-rho   = 1025;    t  = 0.175;   T     = 0.0005; 
+rho   = constant.rho_water;    t  = 0.175;   T     = 0.0005;
  
 W     = rho*g*nabla/(rho*L^2*U^2/2);
 

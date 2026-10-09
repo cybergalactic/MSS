@@ -31,8 +31,9 @@ function waveresponse345(a, beta,T_0, zeta4,T4,GMT, Cb, U, L, B, T)
 %   2019-05-11  Updated formula for wn, removed bugs
 
 % Constants
-g = 9.81;                 % acceleration of gravity (m/s^2)
-rho = 1025;               % density of water (kg/m^3)
+constant = mssConstants();
+g = constant.g;
+rho = constant.rho_water;
 
 % Ship parameters
 nabla = Cb * L * B * T;        % volume displacement (m^3) 
@@ -95,6 +96,5 @@ title(sprintf('Steady-state responses for a = %2.1f m and beta = %2.1f deg',a,(1
 legend('Heave (m)','Roll (deg)','Pitch (deg)')
 xlabel('time (s)')
 grid
-
 
 

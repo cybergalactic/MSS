@@ -4,8 +4,9 @@ yg = 0
 zg = -1.0
 
 % constants
-rho = 1025
-g   = 9.81
+constant = mssConstants();
+rho = constant.rho_water
+g = constant.g
 Lpp = 200
 B = 44
 

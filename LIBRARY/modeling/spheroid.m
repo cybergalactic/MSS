@@ -32,7 +32,8 @@ function [MRB,CRB] = spheroid(a,b,nu2,r_bG)
 O3 = zeros(3,3);
 
 % Mass of spheroid 
-rho = 1025;
+constant = mssConstants();
+rho = constant.rho_water;
 m = 4/3 * pi * rho * a * b^2;   
 
 % Moment of inertia
@@ -57,4 +58,3 @@ CRB = H' * CRB_CG * H;
 
 
       
-

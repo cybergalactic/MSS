@@ -8,5 +8,6 @@ function  Vw = hs2vw(Hs)
 % Hs -Significant wave height [m].
 % Vw -Wind speed [m/s]
 
-g =9.81;
+constant = mssConstants();
+g = constant.g;
 Vw = sqrt((Hs*g/0.21));

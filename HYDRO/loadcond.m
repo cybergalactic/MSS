@@ -16,7 +16,8 @@ m   = vessel.main.m;
 T = vessel.main.T;
 R44 = vessel.main.k44;
 R55 = vessel.main.k55;
-g = 9.81;
+constant = mssConstants();
+g = constant.g;
 Ix = vessel.MRB(4,4);
 Iy = vessel.MRB(5,5);
 

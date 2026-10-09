@@ -23,7 +23,8 @@ function tau_liftdrag = forceLiftDrag(b,S,CD_0,alpha,U_r)
 % Author:    Thor I. Fossen
 % Date:      25 April 2021 
 
-rho = 1026;
+constant = mssConstants();
+rho = constant.rho_water;
 
 [CL,CD] = coeffLiftDrag(b,S,CD_0,alpha,0);
 

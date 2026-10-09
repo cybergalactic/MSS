@@ -20,7 +20,8 @@
 %   18 June 2019 - added curve fitting of KT and KQ data
 clearvars
 
-rho = 1025;   % Density of water (kg/m^3)
+constant = mssConstants();
+rho = constant.rho_water;
 D = 5;        % Propeller diameter (m)
 PD = 1.4;     % Pitch/diameter ratio (typically 0.5-2.5)
 AEAO = 0.65;  % Blade area ratio (ratio of expanded blade area to propeller disk area)

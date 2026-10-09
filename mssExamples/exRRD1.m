@@ -13,7 +13,8 @@
 U=7.0;    % Service speed
 
 % Normalization variables
-rho = 1025;                 % Water density (kg/m^3)
+constant = mssConstants();
+rho = constant.rho_water;
 L = 175;                    % Length of ship (m)
  
 % Lineari model using nondimensional matrices and states with dimension; 

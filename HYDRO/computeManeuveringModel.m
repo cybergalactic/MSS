@@ -292,7 +292,8 @@ end
 freqs_fine = linspace(omega_min, omega_max, 100)';
 
 % PM wave spectrum parameters
-alpha = 8.1e-3 * (9.81)^2;
+constant = mssConstants();
+alpha = 8.1e-3 * constant.g^2;
 beta = 0.74;
 
 % Initialize equivalent matrices

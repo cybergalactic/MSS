@@ -39,7 +39,8 @@ if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 
 % Normalization variables
 L   =  304.8;          % Length of ship (m)
-g   =  9.8;            % Acceleration of gravity (m/s^2)
+constant = mssConstants();
+g = constant.g;
 
 % Dimensional states and inputs
 u     = x(1);    

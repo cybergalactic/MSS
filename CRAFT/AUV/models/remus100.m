@@ -95,7 +95,8 @@ end
 % Constants
 mu = deg2rad(63.446827); % Latitude for Trondheim, Norway (deg)
 g_mu = gravity(mu);      % Gravity vector (m/s2)
-rho = 1026;              % Density of water (m/s2)
+constant = mssConstants();
+rho = constant.rho_water;
 
 % 6x1 velocity vector, yaw angle and control inputs
 nu = x(1:6); 

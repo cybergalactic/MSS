@@ -18,7 +18,8 @@ function Omega_e = encounter(chi, U, Omega)
 % Created by: Thor I. Fossen
 % Date: 2024-07-09
 
-g = 9.81; % Acceleration of gravity
+constant = mssConstants();
+g = constant.g;
 
 % Calculate the encounter frequency 
 Omega_e = Omega - (Omega.^2 * U * cos(chi) / g);

@@ -49,7 +49,8 @@ close all
 %% ------------------------------------------------------------------------
 % USER INPUTS
 % -------------------------------------------------------------------------
-rho_w = 1025;      % density of water (kg/ms^2)
+constant = mssConstants();
+rho_w = constant.rho_water;
 
 % system identification options
 FDIopt.OrdMax     = 20;

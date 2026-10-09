@@ -87,8 +87,9 @@ if (length(x) ~= 12),error('x vector must have dimension 12!'); end
 if (length(n) ~= 2),error('n vector must have dimension 2!'); end
 
 % Main data
-g   = 9.81;         % acceleration of gravity (m/s^2)
-rho = 1025;         % density of water
+constant = mssConstants();
+g = constant.g;
+rho = constant.rho_water;
 L = 2.0;            % length (m)
 B = 1.08;           % beam (m)
 m = 55.0;           % mass (kg)

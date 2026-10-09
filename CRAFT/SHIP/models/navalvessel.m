@@ -42,16 +42,7 @@ function [xdot,U] = navalvessel(x, tau)
 %     of the vessel design of ADI-Limited Australia.
 
 % Vessel Data
-const.rho_water     =	1014.0;	        %	water density	[kg/m^3]	
-const.rho_air		=	1.225	;	    %	air density		[kg/m^3]	
-const.g				=	9.81;	        %	gravity constant	[m/s^2]	
-const.deg2rad 		=	pi/180;	        %	degrees to radians	
-const.rad2deg 		=	180/pi;	        %	rad to degrees		
-const.ms2kt			=	3600/1852;	    % 	m/s to kt 			
-const.kt2ms 		=	1852/3600;	    %	kt to m/s			
-const.RPM2rads		=	2*pi/60;	    %	RPM to rad/s		
-const.rads2RPM		=   60/(2*pi);	    %	rad/s to RPM		
-const.HP2W			=	745.700;	    %	HP to Watt			
+constant = mssConstants();
 
 % Struct rudder  (Modified by T.Perez)
 rudder.sp    =1.5;                   % span
@@ -67,7 +58,7 @@ h.D	     =  2.3  ;                  % Draught [m]
 
 %Load condition (Modified by T.Perez)
 h.disp   =  357.0;                   % Displacement  [m^3]
-h.m      =  h.disp*const.rho_water;  % Mass [Kg]
+h.m      =  h.disp*constant.rho_water;  % Mass [Kg]
 h.Izz    =  47.934*10^6 ;            % Yaw Inertia
 h.Ixx    =  2.3763*10^6 ;            % Roll Inertia
 h.U_nom  =  8.0   ;	                 % Speed nominal [m/sec] (app 15kts) 
@@ -121,8 +112,8 @@ h.Kbuu  =  -1180 ;
 h.Kaup  =  -15500 ;
 h.Kpap  =  -416000 ;
 h.Kp    =  -500000 ;
-h.Kb    =  0.776*h.m*const.g;
-h.Kbbb  =  -0.325*h.m*const.g ;
+h.Kb    =  0.776*h.m*constant.g;
+h.Kbbb  =  -0.325*h.m*constant.g ;
 
 % Hydrodynamic coefficients in yaw equation
 h.Nvdot =  538000 ;
@@ -176,7 +167,8 @@ Yh = h.Yauv*au*v + h.Yur*u*r + h.Yvav*v*av + h.Yvar*v*ar + h.Yrav*r*av ...
 
 Kh = h.Kauv*au*v +h.Kur*u*r + h.Kvav*v*av + h.Kvar*v*ar + h.Krav*r*av ...
    + h.Kbauv*b*abs(u*v) + h.Kbaur*b*abs(u*r) + h.Kbuu*b*u^2 + h.Kaup*au*p...
-   + h.Kpap*p*ap +h.Kp*p +h.Kbbb*b^3-(const.rho_water*const.g*h.gm*h.disp)*b;
+   + h.Kpap*p*ap +h.Kp*p +h.Kbbb*b^3 ...
+   - (constant.rho_water*constant.g*h.gm*h.disp)*b;
 
 Nh = h.Nauv*au*v + h.Naur*au*r + h.Nrar*r*ar + h.Nrav*r*av...
    +h.Nbauv*b*abs(u*b) + h.Nbuar*b*u*ar + h.Nbuau*b*u*au;

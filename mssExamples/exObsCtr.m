@@ -11,7 +11,8 @@ disp('Controllability and observability of offShore supply vessel length 76 m')
 
 % Normalization variables
 L   =  76.2;           % Length of ship (m)
-g   =  9.8;            % Acceleration of gravity (m/s^2)
+constant = mssConstants();
+g = constant.g;
 m   = 6000e3;          % Mass (kg)
 
 T    = diag([1 1 L]);

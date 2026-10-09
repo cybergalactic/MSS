@@ -35,8 +35,9 @@ DATCONF.N_p  = 2;        % number of pontoons
 DATCONF.N_l  = 4;        % number of legs
 
 DATCONF.m    = 27162500;  % mass of vessel
-DATCONF.rho  = 1026;     % sea water density
-DATCONF.g    = 9.81;     % acceleration of gravity
+constant = mssConstants();
+DATCONF.rho = constant.rho_water;
+DATCONF.g = constant.g;
 
 DATCONF.r_x = 30.0;      % radius of gyration        
 DATCONF.r_y = 32.0;

@@ -36,7 +36,8 @@ h_pos = 1/f_pos;
 
 % Constants
 p_0 = 101325; % Air pressure in Pa at the surface
-rho = 1025; % Density of water in kg/m^3
+constant = mssConstants();
+rho = constant.rho_water;
 [m_ref, ~, mu,cityName] = magneticField(1); % Magnetic field and latitude for city #1
 g = gravity(mu); % Acceleration of gravity in m/s^2
 

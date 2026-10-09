@@ -12,8 +12,9 @@
 % Revisions: 
 
 % Constants
-rho = 1025;       % Water density (kg/m^3)
-g = 9.82;         % Acceleration due to gravity (m/s^2)
+constant = mssConstants();
+rho = constant.rho_water;
+g = constant.g;
 
 % Box-shaped ship
 L = 80;           % Length (m)

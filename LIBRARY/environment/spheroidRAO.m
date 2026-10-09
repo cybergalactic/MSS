@@ -122,13 +122,14 @@ if ~isscalar(includeDiffraction)
 end
 
 % Physical constants
+constant = mssConstants();
 if isfield(vessel,'main') && isfield(vessel.main,'g') && ...
         isPositiveFiniteScalar(vessel.main.g)
     g = vessel.main.g;
 else
-    g = 9.81;
+    g = constant.g;
 end
-rho = 1025;
+rho = constant.rho_water;
 
 % Deep-water wave frequencies and headings
 omega = linspace(0.05,4,100)';

@@ -217,7 +217,8 @@ if exist([filename '.frc'])
         vessel.main.k55 = frc(4,2);
         vessel.main.k66 = frc(5,3);
         vessel.main.k46 = frc(3,3);
-        vessel.main.rho = 1025;        
+        constant = mssConstants();
+        vessel.main.rho = constant.rho_water;
 
     else                                  % FRC file alternative 2
 
