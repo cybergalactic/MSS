@@ -505,8 +505,11 @@ if ~isfield(data, 'vessel') || ~isstruct(data.vessel) || ...
     error('%s does not contain a vessel structure.', matPath);
 end
 
+% powerBased is optional here: legacy ShipX and WAMIT files build it when
+% computeManeuveringModel runs, while configurations that need stored damping
+% inputs validate it in hydroVesselConfig.
 requiredFields = {'main', 'MRB', 'A', 'B', 'C', 'forceRAO', ...
-    'freqs', 'headings', 'velocities', 'powerBased'};
+    'freqs', 'headings', 'velocities'};
 missingFields = requiredFields(~isfield(data.vessel, requiredFields));
 if ~isempty(missingFields)
     error('%s is missing vessel field(s): %s.', matPath, ...
