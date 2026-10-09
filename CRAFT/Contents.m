@@ -2,7 +2,7 @@
 %
 % CRAFT provides established craft models and a unified workflow for
 % user-defined 6-DOF vessels generated from ShipX, WAMIT, or Capytaine
-% seakeeping data. Full documentation is available in CRAFT/README.md.
+% seakeeping data. Full documentation is available in CRAFT/CRAFT-Library.md.
 %
 % Hydrodynamic vessel workflow:
 %   SIMhydroVessel  - Editable simulation template for a user-defined USV,

@@ -33,9 +33,9 @@ The simulator includes a basic GUI for choosing a vessel and configuring irregul
 
 Hydrodynamic vessel data and processing instructions are organized by source:
 
-- [ShipX vessel data](../HYDRO/vessels_shipx/)
-- [WAMIT vessel data](../HYDRO/vessels_wamit/)
-- [Capytaine vessel data](../HYDRO/vessels_capytaine/)
+- [ShipX vessel data](../HYDRO/vessels_shipx/ShipX-Vessels.md)
+- [WAMIT vessel data](../HYDRO/vessels_wamit/WAMIT-Vessels.md)
+- [Capytaine vessel data](../HYDRO/vessels_capytaine/Capytaine-Vessels.md)
 
 ShipX and WAMIT are commercial programs. The open-source [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) add-on uses Capytaine to generate compatible vessel structures without commercial seakeeping software.
 

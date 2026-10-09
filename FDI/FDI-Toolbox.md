@@ -28,7 +28,7 @@ mssPath
 Demo_FDIRadMod_WA
 ```
 
-The detailed tutorial and supporting publications are available in the [`documentation/FDI Identification of seakeeping models from frequency response data`](../documentation/FDI%20Identification%20of%20seakeeping%20models%20from%20frequency%20response%20data/) directory.
+The detailed tutorial source is available in [`FDI-Identification.tex`](../documentation/FDI%20Identification%20of%20seakeeping%20models%20from%20frequency%20response%20data/FDI-Identification.tex), with supporting publications in the same directory.
 
 ## Reference
 

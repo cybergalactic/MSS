@@ -16,7 +16,7 @@ The GNC library contains reusable MATLAB and GNU Octave functions for marine gui
 
 - `EKF_5states.m`: estimates position, speed over ground, course over ground, and course rate from GNSS positions.
 
-The more extensive inertial-navigation implementations are documented in the [INS Library](../INS/README.md).
+The more extensive inertial-navigation implementations are documented in the [INS Library](../INS/INS-Library.md).
 
 ## Control and Allocation
 

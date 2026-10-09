@@ -7,8 +7,8 @@ Octave; Python and Capytaine are needed only to regenerate them.
 
 | Case | Type | File |
 | --- | --- | --- |
-| [`testShip`](testShip/) | Synthetic surface monohull | `testShip/testShip.mat` |
-| [`LAUV_marie`](LAUV_marie/) | Idealized submerged LAUV Marie model | `LAUV_marie/LAUV_marie.mat` |
+| [`testShip`](testShip/Test-Ship.md) | Synthetic surface monohull | `testShip/testShip.mat` |
+| [`LAUV_marie`](LAUV_marie/LAUV-Marie.md) | Idealized submerged LAUV Marie model | `LAUV_marie/LAUV_marie.mat` |
 
 The data use MSS forward-starboard-down body axes and are referenced to the
 center of gravity. Both cases are demonstrations of the Capytaine-to-MSS

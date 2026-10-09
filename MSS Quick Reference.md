@@ -44,7 +44,7 @@ used only by another documented entry point are not listed separately.
 
 ## CRAFT (m-files)
 
-Start with the [CRAFT README](CRAFT/README.md) for an overview of the
+Start with the [CRAFT documentation](CRAFT/CRAFT-Library.md) for an overview of the
 established craft models, their simulation scripts, and the ShipX, WAMIT, and
 MSS-Capytaine workflow for user-defined vessels.
 
@@ -372,15 +372,15 @@ matrices `M`, `D`, and `G`. The import functions do not create the former
 top-level field `vessel.Bv`. ShipX Ikeda roll damping is retained separately as
 `vessel.roll.Bv44`.
 
-See the processing instructions for the [WAMIT data](HYDRO/vessels_wamit/README.md)
-and [ShipX data](HYDRO/vessels_shipx/README.md).
+See the processing instructions for the [WAMIT data](HYDRO/vessels_wamit/WAMIT-Vessels.md)
+and [ShipX data](HYDRO/vessels_shipx/ShipX-Vessels.md).
 
 ### Capytaine integration
 
 [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) is a separate Python add-on that uses the open-source [Capytaine](https://capytaine.org/) boundary-element solver and exports the results in the MSS `vessel` structure format. Clone MSS-Capytaine separately and run `python main.py` from its project directory to regenerate the example hydrodynamic data.
 
-Pre-generated [testShip](HYDRO/vessels_capytaine/testShip/) and submerged
-[LAUV_marie](HYDRO/vessels_capytaine/LAUV_marie/) cases are included in MSS.
+Pre-generated [testShip](HYDRO/vessels_capytaine/testShip/Test-Ship.md) and submerged
+[LAUV_marie](HYDRO/vessels_capytaine/LAUV_marie/LAUV-Marie.md) cases are included in MSS.
 Python and Capytaine are required only to regenerate the data; the included
 mat-files can be loaded and processed directly in MATLAB or GNU Octave.
 Their JSON-selected linear damping inputs are stored in `vessel.powerBased`

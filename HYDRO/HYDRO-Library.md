@@ -6,9 +6,9 @@ HYDRO imports, processes, inspects, and converts seakeeping data for use in MSS.
 
 | Source | License | Included cases and instructions |
 | --- | --- | --- |
-| ShipX (VERES) | Commercial | [`vessels_shipx`](vessels_shipx/) |
-| WAMIT | Commercial | [`vessels_wamit`](vessels_wamit/) |
-| Capytaine through MSS-Capytaine | Open source | [`vessels_capytaine`](vessels_capytaine/) |
+| ShipX (VERES) | Commercial | [ShipX vessel documentation](vessels_shipx/ShipX-Vessels.md) |
+| WAMIT | Commercial | [WAMIT vessel documentation](vessels_wamit/WAMIT-Vessels.md) |
+| Capytaine through MSS-Capytaine | Open source | [Capytaine vessel documentation](vessels_capytaine/Capytaine-Vessels.md) |
 
 [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) computes 6-DOF linear potential-flow hydrodynamics with the open-source Capytaine solver and exports the results in the MSS `vessel` format. Pre-generated Capytaine examples are included and do not require Python unless they are regenerated.
 
@@ -46,4 +46,4 @@ plotBv(vessel);
 | `loadcond.m` | Examine heave, roll, and pitch periods versus loading parameters. |
 | `Hoerner.m` and `cylinderDrag.m` | Hydrodynamic drag-coefficient utilities. |
 
-Supporting numerical functions are located in [`utils`](utils/), ShipX/VERES readers in [`utils/readdata`](utils/readdata/), and plotting helpers in [`utils/plotting`](utils/plotting/). WAMIT geometry tools are located in [`gdf`](gdf/). Radiation-model identification is documented in the [FDI README](../FDI/README.md).
+Supporting numerical functions are located in [`utils`](utils/), ShipX/VERES readers in [`utils/readdata`](utils/readdata/), and plotting helpers in [`utils/plotting`](utils/plotting/). WAMIT geometry tools are located in [`gdf`](gdf/). Radiation-model identification is documented in the [FDI Toolbox documentation](../FDI/FDI-Toolbox.md).
