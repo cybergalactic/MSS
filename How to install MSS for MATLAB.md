@@ -1,23 +1,59 @@
 # How to install MSS for MATLAB
 
-The Marine Systems Simulator (MSS) is a MATLAB library for marine systems (https://www.mathworks.com). The m-files are compatible with the free software GNU Octave (https://www.octave.org). To begin using the MSS toolbox, ensure it is installed and properly set up in your MATLAB environment.
+The Marine Systems Simulator (MSS) is a MATLAB Toolbox for for designing and testing marine control systems. The M-files are also compatible with [GNU Octave](https://www.octave.org). 
 
-## Download the MSS Directory:
-1. [Download ZIP](https://github.com/cybergalactic/MSS/archive/refs/heads/master.zip)
-2. Unzip the file to a desired location on your computer and name the directory MSS.
+Choose one of the three installation methods below:
 
-## Set Up MATLAB Path:
-1. Open MATLAB.
-2. From the MATLAB menu, choose "Set Path."
-3. Select "Add with Subfolders" and navigate to the unzipped MSS directory. Alternatively, suppose you are already in the top-level folder of the MSS toolbox. In that case, you can set the path directly by executing the following command in the MATLAB command window:
+## 1. Install from inside MATLAB (recommended)
 
-       >> addpath(genpath(pwd))
-       >> savepath
+1. Open the **Apps** tab in MATLAB.
+2. Click **Get More Apps**.
+3. Search for `MSS`.
+4. Select **Marine Systems Simulator (MSS)** and click **Install**.
 
-Later, you can update an existing path automatically and remove dead links by using the command
+## 2. Download the ZIP archive from GitHub
 
-       >> mssPath
-    
-4. To get started and find help on using the MSS, type the following command in the command window:
+1. [Download the MSS ZIP archive](https://github.com/cybergalactic/MSS/archive/refs/heads/master.zip).
+2. Extract the archive to a desired location and name the directory `MSS`.
 
-       >> mssHelp
+## 3. Install from the MATLAB Central webpage
+
+1. Open [Marine Systems Simulator (MSS) on MATLAB Central](https://www.mathworks.com/matlabcentral/fileexchange/86393-marine-systems-simulator-mss).
+2. Click **Download** or **Install in MATLAB** and follow the prompts.
+
+For MATLAB R2026b or later, the package can also be installed from the MATLAB Command Window:
+
+```matlab
+mpminstall("marine_systems")
+```
+
+## Set up the MATLAB path
+
+After installing or downloading MSS, run:
+
+```matlab
+mssPath
+```
+
+If MATLAB cannot find `mssPath`, add MSS to the path first:
+
+1. On the MATLAB **Home** tab, select **Set Path**.
+2. Select **Add with Subfolders**, choose the MSS directory, and save the path.
+
+Alternatively, open the MSS directory as the current folder and run:
+
+```matlab
+addpath(genpath(pwd))
+savepath
+mssPath
+```
+
+The `mssPath` command refreshes the MSS folders on the MATLAB path, saves the path, and removes obsolete MSS path entries. Run it again after updating MSS.
+
+## Get started
+
+Display the MSS help menu from the MATLAB Command Window:
+
+```matlab
+mssHelp
+```
