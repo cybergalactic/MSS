@@ -50,8 +50,17 @@ if isempty(filePath)
         'Interpreter', 'none');
     axis off;
 else
-    img = imread(filePath);
-    imshow(img, 'InitialMagnification', 'fit');
+    [img, ~, alpha] = imread(filePath);
+    hImage = imshow(img, 'InitialMagnification', 'fit');
+    if ~isempty(alpha)
+        if isinteger(alpha)
+            alpha = double(alpha) / double(intmax(class(alpha)));
+        else
+            alpha = double(alpha);
+        end
+        set(hImage, 'AlphaData', alpha);
+        set(gca, 'Color', 'w');
+    end
 end
 
 end
