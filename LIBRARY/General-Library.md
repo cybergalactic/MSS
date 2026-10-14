@@ -25,6 +25,13 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 - `rk4.m`: fourth-order Runge–Kutta integration.
 - `lowPassFilter.m`, `highPassFilter.m`, and `waveFreqObserver.m`: signal filtering and wave-frequency estimation.
 
+`waveForceRAO.m` accepts an optional positive-down vehicle depth. For a
+submerged vessel, `waveInitialization.m` reads the RAO reference depth from
+`vessel.main.submergenceDepth`, and each force component is attenuated below
+that reference by `exp[-(omega^2/g) Delta_d]`. Omitting the depth preserves
+the original surface-vessel behavior, and shallower depths do not amplify the
+loads.
+
 ## Getting Started
 
 In MATLAB, add MSS and its subfolders to the path by running the following command from the MSS root directory:

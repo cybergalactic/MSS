@@ -14,6 +14,13 @@ The data use MSS forward-starboard-down body axes and are referenced to the
 center of gravity. Both cases are demonstrations of the Capytaine-to-MSS
 workflow rather than validated vessel designs.
 
+LAUV Marie also has a dedicated standalone craft model,
+[`lauvMarie.m`](../../CRAFT/AUV/lauvMarie.m), and wave-enabled simulation,
+[`SIMlauvMarie.m`](../../CRAFT/AUV/SIMlauvMarie.m). These add LAUV-specific
+nonlinear and calibratable terms, controls, guidance, and depth attenuation of
+wave forces. `SIMhydroVessel` continues to provide the general view of the
+common vessel structure and hydrodynamic workflow.
+
 The generated files also contain the linear viscous-damping inputs selected
 in each MSS-Capytaine `config.json` under `vessel.powerBased`. For these two
 cases, `hydroVesselConfig.m` uses the stored values as the simulation defaults.

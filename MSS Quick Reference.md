@@ -63,6 +63,7 @@ SIMclarke83     % Simulate a generic ship model characterized by L, B, and T und
 SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure.
 SIMfrigate      % Simulate frigate.m using a PID heading autopilot
 SIMhydroVessel  % Simulate a 6-DOF vessel model generated from ShipX, WAMIT, or Capytaine data
+SIMlauvMarie    % Simulate LAUV Marie with currents, directional waves, depth/heading control, and 3-D ALOS guidance
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
 SIMotter        % Simulate otter.m with heading control and 2-D LOS straight-line path course control
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
@@ -85,6 +86,7 @@ container       % Nonlinear maneuvering model of a high-speed container ship, L 
 DSRV            % Deep Submergence Rescue Vehicle (DSRV), L = 5.0 m (Healey 1992)
 frigate         % Nonlinear autopilot model for a frigate, L = 100 m
 hydroVessel     % Unified nonlinear 6-DOF model for ShipX, WAMIT, and Capytaine vessel structures
+lauvMarie       % Unified nonlinear seakeeping/maneuvering model of LAUV Marie based on MSS-Capytaine data
 Lcontainer      % Linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
 mariner         % Nonlinear maneuvering model for the Mariner class vessel, L = 160 m 
 navalvessel     % Nonlinear maneuvering model of a multipurpose naval vessel, L = 51.5 m
@@ -192,8 +194,8 @@ isherwood72         % Compute the wind forces and coefficients based on Isherwoo
 spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped AUV in waves.
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
-waveForceRAO        % Compute the wave elevation and the generalized 1st-order wave forces, tau_wave1, at time t from force RAOs 
-waveInitialization  % Initialize the directional wave spectrum, random phases, and force- or motion-RAO model
+waveForceRAO        % Compute wave elevation and 1st-order force-RAO loads, with optional depth attenuation for submerged vessels
+waveInitialization  % Initialize the directional wave spectrum, random phases, RAO tables, and submerged-vessel reference depth
 waveMotionRAO       % Compute the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 waveSpectrum        % Function computing state-of-the-art wave spectra
@@ -383,6 +385,11 @@ Pre-generated [testShip](HYDRO/vessels_capytaine/testShip/Test-Ship.md) and subm
 [LAUV_marie](HYDRO/vessels_capytaine/LAUV_marie/LAUV-Marie.md) cases are included in MSS.
 Python and Capytaine are required only to regenerate the data; the included
 mat-files can be loaded and processed directly in MATLAB or GNU Octave.
+The dedicated [`lauvMarie.m`](CRAFT/AUV/lauvMarie.m) and
+[`SIMlauvMarie.m`](CRAFT/AUV/SIMlauvMarie.m) pair uses the LAUV data as a
+standalone, wave-enabled craft model with vehicle-specific nonlinear and
+calibratable terms. `SIMhydroVessel` remains the general-purpose view of the
+common vessel structure and hydrodynamic workflow.
 Their JSON-selected linear damping inputs are stored in `vessel.powerBased`
 and used as the defaults by `hydroVesselConfig.m`. Commented per-vessel
 assignments can be enabled there when a simulation-specific override is

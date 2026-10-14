@@ -23,10 +23,31 @@ a hydrodynamic example rather than a validated digital twin of Marie.
 
 The data use MSS forward-starboard-down body axes and are referenced to the
 vehicle center of gravity. The hull is placed at a mean operating center
-depth of 5.0 m for the Capytaine free-surface calculation. This is a single
+depth of 1.0 m for the Capytaine free-surface calculation. This is a single
 fixed equilibrium depth rather than a depth-averaged hydrodynamic model; the
 translation is removed from the exported body-fixed CG, CB, and panel
 coordinates.
+
+## Standalone MSS craft model
+
+The dedicated [`lauvMarie.m`](../../../CRAFT/AUV/lauvMarie.m) model uses this
+file in a unified 6-DOF seakeeping/maneuvering formulation. The power-based
+constant model is augmented by calibratable viscous and friction terms and by
+nonlinear damping, cross-flow, lift, drag, and Coriolis terms.
+
+[`SIMlauvMarie.m`](../../../CRAFT/AUV/SIMlauvMarie.m) is the corresponding
+standalone simulation with ocean currents, directional JONSWAP waves,
+first-order wave loads, depth/heading control, and 3-D ALOS guidance. The
+1.0 m Capytaine depth is the shallow reference for the force RAOs. At greater
+vehicle depths, each wave-frequency component is attenuated according to its
+deep-water wave number; components are not amplified when the vehicle is
+shallower than the reference. This runtime correction acts on the wave forces
+only and does not change the added-mass or radiation-damping data.
+
+The same MAT file remains available in `SIMhydroVessel` for a general view of
+the common hydrodynamic-vessel workflow. That generic simulation does not
+replace the LAUV-specific nonlinear and calibratable craft model described
+above.
 
 ## Regenerating the data
 

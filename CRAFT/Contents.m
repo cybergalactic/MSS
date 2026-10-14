@@ -13,9 +13,13 @@
 %
 % AUV simulation scripts and models:
 %   SIMdsrv         - DSRV depth-control simulation.
+%   SIMlauvMarie    - LAUV Marie simulation with currents, directional waves,
+%                     depth/heading control, and 3-D ALOS path following.
 %   SIMnpsauv       - NPS AUV depth, heading, and 3-D path-following simulation.
 %   SIMremus100     - REMUS 100 depth, heading, and 3-D path-following simulation.
 %   DSRV            - Deep Submergence Rescue Vehicle model.
+%   lauvMarie       - Unified LAUV Marie seakeeping/maneuvering model using
+%                     MSS-Capytaine data and nonlinear hydrodynamic terms.
 %   npsauv          - Naval Postgraduate School AUV model.
 %   remus100        - REMUS 100 AUV model.
 %
