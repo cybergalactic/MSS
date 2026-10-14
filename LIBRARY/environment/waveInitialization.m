@@ -23,7 +23,9 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 % Outputs:
 %   environment - Input structure augmented with S_M, Amp, Omega, and mu
 %   waveModel   - Initialized wave spectrum, random phases, and interpolated
-%                 RAO tables used by waveForceRAO or waveMotionRAO
+%                 RAO tables used by waveForceRAO or waveMotionRAO. For a
+%                 submerged vessel, raoReferenceDepth is the depth at which
+%                 the hydrodynamic data were generated.
 %
 % The random-number generator is intentionally not set here. Use rng at the
 % simulation or example level before calling waveInitialization when a
@@ -32,6 +34,7 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 % Author:    Thor I. Fossen
 % Date:      2026-10-03
 % Revisions:
+%   2026-10-14: Store the RAO reference depth for submerged-vessel loads.
 
 if nargin < 3
     raoType = 'force';
@@ -94,6 +97,14 @@ waveModel.Amp = Amp;
 waveModel.Omega = Omega;
 waveModel.mu = mu;
 waveModel.g = vessel.main.g;
+waveModel.raoReferenceDepth = 0;
+if isfield(vessel.main, 'submerged') && ...
+        isscalar(vessel.main.submerged) && logical(vessel.main.submerged) && ...
+        isfield(vessel.main, 'submergenceDepth') && ...
+        isscalar(vessel.main.submergenceDepth) && ...
+        isfinite(vessel.main.submergenceDepth)
+    waveModel.raoReferenceDepth = max(0, vessel.main.submergenceDepth);
+end
 
 numFreqIntervals = length(Omega);
 numDirections = length(mu);
