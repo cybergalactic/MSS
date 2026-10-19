@@ -1,10 +1,23 @@
-function wopcData = exWOPC(mode)
-% exWOPC simulates the fully and underactuated weather-optimal positioning 
-% control law (WOPC) law for marine craft using nonlinear PID control.
+function exWOPC()
+% exWOPC simulates fully actuated and underactuated weather-optimal
+% positioning control (WOPC) for marine craft using nonlinear PID control.
+% The example is compatible with MATLAB and Octave (www.octave.org).
 % The vessel state is x = [x_n y_n psi u v r]' and supply.m is used for
 % the vessel dynamics. 
 %
+% Run exWOPC with no inputs. Select the actuation configuration using
+% the flag below: 0 = fully actuated, 1 = underactuated.
+% Underactuated operation uses paired main propellers and one bow tunnel
+% thruster, which couples sway force and yaw moment.
+%
+% Actuation is instantaneous and unsaturated. The example computes thrust
+% and propeller speeds; it does not estimate shaft power or power savings.
+%
 % References:
+%   Fossen, T. I. (2027). Virtual Anchor Nonlinear PID Control for Weather-
+%   Optimal Positioning of Fully Actuated and Underactuated Marine Craft. 
+%   Submitted to Ocean Engineering
+%
 %   Fossen (2027), T. I. "Handbook of Marine Craft Hydrodynamics and Motion
 %   Control," 3rd edition, John Wiley & Sons, Ltd., Chichester, UK.
 %
@@ -20,33 +33,31 @@ function wopcData = exWOPC(mode)
 % Author:     Thor I. Fossen
 % Date:       2026-08-12
 % Revisions:
+%   2026-10-18: Revised gains, 180-min horizon, ideal actuation, and
+%               physical sway-yaw coupling.
 
 close all;
 
-% mode: 0 - fully actuated, 1 - underactuated
-if nargin == 0
-    mode = 0; 
-end
+flag = 0;                        % 0 = fully actuated, 1 = underactuated
 
+% ------------------------------------------------------------------------------
 %% SIMULATION PARAMETERS
-T_final = 3600;                   % Final simulation time (s)
-h = 0.05;                         % Sampling time (s)
+% ------------------------------------------------------------------------------
+T_final = 10800;                 % Final simulation time (s)
+h = 0.05;                        % Sampling time (s)
 t = (0:h:T_final)';               % Column time vector
 nTimeSteps = length(t);
 
-%% WOPC GEOMETRY AND ENVIRONMENT
+% WOPC GEOMETRY AND ENVIRONMENT
 R_d = 50;                          % Desired virtual-circle radius (m)
 p_d = [0; 0];                      % Desired North-East position (m)
 
-% A normalized disturbance w = -1 acts in the East coordinate, that is,
-% towards west. The force scale makes the load visible for the supply
-% vessel model while retaining w as the requested direction parameter.
+% Constant environmental load of 100 kN towards west.
 w = -1;
-F_w = 1.0e5;                      % Mean environmental-force scale (N)
-w_n = F_w * [0; w; 0];            % Constant load in NED coordinates
+w_n = 1e5 * [0; w; 0];           % Constant load in NED coordinates
 
-%% WOPC GAINS 
-[~,~,M] = supply();               % MSS supply-vessel mass matrix
+% WOPC GAINS 
+[~,~,M,D] = supply();               % MSS supply-vessel mass matrix
 
 % Nonlinear PID pole-placement initialization using separate surge, sway,
 % and yaw bandwidths. The radial task uses omega_u and the angular task uses
@@ -59,27 +70,26 @@ w_n = F_w * [0; w; 0];            % Constant load in NED coordinates
 %   Lambda = Omega_task/10, K_i = K_p*Lambda,
 %   k_0 = min(diag(Lambda))/2,
 %   K_0 = M(1,1)*k_0^2*I_2.
-omega_n = [0.15; 0.1; 0.3];        % [omega_u,omega_v,omega_r]' (rad/s)
+omega_n = [0.05; 0.1; 0.025];     % Bandwidths (rad/s)
 zeta = [1.0; 0.5; 1.0];            % [zeta_u,zeta_v,zeta_r]'
 T_d = [-1, 0, 0; 0, -1/R_d, -1];
 M_task = (T_d * (M \ T_d')) \ eye(2);
 Omega_task = diag([omega_n(1),omega_n(3)]);
 K_p = Omega_task * M_task * Omega_task;
 K_d = 2 * diag(zeta .* omega_n .* diag(M));
-if mode == 1
+if flag == 1
     K_d(2,2) = 0;
 end
 Lambda = Omega_task / 10;
-K_i = K_p * Lambda;              %#ok<NASGU> Explicit equivalent PID gain
+K_i = K_p * Lambda;              % Explicit equivalent PID gain
 k_0 = min(diag(Lambda)) / 2;     % Slower absolute-position anchor
-K_0 = M(1,1) * k_0^2 * eye(2);  % Cartesian position stiffness (N/m)
+K_0 = M(1,1) * k_0^2 * eye(2);   % Cartesian position stiffness (N/m)
 
-%% THRUSTERS AND CONTROL ALLOCATION (FOSSEN 2027, Chapter 12)
+% THRUSTERS AND CONTROL ALLOCATION (FOSSEN 2027, Chapter 12)
 %   #1-#2 Bow tunnel thrusters (RPM)
 %   #3-#4 Stern tunnel thrusters (RPM)
 %   #5-#6 Main propellers (RPM)
-T_n = 1;                          % Propeller-speed time constant (s)
-n_max = [250, 250, 250, 250, 160, 160]';
+% Ideal actuation: instantaneous thrust without saturation.
 % Columns 1--4 are transverse tunnel thrusters, while columns 5--6 are
 % the main propellers. The coefficients include thrust gains and moment
 % arms, and map u = |n|.*n into generalized force tau = B*u.
@@ -87,15 +97,9 @@ B = [0,   0,    0,     0,   31.2,   31.2; ...
      3.2, 3.2,  3.2,   3.2,  0,      0; ...
      96,  70.4, -70.4, -96, -249.6, 249.6];
 
-% Projector used in underactuated mode. Applying B^dagger to the projected
-% command is equivalent to the case-study construction G = B^dagger*E,
-% B_eff = B*G = E, where E embeds the surge and yaw commands.
-Pi = diag([1, 0, 1]);
-
-%% INITIAL CONDITIONS
-eta = [50; -20; 0];               % [x_n,y_n,psi]': on initial circle
+% INITIAL CONDITIONS
+eta = [50; -20; 0];               % [x_n,y_n,psi]'
 nu = zeros(3,1);                  % [u,v,r]'
-n = zeros(6,1);                   % Actual propeller speeds (RPM)
 p_0 = p_d;                        % Initial virtual-circle center
 e_I = zeros(2,1);                 % WOPC integral state
 rho_min = 1.0;                    % Guard for the polar singularity (m)
@@ -107,8 +111,21 @@ angularError = 0;
 relativeAnglePrevious = 0;
 antipodalHysteresis = deg2rad(5);
 
+% ------------------------------------------------------------------------------
 %% STORED WOPC RESPONSE
+% ------------------------------------------------------------------------------
 % Named fields make the saved simulation signals explicit
+wopcData.flag = flag;
+wopcData.M = M;
+wopcData.D = D;
+wopcData.loadNED = w_n;
+wopcData.headingEquilibrium = atan2(-w_n(2),-w_n(1));
+wopcData.Kp = K_p;
+wopcData.Ki = K_i;
+wopcData.Kd = K_d;
+wopcData.Lambda = Lambda;
+wopcData.k0 = k_0;
+wopcData.K0 = K_0;
 wopcData.time = t;
 wopcData.nu = zeros(nTimeSteps,3);
 wopcData.eta = zeros(nTimeSteps,3);
@@ -122,7 +139,9 @@ wopcData.nCommand = zeros(nTimeSteps,6);
 wopcData.tauControl = zeros(nTimeSteps,3);
 wopcData.tauDisturbance = zeros(nTimeSteps,3);
 
+% ------------------------------------------------------------------------------
 %% MAIN LOOP
+% ------------------------------------------------------------------------------
 for i = 1:nTimeSteps
 
     % Polar WOPC coordinates. The relative angle is lifted continuously below 
@@ -170,25 +189,27 @@ for i = 1:nTimeSteps
     g_p = [R_nb(1:2,1:2)' * K_0 * positionError; 0];
     generalizedForce = K_d * nu + T' * K_p * sigma + g_p;
 
-    % Underactuated mode removes the generalized sway-force command before
-    % applying the same minimum-norm physical-thruster allocation.
-    if mode == 1
-        generalizedForce = Pi * generalizedForce;
-    end
     tau_WOPC = -generalizedForce;
-    u_command = B' * ((B * B') \ tau_WOPC);
-    n_c = sign(u_command) .* sqrt(abs(u_command));
-    n_c = min(max(n_c,-n_max),n_max);
+    if flag == 1
+        % Bow tunnel thruster #1 (x = +30 m) and equally commanded main
+        % propellers #5--6. Stern and remaining bow thrusters are inactive.
+        % B_eff = [1 0; 0 1; 0 30] maps [total surge thrust; bow force].
+        u_command = zeros(6,1);
+        u_command(1) = tau_WOPC(3) / B(3,1);
+        u_command(5:6) = tau_WOPC(1) / (B(1,5) + B(1,6));
+    else
+        u_command = B' * ((B * B') \ tau_WOPC);
+    end
+    n = sign(u_command) .* sqrt(abs(u_command));
+    n_c = n;                       % Instantaneous actuator response
+    tau = B * u_command;
 
-    % The constant NED west load is transformed to BODY coordinates to
+    % The constant NED load is transformed to BODY coordinates to
     % form the unknown w(psi) in the vessel model
     w_body = R_nb' * w_n;
 
-    % Ship, propeller, integral-state, and virtual-center dynamics
-    u = abs(n) .* n;
-    tau = B * u;
-    xdot = supply([eta; nu],tau + w_body);
-    ndot = (n_c - n) / T_n;
+    % Supply-vessel dynamics, using its constant M and D matrices.
+    nu_dot = M \ (tau + w_body - D * nu);
     e_Idot = x_tilde;                                  % Integral error
     % The absolute-position correction removes the translated equilibrium
     % family without introducing a desired virtual-circle center
@@ -205,24 +226,24 @@ for i = 1:nTimeSteps
     wopcData.sigma(i,:) = sigma';
     wopcData.n(i,:) = n';
     wopcData.nCommand(i,:) = n_c';
-    wopcData.tauControl(i,:) = tau_WOPC';
+    wopcData.tauControl(i,:) = tau';
     wopcData.tauDisturbance(i,:) = w_body';
 
     % Euler integration to sample k+1 (Fossen 2027, Appendix B)
-    nu = nu + h * xdot(4:6);                           % Forward Euler
-    eta = eta + h * R_nb * nu;                         % Backward Euler
-    n = n + h * ndot;
-    n = min(max(n,-n_max),n_max);
+    nu = nu + h * nu_dot;                           % Forward Euler
+    eta = eta + h * R_nb * nu;                      % Backward Euler
     e_I = e_I + h * e_Idot;
     p_0 = p_0 + h * p_0dot;
 end
 
+% ------------------------------------------------------------------------------
 %% PLOTS
-plotWOPC(wopcData,R_d,p_d,w);
+% ------------------------------------------------------------------------------
+plotWOPC(wopcData,R_d,p_d);
 
 end
 
-% -------------------------------------------------------------------------
+% ------------------------------------------------------------------------------
 function draw_arrow(startpoint,endpoint,headsize)
 % Draw a filled arrow between two [x y] plot coordinates
 v1 = headsize * (startpoint-endpoint) / 2.5;
@@ -240,7 +261,7 @@ plot([startpoint(1) endpoint(1)],[startpoint(2) endpoint(2)], ...
 end
 
 % -------------------------------------------------------------------------
-function plotWOPC(wopcData,R_d,p_d,w)
+function plotWOPC(wopcData,R_d,p_d)
 % plotWOPC plots the WOPC trajectory, heading, and virtual-circle center
 
 t = wopcData.time / 60;           % Plot time in minutes
@@ -256,7 +277,7 @@ subplot(211)
 plot(t,rad2deg(psi),'-.r','LineWidth',2)
 hold on
 % The bow points into the incoming weather, opposite its travel direction
-psiOptimal = -sign(w) * 90;
+psiOptimal = rad2deg(wopcData.headingEquilibrium);
 plot([t(1),t(end)],[psiOptimal,psiOptimal],'-k','LineWidth',2)
 hold off
 title('Weather-optimal heading (deg)','FontSize',14)
@@ -268,21 +289,21 @@ subplot(212)
 plot(t,x0,'-.r',t,y0,'b-','LineWidth',2)
 title('Virtual-circle center coordinates (m)','FontSize',14)
 xlabel('Time (min)','FontSize',12)
-legend('x_0 (m)','y_0 (m)','Location','best','FontSize',12)
+legend('x_0 (m)','y_0 (m)','Location','best')
 grid on
 
 %% FIGURE 2: NORTH-EAST TRAJECTORY AND VIRTUAL CIRCLES
 figure(2); clf
 hold on
 
-% Westward disturbance arrow (the horizontal plot coordinate is East)
-if w < 0
-    draw_arrow([70,0],[55,0],0.5);
-    text(62,5,'w','fontsize',13)
-else
-    draw_arrow([-70,0],[-55,0],0.5);
-    text(-65,5,'w','fontsize',13)
-end
+% Constant mean-load arrow in the North-East plot.
+loadPlot = [wopcData.loadNED(2),wopcData.loadNED(1)];
+loadPlot = loadPlot / norm(loadPlot);
+arrowStart = [70,0];
+arrowEnd = arrowStart + 15 * loadPlot;
+draw_arrow(arrowStart,arrowEnd,0.5);
+text(mean([arrowStart(1),arrowEnd(1)]), ...
+     mean([arrowStart(2),arrowEnd(2)])+5,'w','fontsize',13)
 
 % Ship trajectory and the initial virtual circle centered at p_d
 plot(y(1:3:end),x(1:3:end),'k','LineWidth',1.5)
@@ -332,9 +353,18 @@ for i = endpointIndex
     fill(YN,XN,'k','EdgeColor','k','LineWidth',2.0)
 end
 
-% Show four snapshots of the moving virtual circle and its center
-circleIndex = unique(round(linspace(1,length(t),4)));
-for k = 1:length(circleIndex)
+% Show six snapshots spaced along center travel, so the transient circle
+% motion remains visible even when most of the simulation is at equilibrium.
+centerDistance = [0; cumsum(hypot(diff(x0),diff(y0)))];
+circleDistance = linspace(0,centerDistance(end),6);
+circleIndex = zeros(1,6);
+for k = 1:6
+    [~,circleIndex(k)] = min(abs(centerDistance-circleDistance(k)));
+end
+circleIndex(end) = length(t);
+circleIndex = unique(circleIndex,'stable');
+% The initial circle is already drawn above.
+for k = 2:length(circleIndex)
     i = circleIndex(k);
     plot(y0(i) + R_d*sin(theta),x0(i) + R_d*cos(theta), ...
         'r','LineWidth',1.0,'HandleVisibility','off')
@@ -350,6 +380,6 @@ ylabel('North (m)','FontSize',12)
 title('Weather-optimal positioning response','FontSize',16)
 grid on
 axis equal
-axis([-80 140 -80 60]);
+axis([-80 140 -80 80]);
 
 end
