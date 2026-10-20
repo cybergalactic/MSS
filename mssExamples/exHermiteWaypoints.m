@@ -1,11 +1,11 @@
-% The script computes a C1 Hermite/MAKIMA spline path through planar
+% The script computes a C1 cubic Hermite spline path through planar
 % waypoints given in North-East coordinates. The script also simulates a
 % vehicle moving at constant speed and constant course, projects the
 % vehicle position onto the sampled path, and visualizes the corresponding
 % cross-track error.
 %
 % The script:
-%   1) Generates a Hermite/MAKIMA spline path through the waypoints.
+%   1) Generates a cubic Hermite spline path through the waypoints.
 %   2) Computes the path tangent angle pi_h(varpi) and curvature kappa(varpi).
 %   3) Simulates a vehicle trajectory in the North-East plane.
 %   4) Projects the vehicle position locally onto the path.
