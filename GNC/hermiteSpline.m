@@ -1,14 +1,13 @@
 function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
     pp_x, pp_y, N_forward,kappa] = hermiteSpline(wpt, Umax, h)
 % hermiteSpline computes paths and path tangents using Hermite spline 
-% interpolation. It uses the Akima algorithm for 1-D interpolation to 
-% produce piecewise polynomials with continuous 1st-order derivatives (C1). 
-% Compared to the spline algorithm, the Akima algorithm produces fewer 
-% undulations and is better suited to deal with quick changes between 
-% flat regions. Compared to the pchip algorithm, the Akima algorithm is 
-% not as aggressively flattened and is therefore still able to deal with 
-% oscillatory data. The function calculates a Hermite spline path through a 
-% set of waypoints, estimating the numer of intervals (moving horizon) needed
+% interpolation with chord-length parameterization. Interior tangents bisect
+% the incoming and outgoing segment directions, giving a shared nonzero
+% derivative through corners, including axis-aligned right-angle turns.
+% Endpoint tangents follow the first and last segments. Consecutive duplicate
+% waypoints and exact direction reversals are not supported.
+% The function calculates a path through the waypoints, estimating the
+% number of intervals (moving horizon) needed
 % to find the crosstrack error for a vehicle moving at speed Umax. It 
 % provides the path variables, the x and y coordinates along the path, 
 % their derivatives, and the angle of the path tangent relative to North.
@@ -42,14 +41,32 @@ function [w_path, x_path, y_path, dx_path, dy_path, pi_h, ...
 % Date:      2024-04-21
 % Revisions: 
 %   2024-06-22 Replaced pchip with makima.
+%   2026-10-18 Replaced coordinate-wise MAKIMA with shared Hermite tangents.
 
-% Calculate path length from waypoints
-pathLength = 0;
-for i = 2:length(wpt.pos.x)
-    deltaLength = sqrt((wpt.pos.x(i) - wpt.pos.x(i-1))^2 + ...
-        (wpt.pos.y(i) - wpt.pos.y(i-1))^2);
-    pathLength = pathLength + deltaLength;
+validateattributes(Umax, {'numeric'}, {'real','finite','scalar','positive'});
+validateattributes(h, {'numeric'}, {'real','finite','scalar','positive'});
+validateattributes(wpt.pos.x, {'numeric'}, {'real','finite','vector','numel',numel(wpt.pos.y)});
+validateattributes(wpt.pos.y, {'numeric'}, {'real','finite','vector'});
+points = [wpt.pos.x(:), wpt.pos.y(:)];
+if size(points, 1) < 2
+    error('hermiteSpline:Waypoints', 'At least two waypoints are required.');
 end
+segments = diff(points, 1, 1);
+lengths = hypot(segments(:,1), segments(:,2));
+if any(lengths == 0)
+    error('hermiteSpline:DuplicateWaypoints', ...
+        'Consecutive waypoints must be distinct.');
+end
+directions = bsxfun(@rdivide, segments, lengths);
+tangents = [directions(1,:); ...
+    directions(1:end-1,:) + directions(2:end,:); directions(end,:)];
+tangentNorms = hypot(tangents(:,1), tangents(:,2));
+if any(tangentNorms < 1e-12)
+    error('hermiteSpline:DirectionReversal', ...
+        'Direction reversals require additional waypoints to define a turn.');
+end
+tangents = bsxfun(@rdivide, tangents, tangentNorms);
+pathLength = sum(lengths);
 
 % Calculate the time to traverse the path at maximum speed
 time = pathLength / Umax;
@@ -59,13 +76,24 @@ N_interval = floor(time / h) + 1;
 deltaPath = pathLength / N_interval;
 N_forward = round(Umax / deltaPath);
 
-% Parameterize path using the calculated intervals
+% Retain integer sample parameters for the moving-horizon guidance search.
+% Polynomial breaks are spaced in proportion to waypoint chord lengths.
 w_path = linspace(0, N_interval, N_interval + 1);
-wpt.idx = linspace(0, N_interval, length(wpt.pos.x));
+breaks = [0; cumsum(lengths)] * (N_interval / pathLength);
+tangents = tangents * (pathLength / N_interval);
 
-% Interpolate waypoints using MAKIMA
-pp_x = makima(wpt.idx, wpt.pos.x);
-pp_y = makima(wpt.idx, wpt.pos.y);
+% Construct cubic Hermite polynomials with the same tangent on both sides
+% of every waypoint. Coefficients use the local parameter w - breaks(i).
+widths = diff(breaks);
+slopes = bsxfun(@rdivide, segments, widths);
+cubic = bsxfun(@rdivide, ...
+    tangents(1:end-1,:) + tangents(2:end,:) - 2 * slopes, widths.^2);
+quadratic = bsxfun(@rdivide, ...
+    3 * slopes - 2 * tangents(1:end-1,:) - tangents(2:end,:), widths);
+pp_x = mkpp(breaks', [cubic(:,1), quadratic(:,1), ...
+    tangents(1:end-1,1), points(1:end-1,1)]);
+pp_y = mkpp(breaks', [cubic(:,2), quadratic(:,2), ...
+    tangents(1:end-1,2), points(1:end-1,2)]);
 
 % Calculate derivatives of the path using the custom derivative function
 pp_dx = ppDerivative(pp_x);
@@ -93,7 +121,7 @@ y_path = ppval(pp_y, w_path);
 
 end
 
-%% Calculate the derivative of a piecewise polynomial using finite differences
+%% Differentiate the piecewise polynomial coefficients analytically
 function dpp = ppDerivative(pp)
     [breaks, coefs, ~, k, ~] = unmkpp(pp);
     dcoefs = coefs(:,1:k-1) .* (k-1:-1:1);
