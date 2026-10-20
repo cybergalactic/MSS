@@ -77,7 +77,7 @@ end
 
 % Ensure index does not exceed bounds
 idx_end = min(idx_start + N_horizon, length(w_path));
-w_horizon = idx_start:idx_end;
+w_horizon = w_path(idx_start:idx_end);
 
 % Evaluate polynomials over the horizon
 x_horizon = ppval(pp_x, w_horizon);
