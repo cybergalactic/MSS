@@ -48,6 +48,9 @@ function SIMotter()
 %               with RK4.
 %   2026-06-27: Added propeller speed saturation using limits from otter.m.
 %   2026-10-07: Corrected reverse-thrust control allocation (E. Krizman)
+%   2026-10-18: Smoothed Hermite turns using shared waypoint tangents and
+%               chord-length spacing; kept intermediate waypoints only for
+%               straight-line guidance and corrected Hermite search indexing.
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -55,7 +58,7 @@ clear ALOSpsi ILOSpsi ALOSpsiHermite        % Clear persistent variables
 
 %% USER INPUTS
 h  = 0.05;                       % Sampling time [s]
-T_final = 1000;	                 % Final simulation time [s]
+T_final = 700;	                 % Final simulation time [s]
 
 % Load condition
 mp = 25;                         % Payload mass (kg), maximum value 45 kg
@@ -68,9 +71,6 @@ beta_c = deg2rad(30);            % Ocean current direction (rad)
 % Waypoints
 wpt.pos.x = [0 0   150 150 -100 -100 200];
 wpt.pos.y = [0 200 200 -50  -50  250 250];
-
-% Add intermediate waypoints along the line segments between for better resolution
-wpt = addIntermediateWaypoints(wpt, 2);
 
 % ALOS and ILOS parameters
 Delta_h = 10;                    % Look-ahead distance
@@ -85,7 +85,7 @@ K_f = 0.3;                       % LOS observer gain
 psi0 = atan2(wpt.pos.y(2) - wpt.pos.y(1), wpt.pos.x(2) - wpt.pos.x(1));
 
 % Additional parameters for Hermite spline path following
-Umax = 2;                        % Maximum speed for Hermite spline LOS
+Umax = 3;                        % Maximum speed for Hermite spline LOS
 idx_start = 1;                   % Initial index for Hermite spline
 [w_path, x_path, y_path, dx, dy, pi_h, pp_x, pp_y, N_horizon, ~] = ...
     hermiteSpline(wpt, Umax, h); % Compute Hermite spline for path following
@@ -94,8 +94,8 @@ idx_start = 1;                   % Initial index for Hermite spline
 [~,~,M,B_prop,n_min,n_max] = otter();
 % The /2 converts the combined twin-propeller coefficients to per-propeller
 % values. These coefficients should match CRAFT/USV/models/otter.m.
-k_pos = 0.02216/2;
-k_neg = 0.01289/2;
+k_pos = 0.02216 / 2;
+k_neg = 0.01289 / 2;
 % B_prop maps n.*abs(n) through k_pos. Dividing by k_pos gives the
 % geometry-only matrix mapping individual propeller thrusts to [tau_X; tau_N].
 B_thrust = B_prop / k_pos;
@@ -140,6 +140,10 @@ methods = {'PID heading autopilot, no path following',...
            'ILOS path-following control using straight lines and waypoint switching',...
            'ALOS path-following control using cubic Hermite splines'};
 ControlFlag = controlMethod(methods);
+if ControlFlag ~= 4
+    % Preserve intermediate waypoints for straight-line guidance only.
+    wpt = addIntermediateWaypoints(wpt, 2);
+end
 displayControlMethod(ControlFlag, R_switch, Delta_h);
 
 %% MAIN LOOP
