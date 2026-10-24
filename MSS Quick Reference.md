@@ -359,14 +359,24 @@ wamit2vessel       % Reads data from WAMIT output files and stores the data as a
 
 The WAMIT and ShipX import functions create the frequency-dependent vessel
 structure. The power-based maneuvering model is then computed separately.
-Floating vessels use three relative damping increments and three
+Floating vessels use three target time constants in seconds and three
 damping-ratio increments, while submerged vehicles use four target time
-constants and two damping-ratio increments:
+constants in seconds and two damping-ratio increments:
 
 ```matlab
-vessel = computeManeuveringModel(vessel,omega_p,kappa_126,delta_zeta_345,plotFlag);
+vessel = computeManeuveringModel(vessel,omega_p,T_126,delta_zeta_345,plotFlag);
 vessel = computeManeuveringModel(vessel,omega_p,T_1236,delta_zeta_45,plotFlag);
 ```
+
+`T_126 = [T_surge T_sway T_yaw]` specifies total diagonal velocity-decay
+targets, with `Bv(i,i) = M(i,i)/T_i - B_eq(i,i)`. Values must be positive
+and must not require negative additional viscous damping. The surface-vessel
+GUI displays these time constants in seconds; editable vessel presets are
+defined in `hydroVesselConfig.m`.
+
+Old saved `vessel.powerBased.kappa_126` percentages are reused with a warning
+only when the damping arguments are omitted. Explicit three-element damping
+arguments always mean `T_126` in seconds; do not reuse percentage vectors.
 
 This adds `vessel.powerBased`, including the equivalent matrices `A_eq` and
 `B_eq` and the viscous damping matrix `Bv`, together with the maneuvering-model
@@ -388,8 +398,11 @@ mat-files can be loaded and processed directly in MATLAB or GNU Octave.
 The dedicated [`lauvMarie.m`](CRAFT/AUV/lauvMarie.m) and
 [`SIMlauvMarie.m`](CRAFT/AUV/SIMlauvMarie.m) pair uses the LAUV data as a
 standalone, wave-enabled craft model with vehicle-specific nonlinear and
-calibratable terms. `SIMhydroVessel` remains the general-purpose view of the
-common vessel structure and hydrodynamic workflow.
+calibratable terms. `SIMhydroVessel` provides a generic hydrodynamic test tool:
+use **Load vessel MAT-file** to load exports from
+`MSS-Capytaine/vessels_capytaine/<family>/<case>/results/`. TestShip is the
+demonstration; ShipX and WAMIT entries use data imported from those solvers. LAUV Marie can be
+loaded manually; use `SIMlauvMarie` for its dedicated simulation.
 Their JSON-selected linear damping inputs are stored in `vessel.powerBased`
 and used as the defaults by `hydroVesselConfig.m`. Commented per-vessel
 assignments can be enabled there when a simulation-specific override is

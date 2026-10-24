@@ -84,6 +84,7 @@ cfg.control.heading.tauX = 0;
 cfg.damping.nonlinear_456 = [0 0 0];
 
 % Vessel-specific overrides
+% Surface T_126 presets approximate the former 5% damping at w0 = 1 rad/s.
 if ~useGenericDefaults
     switch lower(matFile)
     case 'supply.mat'
@@ -93,7 +94,7 @@ if ~useGenericDefaults
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.mode = 'DPsystem';
         cfg.control.dp.wn = [0.3 0.3 0.9];
-        cfg.damping.kappa_126 = [0.05 0.05 0.05]; % Bv is 5% of B_eq-values DOFs 1,2,6
+        cfg.damping.T_126 = [6.4 2.5 3.3]; % Time constants (s) in DOFs 1,2,6
         cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
@@ -106,7 +107,7 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.dp.wn = [0.3 0.3 0.9];
-        cfg.damping.kappa_126 = [0.05 0.05 0.05]; % Bv is 5% of B_eq-values DOFs 1,2,6
+        cfg.damping.T_126 = [11.9 2.0 1.8]; % Time constants (s) in DOFs 1,2,6
         cfg.damping.delta_zeta_345 = [0 0.2 0];   % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
@@ -118,7 +119,7 @@ if ~useGenericDefaults
         cfg.simulation.h = 0.05;
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
-        cfg.damping.kappa_126 = [0.05 0.05 0.05]; % Bv is 5% of B_eq-values DOFs 1,2,6
+        cfg.damping.T_126 = [49.9 3.6 4.7]; % Time constants (s) in DOFs 1,2,6
         cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
@@ -131,7 +132,7 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
         cfg.control.mode = 'DPsystem';
-        cfg.damping.kappa_126 = [0.05 0.05 0.05];  % Bv is 5% of B_eq-values DOFs 1,2,6
+        cfg.damping.T_126 = [7.3 4.2 4.1];  % Time constants (s) in DOFs 1,2,6
         cfg.damping.delta_zeta_345 = [0 0.1 0];    % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 0 0];       % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
@@ -143,7 +144,7 @@ if ~useGenericDefaults
         cfg.simulation.h = 0.05;
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
-        cfg.damping.kappa_126 = [0.05 0.05 0.05]; % Bv is 5% of B_eq-values DOFs 1,2,6
+        cfg.damping.T_126 = [22.7 3.1 3.4]; % Time constants (s) in DOFs 1,2,6
         cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
@@ -157,7 +158,7 @@ if ~useGenericDefaults
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.dp.wn = [0.3 0.3 0.9];
         % Optional overrides of the MSS-Capytaine values exported from config.json:
-        % cfg.damping.kappa_126 = [0.05 0.05 0.05]; % Bv is 5% of B_eq-values DOFs 1,2,6
+        % cfg.damping.T_126 = [20 8 20]; % Time constants (s) in DOFs 1,2,6
         % cfg.damping.delta_zeta_345 = [0 0.2 0];   % Increase damping ratios DOFs 3,4,5
         cfg.damping.nonlinear_456 = [5 5 0];        % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;               % M = Mq * (1 + kappa5 * |q|)
@@ -214,15 +215,15 @@ end
 function cfg = useStoredPowerBasedDamping(cfg)
 % Use explicit cfg values as overrides; otherwise load the MAT-file defaults.
 
-hasKappa = isfield(cfg.damping, 'kappa_126');
+hasSurfaceTimeConstants = isfield(cfg.damping, 'T_126');
 hasDelta345 = isfield(cfg.damping, 'delta_zeta_345');
 hasTimeConstants = isfield(cfg.damping, 'T_1236');
 hasDelta45 = isfield(cfg.damping, 'delta_zeta_45');
 
-if hasKappa || hasDelta345
-    if ~hasKappa || ~hasDelta345 || hasTimeConstants || hasDelta45
+if hasSurfaceTimeConstants || hasDelta345
+    if ~hasSurfaceTimeConstants || ~hasDelta345 || hasTimeConstants || hasDelta45
         error(['A floating-vessel damping override requires both ' ...
-            'kappa_126 and delta_zeta_345, and no submerged inputs.']);
+            'T_126 and delta_zeta_345, and no submerged inputs.']);
     end
     return
 end
@@ -249,9 +250,9 @@ if isfield(powerBased, 'T_1236') && ...
         isfield(powerBased, 'delta_zeta_45')
     cfg.damping.T_1236 = powerBased.T_1236;
     cfg.damping.delta_zeta_45 = powerBased.delta_zeta_45;
-elseif isfield(powerBased, 'kappa_126') && ...
+elseif isfield(powerBased, 'T_126') && ...
         isfield(powerBased, 'delta_zeta_345')
-    cfg.damping.kappa_126 = powerBased.kappa_126;
+    cfg.damping.T_126 = powerBased.T_126;
     cfg.damping.delta_zeta_345 = powerBased.delta_zeta_345;
 else
     error(['%s has incomplete power-based damping inputs. Add an ' ...

@@ -44,8 +44,8 @@ following. It also provides LAUV-specific input and result windows, including
 wave-spectrum and wave-force plots.
 
 The same `LAUV_marie.mat` data can be opened in [`SIMhydroVessel.m`](SIMhydroVessel.m)
-for a general view through the common hydrodynamic-vessel workflow. That
-generic route is useful for inspecting and comparing vessel data, whereas the
+using **Load vessel MAT-file** for a generic hydrodynamic test. LAUV Marie
+is not a named GUI preset; use `SIMlauvMarie` for the dedicated model. The
 standalone LAUV pair contains the vehicle-specific nonlinear terms, calibration
 parameters, controls, guidance, and wave-depth behavior.
 
@@ -53,7 +53,7 @@ parameters, controls, guidance, and wave-depth behavior.
 
 [`hydroVessel.m`](hydroVessel.m) implements a 12-state, nonlinear 6-DOF model using the common MSS `vessel` structure. [`SIMhydroVessel.m`](SIMhydroVessel.m) is an editable simulation template that can be adapted to a user-defined USV, AUV, ship, or floating structure.
 
-The simulator includes a basic GUI for choosing a vessel and configuring irregular seas, wave spectra, directional spreading, first-order wave forces from force RAOs, ocean currents, viscous damping, initial conditions, and either heading-autopilot or dynamic-positioning control. The GUI shows the workflow **1. Load file - 2. Choose gains and settings - 3. Run simulation**. Use **Custom vessel - Load MAT file** to open an MSS-compatible `vessel` structure directly. Custom vessels receive conservative editable simulation defaults, including editable controller gains, while their linear damping inputs are read from `vessel.powerBased`.
+The simulator includes a hydrodynamic model test GUI for quickly checking MSS-Capytaine exports. Use **Load vessel MAT-file** to open an MSS-compatible `vessel` structure directly from `MSS-Capytaine/vessels_capytaine/<family>/<case>/results/`. TestShip is the built-in demonstration; ShipX and WAMIT entries load data imported from those commercial solvers. Capytaine-generated versions are opened through the file picker. Review irregular seas, wave spectra, directional spreading, first-order wave forces, ocean currents, viscous damping, initial conditions, and heading-autopilot or dynamic-positioning settings, then click **Run simulation**. Develop vessel-specific nonlinear terms and sea-trial calibration in dedicated craft models such as `lauvMarie`. The GUI initially loads `LAUV_marie.mat` as a generic custom model and offers it as the default file-picker selection. Only the vessel MAT-file is needed; verify geometry in MSS-Capytaine before testing in MSS. Custom vessels receive conservative editable simulation defaults, including editable controller gains, while their linear damping inputs are read from `vessel.powerBased`.
 
 Hydrodynamic vessel data and processing instructions are organized by source:
 

@@ -44,10 +44,10 @@ deep-water wave number; components are not amplified when the vehicle is
 shallower than the reference. This runtime correction acts on the wave forces
 only and does not change the added-mass or radiation-damping data.
 
-The same MAT file remains available in `SIMhydroVessel` for a general view of
-the common hydrodynamic-vessel workflow. That generic simulation does not
-replace the LAUV-specific nonlinear and calibratable craft model described
-above.
+Use `SIMlauvMarie` for the dedicated vessel simulation. To inspect the
+exported hydrodynamics in the generic test tool, run `SIMhydroVessel` and
+choose `LAUV_marie.mat` with **Load vessel MAT-file**. LAUV Marie is loaded through the custom MAT-file option; nonlinear modeling and calibration belong in the
+dedicated craft model.
 
 ## Regenerating the data
 

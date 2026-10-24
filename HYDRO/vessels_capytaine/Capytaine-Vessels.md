@@ -18,12 +18,17 @@ LAUV Marie also has a dedicated standalone craft model,
 [`lauvMarie.m`](../../CRAFT/AUV/lauvMarie.m), and wave-enabled simulation,
 [`SIMlauvMarie.m`](../../CRAFT/AUV/SIMlauvMarie.m). These add LAUV-specific
 nonlinear and calibratable terms, controls, guidance, and depth attenuation of
-wave forces. `SIMhydroVessel` continues to provide the general view of the
-common vessel structure and hydrodynamic workflow.
+wave forces. Use `SIMlauvMarie` for the dedicated LAUV model. Its MAT-file
+can also be loaded manually in `SIMhydroVessel` for a generic hydrodynamic
+test. The GUI initially loads `LAUV_marie.mat` as a generic custom model.
 
 The generated files also contain the linear viscous-damping inputs selected
 in each MSS-Capytaine `config.json` under `vessel.powerBased`. For these two
 cases, `hydroVesselConfig.m` uses the stored values as the simulation defaults.
+Surface vessels use `T_126 = [T_surge T_sway T_yaw]` in seconds and
+`delta_zeta_345`; submerged vehicles use `T_1236` in seconds and
+`delta_zeta_45`. Surface time constants replace the former `kappa_126`
+percentages and must not require negative additional viscous damping.
 Commented assignments in the corresponding vessel cases can be enabled to
 override them. WAMIT and ShipX files do not currently store these inputs, so
 their active defaults remain in `hydroVesselConfig.m`.
@@ -39,14 +44,17 @@ python main.py LAUV_marie
 ```
 
 MSS-Capytaine writes each generated vessel file under
-`vessels_capytaine/<case>/results/`. Copy the resulting `.mat` file into the
+`vessels_capytaine/capytaine_offsets_csv/<case>/results/` for these two cases. Copy the resulting `.mat` file into the
 matching directory here to refresh the pre-generated MSS catalogue.
+Only the vessel MAT-file is required. Verify geometry in MSS-Capytaine before
+exporting; the MSS test GUI does not require geometry files or plot the mesh.
 
-For a newly developed vessel, run `SIMhydroVessel`, select **Custom vessel**,
-and click **1. Load MAT file** to open the generated file directly from the
-MSS-Capytaine results directory. The GUI loads `vessel.powerBased` and presents
+For a newly developed vessel, run `SIMhydroVessel` and click
+**Load vessel MAT-file** to open the generated vessel file directly from
+`MSS-Capytaine/vessels_capytaine/<family>/<case>/results/`.
+The GUI retains TestShip as a demonstration and imported ShipX/WAMIT data, labeled by solver. The GUI loads `vessel.powerBased` and presents
 conservative simulation and controller defaults for review and editing. In
 particular, the generic constant surge force is zero and must be selected by
 the user when forward propulsion is required. Configure the remaining settings,
-then click **3. Run simulation**. Copying the custom file into the MSS catalogue
+then click **Run simulation**. Copying the custom file into the MSS catalogue
 is optional.

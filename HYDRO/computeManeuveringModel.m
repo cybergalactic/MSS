@@ -5,19 +5,20 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 % B_U(omega) using the wave spectrum S(omega) as a weighting function. The
 % diagonal viscous damping matrix Bv is computed using one of two call patterns:
 %
-%   Floating vessel:   kappa_126        (3 elements) and
+%   Floating vessel:   T_126            (3 elements) and
 %                      delta_zeta_345   (3 elements)
 %   Submerged vehicle: T_1236           (4 elements) and
 %                      delta_zeta_45    (2 elements)
 %
 % Floating-vessel formulation:
-%   kappa_126 = [kappa_1 kappa_2 kappa_6] contains dimensionless viscous-
-%   damping increments for the unrestrained surge, sway and yaw modes:
+%   T_126 = [T_1 T_2 T_6] contains positive total velocity-decay time
+%   constants [s] for the unrestrained surge, sway and yaw modes:
 %
-%       Bv(i,i) = kappa_i * B_eq(i,i),       i = 1, 2, 6.
+%       Bv(i,i) = M(i,i) / T_i - B_eq(i,i), i = 1, 2, 6.
 %
-%   Hence, kappa_i = 0.05 adds viscous damping equal to 5 percent of the
-%   equivalent potential damping in DOF i. The vector
+%   The requested T_i must not require negative additional viscous damping.
+%   These are diagonal, uncoupled targets; coupled decay times can differ.
+%   The vector
 %   delta_zeta_345 = [delta_zeta_3 delta_zeta_4 delta_zeta_5] specifies
 %   increments in the heave, roll and pitch damping ratios:
 %
@@ -74,9 +75,9 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 % Inputs:
 %   vessel         - Structure containing vessel hydrodynamic data
 %   omega_p        - Wave peak frequency (rad/s), typically 0.8 to 1.0 rad/s
-%   aperiodicDamping - Floating vessel: kappa_126, the dimensionless relative
-%                     viscous-damping increments for DOFs 1, 2 and 6. The
-%                     default is [0.05 0.05 0.05].
+%   aperiodicDamping - Floating vessel: T_126, positive target time constants
+%                     [s] for DOFs 1, 2 and 6. There is no universal default;
+%                     choose values feasible for the equivalent model.
 %                     Submerged vehicle: T_1236, the target time constants
 %                     [s] for DOFs 1, 2, 3 and 6. The default is
 %                     [50 5 5 5] s.
@@ -107,14 +108,19 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 %
 %   Supply all model inputs explicitly (no prompts are displayed):
 %
-%     vessel = computeManeuveringModel(vessel, omega_p, kappa_126, delta_zeta_345);
-%     vessel = computeManeuveringModel(vessel, 0.8, [0.05 0.05 0.05], [0 0.1 0]);
+%     vessel = computeManeuveringModel(vessel, omega_p, T_126, delta_zeta_345);
 %     vessel = computeManeuveringModel(vessel, omega_p, T_1236, delta_zeta_45);
 %     vessel = computeManeuveringModel(vessel, 0.8, [50 5 5 5], [0.2 0.2]);
 %
 %   Supply all model inputs explicitly and enable plotting.
 %
-%     vessel = computeManeuveringModel(vessel, omega_p, kappa_126, delta_zeta_345, 1);
+%     vessel = computeManeuveringModel(vessel, omega_p, T_126, delta_zeta_345, 1);
+%
+%   Legacy saved powerBased.kappa_126 inputs are reused with a warning when
+%   aperiodicDamping is omitted, preserving Bv(i,i) = kappa_i * B_eq(i,i).
+%   They take precedence over T_126 because old processed files also store
+%   derived time constants. Explicit three-element inputs always mean seconds;
+%   old percentage vectors passed explicitly must be migrated by the caller.
 %
 % Display the matrices:
 %
@@ -136,6 +142,8 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 %      when they are not supplied.
 %   2026-10-04 Added the submerged-vehicle formulation using T_1236 and
 %      delta_zeta_45. The G(3,3) restoring coefficient validates the call.
+%   2026-10-24 Use T_126 for floating vessels; retain saved kappa_126 inputs
+%      with a warning for backward compatibility.
 
 % ------------------------------------------------------------------------------
 % Wave-spectrum peak frequency. Reuse a saved value when the argument is
@@ -166,11 +174,21 @@ heaveIsRestored = abs(G(3,3)) > tolG;
 % Reuse saved damping inputs when omitted. An explicitly empty argument
 % displays the default prompt for the formulation identified by G(3,3).
 % ------------------------------------------------------------------------------
+legacySurfaceDamping = false;
 if nargin < 3
     if heaveIsRestored && isfield(vessel, 'powerBased') && ...
             isfield(vessel.powerBased, 'kappa_126') && ...
             ~isempty(vessel.powerBased.kappa_126)
         aperiodicDamping = vessel.powerBased.kappa_126;
+        legacySurfaceDamping = true;
+        warning('MSS:LegacyKappa126', ...
+            ['Surface-vessel damping now uses T_126 time constants in seconds, ' ...
+            'not kappa_126 percentages. Reusing saved kappa_126 with the ' ...
+            'legacy percentage calculation. Explicit inputs must use T_126.']);
+    elseif heaveIsRestored && isfield(vessel, 'powerBased') && ...
+            isfield(vessel.powerBased, 'T_126') && ...
+            ~isempty(vessel.powerBased.T_126)
+        aperiodicDamping = vessel.powerBased.T_126;
     elseif ~heaveIsRestored && isfield(vessel, 'powerBased') && ...
             isfield(vessel.powerBased, 'T_1236') && ...
             ~isempty(vessel.powerBased.T_1236)
@@ -182,17 +200,19 @@ end
 
 if isempty(aperiodicDamping)
     if heaveIsRestored
-        defaultValue = [0.05 0.05 0.05];
-        prompt = ['Relative viscous damping increments kappa_126 for ' ...
-            'DOFs 1, 2, 6'];
+        aperiodicDamping = input( ...
+            'Aperiodic time constants T_126 [s] for DOFs 1, 2, 6: ');
+        if isempty(aperiodicDamping)
+            error('T_126 must contain three finite, positive time constants.');
+        end
     else
         defaultValue = [50 5 5 5];
         prompt = 'Aperiodic time constants T_1236 [s] for DOFs 1, 2, 3, 6';
-    end
-    aperiodicDamping = input(sprintf('%s (default: %s): ', ...
-        prompt, mat2str(defaultValue)));
-    if isempty(aperiodicDamping)
-        aperiodicDamping = defaultValue;
+        aperiodicDamping = input(sprintf('%s (default: %s): ', ...
+            prompt, mat2str(defaultValue)));
+        if isempty(aperiodicDamping)
+            aperiodicDamping = defaultValue;
+        end
     end
 end
 
@@ -231,7 +251,7 @@ end
 surfaceCall = numel(aperiodicDamping) == 3 && numel(delta_zeta) == 3;
 submergedCall = numel(aperiodicDamping) == 4 && numel(delta_zeta) == 2;
 if ~surfaceCall && ~submergedCall
-    error(['Use 3+3 damping parameters (kappa_126, delta_zeta_345) for a ' ...
+    error(['Use 3+3 damping parameters (T_126, delta_zeta_345) for a ' ...
         'floating vessel or 4+2 parameters (T_1236, delta_zeta_45) for a ' ...
         'submerged vehicle.']);
 end
@@ -241,15 +261,17 @@ if surfaceCall && ~heaveIsRestored
 end
 if submergedCall && heaveIsRestored
     error(['G(3,3) indicates restored heave. Use the floating-vessel call ' ...
-        'with kappa_126 and delta_zeta_345.']);
+        'with T_126 and delta_zeta_345.']);
 end
 
 if ~isnumeric(aperiodicDamping) || ~isreal(aperiodicDamping) || ...
         any(~isfinite(aperiodicDamping(:)))
     error('The aperiodic damping parameters must be finite real numbers.');
 end
-if surfaceCall && any(aperiodicDamping(:) < 0)
+if legacySurfaceDamping && any(aperiodicDamping(:) < 0)
     error('kappa_126 must contain three finite, nonnegative values.');
+elseif surfaceCall && ~legacySurfaceDamping && any(aperiodicDamping(:) <= 0)
+    error('T_126 must contain three finite, positive time constants.');
 elseif submergedCall && any(aperiodicDamping(:) <= 0)
     error('T_1236 must contain four finite, positive time constants.');
 end
@@ -338,7 +360,7 @@ vessel.G = G;                       % Restoring matrix for heave, roll and pitch
 % Viscous damping matrix Bv and total damping matrix D = B_eq + Bv
 % ------------------------------------------------------------------------------
 vessel.powerBased.Bv = zeros(6);
-if surfaceCall
+if legacySurfaceDamping
     % Floating vessel: relative viscous damping increments in DOFs 1, 2 and 6
     idx = [1 2 6];
     for k = 1:numel(idx)
@@ -348,8 +370,14 @@ if surfaceCall
     end
     restoredIdx = [3 4 5];
 else
-    % Submerged vehicle: impose time constants in DOFs 1, 2, 3 and 6
-    idx = [1 2 3 6];
+    % Impose total time constants in the unrestrained modes.
+    if surfaceCall
+        idx = [1 2 6];
+        restoredIdx = [3 4 5];
+    else
+        idx = [1 2 3 6];
+        restoredIdx = [4 5];
+    end
     for k = 1:numel(idx)
         i = idx(k);
         targetDamping = vessel.M(i,i) / aperiodicDamping(k);
@@ -364,7 +392,6 @@ else
         end
         vessel.powerBased.Bv(i,i) = max(0, viscousDamping);
     end
-    restoredIdx = [4 5];
 end
 
 % Restored modes: viscous damping-ratio increments
@@ -377,7 +404,11 @@ end
 vessel.D = vessel.powerBased.B_eq + vessel.powerBased.Bv;
 
 if surfaceCall
-    vessel.powerBased.kappa_126 = aperiodicDamping;
+    if legacySurfaceDamping
+        vessel.powerBased.kappa_126 = aperiodicDamping;
+    elseif isfield(vessel.powerBased, 'kappa_126')
+        vessel.powerBased = rmfield(vessel.powerBased, 'kappa_126');
+    end
     vessel.powerBased.delta_zeta_345 = delta_zeta;
 else
     vessel.powerBased.T_1236 = aperiodicDamping;

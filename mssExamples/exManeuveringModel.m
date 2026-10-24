@@ -44,10 +44,12 @@ switch vesselChoice
     case 1
         load supply; 
         vesselType = 'Supply Vessel';
+        T_126 = [10.7 4.7 6.3]; % Surge, sway and yaw time constants (s)
         U = vessel.velocities(1); % Zero speed (m/s)
     case 2
         load s175; 
         vesselType = 'S175 Container Ship';
+        T_126 = [12.3 2.3 2.1]; % Surge, sway and yaw time constants (s)
         vel_idx = 3; % vessel.velocities = [0 2.5722 5.1444 7.7167 10.2889]
         U = vessel.velocities(vel_idx);        % U = 5.144  (m/s)
         vessel.A = vessel.A(:,:,:,vel_idx);
@@ -56,6 +58,7 @@ switch vesselChoice
     case 3
         load tanker; 
         vesselType = 'Tanker';
+        T_126 = [53.7 4.2 6.1]; % Surge, sway and yaw time constants (s)
         U = vessel.velocities(1); % Zero speed (m/s)        
 end
 fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
@@ -100,7 +103,7 @@ end
 constant = mssConstants();
 g = constant.g;
 omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave);
-vessel = computeManeuveringModel(vessel, omega_p, [0.05 0.05 0.05], ...
+vessel = computeManeuveringModel(vessel, omega_p, T_126, ...
     [0 0.1 0], 0);
 
 %% Compute Cummins and Maneuvering Model Responses

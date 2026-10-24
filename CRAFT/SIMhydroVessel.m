@@ -39,8 +39,8 @@ if isfield(cfg.damping, 'T_1236')
     aperiodicDamping = cfg.damping.T_1236;
     delta_zeta = cfg.damping.delta_zeta_45;
 else
-    % Use percentage damping increase in surge, sway, and yaw for surface craft
-    aperiodicDamping = cfg.damping.kappa_126;
+    % Use time constants in surge, sway, and yaw for surface craft
+    aperiodicDamping = cfg.damping.T_126;
     delta_zeta = cfg.damping.delta_zeta_345;
 end
 vessel = computeManeuveringModel(vessel, environment.w0, ...
