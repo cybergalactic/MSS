@@ -5,21 +5,19 @@
 %
 % The second-order Nomoto model is
 %
-%   r(s)/delta(s) = K * (1 + T3*s) / ((1 + T1*s)*(1 + T2*s)).
+%   r(s)/delta(s) = K * (1 + T3*s) / ((1 + T1*s)*(1 + T2*s))
 %
 % The filter uses T = T1+T2-T3 and x_hat = [xi_w psi_w psi r b]', where
-% xi_w is the wave oscillator state and b is an equivalent rudder bias:
+% xi_w is the wave oscillator state and b is an equivalent rudder bias
+% modeled as a random walk (b_dot = w_b):
 %
-%   x[k+1] = Ad*x[k] + Bd*delta[k] + w[k],   y[k] = C*x[k] + v[k].
+%   x[k+1] = Ad*x[k] + Bd*delta[k] + w[k]
+%   y[k]   = C*x[k] + v[k]
 %
 % This example calls headingAutopilot with its internal reference model and 
 % PID tuning. No separate refModel call is needed. Its reference
 % bandwidth is set independently using the optional wn_d input. A constant
 % 1 deg equivalent rudder bias is added to test disturbance estimation.
-%
-% Exact discretization uses expm (base MATLAB), without ss, c2d or kalman.
-% Only MSS headingAutopilot and ssa are required; no Simulink or toolboxes.
-% The random wave realization differs from the Simulink noise generator.
 %
 % Reference:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -29,26 +27,28 @@
 % Date:      2026-10-25
 
 clearvars; close all;
-clear headingAutopilot;         % Reset the PID and reference-model states
-rng(23341);                     % Repeatable wave realization
+clear headingAutopilot;          % Reset the PID and reference-model states
+rng(23341);                      % Repeatable wave realization
 
+% ------------------------------------------------------------------------------
 %% USER INPUTS
-h = 0.1;                       % Sampling time (s)
-T_final = 600;                 % Simulation time (s)
-psi_ref = deg2rad(30);         % Commanded heading (rad)
-b_true = deg2rad(1);           % Unknown equivalent rudder bias (rad)
+% ------------------------------------------------------------------------------
+h = 0.1;                         % Sampling time (s)
+T_final = 600;                   % Simulation time (s)
+psi_ref = deg2rad(30.0);         % Commanded heading (rad)
+b_true = deg2rad(1.0);           % Unknown equivalent rudder bias (rad)
 
 % Mariner ship and rudder servo
 K = 0.185;
-T1 = 118; T2 = 7.8; T3 = 18.5; % Second-order Nomoto time constants (s)
-T = T1 + T2 - T3;              % First-order Nomoto time constant (s)
-T_delta = 1;                   % Rudder servo time constant (s)
+T1 = 118; T2 = 7.8; T3 = 18.5;  % Second-order Nomoto time constants (s)
+T = T1 + T2 - T3;               % First-order Nomoto time constant (s)
+T_delta = 1;                    % Rudder servo time constant (s)
 delta_max = deg2rad(20);        % Rudder angle limit (rad)
 rate_max = deg2rad(5);          % Rudder rate limit (rad/s)
 
 % MSS PID heading autopilot and its internal reference model
 wn = 0.1; zeta = 0.5;          % Td = 10 s and Ti = 100 s, as in the case study
-wn_d = 0.05;                  % Reference-model bandwidth (rad/s)
+wn_d = 0.05;                   % Reference-model bandwidth (rad/s)
 r_max = deg2rad(1);            % Desired yaw-rate limit (rad/s)
 M_nomoto = T/K;                % Nomoto inertia for a rudder-angle input
 
@@ -71,16 +71,16 @@ Ms = expm(h * [As Bs Es; zeros(2,6)]);
 Ads = Ms(1:4,1:4); Bds = Ms(1:4,5); Eds = Ms(1:4,6);
 
 % Five-state Kalman filter and exact zero-order-hold discretization
-T_b = 1000;
 A = [0       1               0  0     0
     -w_0^2  -2*lambda*w_0    0  0     0
      0       0               0  1     0
      0       0               0 -1/T  -K/T
-     0       0               0  0    -1/T_b];
+     0       0               0  0     0];
 B = [0 0 0 K/T 0]';
 C = [0 1 1 0 0];
-M = expm(h * [A B; zeros(1,6)]);
-Ad = M(1:5,1:5); Bd = M(1:5,6);
+PHI = expm(h * [A B; zeros(1,6)]);
+Ad = PHI(1:5,1:5);
+Bd = PHI(1:5,6);
 
 % Continuous noise intensities. Small yaw-rate process noise makes a steady
 % disturbance appear as rudder bias rather than unexplained rate forcing.
@@ -103,17 +103,19 @@ nTimeSteps = length(t);
 %          b_hat, b_true. Positive b_true requires positive counter-rudder.
 simdata = zeros(nTimeSteps,11);
 
+% ------------------------------------------------------------------------------
 %% MAIN LOOP
+% ------------------------------------------------------------------------------
 for i = 1:nTimeSteps
 
     % Compass: LF heading + WF heading
     psi = xs(1); r = xs(2); delta = xs(4);
     psi_w = xw(2);
-    y = ssa(psi + psi_w);
+    y = psi + psi_w;
 
     % Discrete-time Kalman corrector at t(i), with angle wrapping
     Kf = P_prd*C' / (C*P_prd*C' + Rd);
-    x_hat = x_prd + Kf*ssa(y - C*x_prd);
+    x_hat = x_prd + Kf * ssa(y - C*x_prd);
     IKC = I5 - Kf*C;
     P_hat = IKC*P_prd*IKC' + Kf*Rd*Kf';  % Joseph covariance update
 
@@ -122,8 +124,8 @@ for i = 1:nTimeSteps
         r_max,M_nomoto,wn,zeta,h,wn_d);
 
     % Rudder servo with angle and rate limits
-    delta_ref = min(max(delta_c, -delta_max), delta_max);
-    delta_dot = min(max((delta_ref - delta)/T_delta, -rate_max), rate_max);
+    delta_ref = sat(delta_c, delta_max);
+    delta_dot = sat((delta_ref - delta) / T_delta, rate_max);
 
     % Store signals at t(i), before advancing to t(i+1)
     simdata(i,:) = [psi r delta delta_c psi_w y x_hat(2:5)' b_true];
@@ -138,8 +140,10 @@ for i = 1:nTimeSteps
     xw = Adw*xw + Bdw*randn/sqrt(h); % Unit-power white noise held for h s
 end
 
+% ------------------------------------------------------------------------------
 %% PLOTS
-plotdata = rad2deg(simdata);    % Keep simdata in rad and rad/s
+% ------------------------------------------------------------------------------
+plotdata = rad2deg(simdata);    
 
 figure(1); clf;
 subplot(311)
@@ -155,21 +159,26 @@ ylabel('WF heading (deg)'); legend('True','Estimated');
 xlim([max(0,T_final-100) T_final]); % Show the last 100 s of wave motion
 
 subplot(313)
-plot(t,plotdata(:,2),'b',t,plotdata(:,9),'r'); grid on;
-xlabel('Time (s)'); ylabel('Yaw rate (deg/s)'); legend('True LF rate','Estimated LF rate');
+plot(t,plotdata(:,2),'b',t,plotdata(:,9),'r'); 
+grid on;
+xlabel('Time (s)'); ylabel('Yaw rate (deg/s)'); 
+legend('True LF rate','Estimated LF rate');
 
 set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
 
 figure(2); clf;
 subplot(211)
-plot(t,plotdata(:,4),'r--',t,plotdata(:,3),'b'); grid on;
+plot(t,plotdata(:,4),'r--',t,plotdata(:,3),'b'); 
+grid on;
 ylabel('Rudder (deg)'); title('Rudder response and estimated bias');
 legend('Command','Actual');
 
 subplot(212)
-plot(t,plotdata(:,11),'b',t,plotdata(:,10),'r'); grid on;
-xlabel('Time (s)'); ylabel('Rudder bias (deg)'); legend('True bias','Estimated bias');
+plot(t,plotdata(:,11),'b',t,plotdata(:,10),'r'); 
+grid on;
+xlabel('Time (s)'); ylabel('Rudder bias (deg)'); 
+legend('True bias','Estimated bias');
 
 set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
