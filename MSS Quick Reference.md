@@ -310,7 +310,7 @@ exINS_MEKF         % Unit quaternion error-state (indirect) Kalman filter for IN
 exINSwaveFilter    % Wave filtering techniques for Inertial Navigation System (INS) measurements
 exIntWindup        % Demonstrates integrator windup and anti-windup when the control law is saturated.
 exKF               % For-loop implementation (predictor-corrector representation) of a discrete-time linear Kalman filter (KF) 
-exKalmanWavefilterAutop % Discrete-time Kalman wave filtering and PID heading control of the Mariner
+exKalmanWavefilterAutopilot % Discrete-time Kalman wave filtering and PID heading control of the Mariner
 exKT               % Computation of the Nomoto gain K and time constant T from a step response using nonlinear least-squares
 exLinspec          % Linear approximations to the PM, JONSWAP, and Torsethaugen spectra using nonlinear least-squares
 exLQFinHor         % LQ finite time-horizon tracking controller for a mass-damper-spring system
@@ -323,6 +323,7 @@ exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd
 exObsCtr           % Observability and controllability matrices of a supply vessel
 exOtter            % Simulates an Otter USV equipped with two propellers
 exPassiveObs       % Plots the loop transfer function of the passive observer used for heading control
+exPassiveWavefilterAutopilot % Passive wave filtering and PID heading control using estimated or measured yaw rate
 exPathGen          % Path generation using cubic polynomials 
 exPlotRAO          % Script for plotting motion and force RAOs
 exPullout          % Performs a pullout maneuver for two different ships
