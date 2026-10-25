@@ -1,5 +1,6 @@
-function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h)
+function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 % tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h)
+% tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h,wn_d)
 % SISO PID pole-placement algorithm (Fossen 2027, Algorithm 15.1) for
 % heading control.
 %
@@ -29,6 +30,9 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h)
 %   zeta    : Closed-loop relative damping ratio in yaw (-)
 %   h       : Sampling time (s)
 %
+% Optional input:
+%   wn_d    : Reference-model natural frequency (rad/s), default wn/20
+%
 % Outputs:
 %   tauN    : Autopilot yaw moment command (Nm)
 %
@@ -36,6 +40,9 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h)
 %
 %   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and Motion
 %      Control, 3rd edition, John Wiley & Sons. Ltd., Chichester, UK.
+%
+% Author:    Thor I. Fossen
+% Date:      2026-10-25
 
 persistent z_int;          % Integral state
 persistent a_d r_d psi_d;  % Reference model states
@@ -48,8 +55,12 @@ if isempty(z_int)
     psi_d = 0;
 end
 
+% Select reference bandwidth independently of the PID bandwidth.
+if nargin < 9 || isempty(wn_d)
+    wn_d = wn / 20;
+end
+
 % Desired jerk (Fossen 2027, Equation 12.10)
-wn_d = wn / 20; % Reference signal is 20 times slower than wn
 a_d_dot = -wn_d^3 * ssa(psi_d - psi_ref) - 3 * wn_d^2 * r_d ...
     - 3 * wn_d * a_d;
 
