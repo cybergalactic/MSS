@@ -1,13 +1,17 @@
 function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h, method)
 % Notch filters can be applied to Inertial Navigation System (INS) measurements
-% to remove the dirst-order wave-inuced motions (wave filtering). This function 
+% to remove the first-order wave-induced motions (wave filtering). This function
 % implements a 2nd-order notch filter using either:
-%   - A second-order notch filter discretized by uisng the RK4 method.
+%   - A second-order notch filter discretized using the RK4 method.
 %   - A direct IIR filter implementation using difference equations.
 %
-% The second-order notch filter transfer function is:
+% The RK4 option implements the continuous-time transfer function:
 %
 %    h_notch(s) = (s^2 + 2*zeta*w_0*s+ w_0^2) / (s^2 + 2*w_0*s + w_0^2)
+%
+% The IIR option is a different discrete-time notch, with zeros at
+% exp(+/-1i*w_0*h) and pole radius exp(-zeta*w_0*h). It is not a
+% discretization of h_notch(s). Both options have unity DC gain.
 %
 % Inputs:
 %   xf          - Current state (2x1 vector for RK4, 4x1 for IIR)
@@ -24,11 +28,13 @@ function [xf_next, y] = notchFilter(xf, u, w_0, zeta, h, method)
 %
 % Example usage: 
 %   exINSwaveFilter.m
+%   exPassiveWavefilterAutopilot.m (RK4 gyro wave filtering)
 %
 % Author: Thor I. Fossen
 % Date: 2024-11-27
 % Revision: 
 %   2025-02-11 : Added option for IIR notch filter
+%   2026-10-25 : Normalized the IIR coefficients to give unity DC gain
 
 if nargin < 6
     method = 'RK4'; % Default method
@@ -62,9 +68,12 @@ switch method
         r = exp(-zeta * w_0 * h);  
         
         % IIR coefficients
-        b0 = 1;
-        b1 = -2*cos(w_0 * h);
-        b2 = 1;
+        % Normalize the DC gain: sum(b) = sum(a). The sine expression
+        % avoids cancellation in 1 - cos(w_0*h) for small sample times.
+        gain = r + (1-r)^2 / (4*sin(w_0*h/2)^2);
+        b0 = gain;
+        b1 = -2*gain*cos(w_0 * h);
+        b2 = gain;
         a0 = 1;
         a1 = -2*r*cos(w_0 * h);
         a2 = r*r;
