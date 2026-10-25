@@ -38,17 +38,17 @@ mssPath
 If MATLAB cannot find `mssPath`, add MSS to the path first:
 
 1. On the MATLAB **Home** tab, select **Set Path**.
-2. Select **Add with Subfolders**, choose the MSS directory, and save the path.
+2. Select **Add Folder**, choose the MSS directory itself, and apply the change.
+3. Run `mssPath` to add the toolbox subfolders and save the path.
 
 Alternatively, open the MSS directory as the current folder and run:
 
 ```matlab
-addpath(genpath(pwd))
-savepath
+addpath(pwd)
 mssPath
 ```
 
-The `mssPath` command refreshes the MSS folders on the MATLAB path, saves the path, and removes obsolete MSS path entries. Run it again after updating MSS.
+The `mssPath` command refreshes the MSS folders on the MATLAB path, saves the path, and removes obsolete MSS path entries. It excludes hidden subfolders such as `.git`, including their internal metadata. Run it again after updating MSS.
 
 ## Get started
 
