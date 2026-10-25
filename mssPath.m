@@ -11,12 +11,13 @@
 %   'MSS' directory.
 % - It handles multiple instances of 'MSS' directories by using the
 %   first found.
-% - It temporarily suppresses and then restores warnings related to 
-%   non-existent path entries to prevent clutter in the command window.
+% - It removes obsolete MSS entries, including folders that no longer exist.
+% - It excludes hidden subfolders, such as .git, from the MATLAB path.
 %
 % Author:    Thor I. Fossen
 % Date:      2024-04-26
 % Revisions:
+%   2026-10-25: Remove stale path entries and exclude hidden subfolders.
 
 if exist('OCTAVE_VERSION', 'builtin')
     disp(['Add the MSS path with subfolders by starting' ...
@@ -24,16 +25,13 @@ if exist('OCTAVE_VERSION', 'builtin')
     return;
 end
 
-% MATLAB specific warning suppression
-warning('off', 'MATLAB:rmpath:DirNotFound');
-
 % Locate directories named 'MSS' using the MATLAB what function
 mssInfo = what('MSS');
 
 % Evaluate the presence and number of 'MSS' directories found
 if isempty(mssInfo)
-    error(['MSS directory not found, please add MSS path with' ...
-        ' subfolders from the menu.']);
+    error(['MSS directory not found. Add the MSS root folder to the' ...
+        ' MATLAB path, then run mssPath again.']);
 elseif length(mssInfo) > 1
     % Handle multiple MSS directories found by notifying the user
     % and using the first one
@@ -47,13 +45,27 @@ else
     fprintf('MSS directory found at: %s\n', basePath);
 end
 
-% Remove old MSS paths to clean up any outdated links
-warning('off', 'MATLAB:rmpath:DirNotFound');
-rmpath(genpath(basePath));
-warning('on', 'MATLAB:rmpath:DirNotFound');
+% Remove the saved MSS entries, rather than scanning the current directory
+% tree. A scan cannot find entries for folders that have already disappeared.
+currentFolders = strsplit(path, pathsep);
+if ispc
+    isMssFolder = strcmpi(currentFolders, basePath) | ...
+        strncmpi(currentFolders, [basePath filesep], length(basePath) + 1);
+else
+    isMssFolder = strcmp(currentFolders, basePath) | ...
+        strncmp(currentFolders, [basePath filesep], length(basePath) + 1);
+end
+path(strjoin(currentFolders(~isMssFolder), pathsep));
 
-% Re-add the MSS directory and all its sub-directories to MATLAB's path
-addpath(genpath(basePath));
+% Retain genpath's handling of private, class, and namespace folders, but
+% exclude hidden subfolders and their descendants (for example .git/refs).
+newFolders = strsplit(genpath(basePath), pathsep);
+newFolders = newFolders(~cellfun('isempty', newFolders));
+relativeFolders = cellfun(@(folder) folder(length(basePath) + 1:end), ...
+    newFolders, 'UniformOutput', false);
+isHiddenFolder = ~cellfun('isempty', ...
+    regexp(relativeFolders, '(^|[\\/])\.', 'once'));
+addpath(strjoin(newFolders(~isHiddenFolder), pathsep));
 
 % Save the updated path
 savepath;
