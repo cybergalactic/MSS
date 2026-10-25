@@ -324,6 +324,7 @@ exObsCtr           % Observability and controllability matrices of a supply vess
 exOtter            % Simulates an Otter USV equipped with two propellers
 exPassiveObs       % Plots the loop transfer function of the passive observer used for heading control
 exPassiveWavefilterAutopilot % Passive wave filtering and PID heading control using estimated or measured yaw rate
+exPassiveWavefilterDP % Full-scale passive DP wave filtering with GNSS, compass and nonlinear MIMO PID control
 exPathGen          % Path generation using cubic polynomials 
 exPlotRAO          % Script for plotting motion and force RAOs
 exPullout          % Performs a pullout maneuver for two different ships
