@@ -9,13 +9,15 @@ Octave; Python and Capytaine are needed only to regenerate them.
 | --- | --- | --- |
 | [`testShip`](testShip/Test-Ship.md) | Synthetic surface monohull | `testShip/testShip.mat` |
 | [`LAUV_marie`](LAUV_marie/LAUV-Marie.md) | Idealized submerged LAUV Marie model | `LAUV_marie/LAUV_marie.mat` |
+| [Otter USV](#otter-usv) | Twin-hull surface craft, 55 kg and 80 kg load conditions | [`otter/otter_55kg.mat`](otter/otter_55kg.mat), [`otter/otter_80kg.mat`](otter/otter_80kg.mat) |
 
 The data use MSS forward-starboard-down body axes and are referenced to the
-center of gravity. Both cases are demonstrations of the Capytaine-to-MSS
-workflow rather than validated vessel designs.
+center of gravity. The cases demonstrate the Capytaine-to-MSS workflow;
+their hydrodynamic data and dedicated craft models require validation against
+measurements for quantitative vessel-response prediction.
 
 LAUV Marie also has a dedicated standalone craft model,
-[`lauvMarie.m`](../../CRAFT/AUV/lauvMarie.m), and wave-enabled simulation,
+[`lauvMarie.m`](../../CRAFT/AUV/models/lauvMarie.m), and wave-enabled simulation,
 [`SIMlauvMarie.m`](../../CRAFT/AUV/SIMlauvMarie.m). These add LAUV-specific
 nonlinear and calibratable terms, controls, guidance, and depth attenuation of
 wave forces. Use `SIMlauvMarie` for the dedicated LAUV model. Its MAT-file
@@ -23,8 +25,8 @@ can also be loaded manually in `SIMhydroVessel` for a generic hydrodynamic
 test. The GUI initially loads `LAUV_marie.mat` as a generic custom model.
 
 The generated files also contain the linear viscous-damping inputs selected
-in each MSS-Capytaine `config.json` under `vessel.powerBased`. For these two
-cases, `hydroVesselConfig.m` uses the stored values as the simulation defaults.
+in each MSS-Capytaine `config.json` under `vessel.powerBased`. For the TestShip
+and LAUV cases, `hydroVesselConfig.m` uses the stored values as the simulation defaults.
 Surface vessels use `T_126 = [T_surge T_sway T_yaw]` in seconds and
 `delta_zeta_345`; submerged vehicles use `T_1236` in seconds and
 `delta_zeta_45`. Surface time constants replace the former `kappa_126`
@@ -32,6 +34,24 @@ percentages and must not require negative additional viscous damping.
 Commented assignments in the corresponding vessel cases can be enabled to
 override them. WAMIT and ShipX files do not currently store these inputs, so
 their active defaults remain in `hydroVesselConfig.m`.
+
+## Otter USV
+
+The Otter files contain frequency-dependent added mass and radiation damping,
+hydrostatic restoring, and force and motion RAOs for the 55 kg hull and the
+nominal 80 kg loaded condition. The dedicated
+[`otter.m`](../../CRAFT/USV/models/otter.m) model uses `otter_80kg.mat`, with
+power-based equivalent matrices computed for a fixed reference spectrum.
+It transforms the matrices from the dataset CG to the body-frame origin CO
+and adds the vessel-specific nonlinear maneuvering terms.
+
+[`SIMotter.m`](../../CRAFT/USV/SIMotter.m) provides heading/path-following
+control, currents, and optional directional first-order wave loads. The same
+80 kg force RAOs can be applied to the new model or to the first-principles
+[`otter_legacy.m`](../../CRAFT/USV/models/otter_legacy.m) using the GUI's
+legacy-model checkbox. Wave loads are transformed from the dataset CG to CO
+before they enter the dynamics. Changing the payload does not regenerate the
+nominal hydrodynamic data or hydrostatic stiffness.
 
 ## Regenerating the data
 

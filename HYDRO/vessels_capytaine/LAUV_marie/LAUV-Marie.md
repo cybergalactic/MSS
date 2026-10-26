@@ -30,7 +30,7 @@ coordinates.
 
 ## Standalone MSS craft model
 
-The dedicated [`lauvMarie.m`](../../../CRAFT/AUV/lauvMarie.m) model uses this
+The dedicated [`lauvMarie.m`](../../../CRAFT/AUV/models/lauvMarie.m) model uses this
 file in a unified 6-DOF seakeeping/maneuvering formulation. The power-based
 constant model is augmented by calibratable viscous and friction terms and by
 nonlinear damping, cross-flow, lift, drag, and Coriolis terms.

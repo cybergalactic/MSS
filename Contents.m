@@ -32,3 +32,9 @@
 % vessel-data exporter are provided by MSS-Capytaine:
 %
 %   https://github.com/cybergalactic/MSS-Capytaine
+%
+% Dedicated unified maneuvering/seakeeping simulations include SIMotter and
+% SIMlauvMarie, with nonlinear craft dynamics, currents, and force-RAO waves.
+% SIMotter also offers the first-principles otter_legacy model for comparison.
+% Force and motion RAO functions retain encounter-phase history explicitly
+% in the returned waveModel; see LIBRARY/General-Library.md for calling syntax.

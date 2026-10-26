@@ -1,8 +1,8 @@
 function [environment, waveModel] = waveInitialization(vessel, environment, raoType)
 % waveInitialization initializes a directional wave spectrum and RAO model.
-% The function prepares all time-invariant data used by waveForceRAO or
-% waveMotionRAO. Call it once before the simulation loop and pass waveModel
-% to the selected RAO function.
+% The function prepares the time-invariant data and initializes the phase
+% history used by waveForceRAO or waveMotionRAO. Call it once before the
+% simulation loop and pass waveModel to the selected RAO function.
 %
 % Inputs:
 %   vessel      - Vessel structure containing main.g, headings, and forceRAO
@@ -23,7 +23,9 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 % Outputs:
 %   environment - Input structure augmented with S_M, Amp, Omega, and mu
 %   waveModel   - Initialized wave spectrum, random phases, and interpolated
-%                 RAO tables used by waveForceRAO or waveMotionRAO. For a
+%                 RAO tables used by waveForceRAO or waveMotionRAO. The RAO
+%                 functions return an updated waveModel containing encounter
+%                 phase history; pass it to the next call. For a
 %                 submerged vessel, raoReferenceDepth is the depth at which
 %                 the hydrodynamic data were generated.
 %
@@ -35,6 +37,7 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 % Date:      2026-10-03
 % Revisions:
 %   2026-10-14: Store the RAO reference depth for submerged-vessel loads.
+%   2026-10-26: Initialize explicit encounter-phase history for maneuvering.
 
 if nargin < 3
     raoType = 'force';
@@ -109,6 +112,9 @@ end
 numFreqIntervals = length(Omega);
 numDirections = length(mu);
 waveModel.randomPhases = 2 * pi * rand(numFreqIntervals, numDirections);
+waveModel.componentPhase = waveModel.randomPhases;
+waveModel.encounterRate = [];
+waveModel.phaseTime = [];
 
 % Convert the RAOs to real and imaginary parts and interpolate them once on
 % the wave-frequency grid. Index 1 is the zero-speed RAO table.

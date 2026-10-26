@@ -92,7 +92,7 @@ environment.maxFreq = maxFreq;
 % 6-DOF generalized wave forces using first-order force RAOs
 waveData = zeros(nTimeSteps,7); % Pre-allocate table
 for i = 1:nTimeSteps
-    [tau_wave1, waveElevation] = waveForceRAO(t(i), waveModel, ...
+    [tau_wave1, waveElevation, waveModel] = waveForceRAO(t(i), waveModel, ...
         U, psi, beta_wave);
     waveData(i,:) = [tau_wave1' waveElevation];
 end

@@ -1,4 +1,4 @@
-function [tau_wave1, waveElevation] = waveForceRAO(...
+function [tau_wave1, waveElevation, waveModel] = waveForceRAO(...
     t, waveModel, U, psi, beta_wave, depth)
 % waveForceRAO computes the wave elevation and the 6-DOF generalized 1st-
 % order wave forces, tau_wave1, on a ship using different wave spectra
@@ -8,13 +8,17 @@ function [tau_wave1, waveElevation] = waveForceRAO(...
 % frequency and varying relative directions to compute the RAO amplitudes
 % and phases. This approach avoids unwrapping problems and interpolation
 % issues in RAO phase angles.
+% During maneuvering, the signed encounter rate is integrated to obtain
+% phase instead of multiplying its instantaneous value by elapsed time.
+% This implements the phase-accumulation convention in Chapter 10.
 %
 % INPUTS:
 %   t          - Time (s)
 %   waveModel  - Wave model returned by waveInitialization
-%   U          - Vessel speed (m/s)
+%   U          - Forward speed used in the encounter relation (m/s)
 %   psi        - Vessel heading angle (rad)
-%   beta_wave  - Wave direction, 0 following sea, pi head sea (rad)
+%   beta_wave  - Wave propagation direction in NED (rad). Relative direction
+%                beta_wave - psi is 0 in following seas, pi in head seas.
 %   depth      - Optional submerged-body depth, positive down (m). When
 %                supplied, force components are attenuated below the RAO
 %                reference depth using the deep-water factor exp(-k*Delta_d).
@@ -23,6 +27,14 @@ function [tau_wave1, waveElevation] = waveForceRAO(...
 % OUTPUTS:
 %   tau_wave1        - 6x1 generalized 1st-order wave forces (6-DOF)
 %   waveElevation    - Wave elevation (m)
+%   waveModel        - Updated encounter-phase history. Pass this output to
+%                      the next call in time, e.g.:
+%     [tau_wave1, waveElevation, waveModel] = waveForceRAO( ...
+%         t, waveModel, U, psi, beta_wave);
+%
+% Capturing waveModel is required for phase accumulation when the operating
+% conditions change. A fresh initialized model evaluated at an arbitrary t
+% gives the constant-speed/heading realization from time zero to t.
 %
 % Reference:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -36,6 +48,8 @@ function [tau_wave1, waveElevation] = waveForceRAO(...
 %   2026-10-03: Replaced persistent state with an explicit waveModel.
 %   2026-10-14: Vectorized directional RAO interpolation and force synthesis.
 %               Added optional depth attenuation for submerged vessels.
+%   2026-10-26: Return explicit phase history; accumulate signed encounter rate
+%               with trapezoidal integration, consistent with Fossen (2027, Ch. 10).
 
 if ~strcmp(waveModel.raoType, 'force')
     error('waveForceRAO:InvalidWaveModel', ...
@@ -47,7 +61,6 @@ Amp = waveModel.Amp;
 Omega = waveModel.Omega;
 mu = waveModel.mu;
 g = waveModel.g;
-randomPhases = waveModel.randomPhases;
 
 % Preserve the original behavior unless the optional submerged depth is
 % explicitly supplied. Existing surface-vessel calls therefore use unity
@@ -77,12 +90,12 @@ beta_RAO = mod(beta_relative + mu, 2*pi); % Wrap to 0 to 2*pi
 % The initialization closes the directional RAO tables at 2*pi.
 raoAngles = waveModel.raoAngles;
 
-% Encounter frequency Omega_e(Omega, mu) for all frequencies and directions
-Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(beta_RAO'));
+% Signed encounter rate; abs(Omega_e) is the encounter-frequency magnitude.
+Omega_e = Omega - (Omega.^2 / g) * U .* cos(beta_RAO');
 
 % Compute the common wave-component phases once. These phases are used for
 % both wave elevation and all six generalized-force components.
-componentPhase = Omega_e * t + randomPhases;
+[componentPhase, waveModel] = waveEncounterPhase(t, waveModel, Omega_e);
 cosPhase = cos(componentPhase);
 sinPhase = sin(componentPhase);
 

@@ -2,6 +2,8 @@
 % Vehicle (USV), which is controlled by two propellers. SOG, COG, and 
 % course rate are estimated using an EKF, and the course autopilot is 
 % utilizing a PID pole-placement algorithm.
+% This example uses otter_legacy.m to retain the first-principles model.
+% Use SIMotter for the new MSS-Capytaine model and optional wave excitation.
 %
 % NOTE that the estimates of SOG and COG start to osciallate when the USV
 % speed is smaller than or close to 0.2 m/s. In this case, the course angle is
@@ -10,9 +12,6 @@
 % Author:    Thor I. Fossen
 % Date:      2019-07-18
 % Revisions: 
-%   2021-05-25 Added EKF for COG/SOG/course rate and course autopilot
-%   2024-07-10: Updated to match SIMotter.m and use RK4
-%   2026-10-07: Corrected reverse-thrust control allocation (E. Krizman)
 
 clearvars;
 clear EKF_5states   % Clear persistent states in EKF_5states.m
@@ -32,9 +31,9 @@ Rd = 1 * diag([ 1 1 ]);
 x_hat = zeros(5,1);
 
 % Otter USV input matrix
-[~,~,M, B_prop] = otter();
+[~,~,M, B_prop] = otter_legacy();
 % The /2 converts the combined twin-propeller coefficients to per-propeller
-% values. These coefficients must match CRAFT/USV/models/otter.m.
+% values. These coefficients must match CRAFT/USV/models/otter_legacy.m.
 k_pos = 0.02216/2;
 k_neg = 0.01289/2;
 % B_prop maps n.*abs(n) through k_pos. Dividing by k_pos gives the
@@ -121,7 +120,7 @@ for i=1:length(t)
    x_hat = EKF_5states(x_N,y_E,h,Z,'NED',Qd,Rd);  
          
    % RK4 method x(k+1)
-   x = rk4(@otter,h,x,n,mp,rp,V_c,beta_c);
+   x = rk4(@otter_legacy,h,x,n,mp,rp,V_c,beta_c);
    
    % Euler's method (k+1)
    e_chi = e_chi + h * ssa(x_hat(4) - chi_d);

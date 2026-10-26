@@ -82,7 +82,7 @@ for i = 1:length(t)
 
     % 6-DOF wave-frequency (WF) motion (compute RAO only every 0.1 second)
     if t(i) >= nextRAOtime
-        [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO( ...
+        [eta_WF, nu_WF, nudot_WF, waveElevation, waveModel] = waveMotionRAO( ...
             t(i), waveModel, U, psi, beta_wave);
 
         nextRAOtime = nextRAOtime + RAO_update_period;

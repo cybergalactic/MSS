@@ -24,8 +24,11 @@
 %   remus100        - REMUS 100 AUV model.
 %
 % USV simulation scripts and models:
-%   SIMotter        - OTTER USV guidance and control simulation.
-%   otter           - OTTER USV model.
+%   SIMotter        - Otter heading/path-following simulation with currents,
+%                     waves, an integrated GUI, and a legacy-model option.
+%   otter           - Unified Otter maneuvering/seakeeping model using
+%                     MSS-Capytaine data and nonlinear hydrodynamic terms.
+%   otter_legacy    - First-principles Otter model developed in 2019-2026.
 %
 % Ship and floating-structure simulation scripts:
 %   SIMclarke83     - Generic ship maneuvering and heading-control simulation.

@@ -65,7 +65,7 @@ SIMfrigate      % Simulate frigate.m using a PID heading autopilot
 SIMhydroVessel  % Simulate a 6-DOF vessel model generated from ShipX, WAMIT, or Capytaine data
 SIMlauvMarie    % Simulate LAUV Marie with currents, directional waves, depth/heading control, and 3-D ALOS guidance
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
-SIMotter        % Simulate otter.m with heading control and 2-D LOS straight-line path course control
+SIMotter        % Otter heading/path-following simulation with currents, waves, GUI setup, and a legacy-model option
 SIMosv          % Simulate osv.m under nonlinear DP control with constrained control allocation (dynamic optimization)
 SIMcontainer    % Simulate container.m and Lcontainer.m under PD control
 SIMnavalvessel  % Simulate navalvessel.m under PD control
@@ -92,7 +92,8 @@ mariner         % Nonlinear maneuvering model for the Mariner class vessel, L = 
 navalvessel     % Nonlinear maneuvering model of a multipurpose naval vessel, L = 51.5 m
 npsauv          % Naval Postgraduate School Autonomous Underwater Vehicle (AUV), L = 5.3 m (Healey and Lienard 1993)
 osv             % Nonlinear model of an Offshore Supply Vessel (OSV), L = 83.0 m
-otter           % OTTER small Uncrewed Surface Vehicle (USV), L = 2.0 m
+otter           % Unified 6-DOF Otter USV maneuvering/seakeeping model using MSS-Capytaine data, L = 2.0 m
+otter_legacy    % First-principles Otter USV model developed in 2019-2026
 remus100        % REMUS 100 Autonomous Underwater Vehicle (AUV), L = 1.9 m
 rig             % Semisubmersible linear mass-damper-spring model, L = 84.6 m
 supply          % Linear DP model of a supply vessel, L = 76.2 m
@@ -194,9 +195,10 @@ isherwood72         % Compute the wind forces and coefficients based on Isherwoo
 spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped AUV in waves.
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
-waveForceRAO        % Compute wave elevation and 1st-order force-RAO loads, with optional depth attenuation for submerged vessels
-waveInitialization  % Initialize the directional wave spectrum, random phases, RAO tables, and submerged-vessel reference depth
-waveMotionRAO       % Compute the wave elevation and the wave-frequency (WF) motion, eta_w, at time t from motion RAOs 
+waveEncounterPhase  % Accumulate signed encounter phase during maneuvering using explicit waveModel history
+waveForceRAO        % Compute 1st-order wave loads and elevation; return updated waveModel, with optional depth attenuation
+waveInitialization  % Initialize the spectrum, random phases, RAO tables, encounter-phase history, and reference depth
+waveMotionRAO       % Compute WF position, velocity, acceleration, and elevation; return updated waveModel
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 waveSpectrum        % Function computing state-of-the-art wave spectra
 waveDirectionalSpectrum % Computes the directional wave spectrum using a spreading function
@@ -321,7 +323,7 @@ exMDS              % Plots the step response of a 2nd-order mass-damper system
 exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
 exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
 exObsCtr           % Observability and controllability matrices of a supply vessel
-exOtter            % Simulates an Otter USV equipped with two propellers
+exOtter            % EKF/course-control example using the first-principles otter_legacy model
 exPassiveObs       % Plots the loop transfer function of the passive observer used for heading control
 exPassiveWavefilterAutopilot % Passive wave filtering and PID heading control using estimated or measured yaw rate
 exPassiveWavefilterDP % Full-scale passive DP wave filtering with GNSS, compass and nonlinear MIMO PID control
@@ -398,7 +400,7 @@ Pre-generated [testShip](HYDRO/vessels_capytaine/testShip/Test-Ship.md) and subm
 [LAUV_marie](HYDRO/vessels_capytaine/LAUV_marie/LAUV-Marie.md) cases are included in MSS.
 Python and Capytaine are required only to regenerate the data; the included
 mat-files can be loaded and processed directly in MATLAB or GNU Octave.
-The dedicated [`lauvMarie.m`](CRAFT/AUV/lauvMarie.m) and
+The dedicated [`lauvMarie.m`](CRAFT/AUV/models/lauvMarie.m) and
 [`SIMlauvMarie.m`](CRAFT/AUV/SIMlauvMarie.m) pair uses the LAUV data as a
 standalone, wave-enabled craft model with vehicle-specific nonlinear and
 calibratable terms. `SIMhydroVessel` provides a generic hydrodynamic test tool:

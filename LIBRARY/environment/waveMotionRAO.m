@@ -1,8 +1,8 @@
-function [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(...
+function [eta_WF, nu_WF, nudot_WF, waveElevation, waveModel] = waveMotionRAO(...
     t, waveModel, U, psi, beta_wave)
-% waveMotionRAO computes the wave elevation and the wave-frequency (WF) 
-% motion, eta_w, nu_w, and nu_dot_w on a ship using different wave spectra 
-% (Modified Pierson-Moskowitz, JONSWAP, Torsethaugen) and Response 
+% waveMotionRAO computes the wave elevation and the wave-frequency (WF)
+% motion, eta_w, nu_w, and nu_dot_w on a ship using different wave spectra
+% (Modified Pierson-Moskowitz, JONSWAP, Torsethaugen) and Response
 % Amplitude Operators (RAOs) (Fossen 2027, Chapters 10.2.1 and 10.2.3).
 % The total motion is:
 %
@@ -10,24 +10,38 @@ function [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(...
 %   y_nu    = nu  + nu_w
 %   y_nudot = nudot  + nudot_w
 %
-% where eta, nu, and nudot are the low-frequency (LF) ship model component. 
-% The real and imaginary parts of the RAO tables are interpolated in 
-% frequency and varying relative directions to compute the RAO amplitudes 
-% and phases. This approach avoids unwrapping problems and interpolation 
+% where eta, nu, and nudot are the low-frequency (LF) ship model component.
+% The real and imaginary parts of the RAO tables are interpolated in
+% frequency and varying relative directions to compute the RAO amplitudes
+% and phases. This approach avoids unwrapping problems and interpolation
 % issues in RAO phase angles.
+% The signed encounter rate is integrated to obtain continuous phase during
+% maneuvering, consistent with Chapter 10. The velocity and acceleration
+% RAOs use j*Omega_e and -Omega_e^2 at the current operating point. These
+% are quasi-steady derivatives: variation of the RAO itself and of the
+% encounter rate is not differentiated during a maneuver.
 %
 % INPUTS:
 %   t          - Time (s)
 %   waveModel  - Motion-RAO model returned by waveInitialization
-%   U          - Vessel speed (m/s)
+%   U          - Forward speed used in the encounter relation (m/s)
 %   psi        - Vessel heading angle (rad)
-%   beta_wave  - Wave direction, 0 following sea, pi head sea (rad)
+%   beta_wave  - Wave propagation direction in NED (rad). Relative direction
+%                beta_wave - psi is 0 in following seas, pi in head seas.
 %
 % OUTPUTS:
 %   eta_WF           - 6x1 WF position (6 DOF)
 %   nu_WF            - 6x1 WF velocity (m/s and rad/s)
 %   nudot_WF         - 6x1 WF acceleration (6 DOF)
 %   waveElevation    - Wave elevation (m)
+%   waveModel        - Updated encounter-phase history. Pass this output to
+%                      the next call in time, e.g.:
+%     [eta_WF, nu_WF, nudot_WF, waveElevation, waveModel] = waveMotionRAO( ...
+%         t, waveModel, U, psi, beta_wave);
+%
+% Capturing waveModel is required for phase accumulation when the operating
+% conditions change. A fresh initialized model evaluated at an arbitrary t
+% gives the constant-speed/heading realization from time zero to t.
 %
 % Reference:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -38,6 +52,8 @@ function [eta_WF, nu_WF, nudot_WF, waveElevation] = waveMotionRAO(...
 % Revisions:
 %   2026-10-03: Replaced persistent state with an explicit waveModel.
 %   2026-10-03: Added periodic RAO interpolation at 0/2*pi radians.
+%   2026-10-26: Return phase history and accumulate signed encounter rate;
+%               use the same signed rate for velocity and acceleration RAOs.
 
 if ~strcmp(waveModel.raoType, 'motion')
     error('waveMotionRAO:InvalidWaveModel', ...
@@ -49,28 +65,28 @@ Amp = waveModel.Amp;
 Omega = waveModel.Omega;
 mu = waveModel.mu;
 g = waveModel.g;
-randomPhases = waveModel.randomPhases;
 numFreqIntervals = length(Omega);
 raoAngles = waveModel.raoAngles;
 
 % Wave direction relative ship, beta_wave = 0 for following sea
-beta_relative = beta_wave - psi;  
+beta_relative = beta_wave - psi;
 
 % Vector of spreading angles, scalar for M = 1 corresponding to mu = 0
 beta_RAO = mod(beta_relative + mu, 2*pi); % Wrap to 0 to 2*pi
 
-% Encounter frequency Omega_e(Omega, mu) for all frequencies and directions
-Omega_e = abs(Omega - (Omega.^2 / g) * U .* cos(beta_RAO'));
+% Signed encounter rate; abs(Omega_e) is the encounter-frequency magnitude.
+Omega_e = Omega - (Omega.^2 / g) * U .* cos(beta_RAO');
+[componentPhase, waveModel] = waveEncounterPhase(t, waveModel, Omega_e);
 
 % Compute the wave elevation (Fossen 2027, Eq. 10.83) using
 % Amp = sqrt(2 * S_M * deltaOmega * deltaDirections).
-% The summation over dim. 1 is frequencies and dim. 2 is directions 
-if size(S_M, 2) == 1 
+% The summation over dim. 1 is frequencies and dim. 2 is directions
+if size(S_M, 2) == 1
     % No spreading function, Amp(Omega) is a column vector
-    waveElevation = sum( Amp .* cos(Omega_e * t + randomPhases), 1 );
-else 
-    % Directional wave spectrum, Amp(Omega, mu) is a matrix 
-    waveElevation = sum( sum( Amp .* cos(Omega_e * t + randomPhases), 2 ), 1);
+    waveElevation = sum( Amp .* cos(componentPhase), 1 );
+else
+    % Directional wave spectrum, Amp(Omega, mu) is a matrix
+    waveElevation = sum( sum( Amp .* cos(componentPhase), 2 ), 1);
 end
 
 % Compute the complex RAOs as a function of frequency and wave direction
@@ -109,34 +125,29 @@ for DOF = 1:6
     acceleration_RAO = -Omega_e.^2 .* RAO_complex{DOF};
 
     % Compute the 6-DOF wave-frequency motions (Fossen 2027, Eq. 10.105).
-    if size(S_M, 2) == 1 
+    if size(S_M, 2) == 1
         % No spreading function/directional spectrum
         eta_WF(DOF) = sum( abs(RAO_complex{DOF}) .* Amp .* ...
-            cos(Omega_e * t + angle(RAO_complex{DOF}) + randomPhases), 1);
+            cos(componentPhase + angle(RAO_complex{DOF})), 1);
 
         nu_WF(DOF) = sum( abs(velocity_RAO) .* Amp .* ...
-            cos(Omega_e * t + angle(velocity_RAO) + randomPhases), 1 );
+            cos(componentPhase + angle(velocity_RAO)), 1 );
 
         nudot_WF(DOF) = sum(abs(acceleration_RAO) .* Amp .* ...
-            cos(Omega_e * t + angle(acceleration_RAO) + randomPhases), 1);
+            cos(componentPhase + angle(acceleration_RAO)), 1);
 
-    else 
+    else
         % Directional spectrum
         eta_WF(DOF) = sum( sum( abs(RAO_complex{DOF}) .* Amp .* ...
-            cos(Omega_e * t + angle(RAO_complex{DOF}) + randomPhases), 2), 1);
+            cos(componentPhase + angle(RAO_complex{DOF})), 2), 1);
 
         nu_WF(DOF) = sum( sum( abs(velocity_RAO) .* Amp .* ...
-            cos(Omega_e * t + angle(velocity_RAO) + randomPhases), 2 ), 1);
+            cos(componentPhase + angle(velocity_RAO)), 2 ), 1);
 
         nudot_WF(DOF) = sum( sum( abs(acceleration_RAO) .* Amp .* ...
-            cos(Omega_e * t + angle(acceleration_RAO) + randomPhases), 2 ), 1);
+            cos(componentPhase + angle(acceleration_RAO)), 2 ), 1);
 
     end
 end
 
 end
-
-
-
-
-

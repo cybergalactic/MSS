@@ -6,6 +6,8 @@ function SIMlauvMarie()
 % Wave-induced forces are attenuated with vehicle depth and are typically
 % negligible below about 20 m for the default sea state. The attenuation is
 % frequency dependent, so very long waves can penetrate more deeply.
+% waveForceRAO accumulates signed encounter phase during changes in speed
+% and heading, consistent with Fossen (2027), Chapter 10.
 % The vehicle dynamics use a unified seakeeping-maneuvering model based on
 % MSS-Capytaine hydrodynamic data. The power-based constant hydrodynamic model
 % is augmented with nonlinear damping, cross-flow drag, and lift-drag terms.
@@ -35,8 +37,10 @@ function SIMlauvMarie()
 % Author: Thor I. Fossen
 % Date: 2026-10-14
 % Revisions:
+%   2026-10-26: Accumulate signed encounter phase in waveForceRAO while
+%               retaining depth attenuation, consistent with Chapter 10.
 
-clear ALOS3D lauvMarie;             % Clear persistent model/controller states
+clear ALOS3D lauvMarie;      % Clear persistent model/controller states
 
 % ==============================================================================
 % SIMULATOR CONFIGURATION
@@ -238,11 +242,12 @@ for i = 1:nTimeSteps
     tau = [tau1 0 0 0 tau5 tau6]';
 
     % Depth-attenuated 6-DOF wave forces (compute RAO every 0.1 second)
-    if t(i) >= nextRAOtime
-        U = sqrt(u^2 + v^2);
-        [tau_wave1, waveElevation] = waveForceRAO( ...
+    if t(i) + 10*eps(max(1,t(i))) >= nextRAOtime
+        U = hypot(u, v);
+        [tau_wave1, waveElevation, waveModel] = waveForceRAO( ...
             t(i), waveModel, U, psi, environment.beta_wave, zn);
-        nextRAOtime = nextRAOtime + RAO_update_period;
+        nextRAOtime = (floor((t(i) + 10*eps(max(1,t(i)))) / ...
+            RAO_update_period) + 1) * RAO_update_period;
     end
 
     % Ocean current random walks with saturation

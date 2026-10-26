@@ -4,6 +4,8 @@ function SIMhydroVessel()
 % control system can be chosen as a nonlinear MIMO PID controller for DP or a
 % heading autopilot for transit. Vessel-specific defaults are defined by
 % hydroVesselConfig.m and can be edited in guiSIMhydroVessel.m before simulation.
+% waveForceRAO accumulates signed encounter phase during changes in speed
+% and heading, consistent with Fossen (2027), Chapter 10.
 %
 % Reference:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -12,6 +14,8 @@ function SIMhydroVessel()
 % Author:    Thor I. Fossen
 % Date:      2026-10-04
 % Revisions:
+%   2026-10-26: Accumulate signed encounter phase in waveForceRAO during
+%               maneuvering, consistent with Chapter 10.
 
 clear PIDnonlinearMIMO headingAutopilot; % Clear persistent state variables 
 clearvars;                               % Clear all other variables
@@ -96,12 +100,13 @@ for i = 1:nTimeSteps
     end
 
     % 6-DOF generalized wave forces (compute RAO only every 0.1 second)
-    if t(i) >= nextRAOtime
-        U = sqrt(nu(1)^2 + nu(2)^2);
-        [tau_wave1, waveElevation] = waveForceRAO(t(i), waveModel, ...
+    if t(i) + 10*eps(max(1,t(i))) >= nextRAOtime
+        U = hypot(nu(1), nu(2));
+        [tau_wave1, waveElevation, waveModel] = waveForceRAO(t(i), waveModel, ...
             U, eta(6), environment.beta_wave);
 
-        nextRAOtime = nextRAOtime + cfg.RAO_update_period;
+        nextRAOtime = (floor((t(i) + 10*eps(max(1,t(i)))) / ...
+            cfg.RAO_update_period) + 1) * cfg.RAO_update_period;
     end
 
     % Save data for post-processing and plotting

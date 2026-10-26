@@ -6,11 +6,14 @@ function displayVehicleData(vehicleName, vehicleData, imageFile, figNo)
 %   vehicleName - A string representing the name of the vehicle 
 %   vehicleData - A cell array of key-value pairs representing the vehicle's 
 %                 characteristics
-%   imageFile   - File name of the vehicle image (in path or MSS/SIMULINK/figs/)
+%   imageFile   - Vehicle image name or explicit path. Names are resolved in
+%                 CRAFT/<type>/models/figs/ before searching the MATLAB path.
 %   figNo       - Figure number
 %
 % Author:     Thor I. Fossen
 % Date:       2024-06-07
+% Revisions:
+%   2026-10-26 Prefer craft image folders; retain path lookup for older callers.
 
 % Heading and table text
 Heading = sprintf('%s\n%s\n', 'MSS Toolbox', vehicleName);
@@ -41,8 +44,9 @@ text(0, 1, MSS_text, ...
     'Interpreter', 'none');
 axis off;
 
-% Image 
-filePath = which(imageFile);
+% Image: prefer craft assets independently of MATLAB path ordering.
+craftRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+filePath = resolveVehicleImage(imageFile, craftRoot);
 axes('Position', [0.15 0.10 0.7 0.33]);  
 if isempty(filePath)
     text(0, 0.5, sprintf('Image not found:\n%s', imageFile), ...
@@ -63,4 +67,25 @@ else
     end
 end
 
+end
+
+function filePath = resolveVehicleImage(imageFile, craftRoot)
+filePath = '';
+imageFolder = fileparts(imageFile);
+if isempty(imageFolder)
+    craftTypes = {'AUV', 'USV', 'SHIP'};
+    for k = 1:numel(craftTypes)
+        candidate = fullfile(craftRoot, craftTypes{k}, 'models', 'figs', imageFile);
+        if exist(candidate, 'file') == 2
+            filePath = candidate;
+            return;
+        end
+    end
+end
+
+% Preserve explicit paths and legacy/custom images elsewhere on the path.
+filePath = which(imageFile);
+if isempty(filePath) && exist(imageFile, 'file') == 2
+    filePath = imageFile;
+end
 end
