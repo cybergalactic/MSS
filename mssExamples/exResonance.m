@@ -10,14 +10,26 @@
 %
 % Author:    Thor I. Fossen
 % Date:      2019-05-01
-% Revisions: 
+% Revisions:
+%   2026-10-27: Use vesselPeriods and undamped frequencies; fix heave scaling.
 
-load supply;		% Load supply data (ShipX)
+load supply vessel;  % Load supply data (ShipX)
 
-% Compute relative damping rations and natural frequencies
-[T,zeta] = DPperiods(vessel);
-z3 = zeta(3);   z4 = zeta(4);   z5 = zeta(5);
-w3 = 2*pi/T(3); w4 = 2*pi/T(4); w5 = 2*pi/T(5);
+% Use the first speed case and include viscous damping when available.
+A = vessel.A(:,:,:,1);
+B = vessel.B(:,:,:,1);
+if isfield(vessel,'Bv')
+    for k = 1:size(B,3)
+        B(:,:,k) = B(:,:,k) + vessel.Bv(:,:,1);
+    end
+end
+G = vessel.C(:,:,end,1);
+
+% The oscillator formulas require undamped natural frequencies.
+[~,zeta345,~,omega_n] = vesselPeriods( ...
+    vessel.freqs,vessel.MRB,A,B,G,'coupled',false);
+z3 = zeta345(1); z4 = zeta345(2); z5 = zeta345(3);
+w3 = omega_n(1); w4 = omega_n(2); w5 = omega_n(3);
 
 wr = 0:0.01:2.5;   % wr = w_e / w_n
 
@@ -25,7 +37,7 @@ figure(gcf)
 
 w = w3 * wr;
 Zm3w = sqrt((w.^2)*(2*z3*w3)^2 + (w3^2-w.^2).^2);  % Zm3 * w_e
-plot(wr, w3^3./Zm3w,'-.','linewidth',2),hold on
+plot(wr, w3^2./Zm3w,'-.','linewidth',2),hold on
 
 w = w4 * wr;
 Zm4w = sqrt((w.^2)*(2*z4*w4)^2 + (w4^2-w.^2).^2);  % Zm4 * w_e

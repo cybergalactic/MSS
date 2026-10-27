@@ -333,6 +333,7 @@ exPullout          % Performs a pullout maneuver for two different ships
 exQuadProg         % Quadratic programming applied to waypoint trajectory generation
 exQuest            % 6-DOF position/attitude vector from camera measurements using the QUEST algorithm
 exRefMod           % 2nd-order reference model with nonlinear damping and velocity saturation
+exLoadCondition    % Plot heave, roll, and pitch periods versus draft and metacentric height
 exResonance        % Computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
 exRRD1             % Roll and sway-yaw transfer functions for the Son and Nomoto container ship
 exRRD2             % Rudder-roll damping (RRD) system for the Son and Nomoto container ship
@@ -459,15 +460,12 @@ The ShipX-only `vessel.roll` structure contains the Ikeda roll damping
 ```matlab
 computeManeuveringModel % Computes power-based A_eq, B_eq, and Bv from A(ω) and B(ω)
 cylinderDrag        % Reynolds- and aspect-ratio-dependent 2-D cylinder drag coefficient
-DPperiods           % Periods and natural frequencies of a marine craft in DP
 Hoerner             % 2-D Hoerner cross-flow form coefficient as a function of B and T
-loadcond            % Plots the roll and pitch periods as a function of GM_T and GM_L
 plotAB_eq           % Plots equivalent Aij and Bij values (maneuvering model approximation)
 plotABC             % Plots the hydrodynamic coefficients Aij, Bij, and Cij as a function of frequency 
 plotBv              % Plots potential, equivalent, and power-based viscous damping
 plotTF              % Plots the motion or force RAO transfer functions
 plotWD              % Plots the wave drift amplitudes
-shipPeriods         % Coupled or decoupled heave, roll, and pitch natural periods
 ```
 
 ### Hydrodynamic utilities (m-files)
@@ -475,7 +473,6 @@ shipPeriods         % Coupled or decoupled heave, roll, and pitch natural period
 ```matlab
 ABCtransform        % Transform and complete ShipX hydrodynamic matrices in MSS axes
 imp2svd             % Singular values of the Hankel matrix of a sampled impulse response
-natfrequency        % Natural frequency in heave, roll, or pitch about the center of flotation
 retardation         % Compute a radiation retardation function from damping data
 retardation2ss      % Estimate a state-space realization from a retardation function
 ```

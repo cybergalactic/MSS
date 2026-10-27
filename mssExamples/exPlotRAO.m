@@ -9,7 +9,7 @@ function exPlotRAO()
 % Revisions: 
 
 load otter_80kg vessel
-plotRAO(vessel);
+plotRAO(vessel,0:30:180);
 
 end
 

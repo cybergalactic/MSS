@@ -112,6 +112,8 @@ For LAUV Marie, the standalone [lauvMarie.m](CRAFT/AUV/models/lauvMarie.m) model
 
 Example data and processing instructions are organized by source:
 
+Run `mssVessels` in the MATLAB or GNU Octave Command Window to list marine craft in MSS with a MAT-file containing the `vessel` structure produced by hydrodynamic solvers and their import/export tools. The list shows the source solver, filename, and location. The command only displays the list; it does not return data or change workspace variables. Companion `*ABC.mat` files are omitted.
+
 - [ShipX vessel data](HYDRO/vessels_shipx/ShipX-Vessels.md)
 - [WAMIT vessel data](HYDRO/vessels_wamit/WAMIT-Vessels.md)
 - [Capytaine vessel data](HYDRO/vessels_capytaine/Capytaine-Vessels.md)

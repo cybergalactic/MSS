@@ -11,6 +11,7 @@
 % computer and "add the path with subfolders" to MATLAB/Octave.
 %
 %   >> mssHelp - Online Quick Reference Guide
+%   >> mssVessels - List marine craft with vessel-structure MAT-files
 %
 % Useful demonstrations and examples:
 %

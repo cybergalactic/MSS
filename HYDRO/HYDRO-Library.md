@@ -40,10 +40,11 @@ plotBv(vessel);
 | `plotABC.m` | Plot added mass, potential damping, or restoring matrices. |
 | `plotAB_eq.m` | Compare frequency-dependent matrices with their power-based equivalents. |
 | `plotBv.m` | Compare potential, equivalent, viscous, and total damping. |
-| `plotTF.m` | Plot motion or force RAOs. |
-| `plotWD.m` | Plot second-order mean wave-drift loads. |
-| `shipPeriods.m` and `DPperiods.m` | Compute natural periods and frequencies. |
-| `loadcond.m` | Examine heave, roll, and pitch periods versus loading parameters. |
+| [`utils/plotTF.m`](utils/plotTF.m) | Plot motion or force RAOs. |
+| [`utils/plotWD.m`](utils/plotWD.m) | Plot second-order mean wave-drift loads. |
+| [`vesselPeriods.m`](../LIBRARY/modeling/vesselPeriods.m) | Compute coupled or decoupled heave/roll/pitch periods, damped and undamped natural frequencies, and damping ratios. |
 | `Hoerner.m` and `cylinderDrag.m` | Hydrodynamic drag-coefficient utilities. |
 
 Supporting numerical functions are located in [`utils`](utils/), ShipX/VERES readers in [`utils/readdata`](utils/readdata/), and plotting helpers in [`utils/plotting`](utils/plotting/). WAMIT geometry tools are located in [`gdf`](gdf/). Radiation-model identification is documented in the [FDI Toolbox documentation](../FDI/FDI-Toolbox.md).
+
+Run [`exLoadCondition`](../mssExamples/exLoadCondition.m) to plot heave, roll, and pitch periods versus draft and metacentric height for the bundled supply vessel. Use `exLoadCondition(vessel)` to examine another MSS vessel structure.
