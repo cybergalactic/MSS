@@ -30,6 +30,8 @@
 %
 % Author:    Thor I. Fossen
 % Date:      2025-03-10
+% Revisions: 2026-10-27 Keep infinite-frequency limits out of the Cummins
+%           integration grid; use the stored limits separately when available.
 
 clearvars; 
 close all;
@@ -65,7 +67,7 @@ fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
 
 psi = 0; % Heading angle (rad)
 beta_wave = deg2rad(135); % Wave direction, 0 for following sea, 180 for head sea
-numFreqIntervals = 60; % Number of wave frequency intervals (>50)
+numFreqIntervals = 100; % Resolve the JONSWAP peak over the automatic wave band
 
 % Sea state
 Hs = 5;         % Significant wave height (m)
@@ -105,7 +107,23 @@ vessel = computeManeuveringModel(vessel, omega_p, T_126, ...
     [0 0.1 0], 0);
 
 %% Compute Cummins and Maneuvering Model Responses
-freqs = vessel.freqs;
+% MSS stores the infinite-frequency radiation solution at the marker 10.
+% Retain a genuine zero-frequency solution, but never interpolate through
+% the infinity marker as if it were a physical frequency.
+allFreqs = vessel.freqs(:);
+infIdx = find(abs(allFreqs - 10) < 10*eps(10), 1);
+finiteIdx = isfinite(allFreqs) & abs(allFreqs - 10) >= 10*eps(10);
+freqs = allFreqs(finiteIdx);
+if numel(freqs) < 2 || any(freqs < 0) || any(diff(freqs) <= 0)
+    error('At least two increasing, nonnegative finite radiation frequencies are required.');
+end
+if isempty(infIdx)
+    % ShipX has no exact limiting solution. Preserve the example's
+    % approximation using A and B at the highest available frequency.
+    limitIdx = find(finiteIdx, 1, 'last');
+else
+    limitIdx = infIdx;
+end
 nFreqInterp = 200;
 freqs_uniform = linspace(min(freqs), max(freqs), nFreqInterp)';
 
@@ -129,10 +147,11 @@ for DOF = 1:6
     B_eq(DOF) = vessel.powerBased.B_eq(DOF,DOF);
     Bv(DOF) = vessel.powerBased.Bv(DOF,DOF);
     
-    A_w = squeeze(vessel.A(DOF,DOF,:,1));
-    B_w = squeeze(vessel.B(DOF,DOF,:,1));
-    B_interp = interp1(freqs, B_w, freqs_uniform, 'pchip','extrap');
-    B_inf = B_interp(end);
+    A_w = squeeze(vessel.A(DOF,DOF,finiteIdx,1));
+    B_w = squeeze(vessel.B(DOF,DOF,finiteIdx,1));
+    B_interp = interp1(freqs, B_w, freqs_uniform, 'pchip');
+    A_inf = vessel.A(DOF,DOF,limitIdx,1);
+    B_inf = vessel.B(DOF,DOF,limitIdx,1);
 
     A_w_all(:,DOF) = A_w;
     B_w_all(:,DOF) = B_w;
@@ -150,7 +169,7 @@ for DOF = 1:6
     K_all(:,DOF) = K;  % Store K(t)
 
     % Cummins Equation
-    M = vessel.MRB(DOF,DOF) + vessel.A(DOF,DOF,end);
+    M = vessel.MRB(DOF,DOF) + A_inf;
     C = vessel.C(DOF,DOF);
     F_ext = waveData(:,DOF);
     eta_dof = zeros(nTimeSteps,1); % Temporary DOF result
