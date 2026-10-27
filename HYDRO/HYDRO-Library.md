@@ -40,6 +40,7 @@ plotBv(vessel);
 | `plotABC.m` | Plot added mass, potential damping, or restoring matrices. |
 | `plotAB_eq.m` | Compare frequency-dependent matrices with their power-based equivalents. |
 | `plotBv.m` | Compare potential, equivalent, viscous, and total damping. |
+| [`plotRAO.m`](plotRAO.m) | Plot motion and force RAO amplitudes and phases for selected headings, using colored or black-and-white lines. |
 | [`utils/plotTF.m`](utils/plotTF.m) | Plot motion or force RAOs. |
 | [`utils/plotWD.m`](utils/plotWD.m) | Plot second-order mean wave-drift loads. |
 | [`vesselPeriods.m`](../LIBRARY/modeling/vesselPeriods.m) | Compute coupled or decoupled heave/roll/pitch periods, damped and undamped natural frequencies, and damping ratios. |
@@ -48,3 +49,17 @@ plotBv(vessel);
 Supporting numerical functions are located in [`utils`](utils/), ShipX/VERES readers in [`utils/readdata`](utils/readdata/), and plotting helpers in [`utils/plotting`](utils/plotting/). WAMIT geometry tools are located in [`gdf`](gdf/). Radiation-model identification is documented in the [FDI Toolbox documentation](../FDI/FDI-Toolbox.md).
 
 Run [`exLoadCondition`](../mssExamples/exLoadCondition.m) to plot heave, roll, and pitch periods versus draft and metacentric height for the bundled supply vessel. Use `exLoadCondition(vessel)` to examine another MSS vessel structure.
+
+## Motion and Force RAO Plots
+
+Run `mssVessels` to list the included marine craft with vessel-structure MAT-files. For example:
+
+```matlab
+load supply.mat vessel
+plotRAO(vessel)                     % Default: [0 30 60 90] degrees, colored lines
+plotRAO(vessel,[0 30 60 90],false)   % Explicit headings and color setting
+plotRAO(vessel,0:30:180,true)        % Seven headings, black-and-white lines
+plotRAO(vessel,[],true)             % Default headings, black-and-white lines
+```
+
+Figures 1 and 2 show motion RAOs; figures 3 and 4 show force RAOs. Each figure has three rows for three DOFs, with amplitude on the left and phase on the right. The first speed case is used. Headings are specified in degrees and must be present in `vessel.headings`; no interpolation is performed.
