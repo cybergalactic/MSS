@@ -51,7 +51,9 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 %         T_i = 2*pi/omega_i
 %
 % INPUTS:
-%   w       [N x 1]  frequency grid (rad/s), strictly increasing
+%   w       [N x 1]  frequency grid (rad/s), strictly increasing. The MSS
+%                   infinity marker at 10 is excluded internally together
+%                   with its Aw/Bw slices; a genuine zero sample is retained.
 %   MRB     [6 x 6]  rigid-body mass/inertia matrix
 %   Aw      [6 x 6 x N] added mass matrices on grid w
 %   Bw      [6 x 6 x N] damping matrices on grid w (radiation + optional viscous)
@@ -73,6 +75,24 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 %
 % Author: Thor I. Fossen
 % Date: 2026-02-13
+% Revisions: 2026-10-27 Exclude the infinite-frequency marker from
+%           interpolation and the natural-frequency search interval.
+
+% Natural periods require finite-frequency coefficients. In MSS, the
+% radiation solution stored at w = 10 represents infinity, not A(10)/B(10).
+w = w(:);
+if size(Aw,3) ~= numel(w) || size(Bw,3) ~= numel(w)
+    error('vesselPeriods:FrequencyDimensions', ...
+        'Aw and Bw must have one matrix for each entry in w.');
+end
+finiteIdx = isfinite(w) & abs(w - 10) >= 10*eps(10);
+w = w(finiteIdx);
+Aw = Aw(:,:,finiteIdx);
+Bw = Bw(:,:,finiteIdx);
+if numel(w) < 2 || any(w < 0) || any(diff(w) <= 0)
+    error('vesselPeriods:InvalidFrequencies', ...
+        'At least two increasing, nonnegative finite frequencies are required.');
+end
 
 dofs  = [3 4 5];
 w_min = w(1);
