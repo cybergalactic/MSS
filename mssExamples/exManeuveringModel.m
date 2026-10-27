@@ -65,7 +65,6 @@ fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
 
 psi = 0; % Heading angle (rad)
 beta_wave = deg2rad(135); % Wave direction, 0 for following sea, 180 for head sea
-maxFreq = 3.0; % Maximum frequency in RAO computations (rad/s) 
 numFreqIntervals = 60; % Number of wave frequency intervals (>50)
 
 % Sea state
@@ -86,7 +85,6 @@ environment.spectrumType = spectrumType;
 environment.spreadingFlag = false;
 environment.numFreqIntervals = numFreqIntervals;
 environment.numDirections = 1;
-environment.maxFreq = maxFreq;
 [environment, waveModel] = waveInitialization(vessel, environment);
 
 % 6-DOF generalized wave forces using first-order force RAOs

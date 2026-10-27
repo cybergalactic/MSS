@@ -43,7 +43,6 @@ nextRAOtime = 0;                % Next RAO update time
 
 % numFreqIntervals - Number of frequency intervals in wave spetrcum S(Omega)
 % numDirctions     - Number of wave directions in directional spectrum M(mu)
-maxFreq = 3.0;                  % Maximum frequency in RAO computations (rad/s)
 numFreqIntervals = 60;          % Number of wave frequency intervals (>50)
 numDirections = 24;             % Number of wave directions (>15)
 
@@ -65,7 +64,6 @@ environment.spectrumType = spectrumType;
 environment.spreadingFlag = spreadingFlag;
 environment.numFreqIntervals = numFreqIntervals;
 environment.numDirections = numDirections;
-environment.maxFreq = maxFreq;
 [environment, waveModel] = waveInitialization(vessel, environment, 'motion');
 
 S_M = environment.S_M;

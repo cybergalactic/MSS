@@ -1,5 +1,5 @@
 function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
-    Parameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections)
+    Parameters, numFreqIntervals, omegaMax, spreadingFlag, numDirections, omegaMin)
 % This function generates a directional wave spectrum 
 % 
 %   S_M(Omega, mu) = S(Omega) * M(mu)
@@ -14,8 +14,8 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 % within an angle range of [-pi/2, pi/2] from the wind direction, providing 
 % a more realistic representation of natural sea states.
 % 
-% [S, Omega, Amp, M, mu] = waveDirectionalSpectrum(spectrumType, Parameters, ...
-%    numFreqIntervals, omegaMax, spreadingFlag, numDirections)
+% [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, Parameters, ...
+%    numFreqIntervals, omegaMax, spreadingFlag, numDirections, omegaMin)
 %
 % INPUTS:
 %   spectrumType     - Type of wave spectrum, S(Omega),
@@ -25,8 +25,9 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 %                         Hs: Significant wave height
 %                         w0: Peak frequency
 %                         gamma: Peak enhancement factor (only for 'JONSWAP')
-%   numFreqIntervals - Number of frequency intervals (> 100)
-%   omegaMax         - Maximum frequency (typicallly > 4.0 rad/s)
+%   numFreqIntervals - User-selected number of frequency intervals
+%   omegaMax         - Upper frequency bound (rad/s)
+%   omegaMin         - Optional lower frequency bound (rad/s), default 0
 %   spreadingFlag    - Optional flag for wave spreading (default is false)
 %   numDirections    - Number of wave directions (default is 16)
 %
@@ -49,9 +50,10 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 % Examples:
 %   [S_M, Omega] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4)
 %   [S_M, Omega] = waveDirectionalSpectrum('JONSWAP', [Hs, w0, gamma], 100, 4)
-%   [S_M, Omega] = waveDirectionalSpectrum('Torsethaugen', [Hs, w0, 100, 4])
+%   [S_M, Omega] = waveDirectionalSpectrum('Torsethaugen', [Hs, w0], 100, 4)
 %   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4, true)
 %   [S_M, Omega, Amp] = waveDirectionalSpectrum('Modified PM', [Hs, w0], 100, 4, true, 24)
+%   [S_M, Omega, Amp] = waveDirectionalSpectrum('JONSWAP', [Hs, w0, gamma], 100, 4, true, 24, 0.5)
 % 
 % Reference:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -62,13 +64,21 @@ function [S_M, Omega, Amp, S, M, mu] = waveDirectionalSpectrum(spectrumType, ...
 % Revisions: 
 %   2026-10-07: Corrected the JONSWAP validity-range check (E. Krizman)
 %   2026-10-09: Changed the recommended JONSWAP range from an error to a warning.
+%   2026-10-27: Support an optional lower frequency bound, omegaMin.
+
+if nargin < 7
+    omegaMin = 0;
+end
+validateattributes(numFreqIntervals, {'numeric'}, {'scalar','integer','positive','finite'});
+validateattributes(omegaMin, {'numeric'}, {'scalar','real','finite','nonnegative'});
+validateattributes(omegaMax, {'numeric'}, {'scalar','real','finite','>',omegaMin});
 
 if nargin < 6
     numDirections = 16; % Default value for number of wave directions
 end
 
 if nargin < 5
-    spreadingFlag = false;                                                                                                                        false; % Default value for spreadingFlag
+    spreadingFlag = false; % Default value for spreadingFlag
 end
 
 Hs = Parameters(1);
@@ -114,11 +124,11 @@ T0 = 2*pi / w0;
 Tz = 0.710 * T0;
 
 % Generate random frequencies within each interval 'deltaOmega'
-deltaOmega = omegaMax / numFreqIntervals;
+deltaOmega = (omegaMax - omegaMin) / numFreqIntervals;
 Omega = zeros(numFreqIntervals, 1);
 for i = 1:numFreqIntervals
     % Midpoint of the current interval
-    omega_mid = (i-1) * deltaOmega + deltaOmega / 2;
+    omega_mid = omegaMin + (i-1) * deltaOmega + deltaOmega / 2;
     % Random frequency in each interval around the midpoint,
     % confined to [-deltaOmega/2, deltaOmega/2]
     Omega(i) = omega_mid + (rand() - 0.5) * deltaOmega;

@@ -28,6 +28,22 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 
 ## Wave Simulation
 
+`waveInitialization` automatically selects a frequency band targeting the central
+99% of the requested spectrum's energy, bounded by the selected RAO dataset.
+Keep `environment.numFreqIntervals = 100` (or another user-selected count) to
+control the number of components; initialization does not increase it. No
+`environment.maxFreq` input is needed or used. The selected band and retained
+energy fraction are returned as `environment.frequencyBand` and
+`environment.retainedEnergyFraction`.
+
+A peak outside the RAO range is rejected. Warnings report energy retention below
+95% and frequency intervals containing over 10% of the retained energy. Missing
+energy is not restored by rescaling the spectrum. The band selection respects
+both ends of the RAO range, so wave loads use interpolation without frequency
+extrapolation. The ShipX/VERES 10 rad/s infinity marker is excluded for datasets
+identified by `vessel.roll.veres`; valid higher frequencies from other solvers
+remain available.
+
 Initialize the spectrum and RAO tables once, then retain the updated
 `waveModel` at each simulation update:
 
