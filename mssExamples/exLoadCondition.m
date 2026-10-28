@@ -12,10 +12,10 @@ function exLoadCondition(vessel)
 % Revisions:
 %   2019-04-25: Extended to include heave, roll, and pitch.
 %   2026-10-27: Use vesselPeriods; move loadcond to exLoadCondition.
+%   2026-10-27: Load the default supply MAT-file from the MATLAB path.
 
 if nargin < 1
-    mssRoot = fileparts(fileparts(mfilename('fullpath')));
-    data = load(fullfile(mssRoot,'HYDRO','vessels_shipx','supply','supply.mat'),'vessel');
+    data = load('supply.mat','vessel');
     vessel = data.vessel;
 end
 
