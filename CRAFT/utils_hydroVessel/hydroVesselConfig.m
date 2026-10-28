@@ -3,9 +3,8 @@ function cfg = hydroVesselConfig(matFile, useGenericDefaults)
 % simulation, environment,
 % controller, and damping parameters for the hydrodynamic vessel data file
 % matFile. Common defaults are defined first and vessel-specific values are
-% applied afterwards. If a vessel case does not explicitly override its
-% linear damping parameters, they are loaded from vessel.powerBased in the
-% MAT-file.
+% applied afterwards. Damping inputs are loaded from vessel.powerBased in
+% the MAT-file. Only the legacy FPSO and semisub WAMIT cases retain presets.
 %
 % Input:
 %   matFile: Vessel data filename, for example 'supply.mat'
@@ -25,6 +24,8 @@ function cfg = hydroVesselConfig(matFile, useGenericDefaults)
 %              linear damping inputs; retain commented per-vessel overrides.
 %   2026-10-07 Added generic editable defaults for custom vessel MAT-files.
 %   2026-10-09 Use initial JONSWAP parameters within the recommended range.
+%   2026-10-28 Read JSON-backed damping, including nonlinear multipliers,
+%              from the MAT-file; keep FPSO and semisub WAMIT presets.
 
 if nargin < 2
     useGenericDefaults = false;
@@ -80,11 +81,11 @@ cfg.control.heading.wn = 1.0;
 cfg.control.heading.zeta = 1.0;
 cfg.control.heading.tauX = 0;
 
-% Do not assume nonlinear damping for a newly developed vessel.
-cfg.damping.nonlinear_456 = [0 0 0];
+% JSON-backed vessels carry their damping inputs in the MAT-file.
+cfg.damping = struct();
 
 % Vessel-specific overrides
-% Surface T_126 presets approximate the former 5% damping at w0 = 1 rad/s.
+% FPSO/semisub T_126 presets approximate the former 5% damping at w0 = 1 rad/s.
 if ~useGenericDefaults
     switch lower(matFile)
     case 'supply.mat'
@@ -94,9 +95,6 @@ if ~useGenericDefaults
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.mode = 'DPsystem';
         cfg.control.dp.wn = [0.3 0.3 0.9];
-        cfg.damping.T_126 = [6.4 2.5 3.3]; % Time constants (s) in DOFs 1,2,6
-        cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 180e3;
@@ -107,9 +105,6 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.dp.wn = [0.3 0.3 0.9];
-        cfg.damping.T_126 = [11.9 2.0 1.8]; % Time constants (s) in DOFs 1,2,6
-        cfg.damping.delta_zeta_345 = [0 0.2 0];   % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 120e3;
@@ -119,9 +114,6 @@ if ~useGenericDefaults
         cfg.simulation.h = 0.05;
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
-        cfg.damping.T_126 = [49.9 3.6 4.7]; % Time constants (s) in DOFs 1,2,6
-        cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 120e3;
@@ -157,11 +149,7 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = [10, 10, 0, deg2rad(5), 0, 0]';
         cfg.control.dp.wn = [0.3 0.3 0.9];
-        % Optional overrides of the MSS-Capytaine values exported from config.json:
-        % cfg.damping.T_126 = [20 8 20]; % Time constants (s) in DOFs 1,2,6
-        % cfg.damping.delta_zeta_345 = [0 0.2 0];   % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 5 0];        % K = Kp * (1 + kappa4 * |p|)
-        cfg.control.heading.wn = 1.0;               % M = Mq * (1 + kappa5 * |q|)
+        cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 10e3;
 
@@ -173,11 +161,7 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = [0, 0, 5, 0, 0, 0]';
         cfg.control.dp.wn = [0.5 0.5 1.5];
-        % Optional overrides of the MSS-Capytaine values exported from config.json:
-        % cfg.damping.T_1236 = [50 5 5 5];       % Time constants in DOFs 1,2,3,6
-        % cfg.damping.delta_zeta_45 = [0.2 0.2]; % Increase damping ratios DOFs 4,5
-        cfg.damping.nonlinear_456 = [5 5 0];     % K = Kp * (1 + kappa4 * |p|)
-        cfg.control.heading.tauX = 20;           % M = Mq * (1 + kappa5 * |q|)
+        cfg.control.heading.tauX = 20;
         cfg.control.heading.wn = 1.5;
         cfg.control.heading.zeta = 1.0;
 
@@ -240,8 +224,8 @@ matPath = resolveHydroVesselFile(cfg.vessel.matFile);
 data = load(matPath, 'vessel');
 if ~isfield(data, 'vessel') || ...
         ~isfield(data.vessel, 'powerBased')
-    error(['%s does not contain power-based damping inputs. Add an ' ...
-        'explicit damping override in hydroVesselConfig.m.'], ...
+    error(['%s does not contain power-based damping inputs. Refresh the ' ...
+        'MAT-file from its MSS-Capytaine JSON and copy it into MSS.'], ...
         cfg.vessel.matFile);
 end
 
@@ -255,9 +239,21 @@ elseif isfield(powerBased, 'T_126') && ...
     cfg.damping.T_126 = powerBased.T_126;
     cfg.damping.delta_zeta_345 = powerBased.delta_zeta_345;
 else
-    error(['%s has incomplete power-based damping inputs. Add an ' ...
-        'explicit damping override in hydroVesselConfig.m.'], ...
+    error(['%s has incomplete power-based damping inputs. Refresh the ' ...
+        'MAT-file from its MSS-Capytaine JSON and copy it into MSS.'], ...
         cfg.vessel.matFile);
 end
+
+% Older MAT-files without nonlinear metadata retain the generic zero default.
+if isfield(powerBased, 'nonlinear_456')
+    nonlinear = powerBased.nonlinear_456;
+else
+    nonlinear = [0 0 0];
+end
+if ~isnumeric(nonlinear) || ~isreal(nonlinear) || ~isvector(nonlinear) || ...
+        numel(nonlinear) ~= 3 || any(~isfinite(nonlinear(:))) || any(nonlinear(:) < 0)
+    error('nonlinear_456 must contain three finite nonnegative multipliers.');
+end
+cfg.damping.nonlinear_456 = reshape(nonlinear,1,[]);
 
 end
