@@ -32,7 +32,7 @@ clearvars;
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
 [matFile, spectrumType, spreadingFlag] = simOptions(); % User inputs
-load(which(matFile), 'vessel'); % Load vessel.motionRAO data structure
+load(resolveHydroVesselFile(matFile), 'vessel'); % Load vessel.motionRAO data
 disp(['Loaded the motion RAO structure "vessel.motionRAO" (', matFile, ')'])
 
 % Simulation parameters

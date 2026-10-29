@@ -7,7 +7,7 @@ The FDI toolbox identifies parametric radiation-force and fluid-memory models of
 - [`Demo_FDIRadMod_WA.m`](Demo_FDIRadMod_WA.m): identification when the infinite-frequency added mass is available.
 - [`Demo_FDIRadMod_NA.m`](Demo_FDIRadMod_NA.m): identification when the infinite-frequency added mass must be estimated.
 
-Both demonstrations use the included `fpso.mat` vessel data.
+Both demonstrations load the shared [WAMIT FPSO dataset](../HYDRO/vessels_wamit/fpso.mat) by name from the MSS path. FDI does not keep a separate vessel copy; its identification inputs are the same added-mass and radiation-damping data used previously.
 
 ## Main Functions
 

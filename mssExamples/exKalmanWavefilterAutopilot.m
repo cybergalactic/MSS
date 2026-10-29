@@ -47,7 +47,8 @@ delta_max = deg2rad(20);        % Rudder angle limit (rad)
 rate_max = deg2rad(5);          % Rudder rate limit (rad/s)
 
 % MSS PID heading autopilot and its internal reference model
-wn = 0.1; zeta = 0.5;          % Td = 10 s and Ti = 100 s, as in the case study
+wn = 0.2; 
+zeta = 1.0;          
 wn_d = 0.05;                   % Reference-model bandwidth (rad/s)
 r_max = deg2rad(1);            % Desired yaw-rate limit (rad/s)
 M_nomoto = T/K;                % Nomoto inertia for a rudder-angle input

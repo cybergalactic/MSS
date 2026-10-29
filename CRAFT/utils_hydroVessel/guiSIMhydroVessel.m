@@ -1,7 +1,7 @@
 function [vessel, cfg] = guiSIMhydroVessel()
 % [vessel,cfg] = guiSIMhydroVessel() displays the hydrodynamic vessel
 % model test options. Load an MSS-Capytaine vessel MAT-file for a quick test,
-% or select the Capytaine demonstration and imported ShipX/WAMIT data. Selecting a vessel
+% or select bundled Capytaine and WAMIT data. Selecting a vessel
 % loads its defaults from hydroVesselConfig. Running returns the vessel data and the edited
 % configuration structure. Closing the window returns empty outputs.
 %
@@ -31,7 +31,7 @@ f = figure('Position', [120, 60, 1200, 820], ...
     'WindowStyle', 'modal', ...
     'CloseRequestFcn', @onCancel);
 
-% Custom MAT-file loading, followed by Capytaine and imported solver data.
+% Custom MAT-file loading, followed by bundled solver data.
 bgVessel = uibuttongroup('Parent', f, ...
     'Units', 'pixels', ...
     'Position', [15 455 365 350], ...
@@ -50,22 +50,25 @@ uicontrol('Parent', bgVessel, ...
     'Callback', @onBrowseCustom);
 addText(bgVessel, ...
     {'Find MAT-files in MSS-Capytaine:', ...
-    'vessels_capytaine/<family>/<case>/results/', ...
+    'vessels_capytaine/<vessel_format>/', ...
     'Select the vessel MAT-file to test its hydrodynamics.'}, ...
     [20 190 325 55], 'normal');
 
-addText(bgVessel, 'Demonstration (Capytaine)', [10 163 325 22], 'bold');
+addText(bgVessel, 'Capytaine', [10 163 175 22], 'bold');
 addRadio(bgVessel, 'Test ship', 'testShip.mat', ...
-    [20 137 325 26], 0);
-
-addText(bgVessel, 'Imported data (commercial solvers)', [10 107 325 22], 'bold');
-addText(bgVessel, 'ShipX / VERES', [10 82 160 22], 'bold');
-addRadio(bgVessel, 'Supply vessel', 'supply.mat', [20 56 160 26], 0);
-addRadio(bgVessel, 'S175 container ship', 's175.mat', [20 30 170 26], 0);
-addText(bgVessel, 'WAMIT', [190 82 150 22], 'bold');
-addRadio(bgVessel, 'Tanker', 'tanker.mat', [200 56 145 26], 0);
-addRadio(bgVessel, 'FPSO', 'fpso.mat', [200 30 145 26], 0);
-addRadio(bgVessel, 'Semisubmersible', 'semisub.mat', [200 4 150 26], 0);
+    [20 137 175 26], 0);
+addRadio(bgVessel, 'Supply vessel', 'supply.mat', [20 111 175 26], 0);
+radioS175 = addRadio(bgVessel, 'S175 container ship', 's175.mat', ...
+    [20 85 175 26], 0);
+try
+    resolveHydroVesselFile('s175.mat');
+catch
+    set(radioS175, 'String', 'S175 (MAT-file pending)', 'Enable', 'off');
+end
+addText(bgVessel, 'WAMIT', [190 163 150 22], 'bold');
+addRadio(bgVessel, 'Tanker', 'tanker.mat', [200 137 145 26], 0);
+addRadio(bgVessel, 'FPSO', 'fpso.mat', [200 111 145 26], 0);
+addRadio(bgVessel, 'Semisubmersible', 'semisub.mat', [200 85 150 26], 0);
 previousSelectedRadio = radioCustom;
 
 % Environmental parameters
@@ -272,7 +275,7 @@ end
     function chooseCustomFile(source)
         [fileName, pathName] = uigetfile( ...
             {'*.mat', 'MAT-files (*.mat)'}, ...
-            'Load vessel MAT-file from MSS-Capytaine results', ...
+            'Load vessel MAT-file from MSS-Capytaine', ...
             customStartFile);
         if isequal(fileName, 0)
             restorePreviousSelection(source);

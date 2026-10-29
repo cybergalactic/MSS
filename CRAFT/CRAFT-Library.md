@@ -1,6 +1,6 @@
 # CRAFT Library
 
-CRAFT contains ready-to-run mathematical models and editable time-domain simulation scripts for ships, autonomous underwater vehicles (AUVs), uncrewed surface vehicles (USVs), and floating structures. It also provides a unified workflow for simulating user-defined 6-DOF marine craft from ShipX, WAMIT, or Capytaine seakeeping data. The files are compatible with MATLAB and GNU Octave.
+CRAFT contains ready-to-run mathematical models and editable time-domain simulation scripts for ships, autonomous underwater vehicles (AUVs), uncrewed surface vehicles (USVs), and floating structures. It also provides a unified workflow for simulating user-defined 6-DOF marine craft from WAMIT or Capytaine seakeeping data. The files are compatible with MATLAB and GNU Octave.
 
 ## Modeling Workflows
 
@@ -96,15 +96,14 @@ parameters, controls, guidance, and wave-depth behavior.
 
 [`hydroVessel.m`](hydroVessel.m) implements a 12-state, nonlinear 6-DOF model using the common MSS `vessel` structure. [`SIMhydroVessel.m`](SIMhydroVessel.m) is an editable simulation template that can be adapted to a user-defined USV, AUV, ship, or floating structure.
 
-The simulator includes a hydrodynamic model test GUI for quickly checking MSS-Capytaine exports. Use **Load vessel MAT-file** to open an MSS-compatible `vessel` structure directly from `MSS-Capytaine/vessels_capytaine/<family>/<case>/results/`. TestShip is the built-in demonstration; ShipX and WAMIT entries load data imported from those commercial solvers. Capytaine-generated versions are opened through the file picker. Review irregular seas, wave spectra, directional spreading, first-order wave forces, ocean currents, viscous damping, initial conditions, and heading-autopilot or dynamic-positioning settings, then click **Run simulation**. Develop vessel-specific nonlinear terms and sea-trial calibration in dedicated craft models such as `lauvMarie`. The GUI initially loads `LAUV_marie.mat` as a generic custom model and offers it as the default file-picker selection. Only the vessel MAT-file is needed; verify geometry in MSS-Capytaine before testing in MSS. Custom vessels receive conservative editable simulation defaults, including editable controller gains, while their linear damping inputs are read from `vessel.powerBased`.
+The simulator includes a hydrodynamic model test GUI for quickly checking MSS-Capytaine exports. Use **Load vessel MAT-file** to open an MSS-compatible `vessel` structure directly from `MSS-Capytaine/vessels_capytaine/<vessel>_<format>/`. The GUI groups Test ship, Supply vessel and S175 under Capytaine, and Tanker, FPSO and Semisubmersible under WAMIT. Other exported cases are opened through the file picker. Review irregular seas, wave spectra, directional spreading, first-order wave forces, ocean currents, viscous damping, initial conditions, and heading-autopilot or dynamic-positioning settings, then click **Run simulation**. Develop vessel-specific nonlinear terms and sea-trial calibration in dedicated craft models such as `lauvMarie`. The GUI initially loads `LAUV_marie.mat` as a generic custom model and offers it as the default file-picker selection. Only the vessel MAT-file is needed; verify geometry in MSS-Capytaine before testing in MSS. Custom vessels receive conservative editable simulation defaults, including editable controller gains, while their linear damping inputs are read from `vessel.powerBased`.
 
 Hydrodynamic vessel data and processing instructions are organized by source:
 
-- [ShipX vessel data](../HYDRO/vessels_shipx/ShipX-Vessels.md)
 - [WAMIT vessel data](../HYDRO/vessels_wamit/WAMIT-Vessels.md)
 - [Capytaine vessel data](../HYDRO/vessels_capytaine/Capytaine-Vessels.md)
 
-ShipX and WAMIT are commercial programs. The open-source [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) add-on uses Capytaine to generate compatible vessel structures without commercial seakeeping software.
+WAMIT is a commercial program. The open-source [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) add-on uses Capytaine to generate compatible vessel structures without commercial seakeeping software.
 
 ## Getting Started
 
@@ -140,3 +139,5 @@ SIMhydroVessel
 ```
 
 The configuration and GUI helpers are located in [`utils_hydroVessel`](utils_hydroVessel/).
+
+Run `mssCraft` to list all CRAFT dynamics models with their companion simulation scripts, as well as the hydrodynamic MAT-file catalogue. The ShipX importer and general catalogue have been removed; the speed-dependent S175 file used by `exManeuveringModel` is retained separately in [`mssExamples/data`](../mssExamples/data/README.md).

@@ -161,7 +161,7 @@ if strcmp(matFile, 'AUV_FUNCTION')
     disp('Generated vessel.forceRAO structure from function spheroidRAO().');
 
 else
-    load(which(matFile), 'vessel');
+    load(resolveHydroVesselFile(matFile), 'vessel');
     disp(['Loaded the force RAO structure "vessel.forceRAO" (', matFile, ')'])
 end
 end

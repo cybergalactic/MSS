@@ -23,13 +23,13 @@ Clone MSS-Capytaine separately from MSS, install its Python dependencies,
 and run from the MSS-Capytaine project directory:
 
 ```sh
-python main.py testShip
+python main.py testShip_csv
 ```
 
 The generated vessel file is written to:
 
 ```text
-vessels_capytaine/testShip/results/testShip.mat
+vessels_capytaine/testShip_csv/testShip.mat
 ```
 
 Capytaine and Python are required only to regenerate the hydrodynamic data.

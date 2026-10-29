@@ -2,7 +2,7 @@ function plotRAO(vessel,headings,blackWhite)
 % Function for plotting motion and force RAOs. For a list of available MSS
 % vessel names with MAT-files containing the structure 'vessel', run
 %
-%   mssVessels
+%   mssCraft
 %
 % Example calls:
 %   load 'supply' vessel

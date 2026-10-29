@@ -8,8 +8,8 @@
 
 clear all
 
-%Load data of the fpso (structure vessel)
-load fpso.mat
+% Load the shared WAMIT catalogue data (structure vessel).
+load('fpso.mat','vessel');
 
 %Extract the data from the vessel structure
 

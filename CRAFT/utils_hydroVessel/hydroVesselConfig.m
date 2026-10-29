@@ -4,7 +4,7 @@ function cfg = hydroVesselConfig(matFile, useGenericDefaults)
 % controller, and damping parameters for the hydrodynamic vessel data file
 % matFile. Common defaults are defined first and vessel-specific values are
 % applied afterwards. Damping inputs are loaded from vessel.powerBased in
-% the MAT-file. Only the legacy FPSO and semisub WAMIT cases retain presets.
+% the MAT-file for both Capytaine and WAMIT vessels.
 %
 % Input:
 %   matFile: Vessel data filename, for example 'supply.mat'
@@ -25,7 +25,7 @@ function cfg = hydroVesselConfig(matFile, useGenericDefaults)
 %   2026-10-07 Added generic editable defaults for custom vessel MAT-files.
 %   2026-10-09 Use initial JONSWAP parameters within the recommended range.
 %   2026-10-28 Read JSON-backed damping, including nonlinear multipliers,
-%              from the MAT-file; keep FPSO and semisub WAMIT presets.
+%              from the MAT-file for both Capytaine and WAMIT vessels.
 
 if nargin < 2
     useGenericDefaults = false;
@@ -85,7 +85,7 @@ cfg.control.heading.tauX = 0;
 cfg.damping = struct();
 
 % Vessel-specific overrides
-% FPSO/semisub T_126 presets approximate the former 5% damping at w0 = 1 rad/s.
+% Damping inputs are read from the MAT-file after the simulation presets.
 if ~useGenericDefaults
     switch lower(matFile)
     case 'supply.mat'
@@ -124,9 +124,6 @@ if ~useGenericDefaults
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
         cfg.control.mode = 'DPsystem';
-        cfg.damping.T_126 = [7.3 4.2 4.1];  % Time constants (s) in DOFs 1,2,6
-        cfg.damping.delta_zeta_345 = [0 0.1 0];    % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 0 0];       % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 120e3;
@@ -136,9 +133,6 @@ if ~useGenericDefaults
         cfg.simulation.h = 0.05;
         cfg.initial.nu = zeros(6,1);
         cfg.initial.eta = zeros(6,1);
-        cfg.damping.T_126 = [22.7 3.1 3.4]; % Time constants (s) in DOFs 1,2,6
-        cfg.damping.delta_zeta_345 = [0 0.1 0];   % Increase damping ratios DOFs 3,4,5
-        cfg.damping.nonlinear_456 = [5 0 0];      % K = Kp * (1 + kappa4 * |p|)
         cfg.control.heading.wn = 1.0;
         cfg.control.heading.zeta = 1.0;
         cfg.control.heading.tauX = 120e3;

@@ -15,8 +15,9 @@ function exLoadCondition(vessel)
 %   2026-10-27: Load the default supply MAT-file from the MATLAB path.
 
 if nargin < 1
-    data = load('supply.mat','vessel');
+    data = load(resolveHydroVesselFile('supply.mat'),'vessel');
     vessel = data.vessel;
+    vessel = computeManeuveringModel(vessel);
 end
 
 % Vessel data
@@ -32,10 +33,13 @@ Iy = vessel.MRB(5,5);
 % Vessel periods from the first speed case, including optional viscous damping.
 A = vessel.A(:,:,:,1);
 B = vessel.B(:,:,:,1);
-if isfield(vessel,'Bv')
-    for k = 1:size(B,3)
-        B(:,:,k) = B(:,:,k) + vessel.Bv(:,:,1);
-    end
+if isfield(vessel,'powerBased') && isfield(vessel.powerBased,'Bv')
+    Bv = vessel.powerBased.Bv(:,:,1);
+else
+    Bv = zeros(6);
+end
+for k = 1:size(B,3)
+    B(:,:,k) = B(:,:,k) + Bv;
 end
 G = vessel.C(:,:,end,1);
 per = vesselPeriods(vessel.freqs,vessel.MRB,A,B,G,'coupled',false);

@@ -5,18 +5,19 @@ function [T,zeta] = DPperiods(vessel,display)
 %
 %  Inputs:
 %     vessel    : MSS vessel structure
-%     display   : 0 no display, 1 display results 
+%     display   : 0 no display, 1 display results
 %
 %  Outputs:
 %     T(1:6)    : Time constants in surge, sway, and yaw
-%               : natural periods in heave, roll, and pitch 
-%     zeta(1:6) : relative damping factors in heave, roll, and pitch 
+%               : natural periods in heave, roll, and pitch
+%     zeta(1:6) : relative damping factors in heave, roll, and pitch
 %               : -1 for surge, sway and yaw
 %
 % Author:    Thor I. Fossen
 % Date:      2005-09-26
-% Revisions: 
+% Revisions:
 %   2026-03-30 : New formulas for periods/time constants based on vesselPeriods.m
+%   2026-10-28 : Read viscous damping from vessel.powerBased.Bv.
 
 if nargin == 1
     display = 0;
@@ -24,25 +25,24 @@ end
 
 w   = vessel.freqs;
 Nw = length(w);
- 
+
 MRB = vessel.MRB;
 G   = reshape(vessel.C(:,:,Nw,1),6,6);
+flagBV = isfield(vessel,'powerBased') && isfield(vessel.powerBased,'Bv');
 
 for k = 1:Nw
     A(:,:,k) = reshape(vessel.A(:,:,k,1),6,6,1);
-       
-    if isfield(vessel,'Bv')  % Viscous damping
-        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1) + vessel.Bv(:,:,1);
-        flagBV = 1;
+
+    if flagBV  % Viscous damping from the current vessel structure
+        B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1) + vessel.powerBased.Bv(:,:,1);
     else                     % No viscous damping
         B(:,:,k) = reshape(vessel.B(:,:,k,1),6,6,1);
-        flagBV = 0;
     end
-    
+
 end
 
 % *************************************************************************
-% Compute periods/time constants 
+% Compute periods/time constants
 % *************************************************************************
 
 % LF model DOFs 1,2,6 (uses first frequency as zero frequency)
@@ -53,7 +53,7 @@ M66 = MRB(6,6) + A(6,6,1);
 if flagBV == 0  % if no visocus damping, use 20% of max Bii as LF estimate
     B11 = 0.2 * max(B(1,1,:));
     B22 = 0.2 * max(B(2,2,:));
-    B66 = 0.2 * max(B(6,6,:));    
+    B66 = 0.2 * max(B(6,6,:));
 else
     B11 = B(1,1,1);
     B22 = B(2,2,1);

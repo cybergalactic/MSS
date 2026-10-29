@@ -1,9 +1,9 @@
-function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
-% [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
+function [T,zeta,omega_d,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
+% [T,zeta,omega_d,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 % computes the heave, roll, and pitch periods from frequency-dependent
 % hydrodynamic data. Additionally, the undamped natural frequencies
 % omega_n (rad/s), relative damping ratios zeta (-), and damped natural
-% frequencies omega (rad/s) are computed from frequency-dependent added
+% frequencies omega_d (rad/s) are computed from frequency-dependent added
 % mass and damping data.
 %
 % Two formulations are supported:
@@ -20,8 +20,8 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 %
 %      and the damped natural frequency and period follow as
 %
-%         omega_i = omega_n,i * sqrt(1 - zeta_i^2)
-%         T_i = 2*pi/omega_i
+%         omega_d,i = omega_n,i * sqrt(1 - zeta_i^2)
+%         T_i = 2*pi/omega_d,i
 %
 %   2) Coupled 6-DOF formulation ('coupled'):
 %      The coupled undamped natural frequencies are obtained from the frequency-
@@ -47,8 +47,8 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 %         b_i = x_i' B(omega_n) x_i
 %
 %         zeta_i = b_i / (2*sqrt(k_i*m_i))
-%         omega_i = omega_n,i * sqrt(1 - zeta_i^2)
-%         T_i = 2*pi/omega_i
+%         omega_d,i = omega_n,i * sqrt(1 - zeta_i^2)
+%         T_i = 2*pi/omega_d,i
 %
 % INPUTS:
 %   w       [N x 1]  frequency grid (rad/s), strictly increasing. The MSS
@@ -64,7 +64,7 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 % OUTPUTS (for DOFs 3,4,5 in this order):
 %   T       [1 x 3]  periods (s) based on damped natural frequencies
 %   zeta    [1 x 3]  relative damping ratios (-)
-%   omega   [1 x 3]  damped natural frequencies (rad/s)
+%   omega_d [1 x 3]  damped natural frequencies (rad/s)
 %   omega_n [1 x 3]  undamped natural frequencies (rad/s)
 %
 % Reference:
@@ -77,6 +77,8 @@ function [T,zeta,omega,omega_n] = vesselPeriods(w,MRB,Aw,Bw,C,method,verbose)
 % Date: 2026-02-13
 % Revisions: 2026-10-27 Exclude the infinite-frequency marker from
 %           interpolation and the natural-frequency search interval.
+%   2026-10-29 Name the damped-frequency output and column omega_d.
+%              Preserve the output order and undamped name omega_n.
 
 % Natural periods require finite-frequency coefficients. In MSS, the
 % radiation solution stored at w = 10 represents infinity, not A(10)/B(10).
@@ -100,7 +102,7 @@ w_max = w(end);
 
 % -------------------- Allocate outputs -----------------------------------
 T       = zeros(1,3);
-omega   = zeros(1,3);
+omega_d = zeros(1,3);
 zeta    = zeros(1,3);
 omega_n = zeros(1,3);
 
@@ -126,8 +128,8 @@ switch lower(method)
             zeta(k) = Bii(omega_n(k)) / (2*omega_n(k)*meq);
 
             % Damped natural frequency and period
-            omega(k) = omega_n(k) * sqrt(max(0, 1 - zeta(k)^2));
-            T(k)     = 2*pi / omega(k);
+            omega_d(k) = omega_n(k) * sqrt(max(0, 1 - zeta(k)^2));
+            T(k)     = 2*pi / omega_d(k);
         end
 
     case 'coupled'
@@ -149,8 +151,8 @@ switch lower(method)
             b_modal = real(x_mode' * B_om * x_mode);
 
             zeta(k)  = b_modal / (2*sqrt(k_modal*m_modal));
-            omega(k) = omega_n(k) * sqrt(max(0, 1 - zeta(k)^2));
-            T(k)     = 2*pi / omega(k);
+            omega_d(k) = omega_n(k) * sqrt(max(0, 1 - zeta(k)^2));
+            T(k)     = 2*pi / omega_d(k);
         end
 
     otherwise
@@ -161,11 +163,11 @@ end
 % -------------------- Optional display -----------------------------------
 if verbose
     fprintf('\n');
-    fprintf('    DOF      T [s]      zeta     omega [rad/s]  omega_n [rad/s]\n');
-    fprintf('    ---   ----------  --------  -------------   ---------------\n');
+    fprintf('    DOF      T [s]      zeta     omega_d [rad/s]  omega_n [rad/s]\n');
+    fprintf('    ---   ----------  --------  ---------------  ---------------\n');
     for k = 1:numel(dofs)
         fprintf('  %4d  %10.3f %10.3f   %10.3f     %10.3f\n', ...
-            dofs(k), T(k), zeta(k), omega(k), omega_n(k));
+            dofs(k), T(k), zeta(k), omega_d(k), omega_n(k));
     end
 end
 

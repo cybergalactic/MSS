@@ -31,7 +31,7 @@ end
 utilsPath = fileparts(mfilename('fullpath'));
 mssRoot = fileparts(fileparts(utilsPath));
 hydroPath = fullfile(mssRoot, 'HYDRO');
-catalogues = {'vessels_shipx', 'vessels_wamit', 'vessels_capytaine'};
+catalogues = {'vessels_wamit', 'vessels_capytaine'};
 
 for i = 1:numel(catalogues)
     cataloguePath = fullfile(hydroPath, catalogues{i});

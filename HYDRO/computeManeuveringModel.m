@@ -66,6 +66,7 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 %   S_N(ω) = S(ω) / m_0  : Normalized wave spectrum
 %   m_0 = ∫ S(ω) dω      : Zero spectral moment
 %   A_U(ω) and B_U(ω)    : Added mass and damping matrices at speed U
+%   S uses a common JONSWAP baseline with gamma = 3.3 and peak omega_p.
 %  
 % The integrals are evaluated numerically using trapezoidal integration.
 % This ensures that the kinetic energy and power dissipation properties 
@@ -74,7 +75,7 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 %
 % Inputs:
 %   vessel         - Structure containing vessel hydrodynamic data
-%   omega_p        - Wave peak frequency (rad/s), typically 0.8 to 1.0 rad/s
+%   omega_p        - Reference wave peak frequency (rad/s), default 1.0.
 %   aperiodicDamping - Floating vessel: T_126, positive target time constants
 %                     [s] for DOFs 1, 2 and 6. There is no universal default;
 %                     choose values feasible for the equivalent model.
@@ -98,9 +99,9 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 % Usage:
 %   load <vessel>;  % supply, s175, tanker, fpso, semisub, testShip, LAUV_marie
 %
-%   If powerBased inputs have not previously been stored in the vessel data
-%   structure, you will be asked to supply omega_p and the parameters for
-%   viscous damping:
+%   Omitted or empty omega_p uses the fixed 1.0 rad/s reference. If damping
+%   inputs have not previously been stored in vessel.powerBased, you will be
+%   asked to supply the viscous damping parameters:
 %
 %     vessel = computeManeuveringModel(vessel);
 %     vessel = computeManeuveringModel(vessel, omega_p);
@@ -146,20 +147,13 @@ function vessel = computeManeuveringModel(vessel, omega_p, ...
 %      with a warning for backward compatibility.
 
 % ------------------------------------------------------------------------------
-% Wave-spectrum peak frequency. Reuse a saved value when the argument is
-% omitted; an explicitly empty argument requests a new value.
+% Use one fixed reference peak unless the caller explicitly supplies another.
 % ------------------------------------------------------------------------------
-if nargin < 2
-    if isfield(vessel, 'powerBased') && ...
-            isfield(vessel.powerBased, 'omega_p') && ...
-            ~isempty(vessel.powerBased.omega_p)
-        omega_p = vessel.powerBased.omega_p;
-    else
-        omega_p = input('Wave-spectrum peak frequency omega_p (rad/s): ');
-    end
-elseif isempty(omega_p)
-    omega_p = input('Wave-spectrum peak frequency omega_p (rad/s): ');
+if nargin < 2 || isempty(omega_p)
+    omega_p = 1.0;
 end
+validateattributes(omega_p, {'numeric'}, ...
+    {'scalar','real','finite','positive'}, mfilename, 'omega_p');
 
 % ------------------------------------------------------------------------------
 % Restoring matrix and heave-mode classification. A floating vessel has
@@ -298,10 +292,6 @@ A = vessel.A(:,:,idx);
 B = vessel.B(:,:,idx);
 freqs = freqs(idx);
 
-% Exclude artificial frequency omega = 10 rad/s representing infinity
-idx = freqs < 10;
-freqs = freqs(idx);
-
 omega_min = min(freqs);
 omega_max = max(freqs);
 
@@ -310,21 +300,24 @@ if omega_min == 0
     omega_min = 1e-6;
 end
 
-% Define finer frequency grid for interpolation
-freqs_fine = linspace(omega_min, omega_max, 100)';
-
-% PM wave spectrum parameters
-constant = mssConstants();
-alpha = 8.1e-3 * constant.g^2;
-beta = 0.74;
+% Resolve the JONSWAP peak; the spectrum scale cancels on normalization.
+freqs_fine = linspace(omega_min, omega_max, 1000)';
+gamma = 3.3;
+sigma = 0.09 * ones(size(freqs_fine));
+sigma(freqs_fine < omega_p) = 0.07;
+peak = exp(-0.5 * ((freqs_fine - omega_p) ./ (sigma * omega_p)).^2);
 
 % Initialize equivalent matrices
 A_eq = zeros(6);
 B_eq = zeros(6);
 
 % Zero spectral moment m_0
-S = alpha ./ freqs_fine.^5 .* exp(-beta * (omega_p ./ freqs_fine).^4);
+S = freqs_fine.^(-5) .* exp(-1.25 * (omega_p ./ freqs_fine).^4) .* gamma.^peak;
 m_0 = trapz(freqs_fine, S);
+if ~isfinite(m_0) || m_0 <= 0
+    error('MSS:InvalidSpectrum', ...
+        'The wave-spectrum weight is zero or nonfinite on this frequency grid.');
+end
 
 % Normalized wave spectrum
 S_N = S / m_0;
@@ -345,6 +338,8 @@ end
 
 % Power-based equivalent matrices
 vessel.powerBased.omega_p = omega_p;
+vessel.powerBased.spectrumType = 'JONSWAP';
+vessel.powerBased.gamma = gamma;
 vessel.powerBased.A_eq = A_eq;
 vessel.powerBased.B_eq = B_eq;
 

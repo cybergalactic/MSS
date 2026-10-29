@@ -1,5 +1,5 @@
 function SIMhydroVessel()
-% The function simulates a selected ShipX, WAMIT, or Capytaine vessel model using
+% The function simulates a selected WAMIT or Capytaine vessel model using
 % power-based constant hydrodynamic matrices and 1st-order force RAOs. The 
 % control system can be chosen as a nonlinear MIMO PID controller for DP or a
 % heading autopilot for transit. Vessel-specific defaults are defined by

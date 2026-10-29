@@ -1,11 +1,11 @@
 % The script computes the responses in heave, roll, and pitch for a marine
 % craft exposed to a regular wave. The closed-form solution of a linear
-% mass-damper-spring system with sinusoidal forcing F sin(w_e t) is used. 
+% mass-damper-spring system with sinusoidal forcing F sin(w_e t) is used.
 % Harmonic oscillator:
 %   ..     .
 % m x  + d x + k x = F sin(w_e t),     w_n = sqrt(k/m)
 %
-% The results are plotted as changes in amplitudes (1/Zm) for the 
+% The results are plotted as changes in amplitudes (1/Zm) for the
 % frequency ratio w_e/w_n where Zm denotes the impedance.
 %
 % Author:    Thor I. Fossen
@@ -13,15 +13,14 @@
 % Revisions:
 %   2026-10-27: Use vesselPeriods and undamped frequencies; fix heave scaling.
 
-load supply vessel;  % Load supply data (ShipX)
+load(resolveHydroVesselFile('supply.mat'), 'vessel'); % Capytaine supply data
+vessel = computeManeuveringModel(vessel);
 
-% Use the first speed case and include viscous damping when available.
+% Use the first speed case and the stored power-based viscous damping inputs.
 A = vessel.A(:,:,:,1);
 B = vessel.B(:,:,:,1);
-if isfield(vessel,'Bv')
-    for k = 1:size(B,3)
-        B(:,:,k) = B(:,:,k) + vessel.Bv(:,:,1);
-    end
+for k = 1:size(B,3)
+    B(:,:,k) = B(:,:,k) + vessel.powerBased.Bv(:,:,1);
 end
 G = vessel.C(:,:,end,1);
 
@@ -53,7 +52,7 @@ plot(wr, w5^2./Zm5w,':','linewidth',2)
 
 title('Amplitude = w_i^2 / (Z_m w_e)'),xlabel('w_e/w_n'), grid
 legend(sprintf('Heave: damping z_3 = %3.2f, nat. frequency w_3 = %3.2f',z3, w3),...
-       sprintf('Roll:  damping z_4 = %3.2f, nat. frequency w_4 = %3.2f',z4, w4),... 
-       sprintf('Roll:  damping z_4 = %3.2f, nat. frequency w_4 = %3.2f',z4_double, w4),...        
+       sprintf('Roll:  damping z_4 = %3.2f, nat. frequency w_4 = %3.2f',z4, w4),...
+       sprintf('Roll:  damping z_4 = %3.2f, nat. frequency w_4 = %3.2f',z4_double, w4),...
        sprintf('Pitch: damping z_5 = %3.2f, nat. frequency w_5 = %3.2f',z5, w5))
-hold off 
+hold off

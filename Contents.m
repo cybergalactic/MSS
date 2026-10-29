@@ -10,8 +10,8 @@
 % up in your MATLAB/Octave environment. Copy the directory MSS/... to your
 % computer and "add the path with subfolders" to MATLAB/Octave.
 %
-%   >> mssHelp - Online Quick Reference Guide
-%   >> mssVessels - List marine craft with vessel-structure MAT-files
+%   >> mssHelp  - Online Quick Reference Guide
+%   >> mssCraft - List hydrodynamic MAT-files and all CRAFT models
 %
 % Useful demonstrations and examples:
 %
@@ -27,12 +27,16 @@
 %
 % CRAFT includes established, ready-to-run marine craft models and the
 % SIMhydroVessel workflow for user-defined 6-DOF models. Hydrodynamic data can
-% be generated using the commercial ShipX and WAMIT programs or the free,
+% be generated using the commercial WAMIT program or the free,
 % open-source Capytaine solver. Import tools, example data, and processing
 % instructions are located under /MSS/HYDRO/. The license-free workflow and
 % vessel-data exporter are provided by MSS-Capytaine:
 %
 %   https://github.com/cybergalactic/MSS-Capytaine
+%
+% Capytaine supply and S175 replace the removed ShipX catalogue/importer.
+% Legacy speed-dependent S175 data remain only in mssExamples/data for the
+% power-based comparison. Default averaging uses JONSWAP at 1 rad/s, gamma 3.3.
 %
 % Dedicated unified maneuvering/seakeeping simulations include SIMotter and
 % SIMlauvMarie, with nonlinear craft dynamics, currents, and force-RAO waves.

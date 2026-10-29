@@ -1,12 +1,12 @@
-% This script simulates the response of a vessel in waves using Cummins (1962) 
-% equation and an equivalent maneuvering model (Fossen, 2025). It calculates 
-% the wave-induced forces using 1st-order force RAOs, solves the full hydrodynamic 
-% model including memory effects, and compares it with a simplified approximation 
-% using constant equivalent added mass and damping matrices (A_eq, B_eq) according 
-% according to: 
+% This script simulates the response of a vessel in waves using Cummins (1962)
+% equation and an equivalent maneuvering model (Fossen, 2025). It calculates
+% the wave-induced forces using 1st-order force RAOs, solves the full hydrodynamic
+% model including memory effects, and compares it with a simplified approximation
+% using constant equivalent added mass and damping matrices (A_eq, B_eq) according
+% according to:
 %
 %   A_eq = ∫ A_U(ω) S_N(ω) dω
-%   B_eq = ∫ B_U(ω) S_N(ω) dω 
+%   B_eq = ∫ B_U(ω) S_N(ω) dω
 %
 % where
 %
@@ -14,73 +14,88 @@
 %   S_N(ω) = S(ω) / m_0  : Normalized wave spectrum
 %   m_0 = ∫ S(ω) dω      : Zero spectral moment
 %   A_U(ω) and B_U(ω)    : Added mass and damping matrices at speed U
-%  
+%
 % The integrals are evaluated numerically using trapezoidal integration.
-% This ensures that the kinetic energy and power dissipation properties 
-% of the frequency-dependent system are preserved in the equivalent 
+% This ensures that the kinetic energy and power dissipation properties
+% of the frequency-dependent system are preserved in the equivalent
 % constant matrices.
 %
 % References:
-%   Cummins, W. E. (1962). The impulse response function and ship motions. 
-%   Schiffstechnik, 9(47), 101–109.
+%   Cummins, W. E. (1962). The impulse response function and ship motions.
+%     Schiffstechnik, 9(47), 101–109.
 %
 %   Fossen, T. I. (2025). Maneuvering Coefficient Estimation from Frequency-
-%   Dependent Added Mass and Damping: A Power-Based Approach. 
-%   Ocean Engineering, 341, 122494.
+%     Dependent Added Mass and Damping: A Power-Based Approach.
+%     Ocean Engineering, 341, 122494.
 %
 % Author:    Thor I. Fossen
 % Date:      2025-03-10
-% Revisions: 2026-10-27 Keep infinite-frequency limits out of the Cummins
-%           integration grid; use the stored limits separately when available.
+% Revisions:
+%   2026-10-28 Keep infinite-frequency limits out of the Cummins integration
+%              grid and use the stored limits separately when available.
+%              Use MSS-Capytaine generated MAT-files for hydrodynamic
+%              computations.
 
-clearvars; 
+clearvars;
 close all;
 rng(1); % Set random generator seed to 1 when generating stochastic waves
 
+% ------------------------------------------------------------------------------
 %% SIMULATOR CONFIGURATION
+% ------------------------------------------------------------------------------
 h  = 0.05; % Sampling time (s)
-T_final = 120; % Final simulation time (s)
+T_final = 300; % Final simulation time (s)
+T_memory = 50; % Radiation-memory duration (s)
 vesselChoice = 1; % Choose vessel type 1, 2, 3
 
 switch vesselChoice
     case 1
-        load supply; 
+        load supply;
         vesselType = 'Supply Vessel';
-        T_126 = [10.7 4.7 6.3]; % Surge, sway and yaw time constants (s)
         U = vessel.velocities(1); % Zero speed (m/s)
     case 2
-        load s175; 
+        % Preserve the speed-dependent ShipX data used by this example.
+        load s175_speedDependent;
         vesselType = 'S175 Container Ship';
-        T_126 = [12.3 2.3 2.1]; % Surge, sway and yaw time constants (s)
         vel_idx = 3; % vessel.velocities = [0 2.5722 5.1444 7.7167 10.2889]
+        if numel(vessel.velocities) < vel_idx || ...
+                size(vessel.A,4) < vel_idx || ...
+                size(vessel.B,4) < vel_idx || size(vessel.C,4) < vel_idx
+            error('exManeuveringModel:MissingSpeedData', ...
+                'The S175 example requires speed case %d in velocities, A, B and C.', ...
+                vel_idx);
+        end
         U = vessel.velocities(vel_idx);        % U = 5.144  (m/s)
         vessel.A = vessel.A(:,:,:,vel_idx);
         vessel.B = vessel.B(:,:,:,vel_idx);
         vessel.C = vessel.C(:,:,:,vel_idx);
     case 3
-        load tanker; 
+        load(resolveHydroVesselFile('tanker.mat'), 'vessel');
         vesselType = 'Tanker';
-        T_126 = [53.7 4.2 6.1]; % Surge, sway and yaw time constants (s)
-        U = vessel.velocities(1); % Zero speed (m/s)        
+        U = vessel.velocities(1); % Zero speed (m/s)
 end
 fprintf('Loaded the %s at %.2f m/s\n', vesselType, U);
+T_126 = vessel.powerBased.T_126; % Stored default time constants (s)
+delta_zeta_345 = vessel.powerBased.delta_zeta_345;
 
 psi = 0; % Heading angle (rad)
 beta_wave = deg2rad(135); % Wave direction, 0 for following sea, 180 for head sea
 numFreqIntervals = 100; % Resolve the JONSWAP peak over the automatic wave band
 
 % Sea state
-Hs = 5;         % Significant wave height (m)
-omega_p = 0.7;  % Wave spectrum peak frequencies (rad/s)
+Hs = 3;         % Significant wave height (m), consistent with the reference peak
+omega_p = 1.0;  % Fixed reference peak for excitation and averaging (rad/s)
 
-% First-order force RAOs
-spectrumType = 'JONSWAP'; 
+% Common spectrum baseline for force RAOs and power-based averaging.
+spectrumType = 'JONSWAP';
 
-% Time vector from 0 to T_final     
-t = 0:h:T_final;      
+% Time vector from 0 to T_final
+t = 0:h:T_final;
 nTimeSteps = length(t);
+memorySamples = find(t <= T_memory, 1, 'last');
 
-% Initialize a wave spectrum with one direction and the force-RAO model
+% Initialize a wave spectrum with one direction and the force-RAO model.
+% Keep the zero-speed force RAOs; U enters the wave encounter relation.
 environment.Hs = Hs;
 environment.w0 = omega_p;
 environment.spectrumType = spectrumType;
@@ -97,16 +112,17 @@ for i = 1:nTimeSteps
     waveData(i,:) = [tau_wave1' waveElevation];
 end
 
+% ------------------------------------------------------------------------------
 %% Compute Aeq and Beq
-% The peak frequency omega_p is used in the normalized wave spectrum.
+% ------------------------------------------------------------------------------
+% Use the fixed reference peak; speed affects the wave encounter phase.
 % Viscous damping Bv is computed by computeManeuveringModel.m.
-constant = mssConstants();
-g = constant.g;
-omega_p = omega_p - (omega_p^2 / g) * U * cos(beta_wave);
-vessel = computeManeuveringModel(vessel, omega_p, T_126, ...
-    [0 0.1 0], 0);
+vessel = computeManeuveringModel(vessel, omega_p, T_126, delta_zeta_345, 0);
+Bv_baseline = vessel.powerBased.Bv; % Shared by both comparison methods
 
+% ------------------------------------------------------------------------------
 %% Compute Cummins and Maneuvering Model Responses
+% ------------------------------------------------------------------------------
 % MSS stores the infinite-frequency radiation solution at the marker 10.
 % Retain a genuine zero-frequency solution, but never interpolate through
 % the infinity marker as if it were a physical frequency.
@@ -135,7 +151,7 @@ eta_ddot = zeros(nTimeSteps,6);     % Acceleration (Cummins)
 eta_dot_eq = zeros(nTimeSteps,6);   % Velocity (Maneuvering)
 A_eq = zeros(6,1);
 B_eq = zeros(6,1);
-Bv = zeros(6,1);
+Bv = diag(Bv_baseline);
 
 A_w_all = zeros(length(freqs), 6);
 B_w_all = zeros(length(freqs), 6);
@@ -145,8 +161,7 @@ K_all = zeros(nTimeSteps,6);        % Retardation functions
 for DOF = 1:6
     A_eq(DOF) = vessel.powerBased.A_eq(DOF,DOF);
     B_eq(DOF) = vessel.powerBased.B_eq(DOF,DOF);
-    Bv(DOF) = vessel.powerBased.Bv(DOF,DOF);
-    
+
     A_w = squeeze(vessel.A(DOF,DOF,finiteIdx,1));
     B_w = squeeze(vessel.B(DOF,DOF,finiteIdx,1));
     B_interp = interp1(freqs, B_w, freqs_uniform, 'pchip');
@@ -160,11 +175,8 @@ for DOF = 1:6
     % Compute Memory Kernel K(t)
     K = zeros(nTimeSteps, 1);
     df = freqs_uniform(2) - freqs_uniform(1);
-    for k = 1:nTimeSteps
+    for k = 1:memorySamples
         K(k) = (2/pi) * sum((B_interp-B_inf) .* cos(freqs_uniform * t(k))) * df;
-        if t(k) > 50
-            K(k) = 0;
-        end
     end
     K_all(:,DOF) = K;  % Store K(t)
 
@@ -175,10 +187,14 @@ for DOF = 1:6
     eta_dof = zeros(nTimeSteps,1); % Temporary DOF result
 
     for k = 2:nTimeSteps-1
-        tau = t(1:k);
-        dtau = t(k) - tau;
-        K_interp = interp1(t, K, dtau, 'linear', 0);
-        memory_effect = trapz(tau(:), (K_interp(:) .* eta_dot(1:k,DOF)));
+        % Include one zero-kernel endpoint beyond the memory window to
+        % preserve trapezoidal integration. Uniform time steps permit
+        % direct kernel indexing instead of interpolation at every step.
+        firstHistory = max(1, k-memorySamples);
+        tau = t(firstHistory:k);
+        K_lags = K(k-firstHistory+1:-1:1);
+        memory_effect = trapz(tau(:), ...
+            K_lags(:) .* eta_dot(firstHistory:k,DOF));
         eta_ddot(k,DOF) = (F_ext(k) -  C * eta_dof(k) - memory_effect ...
             - (B_inf + Bv(DOF)) * eta_dot(k,DOF)) / M;
         eta_dot(k+1,DOF) = eta_dot(k,DOF) + h * eta_ddot(k,DOF);
@@ -188,7 +204,6 @@ for DOF = 1:6
 
     % Maneuvering approximation using A_eq and B_eq
     M_eq = vessel.MRB(DOF,DOF) + A_eq(DOF);
-    Bv(DOF) = vessel.powerBased.Bv(DOF,DOF);
     A_sys = [0 1;
             -C/M_eq  -(B_eq(DOF)+Bv(DOF))/M_eq];
     B_sys = [0;
@@ -223,10 +238,12 @@ eta_eq(:,4:6) = rad2deg(eta_eq(:,4:6));
 eta_dot(:,4:6) = rad2deg(eta_dot(:,4:6));
 eta_dot_eq(:,4:6) = rad2deg(eta_dot_eq(:,4:6));
 
+% ------------------------------------------------------------------------------
 %% Plot Results
+% ------------------------------------------------------------------------------
 figure(1);
-dofNames = {'wave force in surge (N)', 'wave force in sway (N)', 
-    'wave force in heave (N)', 'wave moment in roll (Nm)', 
+dofNames = {'wave force in surge (N)', 'wave force in sway (N)',
+    'wave force in heave (N)', 'wave moment in roll (Nm)',
     'wave moment in pitch (Nm)', 'wave moment in yaw (Nm)'};
 
 for DOF = 1:6

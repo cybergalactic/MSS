@@ -54,11 +54,11 @@ dedicated craft model.
 Clone MSS-Capytaine separately, install its Python dependencies, and run:
 
 ```sh
-python main.py LAUV_marie
+python main.py LAUV_marie_csv
 ```
 
 The generated vessel file is written to
-`vessels_capytaine/LAUV_marie/results/LAUV_marie.mat` in MSS-Capytaine.
+`vessels_capytaine/LAUV_marie_csv/LAUV_marie.mat` in MSS-Capytaine 1.2.
 
 Capytaine and Python are required only to regenerate the hydrodynamic data.
 The included `.mat` file can be loaded and processed directly using the MSS

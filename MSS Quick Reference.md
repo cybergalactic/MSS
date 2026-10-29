@@ -45,13 +45,13 @@ used only by another documented entry point are not listed separately.
 ## CRAFT (m-files)
 
 Start with the [CRAFT documentation](CRAFT/CRAFT-Library.md) for an overview of the
-established craft models, their simulation scripts, and the ShipX, WAMIT, and
+established craft models, their simulation scripts, and the WAMIT and
 MSS-Capytaine workflow for user-defined vessels.
 
 CRAFT includes established, ready-to-run mathematical models and a unified
 workflow for vessels built from seakeeping data. `SIMhydroVessel` accepts the
-common MSS `vessel` structure generated from ShipX, WAMIT, or Capytaine data.
-ShipX and WAMIT require commercial licenses; Capytaine is a free, open-source
+common MSS `vessel` structure generated from WAMIT or Capytaine data.
+WAMIT requires a commercial license; Capytaine is a free, open-source
 alternative. Example vessel data and processing instructions are provided in
 the [HYDRO](#hydro) catalog.
 
@@ -62,7 +62,7 @@ the [HYDRO](#hydro) catalog.
 SIMclarke83     % Simulate a generic ship model characterized by L, B, and T under PD control.
 SIMdsrv         % Simulate DSRV.m with an autopilot for depth control using successive-loop closure.
 SIMfrigate      % Simulate frigate.m using a PID heading autopilot
-SIMhydroVessel  % Simulate a 6-DOF vessel model generated from ShipX, WAMIT, or Capytaine data
+SIMhydroVessel  % Simulate a 6-DOF vessel model generated from WAMIT or Capytaine data
 SIMlauvMarie    % Simulate LAUV Marie with currents, directional waves, depth/heading control, and 3-D ALOS guidance
 SIMmariner      % Simulate mariner.m with heading control and 2-D LOS straight-line path course control
 SIMotter        % Otter heading/path-following simulation with currents, waves, GUI setup, and a legacy-model option
@@ -85,7 +85,7 @@ clarke83        % Linear maneuvering model parametrized using (L,B,T) found from
 container       % Nonlinear maneuvering model of a high-speed container ship, L = 175 m, including roll (Son and Nomoto 1982)
 DSRV            % Deep Submergence Rescue Vehicle (DSRV), L = 5.0 m (Healey 1992)
 frigate         % Nonlinear autopilot model for a frigate, L = 100 m
-hydroVessel     % Unified nonlinear 6-DOF model for ShipX, WAMIT, and Capytaine vessel structures
+hydroVessel     % Unified nonlinear 6-DOF model for WAMIT and Capytaine vessel structures
 lauvMarie       % Unified nonlinear seakeeping/maneuvering model of LAUV Marie based on MSS-Capytaine data
 Lcontainer      % Linearized model of a high-speed container ship, L = 175 m, including the roll mode (Son and Nomoto 1982)
 mariner         % Nonlinear maneuvering model for the Mariner class vessel, L = 160 m 
@@ -358,12 +358,11 @@ exZigZag           % Generates zigzag maneuvers for two different ships and the 
 ### Processing of data from hydrodynamic codes (m-files)
 
 ```matlab
-veres2vessel       % Reads data from ShipX output files and stores the data as a mat-file containing the structure <vessel>
 vessel2ss          % computes the fluid-memory transfer functions and stores the data as a mat-file containing the structure <vesselABC>
 wamit2vessel       % Reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
 ```
 
-The WAMIT and ShipX import functions create the frequency-dependent vessel
+The WAMIT importer and MSS-Capytaine exporter create the frequency-dependent vessel
 structure. The power-based maneuvering model is then computed separately.
 Floating vessels use three target time constants in seconds and three
 damping-ratio increments, while submerged vehicles use four target time
@@ -377,8 +376,11 @@ vessel = computeManeuveringModel(vessel,omega_p,T_1236,delta_zeta_45,plotFlag);
 `T_126 = [T_surge T_sway T_yaw]` specifies total diagonal velocity-decay
 targets, with `Bv(i,i) = M(i,i)/T_i - B_eq(i,i)`. Values must be positive
 and must not require negative additional viscous damping. The surface-vessel
-GUI displays these time constants in seconds; editable vessel presets are
-defined in `hydroVesselConfig.m`.
+GUI displays these time constants in seconds. Stored MAT-file inputs supply
+the defaults for all catalogue vessels. `wamit2vessel` collects and saves
+these inputs, with Return accepting its vessel-specific proposals.
+Averaging uses JONSWAP with gamma 3.3 and a fixed peak `omega_p = 1.0` rad/s
+when the peak argument is omitted or empty. Pass another peak explicitly.
 
 Old saved `vessel.powerBased.kappa_126` percentages are reused with a warning
 only when the damping arguments are omitted. Explicit three-element damping
@@ -386,12 +388,11 @@ arguments always mean `T_126` in seconds; do not reuse percentage vectors.
 
 This adds `vessel.powerBased`, including the equivalent matrices `A_eq` and
 `B_eq` and the viscous damping matrix `Bv`, together with the maneuvering-model
-matrices `M`, `D`, and `G`. The import functions do not create the former
-top-level field `vessel.Bv`. ShipX Ikeda roll damping is retained separately as
-`vessel.roll.Bv44`.
+matrices `M`, `D`, and `G`. Use `vessel.powerBased.Bv` for additive viscous damping; the former
+top-level field `vessel.Bv` is not created.
 
 See the processing instructions for the [WAMIT data](HYDRO/vessels_wamit/WAMIT-Vessels.md)
-and [ShipX data](HYDRO/vessels_shipx/ShipX-Vessels.md).
+and [Capytaine data](HYDRO/vessels_capytaine/Capytaine-Vessels.md).
 
 ### Capytaine integration
 
@@ -406,14 +407,11 @@ The dedicated [`lauvMarie.m`](CRAFT/AUV/models/lauvMarie.m) and
 standalone, wave-enabled craft model with vehicle-specific nonlinear and
 calibratable terms. `SIMhydroVessel` provides a generic hydrodynamic test tool:
 use **Load vessel MAT-file** to load exports from
-`MSS-Capytaine/vessels_capytaine/<family>/<case>/results/`. TestShip is the
-demonstration; ShipX and WAMIT entries use data imported from those solvers. LAUV Marie can be
+`MSS-Capytaine/vessels_capytaine/<vessel>_<format>/`. Test ship, Supply and S175
+are bundled Capytaine cases; Tanker, FPSO and Semisubmersible are WAMIT cases. LAUV Marie can be
 loaded manually; use `SIMlauvMarie` for its dedicated simulation.
 Their JSON-selected linear damping inputs are stored in `vessel.powerBased`
-and used as the defaults by `hydroVesselConfig.m`. Commented per-vessel
-assignments can be enabled there when a simulation-specific override is
-needed. WAMIT and ShipX retain active configuration defaults because their
-current vessel files do not contain these inputs.
+and used as the defaults by `hydroVesselConfig.m`. Simulation-specific overrides can be set there. All three WAMIT vessels also store their selected damping inputs.
 
 ### Vessel data (mat-files for hydrodynamic simulation)
 
@@ -423,8 +421,11 @@ LAUV_marie           % Capytaine data for NTNU's submerged LAUV Marie case
 fpso, fpsoABC       % WAMIT data for a FPSO
 semisub, semisubABC % WAMIT data for a semisubmersible
 tanker, tankerABC   % WAMIT data for a tanker
-s175, s175ABC       % ShipX data for the S175 container ship
-supply, supplyABC   % ShipX data for the supply vessel
+s175                 % Capytaine zero-speed S175 container ship
+supply               % Capytaine zero-speed supply vessel
+otter_55kg, otter_80kg % Capytaine Otter USV load conditions
+wigley               % Capytaine benchmark hull
+s175_speedDependent  % Legacy S175, only in mssExamples/data for exManeuveringModel
 ```
 
 After loading the data files to the workspace using the Matlab command load, the following data structures are available:
@@ -432,7 +433,7 @@ After loading the data files to the workspace using the Matlab command load, the
 | vessel   | vessel.main | vesselABC |
 | -------- | --------    | --------  |
 |          main: [1×1 struct]      |      name: 'tanker' | Ar: {6×6 cell} |
-|    velocities: 1×60              |         T: draft    | Br: {6×6 cell} |
+|    velocities: [1×N_speed]              |         T: draft    | Br: {6×6 cell} |
 |      headings: [1×36 double]     |         B: beam     | Cr: {6×6 cell} |
 |           MRB: [6×6 double]      |       Lpp: length   | Dr: {6×6 cell} | 
 |             C: [6×6×60 double]   |         m: mass     | MRB: [6×6 double] | 
@@ -441,18 +442,29 @@ After loading the data files to the workspace using the Matlab command load, the
 |             B: [6×6×60 double]   | k55: radius of gyration | Minv: [6×6 double] | 
 |     motionRAO: [1×1 struct]      | k66: radius of gyration | r_g: [x_g y_g z_g] | 
 |      forceRAO: [1×1 struct]      | g: acceleration of gravity | |
-|      driftfrc: [1×1 struct]      | nabla: volume displacement | |
+|         drift: [1×1 struct]      | nabla: volume displacement | |
 |    powerBased: [1×1 struct]      | CB: center of buoyancy | |
-| roll: [1×1 struct] (ShipX)       | GM_T: transverse metacentric height | |
+| roll: [1×1 struct] (legacy S175)       | GM_T: transverse metacentric height | |
 |                                  | GM_L: longitudinal metacentric height | |
 |                                  | CG: center of gravity | |
 
-For WAMIT and ShipX, `vessel.powerBased` is present after
-`computeManeuveringModel` has been run. Capytaine files already contain the
-selected damping inputs under this field; `computeManeuveringModel` adds the
-equivalent matrices and `Bv`.
-The ShipX-only `vessel.roll` structure contains the Ikeda roll damping
-`vessel.roll.Bv44`.
+All Capytaine and WAMIT catalogue files contain selected damping inputs
+under `vessel.powerBased`; `computeManeuveringModel` adds or recomputes the
+equivalent matrices and `Bv`. The retained legacy S175 also contains its
+original `vessel.roll` structure with Ikeda damping `vessel.roll.Bv44`.
+Mean drift uses only `vessel.drift.w` and `vessel.drift.coeff{1:3}` for
+surge/sway/yaw, in loads per squared incident-wave amplitude. WAMIT moments
+retain their source body origin; Capytaine exports use CG. `plotWD` does not
+read the removed `vessel.driftfrc` fields.
+
+The ShipX importer and catalogue have been removed. Supply and S175 now use
+Capytaine data. The speed-dependent S175 required by the 2025 comparison is
+retained only in [`mssExamples/data`](mssExamples/data/README.md).
+`exManeuveringModel` uses a common JONSWAP baseline, identical additive
+viscous damping in both methods, and a 300 s default duration.
+
+Run `mssCraft` to display both the hydrodynamic MAT-file catalogue and all
+CRAFT dynamics models, with companion simulation scripts and locations.
 
 
 ### Hydrodynamics (m-files)
