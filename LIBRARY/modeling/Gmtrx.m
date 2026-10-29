@@ -8,10 +8,11 @@ function G = Gmtrx(nabla,A_wp,GMT,GML,x_F,r_bP)
 %  nabla: Volume displacement [m^3]
 %  Awp: Waterplane area [m^2]
 %  GMT, GML: Transverse/longitudinal metacentric heights [m]
-%  x_F = x coordinate from the CO to the CF, positive forwards negative for
-%        conventional ships [m]
-%  r_bP = [x_P y_P z_P]': location of the point P with respect to the CO [m],  
-%          use r_bP = [0, 0, 0]' for P = CO 
+%  x_F: Signed longitudinal offset from CO to CF, positive forward [m].
+%       If LCF is measured forward from AP and CO is at midships,
+%       x_F = LCF - Lpp/2. Pass this offset, not the AP-based LCF.
+%  r_bP: Position vector from CO to P, expressed in body axes [m].
+%        Use zeros(3,1) for P = CO.
 %
 % Author:     Thor I. Fossen
 % Date:       14 Jun 2001
@@ -21,6 +22,7 @@ function G = Gmtrx(nabla,A_wp,GMT,GML,x_F,r_bP)
 %                         arbitrarily point
 %             25 Apr 2019 added LCF as input parameter
 %             16 Dec 2021 minor updates of the documentation
+%             29 Oct 2026 corrected CO-to-P shift and clarified x_F
 
 constant = mssConstants();
 rho = constant.rho_water;
@@ -35,6 +37,7 @@ G44_CF  = rho * g * nabla * GMT;
 G55_CF  = rho * g * nabla * GML;
 G_CF = diag([0 0 G33_CF G44_CF G55_CF 0]);  
 G_CO = Hmtrx(r_bF)' * G_CF * Hmtrx(r_bF);
-G = Hmtrx(r_bP)' * G_CO * Hmtrx(r_bP);
+% Transform from CO to P using inv(H(r_bP)) = H(-r_bP).
+G = Hmtrx(-r_bP)' * G_CO * Hmtrx(-r_bP);
 
 end
