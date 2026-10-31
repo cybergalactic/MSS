@@ -52,6 +52,10 @@ Supporting numerical functions are located in [`utils`](utils/), plotting helper
 
 Run [`exLoadCondition`](../mssExamples/exLoadCondition.m) to plot heave, roll, and pitch periods versus draft and metacentric height for the bundled supply vessel. Use `exLoadCondition(vessel)` to examine another MSS vessel structure.
 
+Run [`exRegularWaveEstimation`](../mssExamples/exRegularWaveEstimation.m) to compare manual regular-wave heave, roll and pitch excitation estimates with MSS-Capytaine force RAOs for the supply vessel and the 80 kg Otter USV. Both methods use the center of flotation as the load reference, with head seas for heave and pitch and beam seas for roll. The example prints the wave conditions and comparison tables; `results = exRegularWaveEstimation;` also returns the amplitudes in N and Nm.
+
+The supply-vessel case uses wave amplitude `A = 1 m` and period `T = 20 s`, representing long-period swell. The deep-water relation `lambda = g*T^2/(2*pi)` gives a wavelength of approximately 625 m, about 7.5 times the vessel length of 82.8 m. The wave height is `2*A = 2 m`. This long-wave case is chosen to illustrate the hydrostatic estimates. The Otter case uses `A = 0.1 m` and `T = 3 s`, giving a wavelength of approximately 14.05 m. Both cases assume zero forward speed and deep water.
+
 ## Motion and Force RAO Plots
 
 Run `mssCraft` to list the included vessel-structure MAT-files and all CRAFT dynamics models. For example:
