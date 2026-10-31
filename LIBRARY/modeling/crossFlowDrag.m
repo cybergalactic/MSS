@@ -12,7 +12,10 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 %   drag_model (Optionally) : 'Hoerner' (default), 'cylinder'
 %
 % Output: 
-%   tau_crossflow = [0 Yh Zh 0 Mh Nh]: 6-DOF cross-flow drag vector
+%   tau_crossflow = [0 Yh Zh 0 Mh Nh]: Physical drag load on the RHS.
+%   The corresponding LHS resistance is d(nu_r) = -tau_crossflow.
+%
+% The local FSD transverse velocities at [x,0,0] are v_r+x*r and w_r-x*q.
 %
 % References:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -27,6 +30,8 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 %   2021-01-30 : Extended to include heave and pitch for AUVs
 %   2025-06-09 : Make different drag models selectable (M. Seidl)
 %   2026-08-26 : Evaluate 20 strips at their midpoints (J. Harvey)
+%   2026-10-30 : Align heave strip velocity and pitch moment with FSD axes.
+%                Integrated loads for uniform symmetric strips are unchanged.
 
 % Hoerner is the default drag model for monohull
 if nargin == 4
@@ -60,10 +65,10 @@ for i = 1:nStrips
     q = nu_r(5);                                      % Pitch rate
     r = nu_r(6);                                      % Yaw rate
     U_h = abs(v_r + xL * r) * (v_r + xL * r);
-    U_v = abs(w_r + xL * q) * (w_r + xL * q);   
+    U_v = abs(w_r - xL * q) * (w_r - xL * q);
     Yh = Yh - 0.5 * rho * T * Cd_2D * U_h * dx;       % Sway force
     Zh = Zh - 0.5 * rho * T * Cd_2D * U_v * dx;       % Heave force  
-    Mh = Mh - 0.5 * rho * T * Cd_2D * xL * U_v * dx;  % Pitch moment    
+    Mh = Mh + 0.5 * rho * T * Cd_2D * xL * U_v * dx;  % Pitch moment
     Nh = Nh - 0.5 * rho * T * Cd_2D * xL * U_h * dx;  % Yaw moment
 end
 
