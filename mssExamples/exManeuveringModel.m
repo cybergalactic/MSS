@@ -242,9 +242,9 @@ eta_dot_eq(:,4:6) = rad2deg(eta_dot_eq(:,4:6));
 %% Plot Results
 % ------------------------------------------------------------------------------
 figure(1);
-dofNames = {'wave force in surge (N)', 'wave force in sway (N)',
-    'wave force in heave (N)', 'wave moment in roll (Nm)',
-    'wave moment in pitch (Nm)', 'wave moment in yaw (Nm)'};
+dofNames = {'Surge force'; 'Sway force'; 'Heave force';
+    'Roll moment'; 'Pitch moment'; 'Yaw moment'};
+loadUnits = {'N'; 'N'; 'N'; 'N m'; 'N m'; 'N m'};
 
 for DOF = 1:6
     % Left column: Retardation function
@@ -259,8 +259,8 @@ for DOF = 1:6
     subplot(6,2,2*DOF)
     plot(t, waveData(:,DOF), 'r', 'LineWidth', 1.5)
     xlabel('Time (s)');
-    ylabel(['\tau_{' num2str(DOF) '}']);
-    title(['1st-order ' dofNames{DOF}]);
+    ylabel(['\tau_{' num2str(DOF) '} (' loadUnits{DOF} ')']);
+    title(dofNames{DOF});
     grid on;
 end
 
