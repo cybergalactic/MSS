@@ -334,6 +334,7 @@ exQuadProg         % Quadratic programming applied to waypoint trajectory genera
 exQuest            % 6-DOF position/attitude vector from camera measurements using the QUEST algorithm
 exRefMod           % 2nd-order reference model with nonlinear damping and velocity saturation
 exLoadCondition    % Plot heave, roll, and pitch periods versus draft and metacentric height
+exRegularWaveEstimation % Compare manual heave, roll and pitch excitation estimates with MSS-Capytaine force RAOs for supply and Otter (80 kg)
 exResonance        % Computes the closed-form responses in heave, roll, and pitch for a marine craft exposed to regular waves
 exRRD1             % Roll and sway-yaw transfer functions for the Son and Nomoto container ship
 exRRD2             % Rudder-roll damping (RRD) system for the Son and Nomoto container ship
