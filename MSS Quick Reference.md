@@ -113,7 +113,7 @@ ALOSpsiHermite       % Computes the cross-track error and LOS angle to a cubic H
 crosstrack           % Computes the path-tangential origin and cross-track error for a target
 crosstrackWpt        % Computes the cross-track error when the path is a straight line between two waypoints
 crosstrackWpt3D      % Computes the 3-D tracking errors (along-, cross- and vertical-track errors)
-EKF_5states          % Estimation of SOG, COG, and course rate from NED positions or latitude-longitude
+EKF_5states          % Next-step prediction of SOG, COG, and course rate from NED or latitude-longitude positions
 getPathSignals       % Evaluate a hybrid parameterized path and its derivatives
 hermiteSpline        % Computes a cubic Hermite spline and the tangents to the spline for a given waypoint
 hybridPath           % Generates coefficients for sub-paths between waypoints
@@ -323,7 +323,7 @@ exMDS              % Plots the step response of a 2nd-order mass-damper system
 exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
 exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
 exObsCtr           % Observability and controllability matrices of a supply vessel
-exOtter            % EKF/course-control example using the first-principles otter_legacy model
+exOtterEKF         % Five-state EKF/course-control example using the MSS-Capytaine otter model
 exPassiveObs       % Plots the loop transfer function of the passive observer used for heading control
 exPassiveWavefilterAutopilot % Passive wave filtering and PID heading control using estimated or measured yaw rate
 exPassiveWavefilterDP % Full-scale passive DP wave filtering with GNSS, compass and nonlinear MIMO PID control
@@ -352,6 +352,8 @@ exWindForce        % Plots the wind coefficients by Isherwood (1972)
 exWOPC             % Fully and underactuated weather-optimal positioning control
 exZigZag           % Generates zigzag maneuvers for two different ships and the Remus 100 AUV
 ```
+
+The former `exOtter` command is retained in `GNC/obsolete` as a compatibility entry point calling `exOtterEKF`.
 
 ## HYDRO
 /MSS/HYDRO/
