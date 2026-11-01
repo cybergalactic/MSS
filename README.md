@@ -18,7 +18,7 @@ The CRAFT library also includes the dedicated [`lauvMarie.m`](CRAFT/AUV/models/l
 
 The force- and motion-RAO functions accumulate signed encounter phase during changes in speed and heading, consistent with Chapter 10 of Fossen (2027). Custom simulation loops should retain the updated `waveModel` output at each call; see the [wave-function interfaces](LIBRARY/General-Library.md#wave-simulation). The supplied simulations and examples use this convention. Craft images are organized under `CRAFT/<type>/models/figs`, with the existing Simulink copies retained.
 
-This release aligns with [MSS-Capytaine 1.2](https://github.com/cybergalactic/MSS-Capytaine/blob/main/CHANGELOG.md). Capytaine supply-vessel and S175 datasets replace the former ShipX catalogue, and the ShipX importer has been removed. The speed-dependent S175 dataset used by the 2025 power-based averaging example is retained separately in [`mssExamples/data`](mssExamples/data/README.md). WAMIT import remains available. The open-source MSS-Capytaine add-on provides a workflow for generating hydrodynamic vessel models without commercial seakeeping software.
+This release aligns with [MSS-Capytaine 1.2](https://github.com/cybergalactic/MSS-Capytaine). Capytaine supply-vessel and S175 datasets replace the former ShipX catalogue, and the ShipX importer has been removed. The speed-dependent S175 dataset used by the 2025 power-based averaging example is retained separately in [`mssExamples/data`](mssExamples/data/README.md). WAMIT import remains available. The open-source MSS-Capytaine add-on provides a workflow for generating hydrodynamic vessel models without commercial seakeeping software.
 
 Power-based averaging now uses a common JONSWAP reference with peak frequency `omega_p = 1.0` rad/s and `gamma = 3.3`. The [`exManeuveringModel`](mssExamples/exManeuveringModel.m) comparison uses this same wave baseline and identical additive viscous damping in both methods, with a 300 s default duration to show the response after startup transients.
 
@@ -41,7 +41,7 @@ When using this release, please cite the software as:
   author  = {Fossen, Thor I.},
   title   = {Marine Systems Simulator (MSS)},
   year    = {2026},
-  url     = {https://github.com/cybergalactic/MSS}
+  url     = "https://github.com/cybergalactic/MSS"
 }
 ```
 
