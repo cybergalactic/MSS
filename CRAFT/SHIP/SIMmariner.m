@@ -81,9 +81,9 @@ omega_chi_d = 0;                 % Initial desired course rate
 r_d = 0;                         % Initial desired rate of turn
 a_d = 0;                         % Initial desired acceleration
 
-% Initial EKF states x_hat = [ x, y, U, chi, omega_chi ]'
-x_prd_init = [x(4) x(5) U0 x(6) 0]'; % x_hat = [x, y, U, chi, omega_chi]'
-x_hat = x_prd_init;              % Corrector equals initial state vetor
+% Initial EKF states x_prd = [ x, y, U, chi, omega_chi ]'
+x_prd_init = [x(4) x(5) U0 x(6) 0]'; % x_prd = [x, y, U, chi, omega_chi]'
+x_prd = x_prd_init;              % Initial prior estimate at sample k=0
 
 % Time vector initialization
 t = 0:h:T_final;                 % Time vector from 0 to T_final          
@@ -107,9 +107,9 @@ for i=1:nTimeSteps
     psi  = x(6) + 0.0001 * randn;
 
     % EKF estimates used for path-following control
-    U_hat = x_hat(3);
-    chi_hat = x_hat(4);
-    omega_chi_hat = x_hat(5);
+    U_hat = x_prd(3);
+    chi_hat = x_prd(4);
+    omega_chi_hat = x_prd(5);
 
     % Guidance and control system
     switch ControlFlag
@@ -160,8 +160,8 @@ for i=1:nTimeSteps
     e_int = e_int + h * e;
     delta_c = delta_c + h * (delta_PID - delta_c) / 1.0;
 
-    % Propagation of the EKF states
-    x_hat = EKF_5states(xpos, ypos, h, Z, 'NED', ...
+    % Correct with GNSS[k] and return the prior estimate for sample k+1
+    x_prd = EKF_5states(xpos, ypos, h, Z, 'NED', ...
         100*diag([0.1,0.1]), 1000*diag([1 1]), 0.00001, 0.00001, x_prd_init);
 
 end
