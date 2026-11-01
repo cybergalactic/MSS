@@ -104,7 +104,7 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
 %
 % M-file Simulators:
 %   SIMotter.m : Heading/path-following simulation with currents and waves.
-%   exOtter.m  : Legacy-model example demonstrating the 5-state EKF for SOG,
+%   exOtterEKF.m  : Course-control example demonstrating the 5-state EKF for SOG,
 %                COG, and course-rate estimation with a course autopilot.
 %
 % References:
