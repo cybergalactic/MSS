@@ -66,9 +66,6 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter_legacy(x,n,mP,r_bP,V_c,beta_c)
 %
 % M-file Simulators:
 %   SIMotter.m : Select the legacy-model checkbox for this implementation.
-%   exOtter.m  : Example script demonstrating the 5-state EKF for estimation 
-%                of SOG, COG, and course rate when using a course autopilot.
-%                Select @otter_legacy explicitly to use this model.
 %
 % Author:    Thor I. Fossen
 % Date:      2019-07-17
@@ -88,6 +85,8 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter_legacy(x,n,mP,r_bP,V_c,beta_c)
 %   2026-10-14 : Calibrated damping using experimental time-series by blending 
 %                linear and quadratic surge damping. For sway, T_sway is changed 
 %                from 1.0 to 0.5 seconds to match experimental time responses. 
+%   2026-11-01 : Use actual attitude for NED kinematics and apply payload
+%                trim only to the restoring-force equilibrium.
 
 if nargin == 0
     x = zeros(12,1); n = zeros(2,1); mP=25; r_bP = zeros(3,1); V_c=0; beta_c=0;
@@ -269,14 +268,13 @@ g_0 = [ f_payload
 
 % Trim condition: G * eta_0 = g_0
 eta_0 = [0; 0; inv(G(3:5,3:5)) * g_0(3:5); 0];
-eta = eta - eta_0; % shifted equilibrium
 
 % Kinematic transformation matrix
 J = eulerang(eta(4),eta(5),eta(6));
 
 % Time derivative of the state vector, numerical integration see ExOtter.m  
 xdot = [ nu_c_dot + ...
-         M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta )
+         M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * (eta-eta_0) )
          J * nu ];  
      
 end
