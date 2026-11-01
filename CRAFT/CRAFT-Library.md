@@ -43,9 +43,10 @@ control, ALOS/ILOS waypoint guidance, ALOS guidance using Hermite splines,
 current speed and direction, waves, duration, and time step. The default
 model is `otter`; the legacy-model checkbox selects the first-principles
 [`otter_legacy.m`](USV/models/otter_legacy.m) developed in 2019-2026.
-The model calling interface and argument order are retained. Historical
-results can be reproduced with the legacy model; the EKF/course-control
-example `exOtter` also uses `otter_legacy`.
+The model calling interface and argument order are retained. The
+first-principles formulation remains available through the legacy model.
+The EKF/course-control example `exOtterEKF` uses the default `otter` model
+with a thrust schedule illustrating transit and low-speed behavior.
 
 First-order force-RAO wave excitation is available with either model. The
 loads are transformed from the nominal dataset CG to CO and applied through
