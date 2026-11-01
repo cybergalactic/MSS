@@ -14,7 +14,7 @@ The GNC library contains reusable MATLAB and GNU Octave functions for marine gui
 
 ## Navigation and Attitude
 
-- `EKF_5states.m`: estimates position, speed over ground, course over ground, and course rate from GNSS positions.
+- `EKF_5states.m`: corrects with GNSS positions at sample k and returns the predicted position, speed over ground, course over ground, and course rate for sample k+1. Call it at the end of a simulation loop, consistently with the MSS INS functions.
 
 The more extensive inertial-navigation implementations are documented in the [INS Library](../INS/INS-Library.md).
 
@@ -41,3 +41,5 @@ mssPath
 For GNU Octave, follow the [GNU Octave installation guide](../How%20to%20install%20MSS%20for%20GNU%20Octave.md).
 
 The [`mssExamples`](../mssExamples/) and [`mssDemos`](../mssDemos/) directories contain examples that use these functions.
+
+The independent five-state EKF block embedded in the Simulink library returns the corrected estimate at the current Simulink sample. It does not call the M-file function.
