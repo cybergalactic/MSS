@@ -15,7 +15,7 @@
 % Author:    Thor I. Fossen
 % Date:      2019-07-18
 % Revisions: 
-%   2026-11-01 - Use the MSS-Capytaine Otter model and return the EKF prediction. 
+%   2026-11-01 - Use the MSS-Capytaine Otter model. 
 
 clearvars;
 clear EKF_5states   % Clear persistent states in EKF_5states.m
