@@ -255,11 +255,8 @@ tau = zeros(6,1);
 tau(1) = (1-t_prop) * X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
-% K_prop is the torque of the water on the propeller (opposing its rotation).
-% The hull feels the reaction, -K_prop: for n_p > 0 (a propeller turning
-% clockwise seen from astern, positive about the x axis) the roll moment is
-% negative, giving the negative roll offset measured at sea (-5.3 deg, 
-% Prestero, 2001, Sec. 4.6.2: K_prop = -0.543 Nm).
+% K_prop is the signed shaft torque required to drive the propeller.
+% The motor reaction produces the hull roll moment -K_prop.
 tau(4) = -K_prop / 10; % Scaled down by a factor of 10 to match exp. results
 tau(5) = -x_s * Z_s;  
 tau(6) = x_r * Y_r;
