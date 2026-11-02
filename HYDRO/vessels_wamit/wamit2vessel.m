@@ -773,8 +773,9 @@ function alt = frcFileAlternative(frcfile)
 % and 2.2.
 
 lines = regexp(fileread(frcfile), '\r\n|\r|\n', 'split');
-lines = lines(~cellfun(@(s) isempty(strtrim(s)), lines));
-row4 = sscanf(lines{5}, '%f');  % line 1 is the title; data starts at line 2
+lines = lines(2:end);  % line 1 is the title: dropped whether blank or not, as dlmread does
+lines = lines(~cellfun(@(s) isempty(strtrim(s)), lines));  % then blank lines
+row4 = sscanf(lines{4}, '%f');  % fourth data line: IOPTN, VCG/RHO, third row, this line
 if numel(row4) >= 3
     alt = 1;
 else

@@ -1,5 +1,5 @@
-function testWamit2vesselFrcFormat()
-% testWamit2vesselFrcFormat() checks that wamit2vessel.m tells the two
+function testWamit2vesselFrcFormat(titleLine, mass)
+% testWamit2vesselFrcFormat(titleLine, mass) checks that wamit2vessel.m tells the two
 % WAMIT *.frc layouts apart by structure, not by the magnitude of any one
 % value.
 %
@@ -57,6 +57,13 @@ function testWamit2vesselFrcFormat()
 % Author:    Enio Krizman
 % Date:      8 October 2026 (revised 2 November 2026 for MSS d78d97e)
 
+% Defaults: the original case (title text, body mass 500). The blank-title
+% case (testWamit2vesselFrcFormatBlankTitle) passes '' and 30.
+if nargin < 1, titleLine = 'synthetic unit body FRC file (alternative 2, mass < 1000)'; end
+if nargin < 2, mass = 500; end
+label = 'testWamit2vesselFrcFormat';
+if isempty(strtrim(titleLine)), label = [label ' (blank title line)']; end
+
 tol = 1e-9;
 folder = tempname; mkdir(folder);
 cleanup = onCleanup(@() rmdir(folder,'s'));
@@ -66,14 +73,13 @@ f = fullfile(folder, name);
 % ---- synthetic inputs (all self-defined, none from a real vessel) ----
 rho = 1000; g = 9.81; ulen = 10;
 xg = 0.1; yg = 0; zg = 0.2;      % centre of gravity, out-file convention
-mass = 500;                      % alternative-2 mass, deliberately < 1000
 I44 = 50; I55 = 80; I66 = 90;    % distinct diagonal rigid-body inertias
 MRB_in = diag([mass mass mass I44 I55 I66]);
 Abar11 = 2.5; Bbar11 = 0.3;      % added mass / damping, DOF (1,1), all periods
 C33 = 100; C44 = 200; C55 = 300; % restoring stiffness diagonal terms
 T_draught = 1; Lpp = ulen; Boa = 5;
 
-writeFrc([f '.frc'], rho, xg, yg, zg, MRB_in);
+writeFrc([f '.frc'], titleLine, rho, xg, yg, zg, MRB_in);
 writePot([f '.pot']);
 writeOut([f '.out'], g, ulen, xg, yg, zg, C33, C44, C55);
 writeAddedMass([f '.1'], Abar11, Bbar11);
@@ -140,25 +146,26 @@ if any(abs(vessel.C(5,5,:) - expected.C55) > tol * max(1,abs(expected.C55)))
 end
 
 if isempty(fails)
-    fprintf('testWamit2vesselFrcFormat PASSED\n');
+    fprintf('%s PASSED\n', label);
 else
-    fprintf('testWamit2vesselFrcFormat FAILED:\n');
+    fprintf('%s FAILED:\n', label);
     for i = 1:numel(fails)
         fprintf('  %s\n', fails{i});
     end
-    error('testWamit2vesselFrcFormat FAILED (%d check(s) wrong)', numel(fails));
+    error('%s FAILED (%d check(s) wrong)', label, numel(fails));
 end
 
 end
 
 % =========================================================================
-function writeFrc(file, rho, xg, yg, zg, MRB)
-% Alternative 2: IOPTN flags, RHO, [xg yg zg], IMASS flag, 6x6 mass
-% matrix, IDAMP flag, ISTIFF flag (no external damping/stiffness
-% supplied). Structure per the MSS guide's tanker.frc / semisub.frc
-% examples (pp. 9-10, 16) and the WAMIT manual's alternative-2 layout.
+function writeFrc(file, titleLine, rho, xg, yg, zg, MRB)
+% Alternative 2: title line (may be blank), IOPTN flags, RHO, [xg yg zg],
+% IMASS flag, 6x6 mass matrix, IDAMP flag, ISTIFF flag (no external
+% damping/stiffness supplied). Structure per the MSS guide's tanker.frc /
+% semisub.frc examples (pp. 9-10, 16) and the WAMIT manual's
+% alternative-2 layout.
 fid = fopen(file,'w');
-fprintf(fid, 'synthetic unit body FRC file (alternative 2, mass < 1000)\n');
+fprintf(fid, '%s\n', titleLine);
 fprintf(fid, '1 0 1 1 0 0 0 1 0\n');
 fprintf(fid, '%.1f\n', rho);
 fprintf(fid, '%.4f %.4f %.4f\n', xg, yg, zg);
