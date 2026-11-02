@@ -8,7 +8,7 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 | --- | --- |
 | [`modeling`](modeling/) | Rigid-body and hydrodynamic matrices, restoring forces, lift and drag, thruster configurations, propeller data, modal analysis, and vessel periods. |
 | [`kinematics`](kinematics/) | Euler-angle and quaternion transformations, rotation matrices, skew-symmetric matrices, geodetic transformations, and attitude determination. |
-| [`environment`](environment/) | Wind loads, encounter frequency, wave spectra, directional spreading, wave initialization, force and motion RAOs, and regular-wave response. |
+| [`environment`](environment/) | Ocean-current kinematics, wind loads, encounter frequency, wave spectra, directional spreading, wave initialization, force and motion RAOs, and regular-wave response. |
 | [`maneuvering`](maneuvering/) | Turning-circle, zigzag, pullout, and ship-animation utilities. |
 | [`numericalMethods`](numericalMethods/) | Euler and Runge–Kutta integration, matrix-exponential approximations, and QR-based matrix inversion. |
 | [`signalFilters`](signalFilters/) | Low-pass, high-pass, notch, wave-frequency, integration, and waveform utilities. |
@@ -20,11 +20,17 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 - `rbody.m`, `m2c.m`, `Dmtrx.m`, and `Gmtrx.m`: standard 6-DOF system matrices.
 - `crossFlowDrag.m`, `forceLiftDrag.m`, and `XuuITTC.m`: nonlinear hydrodynamic loads.
 - `eulerang.m`, `Rzyx.m`, `Rquat.m`, and `Tquat.m`: attitude kinematics.
+- `oceanCurrents.m`: BODY-frame current velocity and derivative from NED speed, azimuth, and elevation, with constant and bounded stochastic models following Section 10.3 of Fossen (2027).
 - `waveSpectrum.m`, `waveDirectionalSpectrum.m`, `waveInitialization.m`, `waveForceRAO.m`, and `waveMotionRAO.m`: irregular-wave modeling and response.
 - `waveEncounterPhase.m`: signed encounter-phase accumulation shared by the force- and motion-RAO functions.
 - `turncircle.m`, `zigzag.m`, and `zigzag6dof.m`: standard maneuvering trials.
 - `rk4.m`: fourth-order Runge–Kutta integration.
 - `lowPassFilter.m`, `highPassFilter.m`, and `waveFreqObserver.m`: signal filtering and wave-frequency estimation.
+
+For stochastic currents, pass the simulation time `t(i)` to `oceanCurrents`.
+The function retains each realization internally, reuses samples across
+integration stages, and restarts automatically when time moves backwards.
+Use `parameters.id` to distinguish independent current realizations.
 
 ## Wave Simulation
 
