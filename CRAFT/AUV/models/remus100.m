@@ -71,12 +71,17 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
 %   2025-06-09 Change cross-flow drag to cylinder model (M. Seidl).
 %   2026-08-26 Use through-water speed for propulsion and damping (J. Harvey).
+%   2026-11-02 Corrected sign of tau(4): the roll moment on the hull is the
+%               reaction to the propeller torque, tau(4) = -K_prop/10.
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
 %       performance enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE 
 %       Conference and Exhibition. Conference Proceedings, 2000, 
 %       pp. 1869-1873 vol.3, doi: 10.1109/OCEANS.2000.882209.
+%   T. Prestero (2001). Verification of a six-degree of freedom simulation
+%       model for the REMUS autonomous underwater vehicle. MSc thesis, MIT/WHOI,
+%       Sec. 4.6.2.
 %   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and
 %       Motion Control. 3rd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
@@ -250,7 +255,9 @@ tau = zeros(6,1);
 tau(1) = (1-t_prop) * X_prop + X_r + X_s;
 tau(2) = Y_r;
 tau(3) = Z_s;
-tau(4) = K_prop / 10; % Scaled down by a factor of 10 to match exp. results
+% K_prop is the signed shaft torque required to drive the propeller.
+% The motor reaction produces the hull roll moment -K_prop.
+tau(4) = -K_prop / 10; % Scaled down by a factor of 10 to match exp. results
 tau(5) = -x_s * Z_s;  
 tau(6) = x_r * Y_r;
 
