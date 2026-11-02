@@ -16,6 +16,11 @@ function S = torsetSpectrum(Hs, wo, W)
 % Ref: K.Torsethaugen (1996): "Model for a Doubly Peaked Wave Spectra"
 %      Sintef report no.: STF22 A96204 prepared for Norsk Hydro.
 %
+%      Torsethaugen, K. and Haver, S. (2004). Simplified double peak spectral
+%      model for ocean waves. Proc. 14th International Offshore and Polar
+%      Engineering Conference (ISOPE), Toulon, France, paper 2004-JSC-193.
+%      See the comment following Eq. (29) for the epsilon limits.
+%
 % Author:     G. Kleiven, Norsk Hydro 
 % Date:       2000-06-15
 % Revisions:  
@@ -25,6 +30,8 @@ function S = torsetSpectrum(Hs, wo, W)
 %              added output consistency test
 %   2007-10-08 Øyvind Smogeli - Bug fix for scaling of spectrum magnitude
 %   2024-07-07 Thor I. Fossen - Code brush up and bug fixes
+%   2026-11-02 Enio Krizman - Limit eps_l and eps_u to 1 outside [Tl, Tu],
+%              following Torsethaugen and Haver (2004), after Eq. (29).
 
 % Replace the first value in W with epsilon if it is zero
 constant = mssConstants();
@@ -76,7 +83,7 @@ if Hs > 0
         % Predominant wind sea peak:
         %-------------------------------------------------------------------------
         tl = ae*(Hs^0.5);
-        eps1 = (tf-Tp)/(tf-tl);
+        eps1 = min((tf-Tp)/(tf-tl), 1);
         rpw = (1-a10)*exp(-((eps1/a1)^2))+a10;
         hsw = rpw*Hs;
         hss = sqrt(1.-rpw^2)*Hs;
@@ -149,7 +156,7 @@ if Hs > 0
         % Predominant swell peak:
         %--------------------------------------------------------------------------
         tu = au;
-        epsu = (Tp-tf)/(tu-tf);
+        epsu = min((Tp-tf)/(tu-tf), 1);
         rps = (1.-a20)*exp(-(epsu/a2)^2)+a20;
         hss = rps*Hs;
         hsw = sqrt(1.-rps^2)*Hs;
