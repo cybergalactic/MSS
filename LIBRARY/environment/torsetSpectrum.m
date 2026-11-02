@@ -25,6 +25,7 @@ function S = torsetSpectrum(Hs, wo, W)
 %              added output consistency test
 %   2007-10-08 Øyvind Smogeli - Bug fix for scaling of spectrum magnitude
 %   2024-07-07 Thor I. Fossen - Code brush up and bug fixes
+%   2026-11-02 Enio Krizman - eps_l, eps_u limited to 1 outside [Tl, Tu] as stated by Torsethaugen & Haver (2004), ISOPE
 
 % Replace the first value in W with epsilon if it is zero
 constant = mssConstants();
@@ -76,7 +77,7 @@ if Hs > 0
         % Predominant wind sea peak:
         %-------------------------------------------------------------------------
         tl = ae*(Hs^0.5);
-        eps1 = (tf-Tp)/(tf-tl);
+        eps1 = min((tf-Tp)/(tf-tl), 1);
         rpw = (1-a10)*exp(-((eps1/a1)^2))+a10;
         hsw = rpw*Hs;
         hss = sqrt(1.-rpw^2)*Hs;
@@ -149,7 +150,7 @@ if Hs > 0
         % Predominant swell peak:
         %--------------------------------------------------------------------------
         tu = au;
-        epsu = (Tp-tf)/(tu-tf);
+        epsu = min((Tp-tf)/(tu-tf), 1);
         rps = (1.-a20)*exp(-(epsu/a2)^2)+a20;
         hss = rps*Hs;
         hsw = sqrt(1.-rps^2)*Hs;
