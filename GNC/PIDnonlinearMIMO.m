@@ -3,10 +3,11 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 % Nonlinear MIMO PID regulator for dynamic positioning (DP). For 3-DOF
 % models (surge, sway, and yaw) the output is: tau = [tau1, tau2, tau6]'. 
 % In the general case, tau = [tau1, tau2, 0, 0, 0, tau6]', where
-%    .
-%    z_int = eta - eta_d,     where eta_d = 1 / (T_f * s + 1) * eta_ref
 %
-%    tau = -R(psi)' * ( Kp * (eta - eta_d) + Ki * z_int ) - Kd * nu
+%    e = [x - x_d; y - y_d; ssa(psi - psi_d)]
+%    z_int_dot = e,          where eta_d = 1 / (T_f * s + 1) * eta_ref
+%
+%    tau = -R(psi)' * ( Kp * e + Ki * z_int ) - Kd * nu
 %
 %    Kp = M_diag * wn * wn,                  M_diag = diag(diag(M))
 %    Kd = M_diag * 2 * zeta * wn
@@ -38,6 +39,9 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %  
 % Author:    Thor I. Fossen
 % Date:      2 Sep 2023
+% Revisions:
+%   2026-10-23 : The integral state accumulates the error with the yaw angle
+%                wrapped to [-pi, pi), like the proportional term (E. Krizman)
 
 persistent eta_d;  % LP-filtered commands
 persistent z_int;  % Integral states
@@ -82,7 +86,7 @@ else  % 3-DOF
 end
 
 % integral state: z_int[k+1]
-z_int = z_int + h * (eta - eta_d);
+z_int = z_int + h * e;   % e is the error with the yaw angle wrapped
 
 % low-pass filter: eta_d[k+1]
 eta_d = eta_d + h * (eta_ref - eta_d)/ T_f;

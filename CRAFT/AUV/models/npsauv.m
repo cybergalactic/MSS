@@ -62,6 +62,8 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 % Author:    Thor I. Fossen
 % Date:      2024-06-03
 % Revisions: 2025-06-05 : Corrected the sign of Cz (crossflow drag).
+%            2026-11-02 : Corrected the sign of w_r in the pitch moment Cm
+%                         (crossflow drag), now consistent with Cz.
 
 if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
 if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
@@ -229,7 +231,7 @@ for xL = -L/2:dxL:L/2   % Cross-flow drag integrals
     
     Cy = Cy + dxL * drag_term * (v_r + xL * r) / Ucf;
     Cz = Cz + dxL * drag_term * (w_r - xL * q) / Ucf;
-    Cm = Cm + dxL * drag_term * (w_r + xL * q) / Ucf * xL;
+    Cm = Cm + dxL * drag_term * (xL * q - w_r) / Ucf * xL;
     Cn = Cn + dxL * drag_term * (v_r + xL * r) / Ucf * xL;
 
 end

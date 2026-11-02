@@ -20,6 +20,8 @@ function p_e = crosstrackWpt3D(p2, p1, p)
 % Author:    Thor I. Fossen
 % Date:      2023-10-03
 % Revisions: 
+%   2026-10-23 : Corrected the sign of R_z(2,1), which made R_z a non-rotation
+%                for a path that is not along the x axis (E. Krizman)
 
 % Tracking errors expressed in NED
 e_x = p2(1) - p1(1);
@@ -32,7 +34,7 @@ pi_v = atan2( -e_z, sqrt( e_x^2 + e_y^2) );
 
 % Rotation matrices
 R_z = [ cos(pi_h)   -sin(pi_h)   0
-       -sin(pi_h)    cos(pi_h)   0
+        sin(pi_h)    cos(pi_h)   0
         0             0          1 ];
 
 R_y = [ cos(pi_v)   0       sin(pi_v) 
