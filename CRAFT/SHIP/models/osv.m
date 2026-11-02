@@ -1,4 +1,4 @@
-function [xdot,U,M] = osv(x,ui,Vc,betaVc)
+function [xdot,U,M] = osv(x,ui,Vc,betaVc,currentModel)
 % [xdot,U,M] = osv(x,ui,Vc,betaVc) returns the speed U in m/s (optionally) 
 % and the time derivative xdot of the state vector for an Offshore Supply 
 % vessel (OSV). The 6x6 mass matrix M is an optionally output, which can be 
@@ -22,7 +22,15 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 %   betaVc: OPTIONAL current direction (rad)
 %
 %   The arguments Vc (m/s) and betaVc (rad) are optional arguments for 
-%   ocean currents given by
+%   ocean currents that are constant in NED,
+%
+%    v_c^n = [ Vc * cos(betaVc), Vc * sin(betaVc), 0 ]',
+%
+%   expressed in BODY by the full attitude, v_c = R(Theta)' * v_c^n. The
+%   optional argument currentModel selects the current model, see
+%   currentVelocity.m: 'full_attitude' (default) or
+%   'heading_only_rotation_rate', the current model used before
+%   2026-10-23, which rotates by the yaw angle only:
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), 0 ] 
 % 
@@ -50,6 +58,9 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 % Revisions:
 %   2024-04-22: Enhanced compatibility with GNU Octave
 %   2024-06-07: Added M as an optional output argument
+%   2026-10-23: Ocean currents from currentVelocity.m, rotated by the full
+%               attitude. currentModel = 'heading_only_rotation_rate'
+%               gives the previous current model (E. Krizman)
 
 persistent vessel;
 
@@ -151,6 +162,9 @@ if nargin == 2 || nargin == 0
     Vc = 0;
     betaVc = 0;
 end
+if nargin < 5 || isempty(currentModel)
+    currentModel = 'full_attitude';
+end
 
 if nargin == 0                          % Display main ship characteristics
     ui = zeros(6,1);
@@ -164,12 +178,8 @@ M = vessel.M; % Mass matrix
 U = sqrt( nu(1)^2 + nu(2)^2 ); % Speed
 
 % Ocean current
-v_c = [ Vc * cos(betaVc - eta(6))
-        Vc * sin(betaVc - eta(6))
-        0                          ];
-nu_c = [v_c' zeros(1,3) ]';
-nu_c_dot = [-Smtrx(nu(4:6)) * v_c
-             zeros(3,1)           ];
+[nu_c, nu_c_dot] = currentVelocity(Vc, betaVc, 0, eta(4:6), nu(4:6), ...
+    currentModel);
 nu_r = nu - nu_c;
 
 % Coriolis matrices

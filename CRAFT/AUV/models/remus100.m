@@ -1,4 +1,4 @@
-function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
+function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c,currentModel)
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
@@ -38,7 +38,15 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %    n_p:       Propeller revolution (RPM)
 %
 % The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
-% ocean currents
+% ocean currents that are constant in NED,
+%
+%    v_c^n = [ Vc * cos(betaVc), Vc * sin(betaVc), w_c ]',
+%
+% expressed in BODY by the full attitude, v_c = R(Theta)' * v_c^n. The
+% optional argument currentModel selects the current model, see
+% currentVelocity.m: 'full_attitude' (default) or 'heading_only_yaw_rate',
+% the current model used before 2026-10-23, which rotates by the yaw angle
+% only:
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 % 
@@ -46,6 +54,8 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %   [~,~,M] = remus100()                            : Return the 6x6 mass matrix M
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c) : 3-D ocean currents
 %   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)     : 2-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,w_c,'heading_only_yaw_rate') : 3-D
+%                       ocean currents rotated by the yaw angle only
 %   [xdot,U] = remus100(x,ui)                       : No ocean currents
 %   xdot = remus100(x,ui)                           : No ocean currents
 %
@@ -71,6 +81,9 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %   2025-04-25 Added empty call: [~,~,M] = remus100(), and minor bug fixes.
 %   2025-06-09 Change cross-flow drag to cylinder model (M. Seidl).
 %   2026-08-26 Use through-water speed for propulsion and damping (J. Harvey).
+%   2026-10-23 Ocean currents from currentVelocity.m, rotated by the full
+%              attitude. currentModel = 'heading_only_yaw_rate' gives the
+%              previous current model (E. Krizman).
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -86,6 +99,9 @@ end
 
 if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end % No ocean currents
 if (nargin == 4), w_c = 0; end % No vertical ocean currents
+if (nargin < 6 || isempty(currentModel))
+    currentModel = 'full_attitude';
+end
 
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 if (length(x) ~= 12 && length(x) ~= 13)
@@ -98,13 +114,8 @@ g_mu = gravity(mu);      % Gravity vector (m/s2)
 constant = mssConstants();
 rho = constant.rho_water;
 
-% 6x1 velocity vector, yaw angle and control inputs
+% 6x1 velocity vector and control inputs
 nu = x(1:6); 
-if length(x) == 12 % Euler angles
-    psi = x(12);
-else % Convert unit quaternion to yaw angle
-    psi = atan2(2*(x(10)*x(13) + x(11)*x(12)), 1 - 2*(x(12)^2 + x(13)^2));
-end
 
 % Amplitude saturation of the control signals
 delta_max = deg2rad(20); % Maximum rudder and stern angles (rad)
@@ -115,12 +126,9 @@ delta_r = sat(ui(1), delta_max);    % Saturated tail rudder (rad)
 delta_s = sat(ui(2), delta_max);    % Saturated Stern plane (rad)
 n_p = sat(ui(3),n_max) / 60;        % Saturated propeller speed (rps)
 
-% Ocean currents expressed in BODY
-u_c = Vc * cos( betaVc - psi );                               
-v_c = Vc * sin( betaVc - psi );   
-
-nu_c = [u_c v_c w_c 0 0 0]'; % Ocean current velocities
-Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]'; % Time derivative of nu_c
+% Ocean current velocities expressed in BODY and their time derivative
+[nu_c, Dnu_c] = currentVelocity(Vc, betaVc, w_c, x(10:end), nu(4:6), ...
+    currentModel);
 
 % Relative velocities/speed, angle of attack and vehicle speed
 nu_r = nu - nu_c;                                 % Relative velocity

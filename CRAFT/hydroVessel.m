@@ -1,4 +1,4 @@
-function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
+function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc, currentModel)
 % xdot = hydroVessel(x,tau_ext,vessel,Vc,betaVc) returns the time derivative
 % of a 12-state, 6-DOF vessel model. Body-fixed quantities use the
 % front-starboard-down (FSD) convention, and all matrices and generalized
@@ -27,6 +27,11 @@ function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
 %                                         dimensions, and hull data
 %   Vc:       Horizontal ocean-current speed (m/s)
 %   betaVc:   Ocean-current direction in the North-East frame (rad)
+%   currentModel: (optional) current model, see currentVelocity.m:
+%             'full_attitude' (default), the current rotated to BODY by
+%             the roll, pitch and yaw angles, or
+%             'heading_only_rotation_rate', the current model used before
+%             2026-10-23 (yaw angle only)
 %
 % Output:
 %   xdot:     12x1 state derivative [nu_dot; eta_dot]
@@ -38,18 +43,22 @@ function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
 % Author:    Thor I. Fossen
 % Date:      2026-10-02
 % Revisions:
+%   2026-10-23 : Ocean currents from currentVelocity.m, rotated by the full
+%                attitude. currentModel = 'heading_only_rotation_rate'
+%                gives the previous current model (E. Krizman)
 
 % Decompose the state into body-fixed velocity and NED position/attitude
 nu = x(1:6);       % Generalized velocity [u v w p q r]'
 eta = x(7:12);     % Position and Euler angles [N E D phi theta psi]'
 
+if nargin < 6 || isempty(currentModel)
+    currentModel = 'full_attitude';
+end
+
 % Transform the irrotational North-East current into body-fixed coordinates.
 % Its body-fixed derivative is caused solely by the vessel angular velocity.
-v_c = [ Vc * cos(betaVc - eta(6))
-        Vc * sin(betaVc - eta(6))
-                                0 ];
-nu_c = [v_c; zeros(3,1)];
-nu_c_dot = [-Smtrx(nu(4:6)) * v_c; zeros(3,1)];
+[nu_c, nu_c_dot] = currentVelocity(Vc, betaVc, 0, eta(4:6), nu(4:6), ...
+    currentModel);
 nu_r = nu - nu_c;  % Vessel velocity relative to the current
 
 % Coriolis-centripetal matrices. The rigid-body representation is independent

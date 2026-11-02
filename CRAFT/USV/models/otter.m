@@ -1,4 +1,4 @@
-function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
+function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c,currentModel)
 % Unified 6-DOF maneuvering and seakeeping dynamics for the Otter USV.
 % [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c) returns the
 % time derivative xdot of the state vector, the speed U in m/s, the 6x6
@@ -78,6 +78,10 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
 %  r_bP = [xP, yP, zP]' (m) is the payload position from CO in body axes
 %  V_c:     Ocean current speed (m/s)
 %  beta_c:  Ocean current direction (rad)
+%  currentModel: (optional) current model, see currentVelocity.m:
+%           'full_attitude' (default), the current rotated to BODY by the
+%           roll, pitch and yaw angles, or 'heading_only_rotation_rate',
+%           the current model used before 2026-10-23 (yaw angle only)
 %
 % Position vectors r_bG = [xG, yG, zG]' and r_bP = [xP, yP, zP]' are
 % measured from the body-frame origin CO to CG and P, respectively.
@@ -101,6 +105,9 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
 %
 %   xdot = otter(x,n,mP,r_bP,V_c,beta_c)
 %       Return xdot, 2-D currents.
+%
+%   xdot = otter(x,n,mP,r_bP,V_c,beta_c,'heading_only_rotation_rate')
+%       Return xdot, 2-D currents rotated by the yaw angle only.
 %
 % M-file Simulators:
 %   SIMotter.m : Heading/path-following simulation with currents and waves.
@@ -134,6 +141,10 @@ end
 
 if nargin < 6
     beta_c = 0;
+end
+
+if nargin < 7 || isempty(currentModel)
+    currentModel = 'full_attitude';
 end
 
 if (length(x) ~= 12),error('x vector must have dimension 12!'); end
@@ -197,12 +208,9 @@ Cb_pont = 0.4;        % Block coefficient, computed from m = 55 kg
 nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % Velocity vectors
 eta = x(7:12);                              % Position vector
 U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % Speed
-u_c = V_c * cos(beta_c - eta(6));           % Current surge velocity
-v_c = V_c * sin(beta_c - eta(6));           % Current sway velocity
-nu_c = [u_c v_c 0 0 0 0 ]';                 % Current velocity vector
+[nu_c, nu_c_dot] = currentVelocity(V_c, beta_c, 0, eta(4:6), nu2, ...
+    currentModel);                          % Current velocity, acceleration
 nu_r = nu - nu_c;                           % Relative velocity vector
-nu_c_dot = [-Smtrx(nu2) * nu_c(1:3)         % Current acceleration vector
-             zeros(3,1)              ];
 
 % Inertia dyadic, volume displacement, and draft
 nabla = (m+mP)/rho;                         % Volume

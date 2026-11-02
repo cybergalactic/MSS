@@ -165,6 +165,7 @@ wageningen          % Thrust and torque coefficients of the Wageningen B-series 
 ### Kinematics
 
 ```matlab
+currentVelocity     % Ocean current velocity and its time derivative in BODY from a current in NED
 ecef2llh            % Longitude, latitude, and height from ECEEF positions x, y, and z
 euler2q             % Unit quaternion from Euler angles
 eulerang            % Computes the Euler angle transformation matrices J, Rzyx and Tzyx

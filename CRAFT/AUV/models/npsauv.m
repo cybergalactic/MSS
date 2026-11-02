@@ -1,4 +1,4 @@
-function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
+function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c, currentModel)
 % [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
 % state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
 % delta_s delta_bp delta_bs n_p]', speed U in m/s (optionally), the 6x6 mass 
@@ -35,7 +35,15 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %   n_com:          Propeller shaft speed command (rpm)  
 %
 % The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
-% ocean currents
+% ocean currents that are constant in NED,
+%
+%    v_c^n = [ Vc * cos(betaVc), Vc * sin(betaVc), w_c ]',
+%
+% expressed in BODY by the full attitude, v_c = R(Theta)' * v_c^n. The
+% optional argument currentModel selects the current model, see
+% currentVelocity.m: 'full_attitude' (default) or 'heading_only_yaw_rate',
+% the current model used before 2026-10-23, which rotates by the yaw angle
+% only:
 %
 %    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
 %
@@ -62,10 +70,17 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 % Author:    Thor I. Fossen
 % Date:      2024-06-03
 % Revisions: 2025-06-05 : Corrected the sign of Cz (crossflow drag).
+%            2026-10-23 : Ocean currents from currentVelocity.m, rotated by
+%                         the full attitude. currentModel =
+%                         'heading_only_yaw_rate' gives the previous
+%                         current model (E. Krizman).
 
 if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
 if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
 if (nargin == 4), w_c=0; end                   % no vertical ocean currents
+if (nargin < 6 || isempty(currentModel))
+    currentModel = 'full_attitude';
+end
 
 if (length(x) ~= 17), error('x-vector must have dimension 17!'); end
 if (length(ui) ~= 5), error('u-vector must have dimension 5!'); end
@@ -79,15 +94,14 @@ u_actual = x(13:17);
 % Speed
 U = sqrt(u^2 + v^2 + w^2); 
 
-% Ocean currents expressed in BODY, nu_c = [u_c v_c w_c 0 0 0]'
-u_c = Vc * cos( betaVc - psi );                               
-v_c = Vc * sin( betaVc - psi );   
+% Ocean currents expressed in BODY, nu_c = [u_c v_c w_c 0 0 0]', and the
+% time derivative of nu_c
+[nu_c, Dnu_c] = currentVelocity(Vc, betaVc, w_c, x(10:12), x(4:6), ...
+    currentModel);
 
-u_r = u - u_c;                      % Relative velocities
-v_r = v - v_c;
-w_r = w - w_c;
-
-Dnu_c = [ v_c*r -u_c*r 0 0 0 0 ]';    % Time derivative of nu_c
+u_r = u - nu_c(1);                  % Relative velocities
+v_r = v - nu_c(2);
+w_r = w - nu_c(3);
 
 % Actuator dynamics and saturation limits
 max_u = [deg2rad(20); deg2rad(20); deg2rad(20); deg2rad(20); 1500];
