@@ -20,8 +20,9 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 % draft) and the heave flow with the projected width B (the beam), so
 %   dY = -1/2 rho T Cd |v_r+x*r| (v_r+x*r) dx
 %   dZ = -1/2 rho B Cd |w_r-x*q| (w_r-x*q) dx
-% For a circular cylinder (AUV) B = T = D and both widths are D. The 2-D 
-% coefficient Cd is the one of the selected drag model for both directions.
+% The strip-width correction leaves results unchanged when B = T, as for
+% the circular-cylinder model with B = T = D. The selected drag model's
+% 2-D coefficient Cd is retained for both directions.
 %
 % References:
 %   Fossen, T. I. (2027). Handbook of Marine Craft Hydrodynamics and Motion
@@ -38,8 +39,8 @@ function tau_crossflow = crossFlowDrag(L,B,T,nu_r,drag_model)
 %   2026-08-26 : Evaluate 20 strips at their midpoints (J. Harvey)
 %   2026-10-30 : Align heave strip velocity and pitch moment with FSD axes.
 %                Integrated loads for uniform symmetric strips are unchanged.
-%   2026-11-02 : The heave and pitch strips use the beam B as their width, 
-%                not the draft T (the same for B = T, i.e. for AUVs).
+%   2026-11-02 : Use beam B as the strip width for heave and pitch (E. Krizman).
+%                Results are unchanged when B = T.
 
 % Hoerner is the default drag model for monohull
 if nargin == 4
@@ -75,7 +76,7 @@ for i = 1:nStrips
     U_h = abs(v_r + xL * r) * (v_r + xL * r);
     U_v = abs(w_r - xL * q) * (w_r - xL * q);
     Yh = Yh - 0.5 * rho * T * Cd_2D * U_h * dx;       % Sway force
-    Zh = Zh - 0.5 * rho * B * Cd_2D * U_v * dx;       % Heave force  
+    Zh = Zh - 0.5 * rho * B * Cd_2D * U_v * dx;       % Heave force
     Mh = Mh + 0.5 * rho * B * Cd_2D * xL * U_v * dx;  % Pitch moment
     Nh = Nh - 0.5 * rho * T * Cd_2D * xL * U_h * dx;  % Yaw moment
 end
