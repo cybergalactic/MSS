@@ -61,6 +61,9 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc,currentModel)
 %   2026-10-23: Ocean currents from currentVelocity.m, rotated by the full
 %               attitude. currentModel = 'heading_only_rotation_rate'
 %               gives the previous current model (E. Krizman)
+%   2026-11-02: The added-mass Coriolis matrix CA is computed from the
+%               relative velocity nu_r (Fossen 2011, Eq. 8.136), not from
+%               the velocity over ground nu (E. Krizman)
 
 persistent vessel;
 
@@ -184,7 +187,7 @@ nu_r = nu - nu_c;
 
 % Coriolis matrices
 [~,CRB] = rbody(vessel.m,vessel.R44,vessel.R55,vessel.R66,nu(4:6),vessel.r_bg'); 
-CA  = m2c(vessel.MA, nu);   
+CA  = m2c(vessel.MA, nu_r);   
 
 % Linear and nonlinear damping
 D_nonlinear = vessel.D;

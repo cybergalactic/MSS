@@ -74,6 +74,9 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c, currentModel)
 %                         the full attitude. currentModel =
 %                         'heading_only_yaw_rate' gives the previous
 %                         current model (E. Krizman).
+%            2026-11-02 : The propeller advance ratio and the propeller slip
+%                         epsilon use the surge speed relative to the water,
+%                         u_r, not the speed over ground (E. Krizman).
 
 if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
 if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
@@ -191,11 +194,11 @@ M = MRB + MA;
 % Control forces and moments
 Cd0   = 0.00385;
 eps_prop = 1e-10;  % Avoid dividing by zero
-prop  = 0.012 * n_p / (u + eps_prop); 
+prop  = 0.012 * n_p / (u_r + eps_prop); 
 Xprop = Cd0 * ( abs(prop) * prop - 1 );
 Ct    = 0.008 * L^2 * abs(prop) * prop / 2;
 Ct1   = 0.008 * L^2 / 2;
-epsilon = -1 + sign(n_p)/sign(u + eps_prop) * ...
+epsilon = -1 + sign(n_p)/sign(u_r + eps_prop) * ...
     ( sqrt(Ct+1)-1 ) / ( sqrt(Ct1+1)-1 + eps_prop );
 
 tau1 = r3 * (Xrdr*u_r*r*delta_r + (Xqds*delta_s + Xqdb2*delta_bp +...
