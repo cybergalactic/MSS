@@ -38,6 +38,9 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %  
 % Author:    Thor I. Fossen
 % Date:      2 Sep 2023
+% Revisions:
+%   2026-10-23 : The integral state accumulates the error with the yaw angle 
+%                wrapped to [-pi, pi), like the proportional term (E. Krizman)
 
 persistent eta_d;  % LP-filtered commands
 persistent z_int;  % Integral states
@@ -82,7 +85,7 @@ else  % 3-DOF
 end
 
 % integral state: z_int[k+1]
-z_int = z_int + h * (eta - eta_d);
+z_int = z_int + h * e;   % e is the error with the yaw angle wrapped
 
 % low-pass filter: eta_d[k+1]
 eta_d = eta_d + h * (eta_ref - eta_d)/ T_f;
