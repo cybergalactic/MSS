@@ -11,7 +11,9 @@ function [table, pathlength] = order5(drawmode, constraint, x_vector,y_vector)
 %
 % Author:       Jørgen Corneliussen
 % Date:         20 Nov 2002
-% Revisions: 
+% Revisions: 2026-11-02 : The waypoint inserted for two waypoints is the midpoint
+%            (x1+x2)/2 and (y1+y2)/2; it was the half difference (x2-x1)/2, which is
+%            the midpoint only when the first waypoint is the origin.
 
 
 % Testing the provided waypoints
@@ -21,8 +23,8 @@ elseif isscalar(x_vector) % Only one waypoint provided
     disp('You must provide more than one waypoint');
 elseif length(x_vector) == 2 %A straight line, inserting another waypoint in the middle
     disp('Only two waypoints were provided. Adding another waypoint in the middle');
-    x_vector = [x_vector(1) (x_vector(2) - x_vector(1))/2 x_vector(2)];
-    y_vector = [y_vector(1) (y_vector(2) - y_vector(1))/2 y_vector(2)];
+    x_vector = [x_vector(1) (x_vector(1) + x_vector(2))/2 x_vector(2)];
+    y_vector = [y_vector(1) (y_vector(1) + y_vector(2))/2 y_vector(2)];
 end
 
 N = length(x_vector)-1; %The number of paths
