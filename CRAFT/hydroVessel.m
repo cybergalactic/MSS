@@ -26,7 +26,11 @@ function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
 %               vessel.main             - mass, radii of gyration, density,
 %                                         dimensions, and hull data
 %   Vc:       Horizontal ocean-current speed (m/s)
-%   betaVc:   Ocean-current direction in the North-East frame (rad)
+%   betaVc:   Current azimuth in NED, towards which the current flows (rad)
+%
+% The current is constant and horizontal in NED. oceanCurrents rotates it
+% into BODY using the full roll, pitch and yaw attitude and computes its
+% BODY derivative consistently with the angular velocity [p q r]'.
 %
 % Output:
 %   xdot:     12x1 state derivative [nu_dot; eta_dot]
@@ -38,18 +42,16 @@ function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
 % Author:    Thor I. Fossen
 % Date:      2026-10-02
 % Revisions:
+%   2026-11-02 : Use oceanCurrents for a constant horizontal NED current,
+%                rotated by the full attitude with a consistent derivative.
 
 % Decompose the state into body-fixed velocity and NED position/attitude
 nu = x(1:6);       % Generalized velocity [u v w p q r]'
 eta = x(7:12);     % Position and Euler angles [N E D phi theta psi]'
 
-% Transform the irrotational North-East current into body-fixed coordinates.
-% Its body-fixed derivative is caused solely by the vessel angular velocity.
-v_c = [ Vc * cos(betaVc - eta(6))
-        Vc * sin(betaVc - eta(6))
-                                0 ];
-nu_c = [v_c; zeros(3,1)];
-nu_c_dot = [-Smtrx(nu(4:6)) * v_c; zeros(3,1)];
+% Constant horizontal NED current expressed in BODY and its derivative.
+[nu_c, nu_c_dot] = oceanCurrents( ...
+    Vc, betaVc, 0, eta(4:6), nu(4:6), 'constant');
 nu_r = nu - nu_c;  % Vessel velocity relative to the current
 
 % Coriolis-centripetal matrices. The rigid-body representation is independent

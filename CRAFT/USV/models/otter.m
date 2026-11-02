@@ -76,8 +76,12 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
 %
 %  mP: Payload mass (kg), maximum 45 kg and minimum 0 kg
 %  r_bP = [xP, yP, zP]' (m) is the payload position from CO in body axes
-%  V_c:     Ocean current speed (m/s)
-%  beta_c:  Ocean current direction (rad)
+%  V_c:     Horizontal ocean current speed in NED (m/s)
+%  beta_c:  Current azimuth in NED, towards which the current flows (rad)
+%
+% The current is constant and horizontal in NED. oceanCurrents rotates it
+% into BODY using the full roll, pitch and yaw attitude and computes its
+% BODY derivative consistently with the angular velocity [p q r]'.
 %
 % Position vectors r_bG = [xG, yG, zG]' and r_bP = [xP, yP, zP]' are
 % measured from the body-frame origin CO to CG and P, respectively.
@@ -117,6 +121,9 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter(x,n,mP,r_bP,V_c,beta_c)
 %
 % Author:    Thor I. Fossen
 % Date:      2026-10-26
+% Revisions:
+%   2026-11-02 : Use oceanCurrents for a constant horizontal NED current,
+%                rotated by the full attitude with a consistent derivative.
 
 % The constant hydrodynamic matrices MA and D are computed only once
 persistent MA D G;
@@ -197,12 +204,9 @@ Cb_pont = 0.4;        % Block coefficient, computed from m = 55 kg
 nu = x(1:6);  nu1 = x(1:3); nu2 = x(4:6);   % Velocity vectors
 eta = x(7:12);                              % Position vector
 U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % Speed
-u_c = V_c * cos(beta_c - eta(6));           % Current surge velocity
-v_c = V_c * sin(beta_c - eta(6));           % Current sway velocity
-nu_c = [u_c v_c 0 0 0 0 ]';                 % Current velocity vector
+[nu_c, nu_c_dot] = oceanCurrents( ...
+    V_c, beta_c, 0, eta(4:6), nu2, 'constant');
 nu_r = nu - nu_c;                           % Relative velocity vector
-nu_c_dot = [-Smtrx(nu2) * nu_c(1:3)         % Current acceleration vector
-             zeros(3,1)              ];
 
 % Inertia dyadic, volume displacement, and draft
 nabla = (m+mP)/rho;                         % Volume

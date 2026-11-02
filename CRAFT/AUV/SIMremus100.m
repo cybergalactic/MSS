@@ -10,6 +10,7 @@ function SIMremus100()
 %
 % Dependencies:
 %   remus100.m            - Dynamics of the Remus 100 AUV
+%   oceanCurrents.m       - Bounded stochastic ocean-current model
 %   integralSMCheading.m  - Integral sliding mode control for heading
 %   refModel.m            - Reference model for autopilot systems
 %   ALOSpsi.m             - 2-D ALOS guidance algorithm for path following
@@ -54,6 +55,10 @@ function SIMremus100()
 %               acceleration (m/s^2) into a_d, which integralSMCheading reads
 %               as the yaw acceleration (rad/s^2). The propeller speed ramp
 %               stops at n_d instead of alternating around it (E. Krizman).
+%   2026-11-02: Use bounded Gauss-Markov currents from oceanCurrents.
+%               Sample the current once per simulation step and retain the
+%               original integration scheme. Use BODY current components
+%               for AoA and sideslip diagnostics.
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -91,10 +96,24 @@ else % Unit quaternions
     x = [U; zeros(5,1); xn; yn; zn; quat];
 end
 
-% Initialize ocean current parameters
-Vc = 0.5;                      % Horizontal speed (m/s)
-betaVc = deg2rad(30);          % Horizontal direction (radians)
-wc = 0.1;                      % Vertical speed (m/s)
+% ------------------------------------------------------------------------------
+% Stochastic ocean current (Fossen 2027, Section 10.3)
+% ------------------------------------------------------------------------------
+Vc = 0.5;                        % Initial horizontal speed (m/s)
+betaVc = deg2rad(30);            % Initial azimuth in NED (rad)
+wc = 0.1;                        % Initial vertical NED component, positive down
+current.Vc = hypot(Vc, wc);      % Total speed for oceanCurrents
+current.betaVc = betaVc;
+current.gammaVc = atan2(wc, Vc); % Elevation, positive down
+
+% Illustrative slowly varying current, with explicit speed/angle limits.
+current.parameters.h = 1.0;    % Current sampling interval (s)
+current.parameters.mean = [current.Vc; betaVc; current.gammaVc];
+current.parameters.T = [100; 200; 200]; % Correlation times (s)
+current.parameters.sigma = [0.007; deg2rad(0.5); deg2rad(0.1)];
+current.parameters.min = [0.3; deg2rad(10); deg2rad(-5)];
+current.parameters.max = [0.8; deg2rad(50); deg2rad(25)];
+current.parameters.id = 'SIMremus100';
 
 % Initialize propeller dynamics
 n_max = 1525;                  % Maximum propeller speed (RPM)
@@ -103,8 +122,8 @@ n_p = 1000;                    % Initial propeller speed (RPM)
 n_d = 1300;                    % Desired propeller speed (RPM)
 
 % Time vector initialization
-t = 0:h:T_final;                % Time vector from 0 to T_final          
-nTimeSteps = length(t);         % Number of time steps
+t = 0:h:T_final;               % Time vector from 0 to T_final
+nTimeSteps = length(t);        % Number of time steps
 
 % ==============================================================================
 % CONTROL SYSTEM CONFIGURATION
@@ -186,6 +205,7 @@ rangeCheck(U, 0, 5);
 % ==============================================================================
 simData = zeros(nTimeSteps, length(x) + 10); % Preallocate table for simulation data
 alosData = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
+currentData = zeros(nTimeSteps, 3); % BODY current velocity for diagnostics
 
 for i = 1:nTimeSteps
 
@@ -202,10 +222,21 @@ for i = 1:nTimeSteps
     % Kinematic representation
     switch KinematicsFlag
         case 1
-            theta = x(11); psi = x(12); % Euler angles
+            phi = x(10); theta = x(11); psi = x(12); % Euler angles
+            R = Rzyx(phi, theta, psi);
         otherwise
-            [~,theta,psi] = q2euler(x(10:13)); % Quaternion to Euler angles
+            [phi,theta,psi] = q2euler(x(10:13)); % Quaternion to Euler angles
+            R = Rquat(x(10:13));
     end
+
+    % Sample the current at t(i), then pass the existing NED inputs to the model.
+    [nu_c, ~] = oceanCurrents(current.Vc, current.betaVc, current.gammaVc, ...
+        x(10:end), x(4:6), 'stochastic', current.parameters, t(i));
+    v_c_n = R * nu_c(1:3);
+    Vc = hypot(v_c_n(1), v_c_n(2));
+    betaVc = atan2(v_c_n(2), v_c_n(1));
+    wc = v_c_n(3);
+    currentData(i,:) = nu_c(1:3)';
 
     % Control systems 
     switch ControlFlag
@@ -311,26 +342,6 @@ for i = 1:nTimeSteps
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
             r_d = sat(r_d, r_max);
 
-            % Ocean current dynamics
-            if t(i) > 800
-                Vc_d = 0.65;
-                w_V = 0.05;
-                Vc = exp(-h*w_V) * Vc + (1 - exp(-h*w_V)) * Vc_d;
-            else
-                Vc = 0.5;
-            end
-
-            if t(i) > 500
-                betaVc_d = deg2rad(160);
-                w_beta = 0.1;
-                betaVc = exp(-h*w_beta) * betaVc + (1 - exp(-h*w_beta)) * betaVc_d;
-            else
-                betaVc = deg2rad(150);
-            end
-
-            betaVc = betaVc + randn / 1000;
-            Vc = Vc + 0.002 * randn;
-
             % Store ALOS data in table
             alosData(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
     end
@@ -345,11 +356,12 @@ for i = 1:nTimeSteps
    % Store simulation data in a table
    simData(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
 
+   % Quasi-steady current: hold the NED current fixed over this integration step.
    if (KinematicsFlag == 1)
        % Euler angles x = [ u v w p q r x y z phi theta psi ]'
        x = rk4(@remus100, h, x, ui, Vc, betaVc, wc);  % RK4 method x(k+1)
    else
-       % Unit quaternions x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'  
+       % Unit quaternions x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
        xdot = remus100(x, ui, Vc, betaVc, wc);
        quat = x(10:13);                            % Unit quaternion
        x(1:6) = x(1:6) + h * xdot(1:6);            % Forward Euler
@@ -395,6 +407,7 @@ else % Transform the unit quaternions to Euler angles
     end
     eta = [simData(:,17:19) phi theta psi];
 end
+phi = eta(:,4); theta = eta(:,5); psi = eta(:,6);
 
 % alosData = [y_e z_e alpha_c_hat beta_c_hat]
 y_e = alosData(:,1);
@@ -402,17 +415,18 @@ z_e = alosData(:,2);
 alpha_c_hat = alosData(:,3);
 beta_c_hat = alosData(:,4);
 
-% Ocean current velocities 
-uc = Vc .* cos(betaVc);
-vc = Vc .* sin(betaVc);
+% Ocean current velocities expressed in the same BODY frame as nu.
+uc = currentData(:,1);
+vc = currentData(:,2);
+wc_body = currentData(:,3);
 
 % Crab angles, AoA and SSA
 U = sqrt(u.^2+v.^2+w.^2); % Speed
 gamma = asin( (u.*sin(theta)-(v.*sin(phi)+w.*cos(phi)).*cos(theta)) ./ U );
-alpha_c = theta - gamma; % Horizontal crab angle
+alpha_c = theta - gamma; % Vertical crab angle
 beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
-    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Vertical crab angle
-alpha = asin( (w-wc) ./ (u-uc) ); % AoA
+    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Horizontal crab angle
+alpha = atan2(w-wc_body, u-uc); % AoA
 beta  = atan2( (v-vc), (u-uc) ); % SSA
 
 % ------------------------------------------------------------------------------
@@ -476,13 +490,13 @@ set(findall(gcf,'type','text'),'FontSize',12)
 % ------------------------------------------------------------------------------
 figure(4);
 if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,1,scrSz(3)/3,scrSz(4)/2]);end
-subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
+subplot(311),plot(t,hypot(nu(:,1),nu(:,2)),t,hypot(uc,vc))
 xlabel('Time (s)'),grid
-legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
+legend('Vehicle BODY horizontal speed (m/s)','Current BODY horizontal speed (m/s)',...
     'Location',legendLocation)
-subplot(312),plot(t,nu(:,3),t,wc)
+subplot(312),plot(t,nu(:,3),t,wc_body)
 xlabel('Time (s)'),grid
-legend('Vehicle heave velocity (m/s)','Ocean current heave velocity (m/s)',...
+legend('Vehicle heave velocity (m/s)','Current BODY heave velocity (m/s)',...
     'Location',legendLocation)
 subplot(313),plot(t,rad2deg(betaVc),'r')
 xlabel('Time (s)'),grid

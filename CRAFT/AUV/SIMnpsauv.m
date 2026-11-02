@@ -12,6 +12,7 @@ function SIMnpsauv()
 %
 % Dependencies:
 %   npsauv.m              - Dynamics of the NPS AUV
+%   oceanCurrents.m       - Bounded stochastic ocean-current model
 %   refModel.m            - Reference model for autopilot systems
 %   ALOS.m                - ALOS guidance algorithm for path following
 %   LOSobserver.m         - Observer for LOS guidance 
@@ -41,6 +42,8 @@ function SIMnpsauv()
 %               Fossen 2025).
 %   2025-10-06: Redesigned the depth controller using outer-loop gradient
 %               descent (inversion-free backstepping with exact sin(theta) term)
+%   2026-11-02: Use bounded Gauss-Markov currents from oceanCurrents, retaining
+%               RK4 integration and using BODY current components in diagnostics.
 
 clearvars;                          % Clear all variables from memory
 clear ALOS3D;                       % Clear persistent states in controllers
@@ -68,10 +71,27 @@ U = 1;                              % Initial speed (m/s)
 theta_d = 0; q_d = 0;               % Initial pitch references
 psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
 
-% Initialize ocean current parameters
+% -------------------------------------------------------------------------
+% Stochastic ocean current (Fossen 2027, Section 10.3)
+% -------------------------------------------------------------------------
 Vc = 0.3;                      % Horizontal speed (m/s)
 betaVc = deg2rad(20);          % Horizontal direction (radians)
-wc = 0.1;                      % Vertical speed (m/s)
+wc = 0.1;                      % Vertical speed, positive down (m/s)
+
+current.Vc = hypot(Vc, wc);      % Total speed for oceanCurrents
+current.betaVc = betaVc;
+current.gammaVc = atan2(wc, Vc); % Elevation, positive down
+
+% Illustrative slowly varying current, with limits relative to its mean.
+current.parameters.h = 1.0;    % Current sampling interval (s)
+current.parameters.mean = [current.Vc; betaVc; current.gammaVc];
+current.parameters.T = [100; 200; 200]; % Correlation times (s)
+current.parameters.sigma = [0.014*current.Vc; deg2rad(0.5); deg2rad(0.1)];
+current.parameters.min = [0.5*current.Vc; betaVc-deg2rad(20); ...
+    max(-pi/2, current.gammaVc-deg2rad(15))];
+current.parameters.max = [1.5*current.Vc; betaVc+deg2rad(20); ...
+    min(pi/2, current.gammaVc+deg2rad(15))];
+current.parameters.id = 'SIMnpsauv';
 
 % Initialize propeller dynamics
 n = 1000;                      % Initial propeller speed (rpm)
@@ -145,6 +165,7 @@ K_f = 0.4;                  % LOS observer gain
 %% MAIN LOOP
 simdata = zeros(nTimeSteps, 29); % Preallocate table for simulation data
 ALOSdata = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
+currentData = zeros(nTimeSteps, 3); % BODY current velocity for diagnostics
 
 for i = 1:nTimeSteps
 
@@ -157,14 +178,23 @@ for i = 1:nTimeSteps
     xn = x(7);                 % North position (m)
     yn = x(8);                 % East position (m)
     zn = x(9);                 % Down position (m), depth
-    %phi = x(10);              % Roll angle (rad) 
-    theta = x(11);             % PitchYaw angle (rad)
+    phi = x(10);               % Roll angle (rad)
+    theta = x(11);             % Pitch angle (rad)
     psi = x(12);               % Yaw angle (rad)
     %delta_r = x(13);          % Rudder angle (rad)
     %delta_s = x(14);          % Stern plane (rad)
     %delta_bp = x(15);         % Port bow plane (rad)
     %delta_bs  = x(16);        % Starboard bow plane (rad)
     n = x(17);                 % Propeller shaft speed (rpm)
+
+    % Sample the current at t(i), then pass the existing NED inputs to the model.
+    [nu_c, ~] = oceanCurrents(current.Vc, current.betaVc, current.gammaVc, ...
+        x(10:12), x(4:6), 'stochastic', current.parameters, t(i));
+    v_c_n = Rzyx(phi, theta, psi) * nu_c(1:3);
+    Vc = hypot(v_c_n(1), v_c_n(2));
+    betaVc = atan2(v_c_n(2), v_c_n(1));
+    wc = v_c_n(3);
+    currentData(i,:) = nu_c(1:3)';
 
     % Control system updates based on selected mode
     if ControlFlag == 1 % Depth control
@@ -243,15 +273,10 @@ for i = 1:nTimeSteps
     max_u = [deg2rad(20); deg2rad(20); deg2rad(20); deg2rad(20); 1500];
     u_com = sat(u_com, max_u);
 
-    % Ocean current random walks with saturation
-    betaVc = sat(betaVc + 0.01 * h * randn, deg2rad(100));
-    Vc = sat(Vc + 0.05 * h * randn, 1.0);
-    wc = sat(wc + 0.01 * h * randn, 0.2);
-
     % Store simulation data in a table
     simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
 
-    % RK methhod (k+1)
+    % Quasi-steady current: hold the NED current fixed over this RK4 step.
     x = rk4(@npsauv, h, x, u_com, Vc, betaVc, wc);  % AUV dynamics 
 
     % Euler's integration method (k+1)
@@ -280,6 +305,7 @@ betaVc   = simdata(:,28);
 wc       = simdata(:,29);
 u = nu(:,1); v = nu(:,2); w = nu(:,3);
 p = nu(:,4); q = nu(:,5); r = nu(:,6);
+phi = eta(:,4); theta = eta(:,5); psi = eta(:,6);
 
 
 % ALOSdata = [y_e z_e alpha_c_hat beta_c_hat]
@@ -288,16 +314,18 @@ z_e = ALOSdata(:,2);
 alpha_c_hat = ALOSdata(:,3);
 beta_c_hat = ALOSdata(:,4);
 
-uc = Vc .* cos(betaVc);
-vc = Vc .* sin(betaVc);
+% Ocean current velocities expressed in the same BODY frame as nu.
+uc = currentData(:,1);
+vc = currentData(:,2);
+wc_body = currentData(:,3);
 
 % Crab angles, AOA and SSA
 U = sqrt(u.^2+v.^2+w.^2); % Speed
 gamma = asin( (u.*sin(theta)-(v.*sin(phi)+w.*cos(phi)).*cos(theta)) ./ U );
-alpha_c = theta - gamma; % Horizontal crab angle
+alpha_c = theta - gamma; % Vertical crab angle
 beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
-    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Vertical crab angle
-alpha = asin( (w-wc) ./ (u-uc) ); % AOA
+    u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Horizontal crab angle
+alpha = atan2(w-wc_body, u-uc); % AOA
 beta  = atan2( (v-vc), (u-uc) ); % SSA
 
 %% Generalized velocity
@@ -357,13 +385,13 @@ set(findall(gcf,'type','text'),'FontSize',14)
 %% Ocean currents and speed
 figure(4);
 if ~isoctave; set(gcf,'Position',[2*scrSz(3)/3,1,scrSz(3)/4,scrSz(4)/2]);end
-subplot(311),plot(t,sqrt(nu(:,1).^2+nu(:,2).^2),t,Vc)
+subplot(311),plot(t,hypot(nu(:,1),nu(:,2)),t,hypot(uc,vc))
 xlabel('Time (s)'),grid
-legend('Vehicle horizontal speed (m/s)','Ocean current horizontal speed (m/s)',...
+legend('Vehicle BODY horizontal speed (m/s)','Current BODY horizontal speed (m/s)',...
     'Location',legendLocation)
-subplot(312),plot(t,nu(:,3),t,wc)
+subplot(312),plot(t,nu(:,3),t,wc_body)
 xlabel('Time (s)'),grid
-legend('Vehicle heave velocity (m/s)','Ocean current heave velcoity (m/s)',...
+legend('Vehicle heave velocity (m/s)','Current BODY heave velocity (m/s)',...
     'Location',legendLocation)
 subplot(313),plot(t,rad2deg(betaVc),'r')
 xlabel('Time (s)'),grid

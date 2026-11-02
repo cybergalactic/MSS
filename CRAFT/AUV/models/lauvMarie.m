@@ -86,6 +86,10 @@ function xdot = lauvMarie(x,tau_ext,Vc,betaVc,w_c,w0_spectrum)
 %   w0_spectrum   Wave-spectrum peak angular frequency (rad/s) used for the
 %                 power-based reduction of added mass and potential damping.
 %
+% The current is constant in NED. Its horizontal speed and positive-down
+% vertical component are converted to total speed and elevation for
+% oceanCurrents, which returns the full-attitude BODY velocity and derivative.
+%
 % OUTPUT
 %   xdot          12x1 state derivative [nu_dot; eta_dot]
 %
@@ -106,6 +110,8 @@ function xdot = lauvMarie(x,tau_ext,Vc,betaVc,w_c,w0_spectrum)
 % Author:    Thor I. Fossen
 % Date:      2026-10-14
 % Revisions:
+%   2026-11-02: Use oceanCurrents for the full-attitude current velocity and
+%               derivative, retaining the horizontal-speed/w_c interface.
 
 persistent vessel
 
@@ -135,13 +141,11 @@ constant = mssConstants();
 nu = x(1:6);       % Generalized velocity [u v w p q r]'
 eta = x(7:12);     % Position and Euler angles [N E D phi theta psi]'
 
-% Transform the irrotational North-East current into body-fixed coordinates.
-% Its body-fixed derivative is caused solely by the vessel angular velocity.
-v_c = [ Vc * cos(betaVc - eta(6))
-    Vc * sin(betaVc - eta(6))
-    w_c ];
-nu_c = [v_c; zeros(3,1)];
-nu_c_dot = [-Smtrx(nu(4:6)) * v_c; zeros(3,1)];
+% Constant NED current expressed in BODY, using the hybrid specification.
+Vtotal = hypot(Vc, w_c);
+gammaVc = atan2(w_c, Vc);
+[nu_c, nu_c_dot] = oceanCurrents( ...
+    Vtotal, betaVc, gammaVc, eta(4:6), nu(4:6), 'constant');
 nu_r = nu - nu_c;  % Vessel velocity relative to the current
 
 % Coriolis-centripetal matrices. The rigid-body representation is independent

@@ -18,13 +18,17 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 %   ui: control inputs ui = [n1, n2, n3, n4, alpha1, alpha2] where n1, n2, 
 %       n3 and n4 are the propeller speeds (rps). The last two arguments 
 %       alpha1 and alpha2 are the azimuth angles (rad)
-%   Vc: OPTIONAL current speed
-%   betaVc: OPTIONAL current direction (rad)
+%   Vc: OPTIONAL horizontal ocean-current speed in NED (m/s)
+%   betaVc: OPTIONAL current azimuth in NED, towards the flow (rad)
 %
 %   The arguments Vc (m/s) and betaVc (rad) are optional arguments for 
-%   ocean currents given by
+%   a constant horizontal ocean current in NED,
 %
-%    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), 0 ] 
+%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), 0]'.
+%
+%   oceanCurrents rotates this current into BODY using the full roll,
+%   pitch and yaw attitude and computes its BODY derivative consistently
+%   with the angular velocity [p q r]'.
 % 
 % The generalized thrust vector satisfy (Fossen 2027, Section 11.2.1)
 %
@@ -42,7 +46,7 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 %
 %   osv();                                 : Display the OSV main data
 %   [~,~,M] = osv()                        : Return the 6x6 mass matrix M
-%   [xdot,U] = osv(x,ui,Vc,betaVc,alphaVc) : Return xdot and U, 2-D currents
+%   [xdot,U] = osv(x,ui,Vc,betaVc)         : Return xdot and U, 2-D currents
 %   [xdot,U] = osv(x,ui)                   : Return xdot and U, no currents 
 % 
 % Author:    Thor I. Fossen
@@ -50,6 +54,9 @@ function [xdot,U,M] = osv(x,ui,Vc,betaVc)
 % Revisions:
 %   2024-04-22: Enhanced compatibility with GNU Octave
 %   2024-06-07: Added M as an optional output argument
+%   2026-11-02: Use oceanCurrents for a constant horizontal NED current,
+%               rotated by the full attitude with a consistent derivative.
+%               Evaluate the added-mass Coriolis matrix at nu_r.
 
 persistent vessel;
 
@@ -164,17 +171,13 @@ M = vessel.M; % Mass matrix
 U = sqrt( nu(1)^2 + nu(2)^2 ); % Speed
 
 % Ocean current
-v_c = [ Vc * cos(betaVc - eta(6))
-        Vc * sin(betaVc - eta(6))
-        0                          ];
-nu_c = [v_c' zeros(1,3) ]';
-nu_c_dot = [-Smtrx(nu(4:6)) * v_c
-             zeros(3,1)           ];
+[nu_c, nu_c_dot] = oceanCurrents( ...
+    Vc, betaVc, 0, eta(4:6), nu(4:6), 'constant');
 nu_r = nu - nu_c;
 
 % Coriolis matrices
 [~,CRB] = rbody(vessel.m,vessel.R44,vessel.R55,vessel.R66,nu(4:6),vessel.r_bg'); 
-CA  = m2c(vessel.MA, nu);   
+CA  = m2c(vessel.MA, nu_r);
 
 % Linear and nonlinear damping
 D_nonlinear = vessel.D;

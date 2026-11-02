@@ -38,14 +38,20 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %    n_p:       Propeller revolution (RPM)
 %
 % The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
-% ocean currents
+% a constant ocean current in NED. Vc is the horizontal speed, betaVc is
+% the azimuth towards which the current flows, and w_c is positive down:
 %
-%    v_c = [ Vc * cos(betaVc - psi), Vc * sin( betaVc - psi), w_c ]  
+%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), w_c]'.
+%
+% The horizontal speed and vertical component are converted to total speed
+% and elevation for oceanCurrents, which rotates the current using the full
+% Euler-angle or quaternion attitude and computes its BODY derivative.
+% SIMremus100 supplies a bounded stochastic current using the same inputs.
 % 
 % Example usage: 
 %   [~,~,M] = remus100()                            : Return the 6x6 mass matrix M
-%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc,w_c) : 3-D ocean currents
-%   [xdot,U] = remus100(x,ui,Vc,betaVc,alphaVc)     : 2-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)       : 3-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc)           : 2-D ocean currents
 %   [xdot,U] = remus100(x,ui)                       : No ocean currents
 %   xdot = remus100(x,ui)                           : No ocean currents
 %
@@ -73,6 +79,8 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %   2026-08-26 Use through-water speed for propulsion and damping (J. Harvey).
 %   2026-11-02 Corrected sign of tau(4): the roll moment on the hull is the
 %               reaction to the propeller torque, tau(4) = -K_prop/10.
+%   2026-11-02 Use oceanCurrents for the full-attitude current velocity and
+%               derivative, retaining the horizontal-speed/w_c interface.
 %
 % References: 
 %   B. Allen, W. S. Vorus and T. Prestero, "Propulsion system 
@@ -103,13 +111,8 @@ g_mu = gravity(mu);      % Gravity vector (m/s2)
 constant = mssConstants();
 rho = constant.rho_water;
 
-% 6x1 velocity vector, yaw angle and control inputs
+% 6x1 velocity vector
 nu = x(1:6); 
-if length(x) == 12 % Euler angles
-    psi = x(12);
-else % Convert unit quaternion to yaw angle
-    psi = atan2(2*(x(10)*x(13) + x(11)*x(12)), 1 - 2*(x(12)^2 + x(13)^2));
-end
 
 % Amplitude saturation of the control signals
 delta_max = deg2rad(20); % Maximum rudder and stern angles (rad)
@@ -120,12 +123,11 @@ delta_r = sat(ui(1), delta_max);    % Saturated tail rudder (rad)
 delta_s = sat(ui(2), delta_max);    % Saturated Stern plane (rad)
 n_p = sat(ui(3),n_max) / 60;        % Saturated propeller speed (rps)
 
-% Ocean currents expressed in BODY
-u_c = Vc * cos( betaVc - psi );                               
-v_c = Vc * sin( betaVc - psi );   
-
-nu_c = [u_c v_c w_c 0 0 0]'; % Ocean current velocities
-Dnu_c = [nu(6)*v_c -nu(6)*u_c 0 0 0 0]'; % Time derivative of nu_c
+% Constant NED current expressed in BODY, using the hybrid specification.
+Vtotal = hypot(Vc, w_c);
+gammaVc = atan2(w_c, Vc);
+[nu_c, Dnu_c] = oceanCurrents( ...
+    Vtotal, betaVc, gammaVc, x(10:end), nu(4:6), 'constant');
 
 % Relative velocities/speed, angle of attack and vehicle speed
 nu_r = nu - nu_c;                                 % Relative velocity
