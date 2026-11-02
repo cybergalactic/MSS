@@ -1,5 +1,5 @@
 function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag, ...
-    T_126,delta_zeta_345,nonlinear_456)
+    T_126,delta_zeta_345,nonlinear_456,rho_alt1)
 % wamit2vessel reads WAMIT output and saves vesselname.mat beside this
 %   function in HYDRO/vessels_wamit, using the MSS vessel structure.
 %
@@ -52,6 +52,11 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag, ...
 %   nonlinear_456 (optional): Nonnegative roll/pitch/yaw damping multipliers.
 %   Omitted or empty damping arguments prompt with editable defaults. A new
 %   vessel name has no default T_126 and requires explicit time constants.
+%   rho_alt1 (optional):    Positive, finite, real scalar water density (kg/m3)
+%                           for FRC-file alternative 1, which carries no
+%                           density. Default: mssConstants seawater density.
+%                           Ignored for alternative 2, which reads RHO from
+%                           the file.
 %
 % Outputs:
 % vessel contains data in the following form:
@@ -114,10 +119,20 @@ function vessel = wamit2vessel(filename,T_draught,Lpp,Boa,plot_flag, ...
 %            2026-09-27 Removed viscous.m; power-based viscous damping is
 %                       computed separately by computeManeuveringModel
 %            2026-10-28 Export drift.w/coeff and correct mirrored drift headings.
+%            2026-11-02 FRC-file alternative detected from the file structure,
+%                       not from the magnitude of frc(5,1) (the mass of a
+%                       light body in alternative 2 can be under 1000);
+%                       rho_alt1 added as an optional input for alternative 1,
+%                       which carries no density (E. Krizman). The density is
+%                       validated when used for alternative 1.
 
 %%
 if nargin < 5 || isempty(plot_flag)
 	plot_flag = '1000';
+end
+if nargin < 9 || isempty(rho_alt1)
+    constant = mssConstants();
+    rho_alt1 = constant.rho_water;
 end
 
 disp(' ');
@@ -144,7 +159,7 @@ if nargin == 1
     Lpp       = input('Length between perpendiculars L_{pp}(m)    : ');
     Boa       = input('Breadth (m)                                : ');
     
-elseif nargin >= 4 && nargin <= 8  % Dimensions and optional damping inputs
+elseif nargin >= 4 && nargin <= 9  % Dimensions and optional damping/density inputs
      vesselfile = filename; 
 else
     error('wrong number of input arguments');
@@ -220,9 +235,11 @@ if exist([filename '.frc'])
     frcfile = [filename '.frc'];
     frc = dlmread(frcfile,'',1,0);
 
-    if frc(5,1) < 1000                   % FRC file alternative 1
+    if frcFileAlternative(frcfile) == 1   % FRC file alternative 1
 
         FRC_ALT = 1;
+        validateattributes(rho_alt1, {'numeric'}, ...
+            {'scalar','real','finite','positive'}, mfilename, 'rho_alt1');
         
         VCG = frc(2,1);
         xg = 0;
@@ -232,8 +249,7 @@ if exist([filename '.frc'])
         vessel.main.k55 = frc(4,2);
         vessel.main.k66 = frc(5,3);
         vessel.main.k46 = frc(3,3);
-        constant = mssConstants();
-        vessel.main.rho = constant.rho_water;
+        vessel.main.rho = rho_alt1;
 
     else                                  % FRC file alternative 2
 
@@ -739,5 +755,36 @@ else
         value = defaultValue;
     end
 end
+end
+
+function alt = frcFileAlternative(frcfile)
+% frcFileAlternative tells WAMIT FRC-file alternative 1 from alternative 2
+% (Wamit manual, Force Control File) by structure, not by the magnitude of
+% any one value: the mass frc(5,1) of a light body in alternative 2 can be
+% under 1000 in whichever units the file uses, which the test
+% "frc(5,1) < 1000" read as alternative 1.
+%
+% Both alternatives open with the same two lines (IOPTN flags, then VCG
+% for alternative 1 or RHO for alternative 2) and a three-number third
+% line (the first row of the 3x3 radius-of-gyration matrix for
+% alternative 1, or the [xg yg zg] centre of gravity for alternative 2).
+% The fourth data line is where they diverge: alternative 1 continues the
+% radius-of-gyration matrix with three more numbers, alternative 2 has the
+% single-number IMASS flag that precedes its 6x6 mass matrix. The line is
+% read from the raw text, since dlmread pads a short row with zeros and the
+% flag would look like a three-number row whose last two entries are zero.
+% Reference: T. I. Fossen (2008), Description of MSS Vessel Models, Sec. 2.1.1
+% and 2.2.
+
+lines = regexp(fileread(frcfile), '\r\n|\r|\n', 'split');
+lines = lines(2:end);  % line 1 is the title: dropped whether blank or not, as dlmread does
+lines = lines(~cellfun(@(s) isempty(strtrim(s)), lines));  % then blank lines
+row4 = sscanf(lines{4}, '%f');  % fourth data line: IOPTN, VCG/RHO, third row, this line
+if numel(row4) >= 3
+    alt = 1;
+else
+    alt = 2;
+end
+
 end
 
