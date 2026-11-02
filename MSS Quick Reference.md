@@ -192,6 +192,7 @@ blendermann94       % Compute the wind forces and wind coefficients using Blende
 encounter           % Encounter frequency as a function of wave peak frequency, vessel speed, and wave direction
 hs2vw               % Convert significant wave height into an equivalent wind speed
 isherwood72         % Compute the wind forces and coefficients based on Isherwood (1972) 
+oceanCurrents       % BODY current velocity and derivative; constant or bounded stochastic NED current
 spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped AUV in waves.
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
