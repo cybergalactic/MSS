@@ -49,6 +49,11 @@ function SIMremus100()
 %   2025-10-06: Redesigned the depth controller using outer-loop gradient descent.
 %   2025-12-07: Added control method for gradient-based depth control and 2.5-D ALOS
 %               (Fossen and Coates, 2026).
+%   2026-11-02: The depth reference model of control method 3 has its own
+%               acceleration state a_d_z; it no longer writes the vertical
+%               acceleration (m/s^2) into a_d, which integralSMCheading reads
+%               as the yaw acceleration (rad/s^2). The propeller speed ramp
+%               stops at n_d instead of alternating around it (E. Krizman).
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -119,6 +124,7 @@ psi_int = 0;                   % Integral state for yaw control
 % Depth controller (successive-loop closure)
 z_d = zn;                      % Initial desired depth (m)
 zdot_d = 0;                    % Initial desired vertical velocity (m/s)
+a_d_z = 0;                     % Initial desired vertical acceleration (m/s^2)
 Kp_z = 0.1;                    % Proportional gain for depth
 T_z = 100;                     % Time constant for integral action in depth control
 k_grad = 0.1;                  % Gain for computation of theta_d
@@ -282,7 +288,7 @@ for i = 1:nTimeSteps
             r_d = sat(r_d, r_max);
 
             % Propagate reference model for desired depth (k+1)
-            [z_d,zdot_d,a_d] = refModel(z_d,zdot_d,a_d,z_ref,w_max,1.0,wn_d_z,h,0);
+            [z_d,zdot_d,a_d_z] = refModel(z_d,zdot_d,a_d_z,z_ref,w_max,1.0,wn_d_z,h,0);
 
         otherwise % Control flag 4 (3-D ALOS path-following)
             % Heading autopilot using the tail rudder (integral SMC)
@@ -330,11 +336,7 @@ for i = 1:nTimeSteps
     end
 
    % Propeller speed (RPM)
-   if n_p < n_d
-       n_p = n_p + n_rate;
-   elseif n_p > n_d
-       n_p = n_p - n_rate;
-   end
+   n_p = n_p + sat(n_d - n_p, n_rate);   % ramp to n_d, no overshoot
    n_p = sat(n_p, n_max);
 
    % Control input vector
