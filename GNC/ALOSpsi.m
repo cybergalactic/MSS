@@ -15,7 +15,7 @@ function [psi_ref,y_e,beta_c_hat,k_active] = ALOSpsi(x,y,Delta_h,gamma_h,h,R_swi
 % angle command, psi_ref, due to waypoint switching, the following observer 
 % should be used:
 %
-%  [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f, T_f)
+%  [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f)
 %
 % where psi_d is the desired yaw angle and r_d is the desired yaw rate r_d. 
 %

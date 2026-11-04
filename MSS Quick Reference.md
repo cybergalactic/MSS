@@ -94,12 +94,16 @@ npsauv          % Naval Postgraduate School Autonomous Underwater Vehicle (AUV),
 osv             % Nonlinear model of an Offshore Supply Vessel (OSV), L = 83.0 m
 otter           % Unified 6-DOF Otter USV maneuvering/seakeeping model using MSS-Capytaine data, L = 2.0 m
 otter_legacy    % First-principles Otter USV model developed in 2019-2026
-remus100        % REMUS 100 Autonomous Underwater Vehicle (AUV), L = 1.9 m
+remus100        % REMUS 100 Autonomous Underwater Vehicle (AUV), L = 1.6 m
 rig             % Semisubmersible linear mass-damper-spring model, L = 84.6 m
 supply          % Linear DP model of a supply vessel, L = 76.2 m
 tanker          % Nonlinear course unstable maneuvering model of a tanker, L = 304 m 
 zeefakkel       % Nonlinear autopilot model of a recreational craft, L = 45 m
 ```
+
+For `remus100`, `npsauv`, and `lauvMarie`, the current inputs are horizontal
+speed `Vc`, NED azimuth `betaVc`, and positive-down NED velocity `vD_c`.
+The BODY current components remain `u_c`, `v_c`, and `w_c`.
 
 ## GNC (m-files)
 .../MSS/GNC/
@@ -321,6 +325,7 @@ exLQR              % Computes the LQR gains for a mass-damper system
 exLQtrack          % Computes the LQ optimal tracking gains for a mass-damper system
 exManeuveringModel % Maneuvering model from frequency-dependent hydrodynamic coefficients A(ω) and B(ω), and the wave spectrum S(ω).
 exMDS              % Plots the step response of a 2nd-order mass-damper system
+exMovingMass       % AUV pitch control using an internal moving mass, reference clipping, and a soft-wall force
 exMSI              % Plots the ISO 2631-1 (1997) and O'Hanlon and McCauley (1974) Motion Sickness Incidence (MSI) curves
 exNomoto           % Bode plots of ships parametrized by Nomoto’s 1st- and 2nd-order models
 exObsCtr           % Observability and controllability matrices of a supply vessel

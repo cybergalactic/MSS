@@ -1,6 +1,6 @@
-function xdot = lauvMarie(x,tau_ext,Vc,betaVc,w_c,w0_spectrum)
+function xdot = lauvMarie(x,tau_ext,Vc,betaVc,vD_c,w0_spectrum)
 % lauvMarie  Unified 6-DOF seakeeping and maneuvering model for LAUV Marie.
-% xdot = lauvMarie(x,tau_ext,Vc,betaVc,w_c,w0_spectrum) returns the
+% xdot = lauvMarie(x,tau_ext,Vc,betaVc,vD_c,w0_spectrum) returns the
 % derivative of a 12-state, 6-DOF model expressed in forward-starboard-down
 % (FSD) body axes and North-East-Down (NED) navigation coordinates.
 %
@@ -82,7 +82,7 @@ function xdot = lauvMarie(x,tau_ext,Vc,betaVc,w_c,w0_spectrum)
 %                 of control/propulsion loads and first-order wave loads.
 %   Vc            Horizontal ocean-current speed (m/s).
 %   betaVc        Horizontal current direction in NED coordinates (rad).
-%   w_c           Vertical ocean-current speed, positive down (m/s).
+%   vD_c          NED vertical ocean-current velocity, positive down (m/s).
 %   w0_spectrum   Wave-spectrum peak angular frequency (rad/s) used for the
 %                 power-based reduction of added mass and potential damping.
 %
@@ -142,8 +142,8 @@ nu = x(1:6);       % Generalized velocity [u v w p q r]'
 eta = x(7:12);     % Position and Euler angles [N E D phi theta psi]'
 
 % Constant NED current expressed in BODY, using the hybrid specification.
-Vtotal = hypot(Vc, w_c);
-gammaVc = atan2(w_c, Vc);
+Vtotal = hypot(Vc, vD_c);
+gammaVc = atan2(vD_c, Vc);
 [nu_c, nu_c_dot] = oceanCurrents( ...
     Vtotal, betaVc, gammaVc, eta(4:6), nu(4:6), 'constant');
 nu_r = nu - nu_c;  % Vessel velocity relative to the current

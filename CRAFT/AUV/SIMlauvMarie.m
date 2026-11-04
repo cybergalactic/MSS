@@ -42,6 +42,8 @@ function SIMlauvMarie()
 %               retaining depth attenuation, consistent with Chapter 10.
 %   2026-11-02: Use bounded Gauss-Markov currents from oceanCurrents, retaining
 %               RK4 integration and using BODY current components in diagnostics.
+%   2026-11-03: Apply the desired turn-rate limit to the ALOS observer state.
+%   2026-11-03: Use pitch- and yaw-rate errors in the PID derivative terms.
 
 clear ALOS3D lauvMarie;      % Clear persistent model/controller states
 
@@ -51,7 +53,7 @@ clear ALOS3D lauvMarie;      % Clear persistent model/controller states
 h = 0.05;                           % Sampling time (s)
 T_final = 1000;	                    % Final simulation time (s)
 
-[ControlFlag, Hs, w0_spectrum, beta_wave, Vc, betaVc, wc] = controlMethod();
+[ControlFlag, Hs, w0_spectrum, beta_wave, Vc, betaVc, vD_c] = controlMethod();
 
 % ==============================================================================
 %% USER INPUTS
@@ -78,9 +80,9 @@ x = [U; zeros(5,1); xn; yn; zn; phi; theta; psi];
 % -------------------------------------------------------------------------
 % Stochastic ocean current (Fossen 2027, Section 10.3)
 % -------------------------------------------------------------------------
-current.Vc = hypot(Vc, wc);      % Total speed for oceanCurrents
+current.Vc = hypot(Vc, vD_c);      % Total speed for oceanCurrents
 current.betaVc = betaVc;
-current.gammaVc = atan2(wc, Vc); % Elevation, positive down
+current.gammaVc = atan2(vD_c, Vc); % Elevation, positive down
 
 % Illustrative slowly varying current, with limits relative to its mean.
 current.parameters.h = 1.0;    % Current sampling interval (s)
@@ -203,7 +205,7 @@ for i = 1:nTimeSteps
     v_c_n = Rzyx(phi, theta, psi) * nu_c(1:3);
     Vc = hypot(v_c_n(1), v_c_n(2));
     betaVc = atan2(v_c_n(2), v_c_n(1));
-    wc = v_c_n(3);
+    vD_c = v_c_n(3);
     currentData(i,:) = nu_c(1:3)';
 
     % Control system updates based on selected mode
@@ -261,6 +263,7 @@ for i = 1:nTimeSteps
         % ALOS observer
         [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
         [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+        r_d = sat(r_d, r_max);
 
         ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
 
@@ -268,8 +271,10 @@ for i = 1:nTimeSteps
 
     % MIMO PID controller for pitch and yaw moments
     tau1 = 20; % Constant surge force
-    tau5 = -Kp(1,1) * ssa(theta - theta_d) -Kd(1,1) * q - Ki(1,1) * theta_int;
-    tau6 = -Kp(2,2) * ssa(psi - psi_d) -Kd(2,2) * r - Ki(2,2) * psi_int;
+    tau5 = -Kp(1,1) * ssa(theta - theta_d) ...
+        - Kd(1,1) * (q - q_d) - Ki(1,1) * theta_int;
+    tau6 = -Kp(2,2) * ssa(psi - psi_d) ...
+        - Kd(2,2) * (r - r_d) - Ki(2,2) * psi_int;
 
     tau = [tau1 0 0 0 tau5 tau6]';
 
@@ -283,12 +288,12 @@ for i = 1:nTimeSteps
     end
 
     % Store simulation data in a table
-    simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc wc ...
+    simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc vD_c ...
         tau_wave1' waveElevation];
 
     % Quasi-steady current: hold the NED current fixed over this RK4 step.
     tau_ext = tau + tau_wave1;
-    x = rk4(@lauvMarie, h, x, tau_ext, Vc, betaVc, wc, w0_spectrum);  % LAUV dynamics
+    x = rk4(@lauvMarie, h, x, tau_ext, Vc, betaVc, vD_c, w0_spectrum);  % LAUV dynamics
 
     % Euler's integration method (k+1)
     z_int = z_int + h * (zn - z_d);
@@ -303,7 +308,7 @@ end
 legendLocation = 'best'; legendSize = 11;
 if isoctave; legendLocation = 'northeast'; end
 
-% simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc wc ...
+% simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc vD_c ...
 %                 tau_wave1' waveElevation];
 z_d      = simdata(:,1);
 theta_d  = simdata(:,2);
@@ -314,7 +319,7 @@ nu       = simdata(:,11:16);
 eta      = simdata(:,17:22);
 Vc       = simdata(:,23);
 betaVc   = simdata(:,24);
-wc       = simdata(:,25);
+vD_c       = simdata(:,25);
 tau_wave1 = simdata(:,26:31);
 waveElevation = simdata(:,32);
 u = nu(:,1); v = nu(:,2); w = nu(:,3);
@@ -598,7 +603,7 @@ end
 
 %% FUNCTIONS
 function [ControlFlag, Hs, w0_spectrum, beta_wave, ...
-    Vc, betaVc, wc] = controlMethod()
+    Vc, betaVc, vD_c] = controlMethod()
 
 f = figure('Position', [300, 100, 900, 650], ...
     'Name', 'Simulation Parameters', ...
@@ -708,7 +713,7 @@ uicontrol(bg3, ...
     'Style', 'text', ...
     'HorizontalAlignment', 'left', ...
     'FontSize', 13, ...
-    'String', 'Mean vertical speed, wc (m/s, +down)', ...
+    'String', 'Mean vertical NED speed (m/s, +down)', ...
     'Position', [580 85 280 30]);
 editWc = uicontrol(bg3, ...
     'Style', 'edit', ...
@@ -738,7 +743,7 @@ w0_spectrum = str2double(get(editW0, 'String'));
 betaWaveDeg = str2double(get(editBetaWave, 'String'));
 Vc = str2double(get(editVc, 'String'));
 betaVcDeg = str2double(get(editBetaVc, 'String'));
-wc = str2double(get(editWc, 'String'));
+vD_c = str2double(get(editWc, 'String'));
 
 if ~isscalar(Hs) || ~isfinite(Hs) || Hs <= 0
     close(f);
@@ -760,9 +765,9 @@ if ~isscalar(betaVcDeg) || ~isfinite(betaVcDeg)
     close(f);
     error('Horizontal current direction betaVc must be finite in degrees.');
 end
-if ~isscalar(wc) || ~isfinite(wc)
+if ~isscalar(vD_c) || ~isfinite(vD_c)
     close(f);
-    error('Vertical current speed wc must be a finite scalar.');
+    error('Vertical NED current speed must be a finite scalar.');
 end
 beta_wave = deg2rad(betaWaveDeg);
 betaVc = deg2rad(betaVcDeg);

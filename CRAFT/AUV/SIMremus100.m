@@ -59,6 +59,7 @@ function SIMremus100()
 %               Sample the current once per simulation step and retain the
 %               original integration scheme. Use BODY current components
 %               for AoA and sideslip diagnostics.
+%   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -101,10 +102,10 @@ end
 % ------------------------------------------------------------------------------
 Vc = 0.5;                        % Initial horizontal speed (m/s)
 betaVc = deg2rad(30);            % Initial azimuth in NED (rad)
-wc = 0.1;                        % Initial vertical NED component, positive down
-current.Vc = hypot(Vc, wc);      % Total speed for oceanCurrents
+vD_c = 0.1;                        % Initial vertical NED component, positive down
+current.Vc = hypot(Vc, vD_c);      % Total speed for oceanCurrents
 current.betaVc = betaVc;
-current.gammaVc = atan2(wc, Vc); % Elevation, positive down
+current.gammaVc = atan2(vD_c, Vc); % Elevation, positive down
 
 % Illustrative slowly varying current, with explicit speed/angle limits.
 current.parameters.h = 1.0;    % Current sampling interval (s)
@@ -235,7 +236,7 @@ for i = 1:nTimeSteps
     v_c_n = R * nu_c(1:3);
     Vc = hypot(v_c_n(1), v_c_n(2));
     betaVc = atan2(v_c_n(2), v_c_n(1));
-    wc = v_c_n(3);
+    vD_c = v_c_n(3);
     currentData(i,:) = nu_c(1:3)';
 
     % Control systems 
@@ -253,7 +254,7 @@ for i = 1:nTimeSteps
 
            % Depth autopilot using the stern planes 
             delta_s = -Kp_theta * ssa(theta - theta_d)...   % PID
-               - Kd_theta * q - Ki_theta * theta_int;
+               - Kd_theta * (q - q_d) - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
             % Depth kinematics: 
@@ -292,7 +293,7 @@ for i = 1:nTimeSteps
         case 3 % 2-D ALOS guidance law
            % Depth autopilot using the stern planes 
             delta_s = -Kp_theta * ssa(theta - theta_d)...   % PID
-               - Kd_theta * q - Ki_theta * theta_int;
+               - Kd_theta * (q - q_d) - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
             % Heading autopilot using the tail rudder (integral SMC)
@@ -329,7 +330,7 @@ for i = 1:nTimeSteps
 
             % Depth autopilot using the stern planes (PID)
             delta_s = -Kp_theta * ssa(theta - theta_d)...
-                - Kd_theta * q - Ki_theta * theta_int;
+                - Kd_theta * (q - q_d) - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
             % 3-D ALOS guidance law
@@ -354,15 +355,15 @@ for i = 1:nTimeSteps
    ui = [delta_r -delta_s n_p]';            
 
    % Store simulation data in a table
-   simData(i,:) = [z_d theta_d psi_d r_d Vc betaVc wc ui' x'];
+   simData(i,:) = [z_d theta_d psi_d r_d Vc betaVc vD_c ui' x'];
 
    % Quasi-steady current: hold the NED current fixed over this integration step.
    if (KinematicsFlag == 1)
        % Euler angles x = [ u v w p q r x y z phi theta psi ]'
-       x = rk4(@remus100, h, x, ui, Vc, betaVc, wc);  % RK4 method x(k+1)
+       x = rk4(@remus100, h, x, ui, Vc, betaVc, vD_c);  % RK4 method x(k+1)
    else
        % Unit quaternions x = [ u v w p q r x y z eta eps1 eps2 eps3 ]'
-       xdot = remus100(x, ui, Vc, betaVc, wc);
+       xdot = remus100(x, ui, Vc, betaVc, vD_c);
        quat = x(10:13);                            % Unit quaternion
        x(1:6) = x(1:6) + h * xdot(1:6);            % Forward Euler
        x(7:9) = x(7:9) + h * Rquat(quat) * x(1:3); % Backward Euler
@@ -384,14 +385,14 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 11;
 if isoctave; legendLocation = 'northeast'; end
 
-% simData = [z_d theta_d psi_d r_d Vc betaVc wc ui' x']
+% simData = [z_d theta_d psi_d r_d Vc betaVc vD_c ui' x']
 z_d     = simData(:,1);
 theta_d = simData(:,2);
 psi_d   = simData(:,3);
 r_d     = simData(:,4);
 Vc      = simData(:,5);
 betaVc  = simData(:,6);
-wc      = simData(:,7);
+vD_c      = simData(:,7);
 ui       = simData(:,8:10);
 nu      = simData(:,11:16);
 u = nu(:,1); v = nu(:,2); w = nu(:,3);

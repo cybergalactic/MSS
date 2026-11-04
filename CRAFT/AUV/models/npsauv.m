@@ -1,4 +1,4 @@
-function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
+function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, vD_c)
 % [xdot, U, M, B_delta] = npsauv(x, ui) returns the time derivative of the 
 % state vector: x = [u v w p q r xpos ypos zpos phi theta psi delta_r 
 % delta_s delta_bp delta_bs n_p]', speed U in m/s (optionally), the 6x6 mass 
@@ -34,11 +34,11 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %   delta_bs_com:   Starboard bow plane command   (rad)
 %   n_com:          Propeller shaft speed command (rpm)  
 %
-% The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
+% The arguments Vc (m/s), betaVc (rad), vD_c (m/s) are optional arguments for 
 % a constant current in NED. Vc is the horizontal speed, betaVc is the
-% azimuth towards which the current flows, and w_c is positive down:
+% azimuth towards which the current flows, and vD_c is positive down:
 %
-%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), w_c]'.
+%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), vD_c]'.
 %
 % oceanCurrents rotates this current by the full attitude and computes
 % its BODY derivative. SIMnpsauv supplies bounded stochastic current inputs.
@@ -48,7 +48,7 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %                                input matrix B_delta
 %   [xdot, U] = npsauv(x,ui)   : Return xdot and U, no ocean currents
 %   xdot = npsauv(x,ui)        : Return xdot, no ocean currents
-%   xdot = npsauv(x,ui,Vc,betaVc,w_c) : Return xdot, 3-D currents
+%   xdot = npsauv(x,ui,Vc,betaVc,vD_c) : Return xdot, 3-D currents
 %   xdot = npsauv(x,ui,Vc,betaVc)     : Return xdot, horizontal currents
 %
 % M-file Simulators:
@@ -72,9 +72,9 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, w_c)
 %                         velocity and derivative. Use through-water surge
 %                         velocity in the propeller advance ratio and slip.
 
-if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; w_c=0; end 
-if (nargin == 2), Vc=0; betaVc=0; w_c=0; end   % no ocean currents
-if (nargin == 4), w_c=0; end                   % no vertical ocean currents
+if nargin == 0, x=zeros(17,1); ui=zeros(5,1); Vc=0; betaVc=0; vD_c=0; end 
+if (nargin == 2), Vc=0; betaVc=0; vD_c=0; end   % no ocean currents
+if (nargin == 4), vD_c=0; end                   % no vertical ocean currents
 
 if (length(x) ~= 17), error('x-vector must have dimension 17!'); end
 if (length(ui) ~= 5), error('u-vector must have dimension 5!'); end
@@ -89,8 +89,8 @@ u_actual = x(13:17);
 U = sqrt(u^2 + v^2 + w^2); 
 
 % Constant NED current expressed in BODY, using the hybrid specification.
-Vtotal = hypot(Vc, w_c);
-gammaVc = atan2(w_c, Vc);
+Vtotal = hypot(Vc, vD_c);
+gammaVc = atan2(vD_c, Vc);
 [nu_c, Dnu_c] = oceanCurrents( ...
     Vtotal, betaVc, gammaVc, x(10:12), x(4:6), 'constant');
 u_r = u - nu_c(1);                      % Relative velocities

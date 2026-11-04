@@ -12,7 +12,7 @@ function [chi_ref, y_e] = LOSchi(x, y, Delta_h, R_switch, wpt)
 % angle command, chi_ref, due to waypoint switching, the following observer 
 % should be used:
 %
-%  [chi_d, omega_chi_d] = LOSobserver(chi_d omega_chi_d,chi_ref,h,K_f,T_f)
+%  [chi_d, omega_chi_d] = LOSobserver(chi_d,omega_chi_d,chi_ref,h,K_f)
 %
 % where chi_d is the desired course angle and omega_chi_d is the desired 
 % course rate.  

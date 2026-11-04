@@ -44,6 +44,8 @@ function SIMnpsauv()
 %               descent (inversion-free backstepping with exact sin(theta) term)
 %   2026-11-02: Use bounded Gauss-Markov currents from oceanCurrents, retaining
 %               RK4 integration and using BODY current components in diagnostics.
+%   2026-11-03: Apply the desired turn-rate limit to the ALOS observer state.
+%   2026-11-03: Use pitch- and yaw-rate errors in the PID derivative terms.
 
 clearvars;                          % Clear all variables from memory
 clear ALOS3D;                       % Clear persistent states in controllers
@@ -76,11 +78,11 @@ psi_d = psi; r_d = 0; a_d = 0;      % Initial yaw references
 % -------------------------------------------------------------------------
 Vc = 0.3;                      % Horizontal speed (m/s)
 betaVc = deg2rad(20);          % Horizontal direction (radians)
-wc = 0.1;                      % Vertical speed, positive down (m/s)
+vD_c = 0.1;                      % Vertical speed, positive down (m/s)
 
-current.Vc = hypot(Vc, wc);      % Total speed for oceanCurrents
+current.Vc = hypot(Vc, vD_c);      % Total speed for oceanCurrents
 current.betaVc = betaVc;
-current.gammaVc = atan2(wc, Vc); % Elevation, positive down
+current.gammaVc = atan2(vD_c, Vc); % Elevation, positive down
 
 % Illustrative slowly varying current, with limits relative to its mean.
 current.parameters.h = 1.0;    % Current sampling interval (s)
@@ -193,7 +195,7 @@ for i = 1:nTimeSteps
     v_c_n = Rzyx(phi, theta, psi) * nu_c(1:3);
     Vc = hypot(v_c_n(1), v_c_n(2));
     betaVc = atan2(v_c_n(2), v_c_n(1));
-    wc = v_c_n(3);
+    vD_c = v_c_n(3);
     currentData(i,:) = nu_c(1:3)';
 
     % Control system updates based on selected mode
@@ -251,15 +253,16 @@ for i = 1:nTimeSteps
         % ALOS observer
         [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
         [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+        r_d = sat(r_d, r_max);
 
         ALOSdata(i,:) = [y_e z_e alpha_c_hat beta_c_hat];
 
     end
 
     % MIMO PID controller for pitch and yaw moments
-    tau5 = -Kp(1,1) * ssa(theta - theta_d) -Kd(1,1) * q...
+    tau5 = -Kp(1,1) * ssa(theta - theta_d) -Kd(1,1) * (q - q_d)...
         - Ki(1,1) * theta_int;
-    tau6 = -Kp(2,2) * ssa(psi - psi_d) -Kd(2,2) * r...
+    tau6 = -Kp(2,2) * ssa(psi - psi_d) -Kd(2,2) * (r - r_d)...
         - Ki(2,2) * psi_int;
 
     % Propeller command (RPM)
@@ -274,10 +277,10 @@ for i = 1:nTimeSteps
     u_com = sat(u_com, max_u);
 
     % Store simulation data in a table
-    simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
+    simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc vD_c];
 
     % Quasi-steady current: hold the NED current fixed over this RK4 step.
-    x = rk4(@npsauv, h, x, u_com, Vc, betaVc, wc);  % AUV dynamics 
+    x = rk4(@npsauv, h, x, u_com, Vc, betaVc, vD_c);  % AUV dynamics 
 
     % Euler's integration method (k+1)
     z_int = z_int + h * (zn - z_d);
@@ -291,7 +294,7 @@ scrSz = get(0, 'ScreenSize'); % Returns [left bottom width height]
 legendLocation = 'best'; legendSize = 12;
 if isoctave; legendLocation = 'northeast'; end
 
-% simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc wc];
+% simdata(i,:) = [z_d theta_d psi_d r_d u_com' x' Vc betaVc vD_c];
 z_d      = simdata(:,1);
 theta_d  = simdata(:,2);
 psi_d    = simdata(:,3);
@@ -302,7 +305,7 @@ eta      = simdata(:,16:21);
 u_actual = simdata(:,22:26);
 Vc       = simdata(:,27);
 betaVc   = simdata(:,28);
-wc       = simdata(:,29);
+vD_c       = simdata(:,29);
 u = nu(:,1); v = nu(:,2); w = nu(:,3);
 p = nu(:,4); q = nu(:,5); r = nu(:,6);
 phi = eta(:,4); theta = eta(:,5); psi = eta(:,6);

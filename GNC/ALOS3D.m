@@ -19,8 +19,8 @@ function [psi_ref, theta_ref, y_e, z_e, alpha_c_hat, beta_c_hat] = ...
 % To handle steps in the pitch and yaw angle commands, theta_ref and psi_ref, 
 % due to waypoint switching, the following observers should be used:
 %
-%  [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f, T_f)
-%  [psi_d, r_d]   = LOSobserver(psi_d, r_d, psi_ref, h, K_f, T_f)
+%  [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f)
+%  [psi_d, r_d]   = LOSobserver(psi_d, r_d, psi_ref, h, K_f)
 %
 % The NED tracking errors are rotated an azimuth angle pi_h about the 
 % z-axis and an elevation angle pi_v about the resulting y-axis from the 

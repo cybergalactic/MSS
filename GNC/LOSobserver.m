@@ -1,29 +1,20 @@
 function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f)
-% This function estimates the desired Line-Of-Sight (LOS) angle and
-% rate from a discrete-time LOS guidance law command, LOScommand[k], which
-% can be computed using the guidance laws LOSchi.m, LOSpsi.m, ILOSpsi.m,
-% ALOSpsi.m, etc. The observer propagates the estimate of the LOS angle
-% according to
+% Second-order observer for the desired Line-Of-Sight (LOS) angle and rate.
+% The command can be computed using LOSchi.m, LOSpsi.m, ILOSpsi.m,
+% ALOSpsi.m, or ALOS3D.m. Steps caused by waypoint switching are filtered by
 %
-%   LOSangle[k+1] = LOSangle[k] + h * ( LOSrate[k] + ...
-%     K_f * ssa( LOScommand[k] - LOSangle[k]) )
+%   LOSangle_dot = LOSrate
+%   LOSrate_dot  = w_n^2 * ssa(LOScommand - LOSangle) - 2*w_n*LOSrate
 %
-% where the LOS rate estimate is computed using the filtered differentiator
+% where w_n = K_f + sqrt(K_f), retaining the previous natural frequency.
+% For a constant command on the selected angle branch, the transfer function
 %
-%   LOSrate = T_f * s / (T_f * s + 1) * LOSangle
+%   LOSangle/LOScommand = w_n^2 / (s^2 + 2*w_n*s + w_n^2)
 %
-% where T_f is the differentiator time constant, which can be determined by
-% pole-placement and inspection of the closed-loop system
-%
-%   LOSangle/LOScommand = w_n^2 * (T_f*s + 1) / ...
-%     (s^2 + 2*w_n*s + w_n^2)
-%
-% If K_f > 0, it follows that T_f = 1 / (K_f + 2*sqrt(K_f) + 1) and that
-% the natural frequency is w_n = K_f + sqrt(K_f). Exact discretization of
-% the filtered differentiator gives (Fossen 2027, Eqs. B.46-B.47)
-%
-%   LOSrate[k] = LOSangle[k] - xi[k]
-%   xi[k+1] = exp(-h/T_f) * xi[k] + (1 - exp(-h/T_f)) * LOSangle[k]
+% is critically damped. Forward Euler integration advances the angle using
+% the input rate. If the caller limits LOSrate between calls, this also
+% limits the angle increment. Choose h*w_n < 1 for nonoscillatory response.
+% The angle is left unwrapped; ssa selects the shortest command error.
 %
 % Inputs:
 %   LOSangle:    Estimate of the desired LOS angle at time k
@@ -31,7 +22,7 @@ function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f
 %   LOScommand:  Commanded LOS angle at time k, computed using ALOSpsi.m,
 %                ILOSpsi.m, LOSchi.m, etc.
 %   h:           Sampling time (s)
-%   K_f:         Observer gain, LOSangle (typically 0.1-0.5)
+%   K_f:         Positive tuning gain (typically 0.1-0.5)
 %
 % Outputs:
 %   LOSangle:    Updated estimate of the desired LOS angle at time k+1
@@ -44,25 +35,20 @@ function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f
 % Revisions:
 %   2024-08-15 : Added pole-placement algorithm for T_f.
 %   2026-06-27 : Corrected differentiator update to use LOSangle[k].
+%   2026-11-03 : Use consistent second-order angle and rate states, removing
+%                direct angle-error injection from the angle update.
 
-% Differentiator time constant
-T_f = 1 / (K_f + 2*sqrt(K_f) + 1);
+% -------------------------------------------------------------------------
+% Critically damped LOS observer
+% -------------------------------------------------------------------------
+w_n = K_f + sqrt(K_f);
+angleError = ssa(LOScommand - LOSangle);
+rate_dot = w_n^2 * angleError - 2*w_n * LOSrate;
 
-% Store LOSangle[k] before updating
-LOSangle_k = LOSangle;
-
-% Internal differentiator state: xi[k]
-xi = LOSangle_k - LOSrate;
-
-% Observer for the LOS angle: LOSangle[k+1]
-LOSangle = LOSangle_k + h * ...
-    (LOSrate + K_f * ssa(LOScommand - LOSangle_k));
-
-% Propagation of the differentiator state: xi[k+1]
-PHI = exp(-h/T_f);
-xi = PHI * xi + (1 - PHI) * LOSangle_k;
-
-% LOS rate estimate: LOSrate[k+1]
-LOSrate = LOSangle - xi;
+% -------------------------------------------------------------------------
+% State propagation from k to k+1
+% -------------------------------------------------------------------------
+LOSangle = LOSangle + h * LOSrate;
+LOSrate = LOSrate + h * rate_dot;
 
 end

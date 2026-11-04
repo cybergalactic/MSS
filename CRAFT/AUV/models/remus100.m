@@ -1,4 +1,4 @@
-function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
+function [xdot,U,M] = remus100(x,ui,Vc,betaVc,vD_c)
 % The length of the Remus 100 AUV is 1.6 m, the cylinder diameter is 19 cm  
 % and the mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is 
 % obtained when the propeller runs at 1525 rpm in zero currents. The
@@ -37,11 +37,11 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %    delta_s:   Stern plane angle (rad) 
 %    n_p:       Propeller revolution (RPM)
 %
-% The arguments Vc (m/s), betaVc (rad), w_c (m/s) are optional arguments for 
+% The arguments Vc (m/s), betaVc (rad), vD_c (m/s) are optional arguments for 
 % a constant ocean current in NED. Vc is the horizontal speed, betaVc is
-% the azimuth towards which the current flows, and w_c is positive down:
+% the azimuth towards which the current flows, and vD_c is positive down:
 %
-%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), w_c]'.
+%    v_c^n = [Vc * cos(betaVc), Vc * sin(betaVc), vD_c]'.
 %
 % The horizontal speed and vertical component are converted to total speed
 % and elevation for oceanCurrents, which rotates the current using the full
@@ -50,7 +50,7 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 % 
 % Example usage: 
 %   [~,~,M] = remus100()                            : Return the 6x6 mass matrix M
-%   [xdot,U] = remus100(x,ui,Vc,betaVc,w_c)       : 3-D ocean currents
+%   [xdot,U] = remus100(x,ui,Vc,betaVc,vD_c)       : 3-D ocean currents
 %   [xdot,U] = remus100(x,ui,Vc,betaVc)           : 2-D ocean currents
 %   [xdot,U] = remus100(x,ui)                       : No ocean currents
 %   xdot = remus100(x,ui)                           : No ocean currents
@@ -94,11 +94,11 @@ function [xdot,U,M] = remus100(x,ui,Vc,betaVc,w_c)
 %       Motion Control. 3rd. Edition, Wiley. URL: www.fossen.biz/wiley   
 
 if nargin == 0  % [~,~,M] = remus100()
-    x = zeros(12,1); ui = zeros(3,1); Vc = 0; betaVc = 0; w_c = 0;
+    x = zeros(12,1); ui = zeros(3,1); Vc = 0; betaVc = 0; vD_c = 0;
 end
 
-if (nargin == 2), Vc = 0; betaVc = 0; w_c = 0; end % No ocean currents
-if (nargin == 4), w_c = 0; end % No vertical ocean currents
+if (nargin == 2), Vc = 0; betaVc = 0; vD_c = 0; end % No ocean currents
+if (nargin == 4), vD_c = 0; end % No vertical ocean currents
 
 if (length(ui) ~= 3),error('u-vector must have dimension 3!'); end
 if (length(x) ~= 12 && length(x) ~= 13)
@@ -124,8 +124,8 @@ delta_s = sat(ui(2), delta_max);    % Saturated Stern plane (rad)
 n_p = sat(ui(3),n_max) / 60;        % Saturated propeller speed (rps)
 
 % Constant NED current expressed in BODY, using the hybrid specification.
-Vtotal = hypot(Vc, w_c);
-gammaVc = atan2(w_c, Vc);
+Vtotal = hypot(Vc, vD_c);
+gammaVc = atan2(vD_c, Vc);
 [nu_c, Dnu_c] = oceanCurrents( ...
     Vtotal, betaVc, gammaVc, x(10:end), nu(4:6), 'constant');
 

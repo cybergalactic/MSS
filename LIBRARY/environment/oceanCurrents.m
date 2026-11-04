@@ -136,20 +136,20 @@ function [nu_c, nu_c_dot] = oceanCurrents( ...
 %   end
 %
 % -------------------------------------------------------------------------
-% EXAMPLE 5: HYBRID INPUT, HORIZONTAL SPEED Vc PLUS VERTICAL COMPONENT w_c
+% EXAMPLE 5: HYBRID INPUT, HORIZONTAL SPEED Vc PLUS VERTICAL COMPONENT vD_c
 % -------------------------------------------------------------------------
-% Vc is the horizontal speed, betaVc is the azimuth, and w_c is the 
+% Vc is the horizontal speed, betaVc is the azimuth, and vD_c is the 
 % positive-down NED component. Inside the craft function use:
 %
 %   Vc = 0.5;                 % Horizontal speed (m/s).
 %   betaVc = deg2rad(30);     % Azimuth (rad).
-%   w_c = 0.1;                % Vertical NED component, positive down (m/s).
-%   Vtotal = hypot(Vc, w_c);
-%   gammaVc = atan2(w_c, Vc);
+%   vD_c = 0.1;                % Vertical NED component, positive down (m/s).
+%   Vtotal = hypot(Vc, vD_c);
+%   gammaVc = atan2(vD_c, Vc);
 %   [nu_c, nu_c_dot] = oceanCurrents( ...
 %       Vtotal, betaVc, gammaVc, attitude, nu2, 'constant');
 %
-% This gives v_c^n = [Vc * cos(betaVc); Vc * sin(betaVc); w_c]
+% This gives v_c^n = [Vc * cos(betaVc); Vc * sin(betaVc); vD_c]
 %
 % Reference:
 %   T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and Motion

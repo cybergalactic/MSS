@@ -68,6 +68,7 @@ function SIMotter()
 %               both controller initialization and RK4 propagation.
 %               Added current, wave and simulation settings to the setup GUI.
 %               Accumulate encounter phase in waveForceRAO as in Chapter 10.
+%   2026-11-03: Apply the desired turn-rate limit in LOS path-following modes.
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -221,7 +222,11 @@ for i = 1:nTimeSteps
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
     end
 
-    % PID heading (yaw moment) autopilot and forward thrust
+    % Limit the observer rate state, also limiting the next angle increment.
+    r_d = sat(r_d, r_max);
+
+    % PID heading uses the rate error r - r_d in its derivative term.
+    % Yaw moment control and forward thrust
     tau_X = 100;                              % Constant forward thrust
     tau_N = (T/K) * a_d + (1/K) * r_d - ...   % Yaw moment control
             Kp * (ssa(psi - psi_d) + ...      % Proportional term

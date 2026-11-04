@@ -27,6 +27,12 @@ Each established model is paired with an editable `SIM*.m` script that demonstra
 | Ship | [`tanker.m`](SHIP/models/tanker.m) | [`SIMtanker.m`](SHIP/SIMtanker.m) |
 | Craft | [`zeefakkel.m`](SHIP/models/zeefakkel.m) | [`SIMzeefakkel.m`](SHIP/SIMzeefakkel.m) |
 
+The AUV models `remus100`, `npsauv`, and `lauvMarie` specify ocean currents
+using horizontal speed `Vc`, NED azimuth `betaVc`, and positive-down NED
+velocity `vD_c`. They use `oceanCurrents` to obtain the BODY current
+components `u_c`, `v_c`, and `w_c` and their derivatives. The argument
+order is unchanged.
+
 ### Otter maneuvering and seakeeping model
 
 [`otter.m`](USV/models/otter.m) combines power-based added mass and radiation
