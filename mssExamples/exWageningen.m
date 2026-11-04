@@ -64,7 +64,7 @@ hold on
 plot(Jdata,alpha(1)*Jdata+alpha(2),'-k','LineWidth',2)
 plot(Jdata,10*(beta(1)*Jdata+beta(2)),'-r','LineWidth',2)
 hold off
-xlabel('J_a - Advance velocity');
+xlabel('J_a - Advance coefficient');
 legend('K_T','10 K_Q','\eta_0'); grid on;
 title(['Wageningen B-series propeller with ',num2str(z), ...
     ' blades and P/D = ',num2str(PD),', AE/AO = ', num2str(AEAO) ]);
