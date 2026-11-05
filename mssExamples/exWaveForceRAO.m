@@ -95,14 +95,16 @@ subplot(211);
 hold on;
 
 if spreadingFlag
-    % Plot the wave spectrum for the specific directions
+    % Label each spectrum slice with its sampled spreading angle.
+    directionIndices = [floor(numel(mu)/2), floor(numel(mu)/4), numel(mu)];
+    directionLabels = arrayfun(@(angle) sprintf('\\mu = %.1f deg', angle), ...
+        rad2deg(mu(directionIndices)), 'UniformOutput', false);
     hold on;
-    plot(Omega, S_M(:, floor(length(mu)/2)),'b->','Markersize',5,'LineWidth',1.5);
-    plot(Omega, S_M(:, floor(length(mu)/4)),'k-o','Markersize',5, 'LineWidth',1.5);
-    plot(Omega, S_M(:, length(mu)),'g-', 'LineWidth',2.0);
+    plot(Omega, S_M(:, directionIndices(1)),'b->','Markersize',5,'LineWidth',1.5);
+    plot(Omega, S_M(:, directionIndices(2)),'k-o','Markersize',5, 'LineWidth',1.5);
+    plot(Omega, S_M(:, directionIndices(3)),'g-', 'LineWidth',2.0);
     plot([w0, w0], [min(min(S_M)), max(max(S_M))],'r-.', 'LineWidth', 1.5)
-    legend('\mu = 0 deg', '\mu = 45 deg', '\mu = 90 deg',...
-        ['\omega_0 = ', num2str(w0), ' rad/s']);
+    legend(directionLabels{:}, ['\omega_0 = ', num2str(w0), ' rad/s']);
     hold off;
 else
     hold on
