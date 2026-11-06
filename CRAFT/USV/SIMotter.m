@@ -119,7 +119,7 @@ gamma_h = 0.001;                 % ALOS adaptive gain
 kappa_int = 0.001;               % ILOS integral gain
 
 % Additional parameter for straight-line path following
-R_switch = 5;                    % Radius of switching circle
+R_switch = 5;                    % Along-track distance before waypoint
 K_f = 0.3;                       % LOS observer gain
 
 % Initial heading, vehicle points towards next waypoint
@@ -157,7 +157,10 @@ Ti = 10 / wn;                           % Integral time constant
 % Reference model parameters
 wn_d = 1.0;                      % Natural frequency (rad/s)
 zeta_d = 1.0;                    % Relative damping factor (-)
-r_max = deg2rad(10.0);           % Maximum turning rate (rad/s)
+r_max = deg2rad(10.0);           % Maximum desired yaw rate for heading steps
+if any(ControlFlag == [2, 3])
+    r_max = deg2rad(25.0);       % Maximum desired yaw rate for LOS guidance
+end
 
 % Propeller dynamics
 T_n = 0.1;                       % Propeller time constant (s)
@@ -290,12 +293,12 @@ figure(1);
 set(gcf,'Position',[0.6*scrSz(3),0.2*scrSz(4), ...
     0.5*scrSz(4),0.6*scrSz(4)],'Visible','off');
 hold on;
-plot(eta(:,2),eta(:,1),'b');  % Plot vehicle position
+plot(eta(:,2),eta(:,1),'b', 'DisplayName', 'Vehicle position');
 
 % Control method specific plots
 if ControlFlag == 1  % Heading autopilot
     legend('Vehicle position');
-elseif any(ControlFlag == [2, 3])  % Straight line and circles
+elseif any(ControlFlag == [2, 3])  % Straight-line path
     plotStraightLinesAndCircles(wpt, R_switch);
 else  % Hermite splines
     plotHermiteSplines(y_path, x_path, wpt);
@@ -430,20 +433,20 @@ function plotStraightLinesAndCircles(wpt, R_switch)
         end
     end
 
-    % Plot circles for waypoint switching
+    % Show the switching distance as a reference radius around each waypoint.
     theta = linspace(0, 2*pi, 100);
     for idx = 1:length(wpt.pos.x)
         xCircle = R_switch * cos(theta) + wpt.pos.x(idx);
         yCircle = R_switch * sin(theta) + wpt.pos.y(idx);
         if idx == 1
-            plot(yCircle, xCircle, 'k', 'DisplayName', 'Circle of acceptance');
+            plot(yCircle, xCircle, 'k', 'DisplayName', 'Waypoint reference radius');
         else
             plot(yCircle, xCircle, 'k', 'HandleVisibility', 'off');
         end
     end
 
     % Add legend
-    legend('Vehicle position', 'Location', legendLocation);
+    legend('Location', legendLocation);
 end
 
 function plotHermiteSplines(y_path, x_path, wpt)
@@ -470,12 +473,12 @@ function displayControlMethod(ControlFlag, R_switch, Delta_h, environment)
         case 2
             disp(['ALOS path-following control using straight lines and ' ...
                 'waypoint switching']);
-            disp(['Circle of acceptance: R = ', num2str(R_switch), ' m']);
+            disp(['Along-track switching distance: R_switch = ', num2str(R_switch), ' m']);
             disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
         case 3
             disp(['ILOS path-following control using straight lines and ' ...
                 'waypoint switching']);
-            disp(['Circle of acceptance: R =  ', num2str(R_switch), ' m']);
+            disp(['Along-track switching distance: R_switch = ', num2str(R_switch), ' m']);
             disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
         case 4
             disp('ALOS path-following control using cubic Hermite splines');
