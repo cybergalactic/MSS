@@ -36,7 +36,7 @@ legend('Modified Pierson-Moskowitz','JONSWAP for \gamma = 3.3',...
 xlabel('\omega (rad/s)')
 title('S(\omega)/(H_s^2 T_0)'); grid; echo off
 
-set(findall(gcf,'type','line'),'linewidth',2)
+set(findall(gcf,'type','line'),'linewidth',1)
 set(findall(gcf,'type','text'),'FontSize',14)
 set(findall(gcf,'type','legend'),'FontSize',14)
 
