@@ -42,6 +42,11 @@ function [x_ins, P_prd] = ins_heave(x_ins, P_prd, h, Qd, Rd, T_acc, mu, rho, ...
 % Outputs:
 %   x_ins[k+1] : Updated and propagated 3x1 INS state vector.
 %   P_prd[k+1] : Predicted 3x3 error covariance matrix.
+%
+% Revisions:
+%   2026-11-06: The nominal bias decays with the time constant of the error
+%               model, b[k+1] = exp(-h/T_acc) * b[k]; it was held between
+%               corrections.
 
 persistent ins    % Persistent data structure local to ins_heave
 
@@ -111,6 +116,9 @@ P_prd = ins.Ad * P_hat * ins.Ad' + ins.Ed * Qd * ins.Ed';
 a_z_ins = f_D - b_acc_ins + ins.g;
 z_ins = z_ins + h * v_z_ins + h^2/2 * a_z_ins;  
 v_z_ins = v_z_ins + h * a_z_ins;                
+
+% Nominal bias: Gauss-Markov decay, consistent with the error-state model
+b_acc_ins = exp(-h/T_acc) * b_acc_ins;
 
 x_ins = [z_ins v_z_ins b_acc_ins]';
 

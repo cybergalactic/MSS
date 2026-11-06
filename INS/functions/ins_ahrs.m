@@ -51,6 +51,9 @@ function [x_ins, P_prd] = ins_ahrs( ...
 % Date: 2020-03-21
 % Revisions: 
 %   2026-06-14: Formulate the observer as 9-state estimator.
+%   2026-11-06: The nominal bias decays with the time constant of the error
+%               model, b[k+1] = exp(-h/T) * b[k]; it was held between
+%               corrections.
 
 %% INS states and matrices
 p_ins = x_ins(1:3);          % INS states
@@ -127,6 +130,9 @@ P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 a_ins = R * f_ins + g_n;                        % Linear acceleration
 p_ins = p_ins + h * v_ins + h^2/2 * a_ins;      % Position
 v_ins = v_ins + h * a_ins;                      % Linear velocity
+
+% Nominal bias: Gauss-Markov decay, consistent with the error-state model
+b_acc_ins = exp(-h/T_acc) * b_acc_ins;
 
 x_ins = [p_ins; v_ins; b_acc_ins];
 

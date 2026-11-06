@@ -68,6 +68,9 @@ function [quat, b_ars, P_prd] = quatMEKF( ...
 % Author:    Thor I. Fossen
 % Date:      2025-11-05
 % Revisions: 
+%   2026-11-06: The nominal bias decays with the time constant of the error
+%               model, b[k+1] = exp(-h/T) * b[k]; it was held between
+%               corrections.
 
 % Transposed unit quaternion rotation matrix: R_transposed[k]
 R = Rquat(quat);
@@ -166,5 +169,8 @@ P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 % MSS function expm_squaresPade.m for this computation.
 quat  = expm(Tquat(w_imu-b_ars) * h) * quat ;   
 quat = quat / norm(quat);                        % Normalization
+
+% Nominal bias: Gauss-Markov decay, consistent with the error-state model
+b_ars = exp(-h/T_ars) * b_ars;
 
 end

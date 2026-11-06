@@ -73,6 +73,9 @@ function [x_ins, P_prd] = ins_euler( ...
 %               with RK4 in the INS attitude dynamics.
 %   2026-07-15: Added consistent additive Euler-angle error dynamics and
 %               reference-vector measurement Jacobian.
+%   2026-11-06: The nominal bias decays with the time constant of the error
+%               model, b[k+1] = exp(-h/T) * b[k]; it was held between
+%               corrections.
 
 % ==============================================================================
 % INS states and constants
@@ -215,6 +218,10 @@ theta_ins = rk4(@attitudeDynamics, h, theta_ins, w_ins);
 
 % Euler's method, alternative to RK4:
 % theta_ins = theta_ins + h * Tzyx(theta_ins(1), theta_ins(2)) * w_ins;
+
+% Nominal bias: Gauss-Markov decay, consistent with the error-state model
+b_acc_ins = exp(-h/T_acc) * b_acc_ins;
+b_ars_ins = exp(-h/T_ars) * b_ars_ins;
 
 % Updated INS state vector
 x_ins = [ ...
