@@ -60,6 +60,9 @@ function SIMremus100()
 %               original integration scheme. Use BODY current components
 %               for AoA and sideslip diagnostics.
 %   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
+%   2026-11-06: The depth residual sigma contains the derivative of the depth
+%               reference, sigma = z_dot - z_d_dot + Kp_z*(e_z + z_int/T_z),
+%               as the virtual control law of the comment prescribes.
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -259,13 +262,14 @@ for i = 1:nTimeSteps
 
             % Depth kinematics: 
             %   z_dot = -u * sin(theta) + w * cos(theta) := alpha_z + sigma
-            % Virtual control:
-            %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
+            % Virtual control (e_z = z - z_d):
+            %   alpha_z = z_d_dot - Kp_z * (e_z + (1/T_z) * z_int)
             %
             % Outer-loop depth control residual sigma = 0 implies e_z = 0
             z_d = LP.z_d(z_ref); % LP filtering the depth command
+            zdot_d = wn_d_z * (z_ref - z_d); % Derivative of the filtered command
 
-            sigma = -u * sin(theta) + w * cos(theta) ...
+            sigma = -u * sin(theta) + w * cos(theta) - zdot_d ...
                 + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
             % Gradient-descent update using J = 1/2 * sigma^2 to drive sigma to 0:            
