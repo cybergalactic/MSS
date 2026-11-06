@@ -10,10 +10,10 @@ wpt.pos.y   = [0 100 100 200 160];
 wpt.varpi   = [0 40 60 80 100];
 
 varpi = 0:1:max(wpt.varpi);            % Path variable
-x_p = pchip(wpt.varpi,wpt.pos.x,t);    % Cubic Hermite itnerpolation
-y_p = pchip(wpt.varpi,wpt.pos.y,t);
-x_s = spline(wpt.varpi,wpt.pos.x,t);   % Spline interpolation
-y_s = spline(wpt.varpi,wpt.pos.y,t);
+x_p = pchip(wpt.varpi,wpt.pos.x,varpi);    % Cubic Hermite itnerpolation
+y_p = pchip(wpt.varpi,wpt.pos.y,varpi);
+x_s = spline(wpt.varpi,wpt.pos.x,varpi);   % Spline interpolation
+y_s = spline(wpt.varpi,wpt.pos.y,varpi);
 
 %% Plots
 subplot(311)
