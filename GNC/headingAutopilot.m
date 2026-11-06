@@ -1,6 +1,7 @@
-function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
+function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d, tauN_max)
 % tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h)
 % tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h,wn_d)
+% tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h,wn_d,tauN_max)
 % SISO PID pole-placement algorithm (Fossen 2027, Algorithm 15.1) for
 % heading control.
 %
@@ -33,6 +34,11 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 % Optional input:
 %   wn_d    : Reference-model natural frequency (rad/s), default wn/20
 %
+%   tauN_max: Yaw moment limit (Nm). When given (use [] for the default wn_d),
+%             the output is limited to +-tauN_max and the integral state is
+%             not updated while the limit is active (conditional integration,
+%             no integral windup). Without it, the output is not limited.
+%
 % Outputs:
 %   tauN    : Autopilot yaw moment command (Nm)
 %
@@ -43,6 +49,9 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 %
 % Author:    Thor I. Fossen
 % Date:      2026-10-25
+% Revisions:
+%   2026-11-06: Optional yaw moment limit tauN_max with conditional
+%               integration; the default is unchanged.
 
 persistent z_int;          % Integral state
 persistent a_d r_d psi_d;  % Reference model states
@@ -71,7 +80,19 @@ Ki = 1/10 * Kp * wn;
 
 tauN = -Kp * ssa(psi - psi_d) - Kd * (r - r_d) - Ki * z_int;
 
-z_int = z_int + h * ssa(psi - psi_d);  % Integral state: z_int[k+1]
+% Optional output limit. The integral state is frozen while the limit holds
+% the output (conditional integration), otherwise it winds up.
+limited = false;
+if nargin > 9 && ~isempty(tauN_max)
+    if abs(tauN) > tauN_max
+        limited = true;
+        tauN = sign(tauN) * tauN_max;
+    end
+end
+
+if ~limited
+    z_int = z_int + h * ssa(psi - psi_d);  % Integral state: z_int[k+1]
+end
 
 % Propagation of reference model states: psi_d[k+1], r_d[k+1], a_d[k+1]
 psi_d = psi_d + h * r_d;

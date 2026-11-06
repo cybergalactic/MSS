@@ -1,5 +1,6 @@
-function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
+function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h,tau_max)
 % tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h) 
+% tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h,tau_max)
 % Nonlinear MIMO PID regulator for dynamic positioning (DP). For 3-DOF
 % models (surge, sway, and yaw) the output is: tau = [tau1, tau2, tau6]'. 
 % In the general case, tau = [tau1, tau2, 0, 0, 0, tau6]', where
@@ -33,6 +34,11 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 %   zeta: closed-loop relative damping ratios, scalar or diagonal matrix 3x3
 %   T_f: setpoint low-pass filter time constant (s)
 %   h: sampling time (s)
+%   tau_max: (optional) limit on the force and moment in surge, sway and yaw,
+%            scalar or [tau1_max, tau2_max, tau6_max]'. When given, the output
+%            is limited and the integral state is not updated while a limit is
+%            active (conditional integration, no integral windup). Without
+%            it, the output is not limited.
 %
 % Outputs:  
 %    tau: generalized control force, 3x1 (surge, sway, and yaw) or 6x1
@@ -42,6 +48,8 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 % Revisions:
 %   2026-10-23 : The integral state accumulates the error with the yaw angle
 %                wrapped to [-pi, pi), like the proportional term (E. Krizman)
+%   2026-11-06 : Optional output limit tau_max with conditional integration;
+%                the default is unchanged.
 
 persistent eta_d;  % LP-filtered commands
 persistent z_int;  % Integral states
@@ -79,6 +87,16 @@ e = eta - eta_d;
 e(3) = ssa(e(3));
 tau_PID = -R' * ( Kp * e + Ki * z_int ) - Kd * nu;
 
+% Optional output limit with conditional integration
+limited = false;
+if nargin > 8 && ~isempty(tau_max)
+    tau_max = tau_max(:) .* ones(3,1);
+    if any(abs(tau_PID) > tau_max)
+        limited = true;
+        tau_PID = max(min(tau_PID, tau_max), -tau_max);
+    end
+end
+
 if DOF == 6
     tau = [tau_PID(1), tau_PID(2), 0, 0, 0, tau_PID(3)]'; 
 else  % 3-DOF
@@ -86,7 +104,9 @@ else  % 3-DOF
 end
 
 % integral state: z_int[k+1]
-z_int = z_int + h * e;   % e is the error with the yaw angle wrapped
+if ~limited
+    z_int = z_int + h * e;   % e is the error with the yaw angle wrapped
+end
 
 % low-pass filter: eta_d[k+1]
 eta_d = eta_d + h * (eta_ref - eta_d)/ T_f;

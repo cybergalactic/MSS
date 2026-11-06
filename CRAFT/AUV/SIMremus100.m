@@ -60,6 +60,9 @@ function SIMremus100()
 %               original integration scheme. Use BODY current components
 %               for AoA and sideslip diagnostics.
 %   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
+%   2026-11-06: The depth integral state z_int is not updated while the pitch
+%               command theta_d is at its limit (conditional integration), so
+%               that it does not wind up in a large depth step.
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -372,7 +375,10 @@ for i = 1:nTimeSteps
    end
 
    % Euler's integration method (k+1)
-   z_int = z_int + h * ( zn - z_d );
+   % Conditional integration: z_int is frozen while the pitch command is limited
+   if abs(theta_d) < theta_max
+       z_int = z_int + h * ( zn - z_d );
+   end
    theta_int = theta_int + h * ssa( theta - theta_d );
    psi_int = psi_int + h * ssa( psi - psi_d );
 
