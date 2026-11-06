@@ -1,12 +1,14 @@
 function [tau_w, CX, CY, CN] = isherwood72(...
     gamma_r, V_r, Loa, B, ALw, AFw, A_SS, S, C, M)
 % [tau_w,CX,CY,CN] = isherwood72(gamma_r,V_r,Loa,B,ALw,AFw,A_SS,S,C,M) 
-% returns the the wind force/moment vector tau_w = [tauX, tauY, tauN] 
+% returns the wind force/moment vector tau_w = [tauX, tauY, tauN]
 % and the optionally wind coefficients CX, CY, and CN for merchant ships 
-% using the formulas of Isherwood (1972). 
+% using the formulas of Isherwood (1972). Each column of tau_w holds
+% the loads for one angle. The optional coefficients use the lookup angle
+% in [0, 180] degrees. The wind-side sign is applied to the loads.
 %
 % INPUTS:
-% gamma_r : Relative wind angle (rad)
+% gamma_r : Relative wind angle (rad), scalar or vector, positive to port
 % V_r     : Relative wind speed (m/s)
 % Loa     : Length overall (m)
 % B	      : Beam (m)
@@ -39,15 +41,10 @@ if nargin~=10, error('the number of inputs must be 10');end
 
 % Conversions and constants
 rho_a = 1.224;                     % Density of air at 15 C
-gamma_r_deg = rad2deg(gamma_r);    % Convert gamma_r from radians to degrees
-
-% Ensure gamma_r is within the range of 0 to 360 degrees
-gamma_r_deg = mod(gamma_r_deg, 360);
-
-% Adjust gamma_r_deg to be within 0 to 180 degrees
-if gamma_r_deg > 180
-    gamma_r_deg = 360 - gamma_r_deg;
-end
+% Fold each angle onto the tabulated half-circle and retain the wind side.
+gamma_r_deg = mod(abs(rad2deg(gamma_r)), 360);
+wind_side = sign(gamma_r) .* sign(180 - gamma_r_deg);
+gamma_r_deg = min(gamma_r_deg, 360 - gamma_r_deg);
 
 % CX_data = [gamma_r(deg) A0 A1	A2	A3	A4	A5	A6	] 
 CX_data= [...  
@@ -140,7 +137,7 @@ C3 = interp1(CN_data(:,1),CN_data(:,5),gamma_r_deg);
 C4 = interp1(CN_data(:,1),CN_data(:,6),gamma_r_deg);
 C5 = interp1(CN_data(:,1),CN_data(:,7),gamma_r_deg);
 
-% Wind coeffisients
+% Wind coefficients
 CX =  -(A0 + A1*2*ALw/Loa^2 + A2*2*AFw/B^2 + A3*(Loa/B) + ...
     A4*(S/Loa) + A5*(C/Loa) + A6*M);
 CY =    B0 + B1*2*ALw/Loa^2 + B2*2*AFw/B^2 + B3*(Loa/B) + ...
@@ -150,7 +147,7 @@ CN =    C0 + C1*2*ALw/Loa^2 + C2*2*AFw/B^2 + C3*(Loa/B) + ...
 
 % Wind forces and moment
 tauX = 0.5 * CX * rho_a * V_r^2 * AFw;
-tauY = 0.5 * CY * rho_a * V_r^2 * ALw .* sign(gamma_r);
-tauN = 0.5 * CN * rho_a * V_r^2 * ALw * Loa .* sign(gamma_r);
+tauY = 0.5 * CY * rho_a * V_r^2 * ALw .* wind_side;
+tauN = 0.5 * CN * rho_a * V_r^2 * ALw * Loa .* wind_side;
 
-tau_w = [tauX, tauY, tauN]';
+tau_w = [tauX(:), tauY(:), tauN(:)]';
