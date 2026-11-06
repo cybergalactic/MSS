@@ -20,19 +20,20 @@ function x = refModelPolyExp(t, t_max, x_start, x_final, method, alpha)
 %   Desired depth z_d at time t
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'exponential', 5); 
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'exponential'); 
-%   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'qubic'); 
+%   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'cubic'); 
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'quintic'); 
 %
 % Author: Thor I. Fossen
 % Date: 2024-11-23
 % Revisions: 
+%   2026-11-06: Clip every element of a time vector; t_max must be positive.
 
-% Ensure time is within bounds
-if t > t_max
-    t = t_max;
-elseif t < 0
-    t = 0;
+if t_max <= 0
+    error('t_max must be larger than zero.');
 end
+
+% Ensure time is within bounds (element-wise, t may be a vector)
+t = min(max(t, 0), t_max);
 
 % Normalized time
 tau = t / t_max;

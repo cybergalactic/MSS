@@ -37,10 +37,15 @@ function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f
 %   2026-06-27 : Corrected differentiator update to use LOSangle[k].
 %   2026-11-03 : Use consistent second-order angle and rate states, removing
 %                direct angle-error injection from the angle update.
+%   2026-11-06 : K_f must be positive (K_f < 0 gave a complex w_n and
+%                K_f = 0 a frozen observer).
 
 % -------------------------------------------------------------------------
 % Critically damped LOS observer
 % -------------------------------------------------------------------------
+if K_f <= 0
+    error('K_f must be larger than zero.');
+end
 w_n = K_f + sqrt(K_f);
 angleError = ssa(LOScommand - LOSangle);
 rate_dot = w_n^2 * angleError - 2*w_n * LOSrate;
