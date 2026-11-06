@@ -11,30 +11,34 @@ delta = 1;      % Quadratic damping coefficient [s/m]
 v_max = 1;      % Max velocity [m/s]
 h = 0.1;        % Sampling time [s]
 T_final = 20;   % Simulation time [s]
+r = 10;         % Position step command [m]
 
 % Time vector initialization
 t = 0:h:T_final;               % Time vector from 0 to T_final          
 nTimeSteps = length(t);        % Number of time steps
 
 % Case 1: Linear mass-damper-spring system
-r1 = 10 * ones(max(size(t)),1);
-[A,B,C,D] = ord2(w,zeta); 
-[x1,y1]   = lsim(A,B,C,D,r1,t); 
+x = 0;
+v = 0;
+y1 = zeros(nTimeSteps,2);
 
-r2 = 10*r1;
-[A,B,C,D] = ord2(w,zeta); 
-[x2,y2]   = lsim(A,B,C,D,r2,t); 
+for i=1:nTimeSteps
+   y1(i,:) = [x v];
+   x_dot = v;
+   v_dot = w^2 * (r - x) - 2 * zeta * w * v;
+   v = v + h * v_dot;
+   x = x + h * x_dot;
+end
 
 % Case 2: Nonlinear damping
 x = 0;
 v = 0;
-r2 = 10;
 y2 = zeros(nTimeSteps,2);
 
 for i=1:nTimeSteps
    y2(i,:) = [x v];   
    x_dot = v;
-   v_dot = w^2 * (r2 - x) - 2 * zeta * w * v - delta *abs(v) * v;
+   v_dot = w^2 * (r - x) - 2 * zeta * w * v - delta *abs(v) * v;
    v = v + h * v_dot;
    x = x + h * x_dot;
 end
@@ -42,13 +46,12 @@ end
 % Case 3: Velocity saturation
 x = 0;
 v = 0;
-r3 = 10;
 y3 = zeros(nTimeSteps,2);
 
 for i=1:nTimeSteps
    y3(i,:) = [x v];   
 
-   v_dot = w^2 * (r3 -x) - 2 * zeta * w * v;
+   v_dot = w^2 * (r - x) - 2 * zeta * w * v;
    x_dot = v;
 
    % Numerical integration
