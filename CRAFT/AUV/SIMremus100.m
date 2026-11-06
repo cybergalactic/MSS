@@ -428,7 +428,7 @@ alpha_c = theta - gamma; % Vertical crab angle
 beta_c = atan2(v.*cos(phi)-w.*sin(phi), ...
     u.*cos(theta)+(v.*sin(phi)+w.*cos(phi)).*sin(theta)); % Horizontal crab angle
 alpha = atan2(w-wc_body, u-uc); % AoA
-beta  = atan2( (v-vc), (u-uc) ); % SSA
+beta = atan2(v-vc, hypot(u-uc, w-wc_body)); % Classical SSA
 
 % ------------------------------------------------------------------------------
 % Generalized velocity
