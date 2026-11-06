@@ -29,6 +29,10 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 %   quat = expm( Tquat(w_imu - b_ars + sigma) * h ) * quat
 %   quat = quat / sqrt(quat' * quat)
 % 
+% The discrete observer is stable for h * (k1 + k2) < 2 (forward Euler on the
+% fast error dynamics); the choice h * (k1 + k2) < 1 gives a non-oscillatory
+% update.
+%
 % Inputs:   
 %   quat[k]   - 4x1 vector representing the current quaternion quat[k] 
 %               estimate
@@ -81,6 +85,10 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 % Date:      2024-08-20
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
+%   2026-11-06 The compass injection acts on the yaw error about the down
+%              axis; the former form had a steady attitude error at a constant
+%              tilt. Header states the stability bound of the discrete
+%              observer.
 
 % Transposed unit quaternion rotation matrix: R_transposed[k]
 R_transposed = Rquat(quat)';
@@ -107,10 +115,14 @@ elseif length(imu_meas) == 7
     v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
     
-    v02 = [cos(psi);  sin(psi); 0]; % Normalized heading reference vector in NED
-    v2  = [1; 0; 0]; % Normalized heading measurement vector in BODY
+    % The compass gives a rotation about the NED down axis. The yaw error
+    % is injected about that axis, expressed in BODY, so that the steady-state
+    % attitude is exact at any roll and pitch (the cross product of the BODY
+    % x-axis with the rotated heading vector is exact only at level attitude).
+    R = R_transposed';                       % BODY to NED
+    psi_hat = atan2(R(2,1), R(1,1));         % Estimated yaw angle
     sigma1 = k1 * cross(v1, R_transposed * v01);
-    sigma2 = k2 * cross(v2, R_transposed * v02);
+    sigma2 = k2 * ssa(psi - psi_hat) * (R_transposed * [0; 0; 1]);
     sigma = sigma1 + sigma2;
 
 else
