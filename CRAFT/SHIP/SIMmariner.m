@@ -50,7 +50,7 @@ wayPoints = [wpt.pos.x wpt.pos.y];
 
 % LOS parameters
 Delta_h = 500;                   % Look-ahead distance
-R_switch = 400;                  % Radius of switching circle
+R_switch = 400;                  % Along-track distance before waypoint
 K_f = 0.2;                       % LOS observer gain
 
 % Initial heading, vehicle points towards next waypoint
@@ -194,7 +194,7 @@ chi = ssa(psi + beta_c, 'deg');             % COG
 figure(1); clf;
 set(gcf,'Position',[1,1, 1.0*scrSz(4),1.0*scrSz(4)],'Visible','off');
 hold on;
-plot(y,x,'b');  % Plot vehicle position
+plot(y,x,'b', 'DisplayName', 'Vessel position');
 
 % Control method specific plots
 if ControlFlag == 1  % Heading autopilot
@@ -276,7 +276,7 @@ function plotStraightLinesAndCircles(wayPoints, R_switch)
     for idx = 1:length(wayPoints(:,1))-1
         if idx == 1
             plot([wayPoints(idx,2),wayPoints(idx+1,2)],[wayPoints(idx,1),...
-                wayPoints(idx+1,1)], 'r--', 'DisplayName', 'Line');
+                wayPoints(idx+1,1)], 'r--', 'DisplayName', 'Straight-line path');
         else
             plot([wayPoints(idx,2),wayPoints(idx+1,2)],[wayPoints(idx,1),...
                 wayPoints(idx+1,1)], 'r--','HandleVisibility', 'off');
@@ -287,11 +287,14 @@ function plotStraightLinesAndCircles(wayPoints, R_switch)
     for idx = 1:length(wayPoints(:,1))
         xCircle = R_switch * cos(theta) + wayPoints(idx,1);
         yCircle = R_switch * sin(theta) + wayPoints(idx,2);
-        plot(yCircle, xCircle, 'k');
+        if idx == 1
+            plot(yCircle, xCircle, 'k', 'DisplayName', 'Waypoint reference radius');
+        else
+            plot(yCircle, xCircle, 'k', 'HandleVisibility', 'off');
+        end
     end
 
-    legend('Vessel position','Straight-line path','Circle of acceptance',...
-        'Location',legendLocation);
+    legend('Location', legendLocation);
 end
 
 
@@ -306,7 +309,7 @@ function displayControlMethod(ControlFlag, R_switch, Delta_h)
         case 2
             disp(['LOS path-following using straight lines and ' ...
                 'waypoint switching']);
-            disp(['Circle of acceptance: R = ', num2str(R_switch), ' m']);
+            disp(['Along-track switching distance: R_switch = ', num2str(R_switch), ' m']);
             disp(['Look-ahead distance: Delta_h = ', num2str(Delta_h), ' m']);
     end
     disp('--------------------------------------------------------------------');
