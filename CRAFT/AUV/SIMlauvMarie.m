@@ -377,10 +377,14 @@ if ~isoctave
     set(gcf, 'Units', 'normalized', ...
         'OuterPosition', [0.34 0.06 0.31 0.88]);
 end
-if ControlFlag == 2; z_d = eta(:,3); end
-subplot(411),plot(t,eta(:,3),t,z_d,'-.')
+subplot(411)
+if ControlFlag == 2 % 3-D ALOS commands pitch directly
+    plot(t,eta(:,3))
+else
+    plot(t,eta(:,3),t,z_d,'-.')
+    legend('True','Desired')
+end
 xlabel('Time (s)'),title('Down position (m)'),grid
-legend('True','Desired')
 subplot(412),plot(t,rad2deg(eta(:,4)))
 xlabel('Time (s)'),title('Roll angle (deg)'),grid
 subplot(413),plot(t,rad2deg(eta(:,5)),t,rad2deg(theta_d),'-.')
