@@ -8,7 +8,7 @@ clc;
 % Filter parameters
 lambda = 0.1;
 wo     = 0.8976;
-wc     = 1.1;
+wc     = 1.5;
 T      = diag([1000 1000 1000]);
 
 % Filter gains
