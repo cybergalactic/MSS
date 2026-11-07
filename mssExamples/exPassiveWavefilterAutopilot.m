@@ -12,8 +12,8 @@
 %   psi_w_hat_dot = -w_0^2*xi_w_hat - 2*lambda*w_0*psi_w_hat + k1(2)*e
 %   psi_hat_dot   = r_hat + k2*e
 %
-% Yaw angle only: r_hat_dot = (-r_hat + K*(delta + b_hat))/T + k3*e,
-%            b_hat_dot = -b_hat/T_b + k4*e.
+% Yaw angle only: r_hat_dot = (-r_hat + K*(delta + b_hat + k4*e))/T,
+%            b_hat_dot = -b_hat/T_b + k3*e.
 %            Positive rudder bias adds to the rudder input, as in the book.
 % Yaw angle and yaw rate: b_hat_dot = -b_hat/T_b + k3*e; b_hat is rate-gyro bias (rad/s).
 %            r_hat = LPF(notchFilter(y_r)) + b_hat,
@@ -89,17 +89,23 @@ k = zeros(5,1);
 switch sensor_option
     case 1                     % Yaw angle measured; yaw rate estimated
         sensor_name = 'Yaw angle only';
-        T_b = 20000; w_c = 1.3; k3 = 0.04; k4 = 0.3;
-        % Passive-gain constraint: 0 < 1/T_b < k3/k4 < w_0 < w_c.
-        assert(1/T_b < k3/k4 && k3/k4 < w_0 && w_0 < w_c, ...
-            'The passive observer gain constraint must be satisfied.');
+        T_b = 20000; 
+        w_c = 1.3;
+        k3 = 0.3;                  
+        k4 = 23.2;                 
+        % Choose 1/T_b well below k3/k4.
+        bias_rate = k3/k4;
+        assert(1/T_b < bias_rate && bias_rate < w_0 && w_0 < w_c, ...
+            'The observer gain ordering must be satisfied.');
         rate_model = [-1/T K/T];
         bias_in_heading = 0;
         B = [0 0 0 K/T 0]';
-        k(4:5) = [k3; k4];
+        k(4:5) = [(K/T)*k4; k3];
     case 2                     % Yaw angle and yaw rate measured
         sensor_name = 'Yaw angle and yaw rate';
-        T_b = 10000; w_c = 1.3; k3 = 0.02;
+        T_b = 10000; 
+        w_c = 1.3; 
+        k3 = 0.02;
         w_lp = 0.5;            % Bandwidth of each gyro low-pass stage (rad/s)
         rate_model = [-w_lp 0];
         bias_in_heading = 1;
@@ -116,7 +122,7 @@ PHI = expm(h * [A-k*C k B; zeros(2,7)]);
 Ad = PHI(1:5,1:5); Bd = PHI(1:5,6:7);
 zeta_n = 0.01;                  % Notch attenuation at w_0
 xf = zeros(2,1);                % notchFilter RK4 states
-xf_lp = 0;                     % First gyro low-pass stage
+xf_lp = 0;                      % First gyro low-pass stage
 x_hat = zeros(5,1);
 xs = zeros(4,1);                % Ship states [psi r r_dot delta]'
 xw = zeros(2,1);                % Wave states [xi_w psi_w]'
@@ -140,12 +146,14 @@ for i = 1:nTimeSteps
 
     switch sensor_option
         case 1                 % Reconstruct yaw rate from compass and rudder
-            r_hat = x_hat(4); b_hat = x_hat(5);
-            bias_true = b_true; y_r = NaN;
+            r_hat = x_hat(4); 
+            b_hat = x_hat(5);
+            bias_true = b_true; 
+            y_r = NaN;
             u_obs = delta;     % Measured rudder angle is a known input
         case 2                 % Filter the gyro measurement; correct its bias
             r_w = Aw(2,:)*xw + Bw(2)*wave_noise;
-            y_r = r + r_w - b_gyro; % Book convention: u_ars = r - b_ars
+            y_r = r + r_w - b_gyro; 
             b_hat = x_hat(5); r_hat = x_hat(4) + b_hat;
             bias_true = b_gyro;
             [xf, u_obs] = notchFilter(xf, y_r, w_0, zeta_n, h, 'RK4');
