@@ -11,7 +11,7 @@
 %
 % Dependencies:
 %   quatMEKF.m  - MEKF using reference vectors
-%   magneticField.m - Magnetic field vectors for different cities%
+%   magneticField.m - Magnetic field vectors for different cities
 % 
 % See also: SIMquatObserver.m (nonlinear quaternion.based obsever)
 %  
@@ -29,7 +29,7 @@
 %
 % Author: Thor I. Fossen
 % Date: 2025-11-05
-% Revisions: 
+% Revisions:
 
 rng(1); 
 
@@ -56,7 +56,7 @@ b_ars_prd = [0 0 0]';  % 3x1 initial ARS bias vector
 
 % MEKF state vector: x = [ax_g ay_g az_g bx_ars by_ars bz_ars]' (Gibbs vector/ARS bias)
 Qd = diag([1 1 1 0.1 0.1 0.1]); % 6x6 process noise covariance matrix
-P_prd = 1 * eye(6); % 6x6 initial state covariance matrix
+P_prd = blkdiag(deg2rad(20)^2 * eye(3), 0.5^2 * eye(3)); % 6x6 initial state covariance matrix
 
  % Measurement covariance matrix
 if headingFlag == 1
@@ -71,7 +71,7 @@ T_ars = 300;
 % ==============================================================================
 % Initialization of INS signal generator
 % ==============================================================================
-% Magnetic field and latitude for city #1, see magneticField.m
+% Magnetic field and latitude for Tokyo, see magneticField.m
 [m_ref, l, mu, cityName] = magneticField(4);
 
 % IMU biases
@@ -206,7 +206,7 @@ legend('\psi', '\psi (estimate)');
 
 set(findall(gcf,'type','line'),'linewidth',1.5)
 set(findall(gcf,'type','text'),'FontSize',12)
-set(findall(gcf,'type','legend'),'FontSize',1)
+set(findall(gcf,'type','legend'),'FontSize',10)
 
 % Figure 2
 figure(2); figure(gcf);
