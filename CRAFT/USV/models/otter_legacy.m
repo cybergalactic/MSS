@@ -87,6 +87,7 @@ function [xdot,U,M,B_prop,n_min,n_max] = otter_legacy(x,n,mP,r_bP,V_c,beta_c)
 %                from 1.0 to 0.5 seconds to match experimental time responses. 
 %   2026-11-01 : Use actual attitude for NED kinematics and apply payload
 %                trim only to the restoring-force equilibrium.
+%   2026-11-03 : Cross-flow drag summed over both pontoons, as in otter.m.
 
 if nargin == 0
     x = zeros(12,1); n = zeros(2,1); mP=25; r_bP = zeros(3,1); V_c=0; beta_c=0;
@@ -257,8 +258,14 @@ Nh = Nr * (1 + 10 * abs(nu_r(6))) * nu_r(6);
 
 tau_damp = [Xh Yh Zh Kh Mh Nh]';
 
-% Strip theory: cross-flow drag integrals
-tau_crossflow = crossFlowDrag(L,B_pont,T,nu_r);
+% Strip theory: sum independent pontoon drag contributions at CO
+tau_crossflow = zeros(6,1);
+for y = [-y_pont, y_pont]
+    H_pont = Hmtrx([0 y 0]);
+    nu_pont = H_pont * nu_r;
+    tau_pont = crossFlowDrag(L,B_pont,T,nu_pont);
+    tau_crossflow = tau_crossflow + H_pont' * tau_pont;
+end
 
 % Payload expressed in NED
 f_payload = Rzyx(eta(4),eta(5),eta(6))' * [ 0 0 mP*g ]';  % Payload force 
