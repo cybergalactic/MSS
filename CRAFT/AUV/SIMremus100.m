@@ -62,6 +62,9 @@ function SIMremus100()
 %   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
 %   2026-11-12: Use the 3rd-order depth reference model and feed forward
 %               the desired vertical velocity in control methods 1 and 2 (E. Krizman)..
+%   2026-11-12: Conditional integration of z_int: no integration while the pitch
+%               command is at its limit and the depth error drives it further
+%               into the limit (E. Krizman).
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -370,7 +373,10 @@ for i = 1:nTimeSteps
    end
 
    % Euler's integration method (k+1)
-   z_int = z_int + h * ( zn - z_d );
+   % Conditional integration: z_int is not driven further into the theta_d limit
+   if abs(theta_d) < theta_max || sign(zn - z_d) ~= sign(theta_d)
+       z_int = z_int + h * ( zn - z_d );
+   end
    theta_int = theta_int + h * ssa( theta - theta_d );
    psi_int = psi_int + h * ssa( psi - psi_d );
 
