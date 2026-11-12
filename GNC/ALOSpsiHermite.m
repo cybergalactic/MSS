@@ -93,9 +93,8 @@ distances = sqrt((x_horizon - x).^2 + (y_horizon - y).^2);
 % Update the starting index for the moving horizon
 idx_start = idx_start + min_distance_idx - 1;
 
-% Calculate the signed cross-track error as the perpendicular distance to the
-% path tangent at the nearest sample (the distance to the sample itself is
-% not the distance to the path and has the wrong sign on curved parts)
+% Project the displacement from the nearest path sample onto its unit normal.
+% The former signed distance to the sample included the along-track component.
 vector_to_point = [(x - x_path(idx_start)), (y - y_path(idx_start))];
 crossProd = dx_path(idx_start) * vector_to_point(2) ...
     - dy_path(idx_start) * vector_to_point(1);
