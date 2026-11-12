@@ -30,11 +30,15 @@ function [x_ins, P_prd] = ins_mekf_psi(...
 % Inputs:
 %   x_ins[k] : INS state vector at step k, includes position, velocity, 
 %              accelerometer biases, attitude (quaternion), and gyro biases.
-%   P_prd[k] : 15x15 covariance matrix of the prediction step.
+%              The 17th nominal INS state is the optional sea-level integral.
+%   P_prd[k] : 15x15 prediction covariance (16x16 with sea-level aiding).
 %   mu       : Latitude in radians, used to calculate Earth's gravity vector.
 %   h        : Sampling time in seconds.
 %   Qd, Rd   : Process and measurement noise covariance matrices for the 
-%              Kalman filter.
+%              Kalman filter. With Rd.pseudoFlag enabled, Qd is 13x13 and
+%              its last entry on the diagonal is the variance of the
+%              per-step integral disturbance. Rd.pseudoMeasSeaLevel is
+%              the measurement variance of the zero integral observation.
 %   T_acc    : Acceleration bias time constant in seconds.
 %   T_ars    : Angular rate bias time constant in seconds.
 %   f_imu[k] : High-rate IMU specific force measurements.
@@ -63,6 +67,8 @@ function [x_ins, P_prd] = ins_mekf_psi(...
 %   2026-11-06: The nominal bias decays with the time constant of the error
 %               model, b[k+1] = exp(-h/T) * b[k]; it was held between
 %               corrections.
+%   2026-11-12: Propagate the sea-level integral and its covariance with
+%               the down-position error coupled to the integral error.
 
 % ==============================================================================
 % ESKF signals
@@ -87,7 +93,7 @@ Rq = Rquat(q_ins);
 % ==============================================================================
 % Discrete-time ESKF measurement matrix Cd
 % ==============================================================================
-Cd = [];
+Cd = zeros(0,15);
 delta_y = [];
 Rd.mtrx = [];
        
@@ -123,7 +129,7 @@ if Rd.applicationFlag
     Rd.mtrx = blkdiag(Rd.mtrx, Rd.gravityRefVector);
 end
 
-% 5) Sea level pseudo-measurement (integral of zn is 0)
+% 5) Sea-level pseudomeasurement: zero observation of the down-position integral
 if Rd.pseudoFlag
     Cd = [Cd zeros(size(Cd,1),1); zeros(1,15) 1];
     delta_y = [delta_y; -zn_int_ins];
@@ -180,21 +186,27 @@ A = [ ...
     O3 O3  O3           -Smtrx(w_ins)    -I3
     O3 O3  O3            O3              -(1/T_ars)*I3 ];
 
-if Rd.pseudoFlag
-    A = [ A zeros(15,1)
-        zeros(1,16) ];
-end
-
-Ad = expm(A * h); 
-
-Ed = h *[ ...
+E = [ ...
     O3 O3    O3 O3
    -Rq O3    O3 O3
     O3 I3    O3 O3
     O3 O3   -I3 O3
     O3 O3    O3 I3  ];
+
 if Rd.pseudoFlag
-    Ed = blkdiag(Ed, 1);
+    % The derivative of the integral error is the down-position error.
+    A = [A, zeros(15,1); 0 0 1 zeros(1,13)];
+    E = [E; zeros(1,size(E,2))];
+
+    % Discretize both the dynamics and the held process-noise input.
+    n = size(A,1);
+    m = size(E,2);
+    transition = expm(h * [A, E; zeros(m,n+m)]);
+    Ad = transition(1:n,1:n);
+    Ed = [transition(1:n,n+1:n+m), [zeros(n-1,1); 1]];
+else
+    Ad = expm(A * h);
+    Ed = h * E;
 end
 
 % ==============================================================================
@@ -206,6 +218,11 @@ P_prd = Ad * P_hat * Ad' + Ed * Qd * Ed';
 % INS propagation: p_ins[k] and v_ins[k]
 % ==============================================================================
 a_ins = Rq * f_ins + g_n;                    % Linear acceleration
+if Rd.pseudoFlag
+    % Integrate down position using the corrected state at the start of the step.
+    zn_int_ins = zn_int_ins + h * p_ins(3) + (h^2/2) * v_ins(3) ...
+        + (h^3/6) * a_ins(3);
+end
 p_ins = p_ins + h * v_ins + h^2/2 * a_ins;   % Exact discretization
 v_ins = v_ins + h * a_ins;                   % Exact discretization
 
