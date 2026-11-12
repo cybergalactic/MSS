@@ -67,7 +67,7 @@ end
 
 % Angular rate bias time constant [s]. 
 T_ars = 300; % Matches the Gauss-Markov gyro bias in test signal 2.
-% Use T_ars = Inf for a random-walk bias model.
+% Use T_ars = Inf for a random walk bias model
 
 % ==============================================================================
 % Initialization of INS signal generator
