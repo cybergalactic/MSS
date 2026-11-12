@@ -16,22 +16,20 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 %      [quat, b_ars] = quatObserver(quat, b_ars, h, Ki, k1, k2, m_ref, ... 
 %          [f_imu', w_imu', m_imu'])
 % 
-% The injection term is implemented using two reference vectors
-%   sigma = k1 * v1 x R'(quat) * v01 + k2 * v2 x R'(quat) * v02
+% With magnetometer aiding, the injection uses two reference vectors:
+%   sigma = k1 * cross(v1, R' * v01) + k2 * cross(v2, R' * v02)
+% With scalar compass aiding, the second term is the wrapped yaw error
+% about the NED down axis, expressed in BODY.
 %
 % Continuous-time observer 
 %   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
 %   b_ars_dot = -Ki * sigma
 %
-% Discrete-time observer using the matrix exponential, which serves as the 
-% exponential map for matrix Lie groups, ensuring an exact discretization 
-% of the quaternion differential equation: 
+% Discrete-time observer with the corrected angular rate held constant
+% over each sample interval:
 %   quat = expm( Tquat(w_imu - b_ars + sigma) * h ) * quat
 %   quat = quat / sqrt(quat' * quat)
-% 
-% The discrete observer is stable for h * (k1 + k2) < 2 (forward Euler on the
-% fast error dynamics); the choice h * (k1 + k2) < 1 gives a non-oscillatory
-% update.
+%   b_ars = b_ars - h * Ki * sigma
 %
 % Inputs:   
 %   quat[k]   - 4x1 vector representing the current quaternion quat[k] 
@@ -42,8 +40,7 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 %   Ki        - 3x3 diagonal integral gain matrix for bias estimation
 %   k1        - Gain for the injections term associated with the specific 
 %               force measurement vector
-%   k2        - Gain for the injection term associated with the magnetic 
-%               field measurement vector
+%   k2        - Gain for the magnetic field vector or scalar compass heading
 %   m_ref     - 3x1 vector representing the reference magnetic field vector
 %               expressed in NED. The reference signal m_ref = R^n_b * m_imu 
 %               can be computed during initial calibration, see 
@@ -63,15 +60,6 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 %   quat[k+1]  - 4x1 vector representing the updated unit quaternion estimate
 %   b_ars[k+1] - 3x1 vector representing the updated ARS bias estimate
 %
-% The function implements the quaternion-based nonlinear observer for 
-% attitude estimation by Grip et al. (2013). The observer updates the 
-% quaternion based on specific force and magnetic field measurements while 
-% also correcting for ARS bias. The observer employs a feedback mechanism 
-% that uses the cross products between the measured vectors and their 
-% reference counterparts to compute an injection term, which is used to 
-% update the bias and quaternion. USGES stability guarantees robustness to
-% bounded disturbances. 
-%
 % References:
 %   H. F. Grip, T. I. Fossen, T. A. Johansen, and A. Saberi (2013). 
 %       Nonlinear Observer for GNSS-Aided Inertial Navigation with 
@@ -85,10 +73,7 @@ function [quat, b_ars] = quatObserver(quat,b_ars,h,Ki,k1,k2,m_ref,imu_meas)
 % Date:      2024-08-20
 % Revisions: 
 %   2025-06-17 Modified to accept compass measurements.
-%   2026-11-06 The compass injection acts on the yaw error about the down
-%              axis; the former form had a steady attitude error at a constant
-%              tilt. Header states the stability bound of the discrete
-%              observer.
+%   2026-11-06 Inject the compass heading error about the NED down axis.
 
 % Transposed unit quaternion rotation matrix: R_transposed[k]
 R_transposed = Rquat(quat)';
@@ -115,10 +100,10 @@ elseif length(imu_meas) == 7
     v01 = [0 0 -1]'; % Normalized gravity reference vector in NED (measuring -g at rest)
     v1 = f_imu / norm(f_imu); % Normalized specific force measurement
     
-    % The compass gives a rotation about the NED down axis. The yaw error
-    % is injected about that axis, expressed in BODY, so that the steady-state
-    % attitude is exact at any roll and pitch (the cross product of the BODY
-    % x-axis with the rotated heading vector is exact only at level attitude).
+    % Inject the wrapped yaw error about the NED down axis expressed in BODY.
+    % The injection vanishes at the correct attitude wherever yaw is defined.
+    % The former BODY-forward comparison could introduce a spurious correction
+    % at nonzero pitch even with exact heading measurements.
     R = R_transposed';                       % BODY to NED
     psi_hat = atan2(R(2,1), R(1,1));         % Estimated yaw angle
     sigma1 = k1 * cross(v1, R_transposed * v01);
@@ -130,17 +115,14 @@ else
     sigma = zeros(3,1);
 end
 
-% State propagation: quat[k+1] is computed using the matrix exponential, 
-% which serves as the exponential map for matrix Lie groups, ensuring exact
-% discretization with 1st-order hold of the quaternion differential equation: 
-%   quat_dot = Tquat(w_imu - b_ars + sigma) * quat
-% You can replace the built-in Matlab function expm.m with the custom-made 
-% MSS functions expm_taylor.m or expm_squaresPade.m for this computation.
+% State propagation uses the matrix exponential with the corrected angular
+% rate held constant over the sample interval. MSS alternatives to expm are
+% expm_taylor.m and expm_squaresPade.m.
 
 % Angular velocity with bias compensation 'b_ars' and injection term 'sigma'
 w_estimated = w_imu - b_ars + sigma; 
 
-% Exponential map with a 1st-order hold on w (exact if w constant on the step)
+% Propagate the quaternion using the exponential map.
 quat = expm( Tquat(w_estimated) * h ) * quat; 
 quat = quat / norm(quat);  % Normalization
 
