@@ -61,7 +61,8 @@ function [LOSangle, idx_start, y_e] = ...
 % Author:    Thor I. Fossen
 % Date:      2024-04-21
 % Revisions:
-%   None
+%   2026-11-06: y_e is the perpendicular distance to the path tangent at the
+%               nearest sample, not the distance to the nearest sample.
 
 persistent beta_hat  % Estimate of the crab angle
 
@@ -87,16 +88,18 @@ y_horizon = ppval(pp_y, w_horizon);
 distances = sqrt((x_horizon - x).^2 + (y_horizon - y).^2);
 
 % Identify the minimum distance and corresponding index
-[min_distance, min_distance_idx] = min(distances);
+[~, min_distance_idx] = min(distances);
 
 % Update the starting index for the moving horizon
 idx_start = idx_start + min_distance_idx - 1;
 
-% Calculate the signed cross-track error
+% Calculate the signed cross-track error as the perpendicular distance to the
+% path tangent at the nearest sample (the distance to the sample itself is
+% not the distance to the path and has the wrong sign on curved parts)
 vector_to_point = [(x - x_path(idx_start)), (y - y_path(idx_start))];
 crossProd = dx_path(idx_start) * vector_to_point(2) ...
     - dy_path(idx_start) * vector_to_point(1);
-y_e = sign(crossProd) * min_distance;
+y_e = crossProd / hypot(dx_path(idx_start), dy_path(idx_start));
 
 if nargin == 14  % LOS guidance law for course control
     LOSangle = pi_h(idx_start) - atan(y_e / Delta_h);

@@ -15,6 +15,8 @@ function [table, pathlength] = order3(x_vector,y_vector, drawmode, mode, xstart,
 % Revisions: 2026-11-02 : The waypoint inserted for two waypoints is the midpoint
 %            (x1+x2)/2 and (y1+y2)/2; it was the half difference (x2-x1)/2, which is
 %            the midpoint only when the first waypoint is the origin.
+%            2026-11-06 : Solve A*x = y with the backslash operator instead of
+%            inv(A)*y (knot error 1e-5 m instead of 1e-9 m for 80 waypoints).
 
 % Testing the provided waypoints
 if length(x_vector) ~= length(y_vector) %There is not an equal amount of x- and y-coordinates.
@@ -84,8 +86,8 @@ for i=2:N % Filling in the other constraints.
     A(row+3, col:col+3)     = [ 6*th(i)     2           0       0];    
 end
 
-x_x = inv(A)*y_x; % The actual computation of the coefficients for the graphs in x-direction and y-direction.
-x_y = inv(A)*y_y; 
+x_x = A\y_x; % The actual computation of the coefficients for the graphs in x-direction and y-direction.
+x_y = A\y_y; 
 
 for i=1:N  % Selecting the coefficcients and finding the derivatives of the path
     Acoeff(i,:) = x_x(4*(i-1)+1 : 4*(i-1)+4)';  

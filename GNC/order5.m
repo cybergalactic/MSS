@@ -14,6 +14,9 @@ function [table, pathlength] = order5(drawmode, constraint, x_vector,y_vector)
 % Revisions: 2026-11-02 : The waypoint inserted for two waypoints is the midpoint
 %            (x1+x2)/2 and (y1+y2)/2; it was the half difference (x2-x1)/2, which is
 %            the midpoint only when the first waypoint is the origin.
+%            2026-11-06 : The constraint limits the size of a derivative and keeps
+%            its sign; it replaced the derivative by +3 times the previous one,
+%            which reversed the direction at a waypoint where the path turns back.
 
 
 % Testing the provided waypoints
@@ -37,8 +40,8 @@ dy(N+1) = 0;
 
 if constraint % If large differences in the derivatives occur, decrease them
     for i=1:N
-        if (abs(dx(i+1)) >= abs(3*dx(i)) && dx(i) ~= 0), dx(i+1) = 3*dx(i); end
-        if (abs(dy(i+1)) >= abs(3*dy(i)) && dy(i) ~= 0), dy(i+1) = 3*dy(i); end
+        if (abs(dx(i+1)) >= abs(3*dx(i)) && dx(i) ~= 0), dx(i+1) = sign(dx(i+1))*3*abs(dx(i)); end
+        if (abs(dy(i+1)) >= abs(3*dy(i)) && dy(i) ~= 0), dy(i+1) = sign(dy(i+1))*3*abs(dy(i)); end
     end
 end
 
