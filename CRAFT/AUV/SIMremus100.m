@@ -60,8 +60,9 @@ function SIMremus100()
 %               original integration scheme. Use BODY current components
 %               for AoA and sideslip diagnostics.
 %   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
-%   2026-11-12: Use the 3rd-order depth reference model and feed forward
-%               the desired vertical velocity in control methods 1 and 2 (E. Krizman)..
+%   2026-11-12: Add depth anti-windup at the pitch limit and use a third-order
+%               depth reference model with vertical-velocity feedforward in
+%               control methods 1 and 2 (E. Krizman).
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -370,7 +371,13 @@ for i = 1:nTimeSteps
    end
 
    % Euler's integration method (k+1)
-   z_int = z_int + h * ( zn - z_d );
+   % Depth anti-windup in methods 1 and 2 allows the integral to unwind
+   % while the pitch command is saturated.
+   e_z = zn - z_d;
+   if (ControlFlag ~= 1 && ControlFlag ~= 2) || ...
+           abs(theta_d) < theta_max || sign(e_z) ~= sign(theta_d)
+       z_int = z_int + h * e_z;
+   end
    theta_int = theta_int + h * ssa( theta - theta_d );
    psi_int = psi_int + h * ssa( psi - psi_d );
 
