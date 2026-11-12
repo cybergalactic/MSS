@@ -67,6 +67,9 @@ function [x_ins, P_prd] = ins_mekf(...
 %                with exact discretization in the INS state propagation.
 %   2024-09-09 : Redesign for slower magnetometer measurements
 %   2025-11-19 : Add new aiding methods/measurements options
+%   2026-11-06: The nominal bias decays with the time constant of the error
+%               model, b[k+1] = exp(-h/T) * b[k]; it was held between
+%               corrections.
 
 % ==============================================================================
 % ESKF signals
@@ -228,6 +231,10 @@ v_ins = v_ins + h * a_ins;                   % Exact discretization
 % MSS function expm_squaresPade.m for this computation.
 q_ins = expm(Tquat(w_ins) * h) * q_ins;      % Exponential map
 q_ins = q_ins / norm(q_ins);                 % Normalization
+
+% Nominal bias: Gauss-Markov decay, consistent with the error-state model
+b_acc_ins = exp(-h/T_acc) * b_acc_ins;
+b_ars_ins = exp(-h/T_ars) * b_ars_ins;
 
 % INS state vector: x_ins[k+1]
 x_ins = [p_ins; v_ins; b_acc_ins; q_ins; b_ars_ins];
