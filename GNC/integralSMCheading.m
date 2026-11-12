@@ -1,5 +1,5 @@
 function delta = integralSMCheading(...
-    psi,r,psi_d,r_d,a_d,K_d,K_sigma,lambda,phi_b,K_nomoto,T_nomoto,h)
+    psi,r,psi_d,r_d,a_d,K_d,K_sigma,lambda,phi_b,K_nomoto,T_nomoto,h,delta_max)
 % PID and integral sliding mode controller (SMC) for heading control. The 
 % yaw dynamics is modelled by 
 %
@@ -39,12 +39,16 @@ function delta = integralSMCheading(...
 %   K_nomto: Nomoto gain constant (1/s)
 %   T_nomto: Nomoto time constant (s)
 %   h: sampling time (s)
+%   delta_max: optional positive rudder angle limit (rad), default Inf.
+%              A finite limit enables anti-windup. Use [] for the default.
 %
 % Outputs:  
 %    delta: rudder angle
 %  
 % Author:    Thor I. Fossen
 % Date:      2024-02-09
+% Revisions:
+%   2026-11-12: Add optional rudder saturation and anti-windup.
 
 persistent psi_int;               % integral state
 
@@ -69,7 +73,15 @@ else
         - K_sigma * (sigma / phi_b) ) / K_nomoto;
 end
 
-% Propagation of persistent integral state: psi_int[k+1]
-psi_int = psi_int + h * e_psi;
+integral_step = h * e_psi;
+if nargin >= 13 && ~isempty(delta_max) && abs(delta) >= delta_max
+    % Anti-windup. The rudder increment has the sign of -integral_step/K_nomoto.
+    if delta * integral_step / K_nomoto < 0
+        integral_step = 0;
+    end
+    delta = sign(delta) * delta_max;
+end
+
+psi_int = psi_int + integral_step;  % Integral state: psi_int[k+1]
 
 end
