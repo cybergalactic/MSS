@@ -1,6 +1,8 @@
-function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
+function tauN = headingAutopilot( ...
+    psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d, tauN_max)
 % tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h)
 % tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h,wn_d)
+% tauN = headingAutopilot(psi,r,psi_ref,r_max,M66,wn,zeta,h,wn_d,tauN_max)
 % SISO PID pole-placement algorithm (Fossen 2027, Algorithm 15.1) for
 % heading control.
 %
@@ -30,8 +32,10 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 %   zeta    : Closed-loop relative damping ratio in yaw (-)
 %   h       : Sampling time (s)
 %
-% Optional input:
-%   wn_d    : Reference-model natural frequency (rad/s), default wn/20
+% Optional inputs:
+%   wn_d     : Reference-model natural frequency (rad/s), default wn/20.
+%   tauN_max : Positive yaw moment limit (Nm), default Inf. A finite limit
+%              enables anti-windup. Use [] to select a default.
 %
 % Outputs:
 %   tauN    : Autopilot yaw moment command (Nm)
@@ -46,6 +50,7 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 % Revisions:
 %   2026-11-06: The reference model state psi_d starts at the measured heading
 %               instead of zero.
+%   2026-11-12: Add optional yaw moment saturation and anti-windup.
 
 persistent z_int;          % Integral state
 persistent a_d r_d psi_d;  % Reference model states
@@ -73,9 +78,19 @@ Kp = M66 * wn^2;
 Kd = M66 * 2 * zeta * wn;
 Ki = 1/10 * Kp * wn;
 
-tauN = -Kp * ssa(psi - psi_d) - Kd * (r - r_d) - Ki * z_int;
+e_psi = ssa(psi - psi_d);
+tauN = -Kp * e_psi - Kd * (r - r_d) - Ki * z_int;
+integral_step = h * e_psi;
 
-z_int = z_int + h * ssa(psi - psi_d);  % Integral state: z_int[k+1]
+if nargin >= 10 && ~isempty(tauN_max) && abs(tauN) >= tauN_max
+    % Anti-windup blocks increments of -Ki*z_int that increase saturation.
+    if tauN * integral_step < 0
+        integral_step = 0;
+    end
+    tauN = sign(tauN) * tauN_max;
+end
+
+z_int = z_int + integral_step;  % Integral state: z_int[k+1]
 
 % Propagation of reference model states: psi_d[k+1], r_d[k+1], a_d[k+1]
 psi_d = psi_d + h * r_d;
