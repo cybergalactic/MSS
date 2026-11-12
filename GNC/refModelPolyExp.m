@@ -3,8 +3,8 @@ function x = refModelPolyExp(t, t_max, x_start, x_final, method, alpha)
 % one of three methods: 'exponential', 'cubic', or 'quintic'.
 %
 % INPUTS:
-%   t       - Current time
-%   t_max   - Maximum time for the transition
+%   t       - Current time, scalar or vector
+%   t_max   - Positive transition duration
 %   x_start - Starting value
 %   x_final - Final value
 %   method  - Transition method: 'exponential', 'cubic', or 'quintic'
@@ -20,19 +20,15 @@ function x = refModelPolyExp(t, t_max, x_start, x_final, method, alpha)
 %   Desired depth z_d at time t
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'exponential', 5); 
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'exponential'); 
-%   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'qubic'); 
+%   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'cubic');
 %   z_d = refModelPolyExp((t - t_dive), t_final, z_start, z_final, 'quintic'); 
 %
 % Author: Thor I. Fossen
 % Date: 2024-11-23
 % Revisions: 
 
-% Ensure time is within bounds
-if t > t_max
-    t = t_max;
-elseif t < 0
-    t = 0;
-end
+% Clip each time sample to the transition interval.
+t = satlim(t, 0, t_max);
 
 % Normalized time
 tau = t / t_max;
