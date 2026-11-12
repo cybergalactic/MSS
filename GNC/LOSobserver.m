@@ -41,6 +41,10 @@ function [LOSangle, LOSrate] = LOSobserver(LOSangle, LOSrate, LOScommand, h, K_f
 % -------------------------------------------------------------------------
 % Critically damped LOS observer
 % -------------------------------------------------------------------------
+if K_f <= 0
+    error('K_f must be positive.');
+end
+
 w_n = K_f + sqrt(K_f);
 angleError = ssa(LOScommand - LOSangle);
 rate_dot = w_n^2 * angleError - 2*w_n * LOSrate;
