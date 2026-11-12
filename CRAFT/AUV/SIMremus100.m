@@ -60,6 +60,8 @@ function SIMremus100()
 %               original integration scheme. Use BODY current components
 %               for AoA and sideslip diagnostics.
 %   2026-11-03: Use the pitch-rate error q - q_d in PID derivative feedback.
+%   2026-11-12: Use the 3rd-order depth reference model and feed forward
+%               the desired vertical velocity in control methods 1 and 2 (E. Krizman)..
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -102,8 +104,8 @@ end
 % ------------------------------------------------------------------------------
 Vc = 0.5;                        % Initial horizontal speed (m/s)
 betaVc = deg2rad(30);            % Initial azimuth in NED (rad)
-vD_c = 0.1;                        % Initial vertical NED component, positive down
-current.Vc = hypot(Vc, vD_c);      % Total speed for oceanCurrents
+vD_c = 0.1;                      % Initial vertical NED component, positive down
+current.Vc = hypot(Vc, vD_c);    % Total speed for oceanCurrents
 current.betaVc = betaVc;
 current.gammaVc = atan2(vD_c, Vc); % Elevation, positive down
 
@@ -155,10 +157,9 @@ Kp_theta = Mauv(5,5) * w_theta^2; % Proportional gain for pitch control
 Kd_theta = Mauv(5,5) * 2 * 0.8 * w_theta; % Derivative gain for pitch control
 Ki_theta = Kp_theta * w_theta / 10; % Integral gain for pitch control
 
-wn_d_z = 0.05;                   % Natural frequency for depth control
-w_max = 3.0;                     % Maximum dive speed (m/s)
-theta_max = deg2rad(30.0);       % Maximum pitch angle (rad)
-LP.z_d = makeLowPass(wn_d_z, h); % Low-pass filter object
+wn_d_z = 0.05;                  % Natural frequency of the depth reference model
+w_max = 3.0;                    % Maximum desired vertical speed (m/s)
+theta_max = deg2rad(30.0);      % Maximum pitch angle (rad)
 
 % Heading control parameters (using Nomoto model)
 K_yaw = 5 / 20;                % Gain, max rate of turn over max. rudder angle
@@ -257,16 +258,13 @@ for i = 1:nTimeSteps
                - Kd_theta * (q - q_d) - Ki_theta * theta_int;
             delta_s = sat(delta_s, delta_max);
 
-            % Depth kinematics: 
-            %   z_dot = -u * sin(theta) + w * cos(theta) := alpha_z + sigma
-            % Virtual control:
-            %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
-            %
-            % Outer-loop depth control residual sigma = 0 implies e_z = 0
-            z_d = LP.z_d(z_ref); % LP filtering the depth command
-
-            sigma = -u * sin(theta) + w * cos(theta) ...
-                + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
+            % Vertical-plane kinematics and outer-loop depth control:
+            %   z_dot = -u * sin(theta) + w * cos(theta)
+            %   e_z = zn - z_d,  sigma = z_dot - alpha_z
+            %   alpha_z = zdot_d - Kp_z * (e_z + z_int/T_z)
+            % When sigma = 0, e_z_dot = -Kp_z * (e_z + z_int/T_z).
+            sigma = -u * sin(theta) + w * cos(theta) - zdot_d ...
+                + Kp_z * ((zn - z_d) + z_int/T_z);
 
             % Gradient-descent update using J = 1/2 * sigma^2 to drive sigma to 0:            
             % Residual sensitivity: d(sigma)/d(theta)
@@ -375,6 +373,12 @@ for i = 1:nTimeSteps
    z_int = z_int + h * ( zn - z_d );
    theta_int = theta_int + h * ssa( theta - theta_d );
    psi_int = psi_int + h * ssa( psi - psi_d );
+
+   % Propagate the depth reference after using the current sample.
+   if ControlFlag == 1 || ControlFlag == 2
+       [z_d, zdot_d, a_d_z] = refModel(z_d, zdot_d, a_d_z, ...
+           z_ref, w_max, 1.0, wn_d_z, h, 0);
+   end
 
 end
 
