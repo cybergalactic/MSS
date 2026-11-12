@@ -72,9 +72,9 @@ q_b_acc = 1e-5;         % Accelerometer bias process noise
 q_w     = 1e-3;         % Angular-rate process noise
 q_b_ars = 1e-5;         % ARS bias process noise
 
-% Bias time constants
-T_acc = 300;            % Acceleration bias time constant [s]
-T_ars = 300;            % Angular rate bias time constant [s]
+% Bias time constants [s]. Use Inf for random walk models
+T_acc = Inf;            % Acceleration bias time constant [s]
+T_ars = Inf;            % Angular rate bias time constant [s]
 
 % ==============================================================================
 % Initialization of the INS signal generator
