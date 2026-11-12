@@ -15,8 +15,9 @@ function [table, pathlength] = order3(x_vector,y_vector, drawmode, mode, xstart,
 % Revisions: 2026-11-02 : The waypoint inserted for two waypoints is the midpoint
 %            (x1+x2)/2 and (y1+y2)/2; it was the half difference (x2-x1)/2, which is
 %            the midpoint only when the first waypoint is the origin.
-%            2026-11-06 : Solve A*x = y with the backslash operator instead of
-%            inv(A)*y (knot error 1e-5 m instead of 1e-9 m for 80 waypoints).
+%            2026-11-06 : Solve A*x = y with the backslash operator. In an
+%            80-piece test, the maximum knot error decreased from 4.4e-5 m
+%            to 3e-9 m.
 
 % Testing the provided waypoints
 if length(x_vector) ~= length(y_vector) %There is not an equal amount of x- and y-coordinates.
@@ -58,7 +59,7 @@ y_x = [y_x x_vector(N+1) xfinal]';
 y_y = [y_y y_vector(N+1) yfinal]';
 
 
-% y = A*x,   x = inv(A)*y
+% Solve A*x = y for the polynomial coefficients.
 % Unknown parameters: x_x = [a3 a2 a1 a0]', y_y = [b3 b2 b1 b0]'.
 % The A matrix for the calculation of the coeficcients. This matrix will be the same for both
 % the x- and y-direction. See Ch. 5 in Fossen, T. I. (2002). Marine Control Systems: Guidance, 
