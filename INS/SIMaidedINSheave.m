@@ -43,8 +43,8 @@ g = gravity(mu); % Acceleration of gravity in m/s^2
 
 displayMethod(cityName, f_s, f_pos);
 
-% Initialization of ESKF
-T_acc = 300;                         % Accelerometer-bias time constant [s]
+% Acceleration bias time constants [s]. Use Inf for the random walk model
+T_acc = Inf;                         % Accelerometer-bias time constant [s]
 
 % Pressure/depth measurement noise
 sigma_z = 0.01;                      % Depth standard deviation [m]
