@@ -65,8 +65,9 @@ else
     Rd = 0.1*diag([1 1 1 1]); % 3x1 gravity vector and 1x1 compass measurement 
 end
 
-% Angular rate bias time constant [s]
-T_ars = 300; 
+% Angular rate bias time constant [s]. 
+T_ars = 300; % Matches the Gauss-Markov gyro bias in test signal 2.
+% Use T_ars = Inf for a random-walk bias model.
 
 % ==============================================================================
 % Initialization of INS signal generator
