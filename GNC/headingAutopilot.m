@@ -43,16 +43,20 @@ function tauN = headingAutopilot(psi, r, psi_ref, r_max, M66, wn, zeta, h, wn_d)
 %
 % Author:    Thor I. Fossen
 % Date:      2026-10-25
+% Revisions:
+%   2026-11-06: The reference model state psi_d starts at the measured heading
+%               instead of zero.
 
 persistent z_int;          % Integral state
 persistent a_d r_d psi_d;  % Reference model states
 
-% Initialization of integral state z_int and reference model states a_d, r_d, psi_d
+% Initialization of integral state z_int and reference model states a_d, r_d,
+% psi_d. The reference model starts at the measured heading.
 if isempty(z_int)
     z_int = 0;
     a_d = 0;
     r_d = 0;
-    psi_d = 0;
+    psi_d = psi;
 end
 
 % Select reference bandwidth independently of the PID bandwidth.

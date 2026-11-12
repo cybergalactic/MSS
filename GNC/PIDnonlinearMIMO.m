@@ -42,15 +42,11 @@ function tau = PIDnonlinearMIMO(eta,nu,eta_ref,M,wn,zeta,T_f,h)
 % Revisions:
 %   2026-10-23 : The integral state accumulates the error with the yaw angle
 %                wrapped to [-pi, pi), like the proportional term (E. Krizman)
+%   2026-11-06 : The setpoint filter state eta_d starts at the measured
+%                position instead of the origin.
 
 persistent eta_d;  % LP-filtered commands
 persistent z_int;  % Integral states
-
-% Initialization of desired state eta_d and integral state z_int 
-if isempty(z_int)
-    z_int = [0 0 0]';             
-    eta_d = [0 0 0]';
-end
 
 eta_ref = eta_ref(:);  % Make sure eta_ref is a column vector
 
@@ -61,6 +57,14 @@ if length(nu) == 6
     nu  = [nu(1) nu(2) nu(6)]';
     M = M([1 2 6],[1 2 6]);
     DOF = 6;
+end
+
+% Initialization of desired state eta_d and integral state z_int. The
+% setpoint filter starts at the measured position, so that a vehicle that is
+% already on its setpoint is not commanded to move.
+if isempty(z_int)
+    z_int = [0 0 0]';
+    eta_d = eta(:);
 end
 
 % Rotation matrix in yaw
