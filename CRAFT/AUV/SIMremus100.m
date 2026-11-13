@@ -63,6 +63,9 @@ function SIMremus100()
 %   2026-11-12: Add depth anti-windup at the pitch limit and use a third-order
 %               depth reference model with vertical-velocity feedforward in
 %               control methods 1 and 2 (E. Krizman).
+%   2026-11-12: Control method 3 uses the same depth reference propagation,
+%               vertical-velocity feedforward and anti-windup as methods 1
+%               and 2 (E. Krizman).
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -305,7 +308,7 @@ for i = 1:nTimeSteps
             z_ref = wpt.pos.z(k_active); % Use z-coordinate as depth reference
 
             % Gradient-based depth command (down position)
-            sigma = -u * sin(theta) + w * cos(theta) ...
+            sigma = -u * sin(theta) + w * cos(theta) - zdot_d ...
                 + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
             gradJ = -(u * cos(theta) + w * sin(theta));
@@ -317,9 +320,6 @@ for i = 1:nTimeSteps
             % Propagate ALOS observer (k+1)
             [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
             r_d = sat(r_d, r_max);
-
-            % Propagate reference model for desired depth (k+1)
-            [z_d,zdot_d,a_d_z] = refModel(z_d,zdot_d,a_d_z,z_ref,w_max,1.0,wn_d_z,h,0);
 
         otherwise % Control flag 4 (3-D ALOS path-following)
             % Heading autopilot using the tail rudder (integral SMC)
@@ -371,10 +371,10 @@ for i = 1:nTimeSteps
    end
 
    % Euler's integration method (k+1)
-   % Depth anti-windup in methods 1 and 2 allows the integral to unwind
+   % Depth anti-windup in methods 1, 2 and 3 allows the integral to unwind
    % while the pitch command is saturated.
    e_z = zn - z_d;
-   if (ControlFlag ~= 1 && ControlFlag ~= 2) || ...
+   if ControlFlag == 4 || ...
            abs(theta_d) < theta_max || sign(e_z) ~= sign(theta_d)
        z_int = z_int + h * e_z;
    end
@@ -382,7 +382,7 @@ for i = 1:nTimeSteps
    psi_int = psi_int + h * ssa( psi - psi_d );
 
    % Propagate the depth reference after using the current sample.
-   if ControlFlag == 1 || ControlFlag == 2
+   if ControlFlag <= 3
        [z_d, zdot_d, a_d_z] = refModel(z_d, zdot_d, a_d_z, ...
            z_ref, w_max, 1.0, wn_d_z, h, 0);
    end
