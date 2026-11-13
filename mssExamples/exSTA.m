@@ -15,6 +15,7 @@
 % Date:      20 June 2020
 % Revisions: 29 Nov 2022 - Beta is changed to beta = beta_1 * alpha + beta_0
 %            30 Aug 2023 - Minor updates and improvements
+%            13 Nov 2026 - Added a boundary layer to both STA terms to reduce chattering.
 
 %% USER INPUTS
 h  = 0.01;     % sampling time (s)
@@ -29,6 +30,7 @@ lambda = 0.05;          % sliding variable parameter lambda > 0
 alpha_0 = 0.01;         % adaptation gains
 beta_0 = 0.00001;       
 beta_1 = 0.0001;
+phi = 2e-5;             % boundary-layer half-width for sigma (rad/s)
 
 v = 0;                  % initial STA states
 alpha = 0;              
@@ -79,8 +81,9 @@ for i=1:N+1
     end
     
     beta = beta_1 * alpha + beta_0;
-    v_dot = -beta * sign(sigma); 
-    w = -alpha * sqrt(abs(sigma)) * sign(sigma) + v;
+    s = sat(sigma / phi, 1);
+    v_dot = -beta * s;
+    w = -alpha * sqrt(abs(sigma)) * s + v;
     delta_c = (T/K) * w;
     
     % Norrbin model for the Zefakkel
