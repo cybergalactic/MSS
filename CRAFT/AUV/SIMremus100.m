@@ -66,6 +66,8 @@ function SIMremus100()
 %   2026-11-12: Control method 3 uses the same depth reference propagation,
 %               vertical-velocity feedforward and anti-windup as methods 1
 %               and 2 (E. Krizman).
+%   2026-11-13: Reduce the heading observer gain K_f_psi in methods 3 and 4 to
+%               soften rudder transients at waypoint switches.
 
 clearvars;                               % Clear all variables from memory
 clear integralSMCheading ALOS3D ALOSpsi; % Clear persistent states 
@@ -195,9 +197,10 @@ gamma_h = 0.001;            % Adaptive gain, horizontal plane
 gamma_v = 0.001;            % Adaptive gain, vertical plane
 M_theta = deg2rad(20);      % Maximum value of estimates, alpha_c, beta_c
 
-% Additional parameter for straigh-line path following
+% Additional parameters for straight-line path following
 R_switch = 5;               % Radius of switching circle
-K_f = 0.5;                  % LOS observer gain
+K_f_psi = 0.2;              % Heading observer gain for 2.5-D and 3-D ALOS
+K_f_theta = 0.5;            % Pitch observer gain for 3-D ALOS
 
 % ==============================================================================
 % INPUT RANGE CHECK
@@ -318,7 +321,7 @@ for i = 1:nTimeSteps
             theta_d = sat(theta_d, theta_max);
             
             % Propagate ALOS observer (k+1)
-            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f_psi);
             r_d = sat(r_d, r_max);
 
         otherwise % Control flag 4 (3-D ALOS path-following)
@@ -338,8 +341,8 @@ for i = 1:nTimeSteps
                 M_theta, h, R_switch, wpt);
 
             % Propagate ALOS observers
-            [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f);
-            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f);
+            [theta_d, q_d] = LOSobserver(theta_d, q_d, theta_ref, h, K_f_theta);
+            [psi_d, r_d] = LOSobserver(psi_d, r_d, psi_ref, h, K_f_psi);
             r_d = sat(r_d, r_max);
 
             % Store ALOS data in table
