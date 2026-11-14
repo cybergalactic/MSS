@@ -18,7 +18,7 @@ function xdot = hydroVessel(x, tau_ext, vessel, Vc, betaVc)
 %             Linear and angular velocities are in m/s and rad/s; positions
 %             and Euler angles are in m and rad, respectively.
 %   tau_ext:  6x1 external generalized force vector [N; N; N; Nm; Nm; Nm].
-%             In SIMhydroVessel, tau_ext = tau + tau_wave1.
+%             In SIMhydroVessel, tau_ext = tau + tau_wave1 + tau_wave2.
 %   vessel:   Structure containing the constant maneuvering model:
 %               vessel.MA, vessel.Minv  - added-mass and inverse mass matrices
 %               vessel.D, vessel.G      - damping and restoring matrices

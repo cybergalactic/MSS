@@ -4,14 +4,13 @@ function SIMotter()
 % added mass, radiation damping and hydrostatic restoring with rigid-body
 % and payload dynamics, nonlinear damping, twin-pontoon cross-flow drag,
 % Coriolis and centripetal terms, propeller thrust, and ocean currents.
-% First-order wave forces and moments are synthesized from the Capytaine
-% force RAOs and a directional JONSWAP spectrum. The loads are transformed
-% from the dataset CG to CO and applied through the selected mass matrix at
-% every RK4 stage, with RAO updates every 0.1 s. The RAOs use the nominal 80 kg
-% load condition for either dynamics model. waveForceRAO accumulates signed
-% encounter phase during changes in speed and heading, as in Fossen (2027),
-% Chapter 10. Wave-force histories, the spectrum and wave elevation are plotted.
-% Default sea-state parameters are Hs = 0.20 m and w0 = 3.0 rad/s (peak period 2.09 s)
+% First-order wave forces and second-order mean wave-drift loads are synthesized
+% from the Capytaine RAOs and a directional JONSWAP spectrum. The loads are
+% transformed from the dataset CG to CO and applied through the selected mass
+% matrix at every RK4 stage, with RAO updates every 0.1 s. The RAOs use the
+% nominal 80 kg load condition for either dynamics model. waveForceRAO
+% accumulates signed encounter phase during changes in speed and heading, as
+% in Fossen (2027, Ch. 10).
 %
 % Guidance and control options include heading control and path following
 % along straight-line segments or cubic Hermite splines.
@@ -34,6 +33,7 @@ function SIMotter()
 %   hermiteSpline.m         - Cubic Hermite spline computations
 %   waveInitialization.m    - Directional spectrum and force-RAO setup
 %   waveForceRAO.m          - First-order wave forces and elevation
+%   waveDriftRAO.m          - Second-order mean wave-drift loads
 %   LOSobserver.m           - Observer for LOS guidance
 %
 % The setup GUI and configuration validation are local functions below.
@@ -69,6 +69,7 @@ function SIMotter()
 %               Added current, wave and simulation settings to the setup GUI.
 %               Accumulate encounter phase in waveForceRAO as in Chapter 10.
 %   2026-11-03: Apply the desired turn-rate limit in LOS path-following modes.
+%   2026-11-14: Add second-order mean wave-drift loads.
 
 clearvars;                                  % Clear variables from memory
 close all;                                  % Close all figure windows
@@ -76,8 +77,8 @@ clear ALOSpsi ILOSpsi ALOSpsiHermite        % Clear persistent variables
 
 %% SIMULATION SETUP
 cfg = guiSIMotter();
-if isempty(cfg)
-    return;
+if isempty(cfg);
+ return;
 end
 h = cfg.simulation.h;
 T_final = cfg.simulation.T_final;
@@ -90,11 +91,12 @@ if cfg.useLegacy
     otterDynamics = @otter_legacy;
 end
 
-% First-order wave excitation: the Capytaine RAOs are referenced to the
-% dataset CG. Transform their generalized forces to the dynamics origin CO.
+% First- and second-order wave loads: the Capytaine RAOs are referenced to
+% the dataset CG. Transform their generalized loads to the dynamics origin CO.
 RAO_update_period = 0.1;
 nextRAOtime = 0;
 tau_wave1 = zeros(6,1);
+tau_wave2 = zeros(6,1);
 waveElevation = 0;
 waveModel = [];
 H_wave = eye(6);
@@ -188,7 +190,7 @@ displayControlMethod(ControlFlag, R_switch, Delta_h, environment);
 % ------------------------------------------------------------------------------
 %% MAIN LOOP
 % ------------------------------------------------------------------------------
-simdata = zeros(nTimeSteps, 21);    % Preallocate table for simulation data
+simdata = zeros(nTimeSteps, 27);    % Preallocate table for simulation data
 
 for i = 1:nTimeSteps
 
@@ -247,23 +249,28 @@ for i = 1:nTimeSteps
     end
     n_c = satlim(n_c, n_min, n_max);  % Saturate propeller command
 
-    % First-order surface-wave loads, held between RAO updates
+    % First-order and mean-drift surface-wave loads, held between RAO updates
     if ~isempty(waveModel) && t(i) + 10*eps(max(1,t(i))) >= nextRAOtime
         U = hypot(x(1), x(2));
-        [tau_CG, waveElevation, waveModel] = waveForceRAO(t(i), waveModel, ...
+
+        [tau_wave1_CG, waveElevation, waveModel] = waveForceRAO(t(i), waveModel, ...
             U, x(12), environment.beta_wave);
-        tau_wave1 = H_wave' * tau_CG;
+        tau_wave1 = H_wave' * tau_wave1_CG;
+
+        [tau_wave2_CG, waveModel] = waveDriftRAO( ...
+            waveModel, x(12), environment.beta_wave);
+        tau_wave2 = H_wave' * tau_wave2_CG;
 
         nextRAOtime = (floor((t(i) + 10*eps(max(1,t(i)))) / ...
             RAO_update_period) + 1) * RAO_update_period;
     end
 
-    % Store states, references, wave forces at CO, and wave elevation.
-    simdata(i, :) = [x', r_d, psi_d, tau_wave1', waveElevation];
+    % Store states, references, wave loads at CO, and wave elevation.
+    simdata(i, :) = [x', r_d, psi_d, tau_wave1', tau_wave2', waveElevation];
 
     % RK4 method x(k+1)
     x = rk4(@otterWithWaves, h, x, otterDynamics, n, mp, r_bP, ...
-        V_c, beta_c, tau_wave1);
+        V_c, beta_c, tau_wave1 + tau_wave2);
 
     % Propeller dynamics n(k+1)
     n = n + h/T_n * (n_c - n);     % Euler's method
@@ -286,7 +293,8 @@ eta  = simdata(:,7:12);
 r_d = simdata(:,13);
 psi_d = simdata(:,14);
 tau_wave1 = simdata(:,15:20);
-waveElevation = simdata(:,21);
+tau_wave2 = simdata(:,21:26);
+waveElevation = simdata(:,27);
 
 % Plot positions
 figure(1);
@@ -353,7 +361,7 @@ set(findall(gcf,'type','line'),'linewidth',2);
 set(findall(gcf,'type','text'),'FontSize',12);
 set(findall(gcf,'type','legend'),'FontSize',legendSize);
 
-% First-order wave forces and spectrum, as in SIMlauvMarie.
+% First-order wave forces, second-order mean drift, and wave spectrum.
 if ~isempty(waveModel)
     legendLocation = 'best';
     if isoctave; legendLocation = 'northeast'; end
@@ -371,6 +379,19 @@ if ~isempty(waveModel)
     set(findall(gcf,'type','text'),'FontSize',12);
 
     figure(6); clf;
+    DOF_txt = {'Surge (N)', 'Sway (N)', 'Heave (N)', ...
+        'Roll (N m)', 'Pitch (N m)', 'Yaw (N m)'};
+    for DOF = 1:6
+        subplot(6,1,DOF);
+        plot(t, tau_wave2(:,DOF), 'LineWidth', 1.5);
+        xlabel('Time (s)'); ylabel(DOF_txt{DOF}); grid on;
+    end
+    if ~isoctave
+        sgtitle('Generalized second-order mean wave-drift loads at CO');
+    end
+    set(findall(gcf,'type','text'),'FontSize',12);
+
+    figure(7); clf;
     subplot(211); hold on;
     if environment.spreadingFlag
         % Use the actual randomized spreading angles in the legend.

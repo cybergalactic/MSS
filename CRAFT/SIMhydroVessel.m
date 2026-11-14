@@ -1,6 +1,7 @@
 function SIMhydroVessel()
 % The function simulates a selected WAMIT or Capytaine vessel model using
-% power-based constant hydrodynamic matrices and 1st-order force RAOs. The 
+% power-based constant hydrodynamic matrices, 1st-order force RAOs, and
+% second-order mean wave-drift coefficients. The
 % control system can be chosen as a nonlinear MIMO PID controller for DP or a
 % heading autopilot for transit. Vessel-specific defaults are defined by
 % hydroVesselConfig.m and can be edited in guiSIMhydroVessel.m before simulation.
@@ -16,6 +17,7 @@ function SIMhydroVessel()
 % Revisions:
 %   2026-10-26: Accumulate signed encounter phase in waveForceRAO during
 %               maneuvering, consistent with Chapter 10.
+%   2026-11-14: Add second-order mean wave-drift loads.
 
 clear PIDnonlinearMIMO headingAutopilot; % Clear persistent state variables 
 clearvars;                               % Clear all other variables
@@ -60,8 +62,11 @@ nTimeSteps = length(t);                        % Number of time steps
 % ------------------------------------------------------------------------------
 %% MAIN LOOP
 % ------------------------------------------------------------------------------
-simdata = zeros(nTimeSteps, 25); % Pre-allocate matrix for efficiency
+simdata = zeros(nTimeSteps, 31); % Pre-allocate matrix for efficiency
 x = [cfg.initial.nu; cfg.initial.eta]; % Initial state vector
+tau_wave1 = zeros(6,1);
+tau_wave2 = zeros(6,1);
+waveElevation = 0;
 
 for i = 1:nTimeSteps
 
@@ -99,21 +104,25 @@ for i = 1:nTimeSteps
 
     end
 
-    % 6-DOF generalized wave forces (compute RAO only every 0.1 second)
+    % 6-DOF first-order and mean-drift loads (update at the configured rate)
     if t(i) + 10*eps(max(1,t(i))) >= nextRAOtime
         U = hypot(nu(1), nu(2));
         [tau_wave1, waveElevation, waveModel] = waveForceRAO(t(i), waveModel, ...
             U, eta(6), environment.beta_wave);
+        if waveModel.hasDriftRAO
+            [tau_wave2, waveModel] = waveDriftRAO( ...
+                waveModel, eta(6), environment.beta_wave);
+        end
 
         nextRAOtime = (floor((t(i) + 10*eps(max(1,t(i)))) / ...
             cfg.RAO_update_period) + 1) * cfg.RAO_update_period;
     end
 
     % Save data for post-processing and plotting
-    simdata(i, :) = [eta; nu; tau; tau_wave1; waveElevation];
+    simdata(i, :) = [eta; nu; tau; tau_wave1; tau_wave2; waveElevation];
 
     % RK4 integration (k+1)
-    tau_ext = tau + tau_wave1; % Sum of external forces
+    tau_ext = tau + tau_wave1 + tau_wave2; % Sum of external forces
     x = rk4(@hydroVessel, cfg.simulation.h, x, tau_ext, vessel, ...
         environment.Vc, environment.betaVc);
 

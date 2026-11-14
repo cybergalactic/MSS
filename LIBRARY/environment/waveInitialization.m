@@ -1,8 +1,10 @@
 function [environment, waveModel] = waveInitialization(vessel, environment, raoType)
 % waveInitialization initializes a directional wave spectrum and RAO model.
 % The function prepares the time-invariant data and initializes the phase
-% history used by waveForceRAO or waveMotionRAO. Call it once before the
-% simulation loop and pass waveModel to the selected RAO function.
+% history used by waveForceRAO or waveMotionRAO. When vessel.drift is
+% available, it also prepares the signed mean wave-drift coefficients used
+% by waveDriftRAO. Call it once before the simulation loop and pass waveModel
+% to the selected RAO functions.
 %
 % Inputs:
 %   vessel      - Vessel structure containing main.g, headings, and forceRAO
@@ -23,11 +25,12 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 %   environment - Input structure augmented with S_M, Amp, Omega, mu,
 %                 frequencyBand, and retainedEnergyFraction
 %   waveModel   - Initialized wave spectrum, random phases, and interpolated
-%                 RAO tables used by waveForceRAO or waveMotionRAO. The RAO
-%                 functions return an updated waveModel containing encounter
-%                 phase history; pass it to the next call. For a
-%                 submerged vessel, raoReferenceDepth is the depth at which
-%                 the hydrodynamic data were generated.
+%                 RAO tables used by waveForceRAO or waveMotionRAO and, when
+%                 supplied by the vessel dataset, signed mean-drift tables
+%                 for surge, sway, and yaw. The RAO functions return a
+%                 waveModel containing encounter-phase history; pass it to
+%                 the next call. For a submerged vessel, raoReferenceDepth
+%                 is the depth at which the hydrodynamic data were generated.
 %
 % The random-number generator is intentionally not set here. Use rng at the
 % simulation or example level before calling waveInitialization when a
@@ -43,6 +46,7 @@ function [environment, waveModel] = waveInitialization(vessel, environment, raoT
 %   2026-10-14: Store the RAO reference depth for submerged-vessel loads.
 %   2026-10-26: Initialize explicit encounter-phase history for maneuvering.
 %   2026-10-27: Select an energy-based frequency band within the RAO data.
+%   2026-11-14: Initialize signed surge, sway, and yaw mean-drift tables.
 
 if nargin < 3
     raoType = 'force';
@@ -153,6 +157,64 @@ for DOF = 1:6
     % Close each table periodically: the RAO at 2*pi equals the RAO at 0.
     waveModel.RAO_re{DOF} = [RAO_re_values, RAO_re_values(:, 1)];
     waveModel.RAO_im{DOF} = [RAO_im_values, RAO_im_values(:, 1)];
+end
+
+% Mean wave-drift coefficients are real, signed loads per incident-wave
+% amplitude squared. The current MSS layout stores physical DOFs 1, 2 and 6
+% in drift.coeff{1:3}. Like the first-order RAOs above, use only speed index 1.
+% Do not extrapolate drift data beyond their supplied frequency range.
+waveModel.hasDriftRAO = false;
+if isfield(vessel, 'drift') && ~isempty(vessel.drift)
+    drift = vessel.drift;
+    if ~isstruct(drift) || ~isfield(drift, 'w') || ...
+            ~isfield(drift, 'coeff') || ~iscell(drift.coeff) || ...
+            numel(drift.coeff) ~= 3
+        error('waveInitialization:InvalidDriftData', ...
+            ['vessel.drift must contain drift.w and three coefficient cells ' ...
+             'for surge, sway, and yaw.']);
+    end
+
+    driftFreqs = drift.w(:);
+    if numel(driftFreqs) < 2 || any(~isfinite(driftFreqs)) || ...
+            any(driftFreqs < 0) || any(diff(driftFreqs) <= 0)
+        error('waveInitialization:InvalidDriftFrequencies', ...
+            ['vessel.drift.w must contain at least two strictly increasing ' ...
+             'finite, nonnegative frequencies.']);
+    end
+    if Omega(1) < driftFreqs(1) || Omega(end) > driftFreqs(end)
+        error('waveInitialization:DriftRangeMismatch', ...
+            ['The initialized wave frequencies [%.3g, %.3g] rad/s exceed ' ...
+             'the mean-drift range [%.3g, %.3g] rad/s. Drift coefficients ' ...
+             'are not extrapolated.'], Omega(1), Omega(end), ...
+            driftFreqs(1), driftFreqs(end));
+    end
+
+    waveModel.driftCoeff = cell(1, 3);
+    for j = 1:3
+        values = drift.coeff{j};
+        if ~isnumeric(values) || ~isreal(values) || ...
+                any(~isfinite(values(:))) || ...
+                size(values, 1) ~= numel(driftFreqs) || ...
+                size(values, 2) ~= numAngles || size(values, 3) < 1
+            error('waveInitialization:InvalidDriftData', ...
+                ['Each vessel.drift.coeff cell must be a finite real ' ...
+                 'frequency-by-heading-by-speed array.']);
+        end
+
+        driftValues = zeros(numFreqIntervals, numAngles);
+        for k = 1:numAngles
+            driftValues(:, k) = interp1(driftFreqs, values(:, k, 1), ...
+                Omega, 'linear');
+        end
+        waveModel.driftCoeff{j} = [driftValues, driftValues(:, 1)];
+    end
+    waveModel.hasDriftRAO = true;
+    if isfield(drift, 'reference')
+        waveModel.driftReference = drift.reference;
+    end
+    if isfield(drift, 'axes')
+        waveModel.driftAxes = drift.axes;
+    end
 end
 
 end

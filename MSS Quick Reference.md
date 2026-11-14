@@ -201,8 +201,9 @@ spheroidRAO         % Compute 6-DOF RAOs for a submerged prolate-spheroid-shaped
 torsetSpectrum      % Torsethaugen double-peaked wave spectrum
 vw2hs               % Converts average wind speed to significant wave height
 waveEncounterPhase  % Accumulate signed encounter phase during maneuvering using explicit waveModel history
+waveDriftRAO        % Compute signed 2nd-order mean drift in surge/sway/yaw, with optional depth attenuation
 waveForceRAO        % Compute 1st-order wave loads and elevation; return updated waveModel, with optional depth attenuation
-waveInitialization  % Initialize the spectrum, random phases, RAO tables, encounter-phase history, and reference depth
+waveInitialization  % Initialize the spectrum, force/motion and optional mean-drift RAOs, phase history, and reference depth
 waveMotionRAO       % Compute WF position, velocity, acceleration, and elevation; return updated waveModel
 waveresponse345     % Steady-state heave, roll, and pitch responses for a ship in regular waves 
 waveSpectrum        % Function computing state-of-the-art wave spectra

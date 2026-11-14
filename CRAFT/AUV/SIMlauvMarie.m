@@ -3,9 +3,11 @@ function SIMlauvMarie()
 % The 2.15 m LAUV is simulated under depth and heading control while exposed
 % to ocean currents and directional waves. It supports MIMO PID pole-placement
 % control and Adaptive Line-of-Sight (ALOS) guidance for 3-D path following.
-% Wave-induced forces are attenuated with vehicle depth and are typically
-% negligible below about 20 m for the default sea state. The attenuation is
-% frequency dependent, so very long waves can penetrate more deeply.
+% First-order wave-induced forces are attenuated with vehicle depth and are
+% typically negligible below about 20 m for the default sea state. The
+% attenuation is frequency dependent, so very long waves can penetrate more
+% deeply. Second-order mean drift is attenuated with the square of the same
+% incident-wave amplitude factor because the drift load scales with A^2.
 % waveForceRAO accumulates signed encounter phase during changes in speed
 % and heading, consistent with Fossen (2027), Chapter 10.
 % The vehicle dynamics use a unified seakeeping-maneuvering model based on
@@ -25,6 +27,7 @@ function SIMlauvMarie()
 %   LOSobserver.m         - Observer for LOS guidance
 %   ssa.m                 - Angle wrapping
 %   displayVehicleData.m  - Display vehicle particulars and photograph
+%   waveDriftRAO.m        - Second-order mean wave-drift loads
 %
 % References:
 %   E. M. Coates and T. I. Fossen (2026). A Spherical Amplitude–Phase Formulation
@@ -44,6 +47,9 @@ function SIMlauvMarie()
 %               RK4 integration and using BODY current components in diagnostics.
 %   2026-11-03: Apply the desired turn-rate limit to the ALOS observer state.
 %   2026-11-03: Use pitch- and yaw-rate errors in the PID derivative terms.
+%   2026-11-14: Add second-order mean wave-drift loads.
+%   2026-11-14: Add desired depth-rate feedforward to the outer-loop
+%               gradient residual, consistent with SIMremus100.
 
 clear ALOS3D lauvMarie;      % Clear persistent model/controller states
 
@@ -135,6 +141,7 @@ psi_int = 0;                   % Integral state for yaw control
 
 % Depth controller (successive-loop closure)
 z_d = zn;                      % Initial depth target (m)
+zdot_d = 0;                    % Initial desired vertical velocity (m/s)
 wn_d_z = 0.02;                 % Natural frequency for depth control
 Kp_z = 0.1;                    % Proportional gain for depth
 T_z = 100;                     % Time constant for integral action in depth control
@@ -178,10 +185,11 @@ nTimeSteps = length(t);         % Number of time steps
 % ==============================================================================
 %% MAIN LOOP
 % ==============================================================================
-simdata = zeros(nTimeSteps, 32); % [references, tau, x, current, waves]
+simdata = zeros(nTimeSteps, 38); % [references, tau, x, current, waves]
 ALOSdata = zeros(nTimeSteps, 4); % Preallocate table for ALOS guidance data
 currentData = zeros(nTimeSteps, 3); % BODY current velocity for diagnostics
 tau_wave1 = zeros(6,1);
+tau_wave2 = zeros(6,1);
 waveElevation = 0;
 
 for i = 1:nTimeSteps
@@ -218,13 +226,17 @@ for i = 1:nTimeSteps
             z_ref = 1;
         end
 
+        % Desired vertical velocity from the existing first-order reference
+        % model z_d_dot = wn_d_z * (z_ref - z_d).
+        zdot_d = wn_d_z * (z_ref - z_d);
+
         % Depth kinematics:
-        %   z_dot = -u * sin(theta) + w * cos(theta) := alpha_z + sigma
+        %   z_dot = -u * sin(theta) + w * cos(theta)
+        %   e_z = zn - z_d,  sigma = z_dot - alpha_z
         % Virtual control:
-        %   alpha_z = z_d_dot + Kp_z * (e_z + (1/T_z) * z_int)
-        %
-        % Outer-loop depth control residual sigma = 0 implies e_z = 0
-        sigma = -u * sin(theta) + w * cos(theta) ...
+        %   alpha_z = zdot_d - Kp_z * (e_z + z_int/T_z)
+        % When sigma = 0, e_z_dot = -Kp_z * (e_z + z_int/T_z).
+        sigma = -u * sin(theta) + w * cos(theta) - zdot_d ...
             + Kp_z * ((zn - z_d) + (1/T_z) * z_int);
 
         % Gradient-descent update using J = 1/2 * sigma^2 to drive sigma to 0:
@@ -278,21 +290,23 @@ for i = 1:nTimeSteps
 
     tau = [tau1 0 0 0 tau5 tau6]';
 
-    % Depth-attenuated 6-DOF wave forces (compute RAO every 0.1 second)
+    % First-order and mean-drift wave loads (compute RAOs every 0.1 second)
     if t(i) + 10*eps(max(1,t(i))) >= nextRAOtime
         U = hypot(u, v);
         [tau_wave1, waveElevation, waveModel] = waveForceRAO( ...
             t(i), waveModel, U, psi, environment.beta_wave, zn);
+        [tau_wave2, waveModel] = waveDriftRAO( ...
+            waveModel, psi, environment.beta_wave, zn);
         nextRAOtime = (floor((t(i) + 10*eps(max(1,t(i)))) / ...
             RAO_update_period) + 1) * RAO_update_period;
     end
 
     % Store simulation data in a table
     simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc vD_c ...
-        tau_wave1' waveElevation];
+        tau_wave1' tau_wave2' waveElevation];
 
     % Quasi-steady current: hold the NED current fixed over this RK4 step.
-    tau_ext = tau + tau_wave1;
+    tau_ext = tau + tau_wave1 + tau_wave2;
     x = rk4(@lauvMarie, h, x, tau_ext, Vc, betaVc, vD_c, w0_spectrum);  % LAUV dynamics
 
     % Euler's integration method (k+1)
@@ -309,7 +323,7 @@ legendLocation = 'best'; legendSize = 11;
 if isoctave; legendLocation = 'northeast'; end
 
 % simdata(i,:) = [z_d theta_d psi_d r_d tau' x' Vc betaVc vD_c ...
-%                 tau_wave1' waveElevation];
+%                 tau_wave1' tau_wave2' waveElevation];
 z_d      = simdata(:,1);
 theta_d  = simdata(:,2);
 psi_d    = simdata(:,3);
@@ -321,7 +335,8 @@ Vc       = simdata(:,23);
 betaVc   = simdata(:,24);
 vD_c       = simdata(:,25);
 tau_wave1 = simdata(:,26:31);
-waveElevation = simdata(:,32);
+tau_wave2 = simdata(:,32:37);
+waveElevation = simdata(:,38);
 u = nu(:,1); v = nu(:,2); w = nu(:,3);
 p = nu(:,4); q = nu(:,5); r = nu(:,6);
 phi = eta(:,4); theta = eta(:,5);
@@ -544,8 +559,30 @@ end
 set(findall(gcf, 'type', 'text'), 'FontSize', 12);
 set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
 
-%% Directional wave spectrum and wave elevation
+%% 6-DOF second-order mean wave-drift loads
 figure(9); clf;
+if ~isoctave
+    set(gcf, 'Resize', 'on', 'Units', 'normalized', ...
+        'OuterPosition', [0.485 0.06 0.465 0.88]);
+end
+for DOF = 1:6
+    subplot(6, 1, DOF);
+    plot(t, tau_wave2(:,DOF), 'LineWidth', 1.5);
+    xlabel('Time (s)');
+    grid on;
+    legend(DOF_txt{DOF}, 'Location', legendLocation);
+end
+if ~isoctave
+    sgtitle(['Generalized 2nd-order mean wave-drift loads for ' ...
+        '\beta_{wave} = ' num2str(rad2deg(environment.beta_wave)) ...
+        '°, H_s = ' num2str(environment.Hs) ' m and \omega_0 = ' ...
+        num2str(environment.w0) ' rad/s'], 'FontSize', 12);
+end
+set(findall(gcf, 'type', 'text'), 'FontSize', 12);
+set(findall(gcf, 'type', 'legend'), 'FontSize', legendSize);
+
+%% Directional wave spectrum and wave elevation
+figure(10); clf;
 subplot(211);
 hold on;
 if environment.spreadingFlag
@@ -600,7 +637,7 @@ vehicleData = {...
     'Hydrodynamic model', 'MSS-Capytaine', ...
     'Photo credit', 'NTNU AUR-Lab.'};
 displayVehicleData('Light AUV (LAUV) Marie', vehicleData, ...
-    'lauv_marie.png', 10);
+    'lauv_marie.png', 11);
 
 
 end

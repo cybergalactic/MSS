@@ -5,7 +5,8 @@
 % seakeeping data. Full documentation is available in CRAFT/CRAFT-Library.md.
 %
 % Hydrodynamic vessel workflow:
-%   SIMhydroVessel  - Editable simulation template for a user-defined USV,
+%   SIMhydroVessel  - Editable simulation template with first-order waves and
+%                     second-order mean drift for a user-defined craft,
 %                     AUV, ship, or floating structure. Includes irregular
 %                     waves, force RAOs, currents, autopilot, and DP control.
 %   hydroVessel     - Nonlinear 12-state, 6-DOF equations of motion using

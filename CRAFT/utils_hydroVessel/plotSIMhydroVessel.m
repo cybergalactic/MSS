@@ -19,7 +19,8 @@ r     = simdata(:,12);
 
 tau           = simdata(:,13:18);
 tau_wave1     = simdata(:,19:24);
-waveElevation = simdata(:,25);
+tau_wave2     = simdata(:,25:30);
+waveElevation = simdata(:,31);
 
 spreadingFlag = environment.spreadingFlag;
 spectrumType = environment.spectrumType;
@@ -102,8 +103,27 @@ if ~isoctave
         '\omega_0 = ', num2str(w0), ' rad/s'],'FontSize', 12);
 end
 
-%% Plot the wave spectrum and wave elevation
+%% Plot the 6-DOF 2nd-order mean wave-drift loads
 figure(6); clf;
+figure(gcf)
+DOF_txt = {'Surge (N)', 'Sway (N)', 'Heave (N)',...
+    'Roll (Nm)', 'Pitch (Nm)', 'Yaw (Nm)'};
+for DOF = 1:6
+    subplot(6, 1, DOF);
+    plot(t, tau_wave2(:, DOF), 'LineWidth', 1.5);
+    xlabel('Time (s)');
+    grid on;
+    legend(DOF_txt{DOF});
+end
+
+if ~isoctave
+    sgtitle(['Generalized 2nd-order mean wave-drift loads for \beta_{wave} = ' ...
+        num2str(rad2deg(beta_wave)), '°, H_s = ', num2str(Hs), ' m and ' ...
+        '\omega_0 = ', num2str(w0), ' rad/s'],'FontSize', 12);
+end
+
+%% Plot the wave spectrum and wave elevation
+figure(7); clf;
 figure(gcf)
 subplot(211);
 hold on;

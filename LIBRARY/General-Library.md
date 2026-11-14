@@ -21,7 +21,7 @@ The MSS general library contains reusable MATLAB and GNU Octave functions for ma
 - `crossFlowDrag.m`, `forceLiftDrag.m`, and `XuuITTC.m`: nonlinear hydrodynamic loads.
 - `eulerang.m`, `Rzyx.m`, `Rquat.m`, and `Tquat.m`: attitude kinematics.
 - `oceanCurrents.m`: BODY-frame current velocity and derivative from NED speed, azimuth, and elevation, with constant and bounded stochastic models following Section 10.3 of Fossen (2027).
-- `waveSpectrum.m`, `waveDirectionalSpectrum.m`, `waveInitialization.m`, `waveForceRAO.m`, and `waveMotionRAO.m`: irregular-wave modeling and response.
+- `waveSpectrum.m`, `waveDirectionalSpectrum.m`, `waveInitialization.m`, `waveForceRAO.m`, `waveDriftRAO.m`, and `waveMotionRAO.m`: irregular-wave modeling and response.
 - `waveEncounterPhase.m`: signed encounter-phase accumulation shared by the force- and motion-RAO functions.
 - `turncircle.m`, `zigzag.m`, and `zigzag6dof.m`: standard maneuvering trials.
 - `rk4.m`: fourth-order Runge–Kutta integration.
@@ -58,8 +58,33 @@ Initialize the spectrum and RAO tables once, then retain the updated
 for t = 0:0.1:100
     [tau_wave1, waveElevation, waveModel] = waveForceRAO( ...
         t, waveModel, U, psi, beta_wave);
+    [tau_wave2, waveModel] = waveDriftRAO( ...
+        waveModel, psi, beta_wave);
 end
 ```
+
+`waveDriftRAO` implements the Wiley mean-drift convention
+`H_wave2(omega,beta_rel) * A^2`. It interpolates the real, signed
+`vessel.drift.coeff{1:3}` tables for surge, sway, and yaw and sums the
+squared-amplitude contributions. The base result is
+`[X Y 0 0 0 N]'` at the hydrodynamic dataset's reference origin. No load
+application point is inferred. When a simulation origin differs, transform
+the generalized load explicitly with the same convention used for other
+hydrodynamic loads, for example `tau_CO = Hmtrx(r_CO_to_data)' * tau_data`.
+That explicit translation may create roll and pitch moments from the
+horizontal forces.
+
+The drift tables and first-order RAOs currently use speed index 1. Forward
+speed changes the first-order encounter phase but does not alter the stored
+zero-speed mean-drift coefficients. `waveDriftRAO` includes equal-frequency
+mean drift only; it does not synthesize fluctuating difference-frequency or
+sum-frequency QTF loads. Its returned `waveModel` is unchanged.
+
+For a submerged body, an optional positive-down depth applies
+`exp[-2(omega^2/g) Delta_d]` below `waveModel.raoReferenceDepth`. This is the
+square of the first-order incident-wave amplitude attenuation because the
+mean-drift contribution scales with wave amplitude squared. Omitting depth
+preserves the surface-vessel behavior; shallower depths do not amplify loads.
 
 For motion RAOs, select the motion model and retain the fifth output:
 
@@ -80,10 +105,11 @@ described in Chapter 10 of Fossen (2027). Motion velocities and accelerations
 use the quasi-steady RAO derivatives at the current operating point.
 
 `beta_wave` is the propagation direction in NED; the relative direction is
-`beta_wave - psi`. Pass the speed used in the book's forward-speed encounter
-relation. Calls must be in nondecreasing time order. Each realization retains
-its own phase history in `waveModel`; reinitialize it to restart. No persistent
-wave state or `clear` statement is required.
+`beta_wave - psi`. This heading convention is shared by the first-order and
+mean-drift interpolations. Pass the speed used in the book's forward-speed
+encounter relation. Calls must be in nondecreasing time order. Each realization
+retains its own phase history in `waveModel`; reinitialize it to restart. No
+persistent wave state or `clear` statement is required.
 
 **Updating existing simulation loops:** the input arguments are unchanged.
 Retain the third output of `waveForceRAO` or the fifth output of
