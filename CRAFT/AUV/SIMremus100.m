@@ -20,9 +20,6 @@ function SIMremus100()
 %                           and angle wrapping
 %   displayVehicleData    - Display the vehicle data and an image of the vehicle
 %
-% Simulink Models:
-%   demoAUVdepthHeadingControl.slx : Depth and heading control.
-%
 % References:
 %   E. M. Coates and T. I. Fossen (2026). A Spherical Amplitude–Phase Formulation 
 %       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability

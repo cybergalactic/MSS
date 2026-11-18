@@ -368,8 +368,8 @@ The former `exOtter` command is retained in `GNC/obsolete` as a compatibility en
 ### Processing of data from hydrodynamic codes (m-files)
 
 ```matlab
-vessel2ss          % computes the fluid-memory transfer functions and stores the data as a mat-file containing the structure <vesselABC>
-wamit2vessel       % Reads data from WAMIT output files and stores the data as a mat-file containing the structure <vessel>
+vessel2ss           % Identifies fluid-memory transfer functions and saves the vesselABC structure to a MAT-file
+wamit2vessel        % Imports WAMIT output and saves the MSS vessel structure to a MAT-file
 ```
 
 The WAMIT importer and MSS-Capytaine exporter create the frequency-dependent vessel
@@ -511,6 +511,8 @@ plot_wamitidf       % Plot a WAMIT intermediate-order IDF geometry
 ```
 
 ## Frequency-domain identification (FDI) of radiation models (m-files)
+
+See the [FDI Toolbox documentation](FDI_TOOLBOX/FDI-Toolbox.md) for setup and applications.
 
 ### FDI demos
 ```matlab

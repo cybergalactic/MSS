@@ -13,9 +13,6 @@ function SIMmariner()
 %   LOSobserver.m       - Observer for LOS guidance. 
 %   controlMethods.m    - Menu for choosing control law.
 %
-% Simulink Models:
-%   demoMarinerPathFollowingCourseControl.slx
-%
 % References: 
 %   T. I. Fossen (2022). Line-of-sight Path-following Control utilizing an 
 %      Extended Kalman Filter for Estimation of Speed and Course over Ground 

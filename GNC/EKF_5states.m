@@ -48,11 +48,6 @@ function x_prd = EKF_5states(position1, position2,...
 % See exOtterEKF.m and SIMmariner.m for case studies using EKF_5states.m to 
 % estimate the COG, SOG, and course rate.
 %
-% Simulink Models:
-%   demoMarinerPathFollowingCourseControl.slx : Simulink model demonstrating  
-%       path-following course control using straight lines and waypoint 
-%       switching.
-%
 % References: 
 %   S. Fossen and T. I. Fossen (2021). Five-state Extended Kalman Filter for 
 %     Estimation of Speed Over Ground (SOG), Course Over Ground (COG) and

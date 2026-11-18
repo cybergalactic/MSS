@@ -55,9 +55,6 @@ function [xdot, U, M, B_delta] = npsauv(x, ui, Vc, betaVc, vD_c)
 %   SIMnpsauv.m : Script demonstrating MIMO PID heading and deph control
 %                 as well as 3-D ALOS path-following control.
 %
-% Simulink Simulators:
-%   demoNPSAUV.slx : Simulink model demonstrating PID heading control.
-%
 % Reference: 
 %   A. J. Healey and Lienard, D. (1993). Multivariable Sliding Mode Control 
 %     for Autonomous Diving and Steering of Unmanned Underwater Vehicles,

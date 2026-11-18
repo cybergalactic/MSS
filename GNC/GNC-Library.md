@@ -41,5 +41,3 @@ mssPath
 For GNU Octave, follow the [GNU Octave installation guide](../How%20to%20install%20MSS%20for%20GNU%20Octave.md).
 
 The [`mssExamples`](../mssExamples/) and [`mssDemos`](../mssDemos/) directories contain examples that use these functions.
-
-The independent five-state EKF block embedded in the Simulink library returns the corrected estimate at the current Simulink sample. It does not call the M-file function.

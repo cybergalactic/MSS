@@ -1,6 +1,6 @@
 function [table, pathlength] = order5(drawmode, constraint, x_vector,y_vector)
 % [table, pathlength] = ORDER5(drawmode, constraint, x_vector,y_vector)
-% Path generation using 5th order polynominals. To be used with demoWpt.mdl
+% Path generation using 5th order polynomials.
 %
 % This version uses a fifth-order polynomial and makes the second
 % derivatives in each waypoint start and end in zero. The calculations are
@@ -139,7 +139,6 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  CREATING THE LOOKUP TABLE CONTAINING ALL INFORMATION ABOUT THE PATH         %%
-%%   This table is for use in demowpt.mdl                                       %%
 %%   The table has N-1 columns, where N is the number of waypoints.             %%
 %%                                                                              %%
 %%  - Column 1-6 contains the polynomial for the x-direction                    %%

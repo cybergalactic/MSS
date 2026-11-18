@@ -11,14 +11,17 @@ Second, `computeManeuveringModel` forms the constant power-based maneuvering mod
 
 The raw WAMIT files remain in the `tanker_wamitData`,
 `semisub_wamitData`, and `fpso_wamitData` subfolders.
+See [Configure WAMIT for MSS import](WAMIT-Configuration.md) for solver
+settings and required files.
 The importer always saves the MAT-file beside itself, even when called from
 another working directory. The three MAT-files are then available by name on
 the MSS path, for example `load tanker.mat`.
 
 ## Regenerate the three MAT-files
 
-Run these calls from `HYDRO/vessels_wamit`. They use the stored damping defaults
-and do not open plots or request input:
+Run these calls from `HYDRO/vessels_wamit` to use the bundled damping
+settings and suppress plots. For the tanker and semisubmersible, press
+Return when the importer pauses for the mass check.
 
 ```matlab
 wamit2vessel(fullfile('tanker_wamitData','tanker'),10,246,46,'0000', ...

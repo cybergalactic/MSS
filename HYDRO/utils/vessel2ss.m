@@ -227,5 +227,5 @@ vesselABC.r_g       = r_g;
 
 save([vessel.main.name 'ABC'],'vesselABC');
 disp('------------------------------------------------------------------ ')
-disp(['Simulink structure <vesselABC> has been saved to: ' vessel.main.name 'ABC.mat']);
+disp(['Saved the vesselABC structure to MAT-file ' vessel.main.name 'ABC.mat']);
 disp('------------------------------------------------------------------ ')

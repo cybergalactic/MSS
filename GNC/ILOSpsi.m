@@ -50,7 +50,7 @@ function [psi_ref, y_e] = ILOSpsi(x,y,Delta_h,kappa,h,R_switch,wpt)
 %   on Decision and Control, pp. 4984–4991, Cancun, Mexico.
 %
 % For course control use the functions LOSchi.m and ILOSchi.m.
-% See also: SIMotter.m and demoOtterUSVPathFollowingHeadingControl.slx
+% See also: SIMotter.m
 % for example implementations using an Otter USV.
 %  
 % Author:    Thor I. Fossen

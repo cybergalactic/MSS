@@ -18,10 +18,6 @@ function SIMnpsauv()
 %   LOSobserver.m         - Observer for LOS guidance 
 %   ssa.m                 - Angle wrapping
 %
-% Simulink Models:
-%   demoNPSAUV.slx : Simulink model demonstrating PID heading control.
-%
-% References:
 % References:
 %   E. M. Coates and T. I. Fossen (2025). Aspherical Amplitude–Phase Formulation 
 %       for 3-D Adaptive Line-of-Sight (ALOS) Guidance with USGES Stability

@@ -3,8 +3,8 @@
 % GNU Octave (https://www.octave.org), facilitating broad accessibility and
 % application in marine systems simulation. It includes models for ships,
 % underwater vehicles, uncrewed surface vehicles, and floating structures.
-% The library also contains guidance, navigation, and control (GNC) blocks
-% for real-time simulation.
+% The library also contains guidance, navigation, and control (GNC) functions
+% for time-domain simulation.
 %
 % To begin using the MSS toolbox, ensure it is installed and properly set
 % up in your MATLAB/Octave environment. Copy the directory MSS/... to your
@@ -34,12 +34,6 @@
 %
 %   https://github.com/cybergalactic/MSS-Capytaine
 %
-% Capytaine supply and S175 replace the removed ShipX catalogue/importer.
-% Legacy speed-dependent S175 data remain only in mssExamples/data for the
-% power-based comparison. Default averaging uses JONSWAP at 1 rad/s, gamma 3.3.
-%
 % Dedicated unified maneuvering/seakeeping simulations include SIMotter and
 % SIMlauvMarie, with nonlinear craft dynamics, currents, and force-RAO waves.
 % SIMotter also offers the first-principles otter_legacy model for comparison.
-% Force and motion RAO functions retain encounter-phase history explicitly
-% in the returned waveModel; see LIBRARY/General-Library.md for calling syntax.

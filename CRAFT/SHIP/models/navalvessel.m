@@ -37,7 +37,7 @@ function [xdot,U] = navalvessel(x, tau)
 %     Institute) 1983-1989. 
 %	- Adapted for Matlab by Mogens Blanke and Antonio Tiano 1996
 %   - Modified for Matlab 5.3 implementation by Mogens Blanke 1997
-%   - Modified for Simulink by Mogens Blanke and Tristan Perez, 2001 
+%   - Revised by Mogens Blanke and Tristan Perez, 2001
 %   - This version is further modified by Tristan Perez to match the data 
 %     of the vessel design of ADI-Limited Australia.
 

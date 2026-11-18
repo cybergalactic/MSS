@@ -4,15 +4,13 @@
 % L     = vessel length  (m)
 % 
 % B & L should be loaded from file with vessel's particulars
-% Other data is captured from Simulink model
 %
 % Vessel shape is determined as five consequently connected points 
 % determinned from B & L.
 %
 % K     = vessel course             (rad)
 % XY    = vessel CG track [x,y]
-% XY1   = vessel CG track, taken for shape plotting period 
-% (specified in Simulink model)
+% XY1   = vessel CG track sampled at the shape plotting interval
 %
 % Author:    Aleksandr D. Pipchenko
 % Date:      20th June 2007

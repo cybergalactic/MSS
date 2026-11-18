@@ -738,7 +738,7 @@ end
 %--------------------------------------------------------------------------
 outputFile = fullfile(fileparts(mfilename('fullpath')),[vesselfile '.mat']);
 save(outputFile,'vessel','-v7');
-disp(['Simulink structure <vessel> has been saved to: ' outputFile]);
+disp(['Saved the MSS vessel structure to MAT-file ' outputFile]);
 disp('-------------------------------------------------------------------')
 
 end

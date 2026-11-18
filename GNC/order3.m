@@ -1,7 +1,7 @@
 function [table, pathlength] = order3(x_vector,y_vector, drawmode, mode, xstart, xfinal, ystart, yfinal)
 % [table, pathlength] = ORDER3(x_vector,y_vector, drawmode, mode, xstart, xfinal, ystart, yfinal)
 %
-% Path generation using cubic polynominals. To be used with demowpt.mdl
+% Path generation using cubic polynomials.
 %
 % This version uses the cubic spline method to create a third-order polynomial going through 
 % all the waypoints. All calculations are made offline, and the coeficcients are returned in
@@ -116,7 +116,6 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  CREATING THE LOOKUP TABLE CONTAINING ALL INFORMATION ABOUT THE PATH         %%
-%%   This table is for use in demowpt.mdl                                       %%
 %%   The table has N-1 columns, where N is the number of waypoints.             %%
 %%                                                                              %%
 %%  - Column 1-4 contains the polynomial for the x-direction                    %%

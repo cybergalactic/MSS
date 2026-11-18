@@ -6,7 +6,7 @@ HYDRO imports, processes, inspects, and converts seakeeping data for use in MSS.
 
 | Source | License | Included cases and instructions |
 | --- | --- | --- |
-| WAMIT | Commercial | [WAMIT vessel documentation](vessels_wamit/WAMIT-Vessels.md) |
+| WAMIT | Commercial | [Configuration and import](vessels_wamit/WAMIT-Configuration.md) · [Bundled vessels](vessels_wamit/WAMIT-Vessels.md) |
 | Capytaine through MSS-Capytaine | Open source | [Capytaine vessel documentation](vessels_capytaine/Capytaine-Vessels.md) |
 
 [MSS-Capytaine](https://github.com/cybergalactic/MSS-Capytaine) computes 6-DOF linear potential-flow hydrodynamics with the open-source Capytaine solver and exports the results in the MSS `vessel` format. Pre-generated Capytaine examples are included and do not require Python unless they are regenerated.
@@ -46,7 +46,7 @@ plotBv(vessel);
 | [`vesselPeriods.m`](../LIBRARY/modeling/vesselPeriods.m) | Compute coupled or decoupled heave/roll/pitch periods, damped and undamped natural frequencies, and damping ratios. |
 | `Hoerner.m` and `cylinderDrag.m` | Hydrodynamic drag-coefficient utilities. |
 
-Supporting numerical functions are located in [`utils`](utils/), plotting helpers in [`utils/plotting`](utils/plotting/), and WAMIT geometry tools in [`utils/gdf`](utils/gdf/). Radiation-model identification is documented in the [FDI Toolbox documentation](../FDI/FDI-Toolbox.md).
+Supporting numerical functions are located in [`utils`](utils/), plotting helpers in [`utils/plotting`](utils/plotting/), and WAMIT geometry tools in [`utils/gdf`](utils/gdf/). Radiation-model identification is documented in the [FDI Toolbox documentation](../FDI_TOOLBOX/FDI-Toolbox.md).
 
 `computeManeuveringModel(vessel)` uses a fixed JONSWAP reference at `omega_p = 1.0` rad/s with `gamma = 3.3`; pass a different peak explicitly when required. Equivalent matrices are recomputed in memory from the frequency-dependent data. Damping inputs are read from `vessel.powerBased` when available. All catalogue files store these inputs; `wamit2vessel` prompts with editable defaults before saving WAMIT files. Viscous damping is additive: `D = B_eq + Bv`. Changing the reference or damping inputs does not require a new hydrodynamic solve; saving the modified structure is a separate action.
 

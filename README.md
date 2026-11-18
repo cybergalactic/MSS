@@ -2,6 +2,12 @@
 
 The Marine Systems Simulator (MSS) is a MATLAB library (www.mathworks.com) for designing and testing marine control systems. The m-files are compatible with the free software GNU Octave (www.octave.org). MSS includes models for ships, underwater vehicles, uncrewed surface vehicles, and floating structures. The library also contains guidance, navigation, and control (GNC) functions for time-domain simulation.
 
+See [Getting Started with MSS](DOCS/GETTING-STARTED.md) to install the toolbox, run a first simulation, and choose a craft model.
+
+Follow [How to Build Your Own Marine Craft Simulator](DOCS/BUILD-YOUR-OWN-SIMULATOR.md) to generate vessel data with MSS-Capytaine and run your own model.
+
+See the [textbook](DOCS/TEXTBOOK.md), [handbook lecture notes](https://wiley.fossen.biz/), and [MSS references](DOCS/REFERENCES.md) for the theory behind the toolbox.
+
 **License and use.** You may use, copy, modify, distribute and sell the code, including for commercial applications, under the [MIT License](LICENSE). Retain the copyright and license notices in copies or substantial portions of the code.
 
 **Use at your own risk.** This software is supplied without warranty or guarantee of accuracy, reliability, safety or fitness for a particular purpose. Users are responsible for validating results and ensuring safe application. To the extent permitted by law, the author and contributors accept no liability for accidents, personal injury, property damage or other loss arising from its use. See the [MIT license](LICENSE).
@@ -16,19 +22,15 @@ The new [`otter.m`](CRAFT/USV/models/otter.m) provides a unified 6-DOF maneuveri
 
 The CRAFT library also includes the dedicated [`lauvMarie.m`](CRAFT/AUV/models/lauvMarie.m) and [`SIMlauvMarie.m`](CRAFT/AUV/SIMlauvMarie.m) pair. This is a standalone, wave-enabled model of the 2.15 m LAUV Marie at NTNU, rather than another configuration of the generic `hydroVessel` model. It combines MSS-Capytaine hydrodynamic data with a unified power-based seakeeping/maneuvering formulation, calibratable viscous and friction terms, and additional nonlinear hydrodynamic terms. Its simulation supports ocean currents, directional JONSWAP waves with depth-attenuated first-order wave loads, depth/heading control, and ALOS guidance for 3-D path following.
 
-The force- and motion-RAO functions accumulate signed encounter phase during changes in speed and heading, consistent with Chapter 10 of Fossen (2027). Custom simulation loops should retain the updated `waveModel` output at each call; see the [wave-function interfaces](LIBRARY/General-Library.md#wave-simulation). The supplied simulations and examples use this convention. Craft images are organized under `CRAFT/<type>/models/figs`, with the existing Simulink copies retained.
+The force- and motion-RAO functions accumulate signed encounter phase during changes in speed and heading, consistent with Chapter 10 of Fossen (2027). Custom simulation loops should retain the updated `waveModel` output at each call; see the [wave-function interfaces](LIBRARY/General-Library.md#wave-simulation). The supplied simulations and examples use this convention. Craft images are organized under `CRAFT/<type>/models/figs`.
 
 This release aligns with [MSS-Capytaine 1.2](https://github.com/cybergalactic/MSS-Capytaine). Capytaine supply-vessel and S175 datasets replace the former ShipX catalogue, and the ShipX importer has been removed. The speed-dependent S175 dataset used by the 2025 power-based averaging example is retained separately in [`mssExamples/data`](mssExamples/data/README.md). WAMIT import remains available. The open-source MSS-Capytaine add-on provides a workflow for generating hydrodynamic vessel models without commercial seakeeping software.
 
 Power-based averaging now uses a common JONSWAP reference with peak frequency `omega_p = 1.0` rad/s and `gamma = 3.3`. The [`exManeuveringModel`](mssExamples/exManeuveringModel.m) comparison uses this same wave baseline and identical additive viscous damping in both methods, with a 300 s default duration to show the response after startup transients.
 
-Legacy Simulink vessel templates have been removed. The Simulink library and demonstration models remain included.
-
 Hydrodynamic modeling and the GNC algorithms are described in:
 
     T. I. Fossen (2027). Handbook of Marine Craft Hydrodynamics and Motion Control. 3rd Edition, Wiley (in progress).
-
-The lecture notes https://wiley.fossen.biz serve as documentation for the toolbox.
 
 ### Recommended citation
 
@@ -59,7 +61,7 @@ For the original MSS development and historical background, use:
 
 ### Get Started
 
-To get started and find help on using the MSS, type the following command in the MATLAB command window:
+To open the online MSS Quick Reference, run:
 
     mssHelp
 
@@ -76,7 +78,6 @@ Examples and demo files are located under the catalogs:
 
     /MSS/mssExamples/                       Textbook m-file examples (Fossen 2027)
     /MSS/mssDemos/                          MSS m-file demos
-    /MSS/SIMULINK/mssSimulinkDemos/         Simulink demos
 
 ## GNC Library
 
@@ -124,14 +125,14 @@ Run `mssCraft` in the MATLAB or GNU Octave Command Window to display two lists: 
 
 See the [HYDRO Library documentation](HYDRO/HYDRO-Library.md) for the complete data-processing and simulation workflow.
 
-## FDI Toolbox
+## Frequency-Domain Identification (FDI) Toolbox
 
 This is a stand-alone toolbox for identifying radiation-force models and fluid-memory effects of marine structures such as marine craft and wave energy converters. Please include the following reference when you use the MSS FDI toolbox:
  
     T. Perez and T. I. Fossen (2009). A Matlab Tool for Parametric Identification of Radiation-Force Models of Ships and Offshore Structures. 
     Modeling, Identification and Control, MIC-30(1):1-15. DOI: https://doi.org/10.4173/mic.2009.1.1 
 
-See the [FDI Toolbox documentation](FDI/FDI-Toolbox.md) for demonstrations, functions, and documentation.
+See the [FDI Toolbox documentation](FDI_TOOLBOX/FDI-Toolbox.md) for demonstrations and applications.
 
 ## General Library
 

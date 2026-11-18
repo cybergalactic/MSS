@@ -70,11 +70,9 @@ Craft photographs and simulation illustrations are stored alongside the models:
 - [USV images](USV/models/figs/), including `otter.jpg`.
 - [Ship and floating-structure images](SHIP/models/figs/).
 
-`displayVehicleData` prefers these folders when a simulator supplies an image
-name, so the images do not depend on the Simulink folders being on the path.
-Explicit image paths and older path-based lookups are also supported. Existing
-copies in `SIMULINK/figs` are retained for the Simulink models. The REMUS
-simulation illustration is stored with the AUV models.
+`displayVehicleData` searches these folders first when a simulator supplies
+an image name. It also accepts explicit image paths and supports lookups on
+the MATLAB or GNU Octave search path.
 
 ### LAUV Marie standalone wave model
 
