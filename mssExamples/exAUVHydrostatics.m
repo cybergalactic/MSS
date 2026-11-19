@@ -1,4 +1,4 @@
-% This script calculates various AUV parameters including dimensions,
+% exAUVhydrostatics calculates various AUV parameters including dimensions,
 % physical properties, center of gravity (CG), center of buoyancy (CB),
 % moments of inertia, metacentric heights, and the g vector based on
 % Fossen (2027, Chapter 4.1).
